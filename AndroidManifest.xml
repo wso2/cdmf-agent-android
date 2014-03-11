@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.wso2.mobile.mdm"
+    android:sharedUserId="com.wso2.mobile.mdm"
+    android:sharedUserLabel="@string/hello_world"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="15"
+        android:targetSdkVersion="17" />
+
+    <!-- GCM connects to Google Services. -->
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- GCM requires a Google account. -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+
+    <!-- Keeps the processor from sleeping when a message is received. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+    <!--
+     Creates a custom permission so only this app can receive its messages.
+
+     NOTE: the permission *must* be called PACKAGE.permission.C2D_MESSAGE,
+           where PACKAGE is the application's package name.
+    -->
+    <permission
+        android:name="com.wso2.mobile.mdm.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="com.wso2.mobile.mdm.permission.C2D_MESSAGE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" >
+    </uses-permission>
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" >
+    </uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_GPS" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permisssion.ACCESS_COARSE_LOCATION" >
+    </uses-permission>
+    <uses-permission android:name="android.permission.SEND_SMS" >
+    </uses-permission>
+    <uses-permission android:name="android.permission.RECEIVE_SMS" >
+    </uses-permission>
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.WRITE_SMS" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.READ_LOGS" />
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.WRITE_CALL_LOG" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" >
+    </uses-permission>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" >
+    </uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" >
+    </uses-permission>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:screenOrientation="portrait"
+        android:theme="@style/TopBarTheme" >
+        <activity
+            android:name="com.wso2.mobile.mdm.MainActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:theme="@style/TopBarTheme" >
+        </activity>
+        <activity
+            android:name="com.wso2.mobile.mdm.DisplayDeviceInfoActivity"
+            android:label="@string/title_activity_display_device_info"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name="com.wso2.mobile.mdm.RegisterSuccessfulActivity"
+            android:label="@string/title_activity_register_successful"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Sherlock" >
+        </activity>
+
+        <!-- Begin List of Receivers -->
+        <receiver
+            android:name="com.google.android.gcm.GCMBroadcastReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND" >
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+
+                <category android:name="com.wso2.mobile.mdm" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="com.wso2.mobile.mdm.services.WSO2DeviceAdminReceiver"
+            android:permission="android.permission.BIND_DEVICE_ADMIN" >
+            <intent-filter>
+
+                <!-- This action is required -->
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+
+            <!-- This is required this receiver to become device admin component. -->
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/wso2_device_admin" >
+            </meta-data>
+        </receiver>
+        <receiver android:name="com.wso2.mobile.mdm.services.SMSReceiver" >
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
+        <!-- End List of Receivers -->
+        <service android:name="com.wso2.mobile.mdm.GCMIntentService" />
+
+        <activity
+            android:name="com.wso2.mobile.mdm.EntryActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name="com.wso2.mobile.mdm.AlreadyRegisteredActivity"
+            android:label="@string/title_activity_all_ready_registered"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Sherlock" >
+        </activity>
+        <activity
+            android:name="com.wso2.mobile.mdm.AuthenticationActivity"
+            android:label="@string/title_activity_authentication"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Sherlock"
+            android:windowSoftInputMode="stateUnchanged|adjustPan" >
+        </activity>
+        <activity
+            android:name="com.wso2.mobile.mdm.AuthenticationErrorActivity"
+            android:label="@string/title_activity_authentication_error"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name="com.wso2.mobile.mdm.NotifyActivity"
+            android:label="@string/title_activity_notify"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name="com.wso2.mobile.mdm.SettingsActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateUnchanged|adjustPan" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.wso2.mobile.mdm.AgentSettingsActivity"
+            android:label="@string/title_activity_agent_settings"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name="com.wso2.mobile.mdm.AvailableOperationsActivity"
+            android:label="@string/title_activity_available_operations"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name="com.wso2.mobile.mdm.PinCodeActivity"
+            android:label="@string/title_activity_pin_code"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateUnchanged|adjustPan" >
+        </activity>
+        <activity
+            android:name="com.wso2.mobile.mdm.Notification"
+            android:label="@string/title_activity_notification"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name="com.wso2.mobile.mdm.AlertActivity"
+            android:label="@string/title_activity_alert"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Dialog" >
+        </activity>
+        <activity
+            android:name="com.wso2.mobile.mdm.LogActivity"
+            android:label="@string/title_activity_log"
+            android:screenOrientation="portrait" >
+        </activity>
+    </application>
+
+</manifest>

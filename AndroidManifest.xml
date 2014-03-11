@@ -67,18 +67,18 @@
         android:screenOrientation="portrait"
         android:theme="@style/TopBarTheme" >
         <activity
-            android:name="com.wso2.mobile.mdm.MainActivity"
+            android:name="org.wso2.emm.agent.MainActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
             android:theme="@style/TopBarTheme" >
         </activity>
         <activity
-            android:name="com.wso2.mobile.mdm.DisplayDeviceInfoActivity"
+            android:name="org.wso2.emm.agent.DisplayDeviceInfoActivity"
             android:label="@string/title_activity_display_device_info"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="com.wso2.mobile.mdm.RegisterSuccessfulActivity"
+            android:name="org.wso2.emm.agent.RegisterSuccessfulActivity"
             android:label="@string/title_activity_register_successful"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Sherlock" >
@@ -96,8 +96,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name="com.wso2.mobile.mdm.services.WSO2DeviceAdminReceiver"
-            android:permission="android.permission.BIND_DEVICE_ADMIN" >
+            android:name="comorg.wso2.emm.agent.services.WSO2DeviceAdminReceiver           android:permission="android.permission.BIND_DEVICE_ADMIN" >
             <intent-filter>
 
                 <!-- This action is required -->
@@ -110,44 +109,44 @@
                 android:resource="@xml/wso2_device_admin" >
             </meta-data>
         </receiver>
-        <receiver android:name="com.wso2.mobile.mdm.services.SMSReceiver" >
+        <receiver android:name="comorg.wso2.emm.agent.services.SMSReceiver
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
         <!-- End List of Receivers -->
-        <service android:name="com.wso2.mobile.mdm.GCMIntentService" />
+        <service android:name="org.wso2.emm.agent.GCMIntentService" />
 
         <activity
-            android:name="com.wso2.mobile.mdm.EntryActivity"
+            android:name="org.wso2.emm.agent.EntryActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="com.wso2.mobile.mdm.AlreadyRegisteredActivity"
+            android:name="org.wso2.emm.agent.AlreadyRegisteredActivity"
             android:label="@string/title_activity_all_ready_registered"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Sherlock" >
         </activity>
         <activity
-            android:name="com.wso2.mobile.mdm.AuthenticationActivity"
+            android:name="org.wso2.emm.agent.AuthenticationActivity"
             android:label="@string/title_activity_authentication"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Sherlock"
             android:windowSoftInputMode="stateUnchanged|adjustPan" >
         </activity>
         <activity
-            android:name="com.wso2.mobile.mdm.AuthenticationErrorActivity"
+            android:name="org.wso2.emm.agent.AuthenticationErrorActivity"
             android:label="@string/title_activity_authentication_error"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="com.wso2.mobile.mdm.NotifyActivity"
+            android:name="org.wso2.emm.agent.NotifyActivity"
             android:label="@string/title_activity_notify"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="com.wso2.mobile.mdm.SettingsActivity"
+            android:name="org.wso2.emm.agent.SettingsActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateUnchanged|adjustPan" >
@@ -158,34 +157,34 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.wso2.mobile.mdm.AgentSettingsActivity"
+            android:name="org.wso2.emm.agent.AgentSettingsActivity"
             android:label="@string/title_activity_agent_settings"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="com.wso2.mobile.mdm.AvailableOperationsActivity"
+            android:name="org.wso2.emm.agent.AvailableOperationsActivity"
             android:label="@string/title_activity_available_operations"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="com.wso2.mobile.mdm.PinCodeActivity"
+            android:name="org.wso2.emm.agent.PinCodeActivity"
             android:label="@string/title_activity_pin_code"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateUnchanged|adjustPan" >
         </activity>
         <activity
-            android:name="com.wso2.mobile.mdm.Notification"
+            android:name="org.wso2.emm.agent.Notification"
             android:label="@string/title_activity_notification"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="com.wso2.mobile.mdm.AlertActivity"
+            android:name="org.wso2.emm.agent.AlertActivity"
             android:label="@string/title_activity_alert"
             android:screenOrientation="portrait"
             android:theme="@android:style/Theme.Dialog" >
         </activity>
         <activity
-            android:name="com.wso2.mobile.mdm.LogActivity"
+            android:name="org.wso2.emm.agent.LogActivity"
             android:label="@string/title_activity_log"
             android:screenOrientation="portrait" >
         </activity>

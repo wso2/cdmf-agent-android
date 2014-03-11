@@ -221,5 +221,11 @@ pip-log.txt
 #################
 .idea/ 
 
+#################
+## emm-agent-android
+#################
+plugins/ActionBarSherlock/library/bin/
+plugins/ActionBarSherlock/library/gen/
+
 
 

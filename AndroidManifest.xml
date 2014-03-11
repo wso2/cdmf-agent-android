@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.wso2.mobile.mdm"
-    android:sharedUserId="com.wso2.mobile.mdm"
+    package="org.wso2.emm.agent"
+    android:sharedUserId="org.wso2.emm.agent"
     android:sharedUserLabel="@string/hello_world"
     android:versionCode="1"
     android:versionName="1.0" >
@@ -96,7 +96,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name="comorg.wso2.emm.agent.services.WSO2DeviceAdminReceiver           android:permission="android.permission.BIND_DEVICE_ADMIN" >
+            android:name="org.wso2.emm.agent.services.WSO2DeviceAdminReceiver"           android:permission="android.permission.BIND_DEVICE_ADMIN" >
             <intent-filter>
 
                 <!-- This action is required -->
@@ -109,7 +109,7 @@
                 android:resource="@xml/wso2_device_admin" >
             </meta-data>
         </receiver>
-        <receiver android:name="comorg.wso2.emm.agent.services.SMSReceiver
+        <receiver android:name="org.wso2.emm.agent.services.SMSReceiver">
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>

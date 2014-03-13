@@ -195,20 +195,23 @@ public final class ServerUtilities {
 	
 	public static HttpClient getCertifiedHttpClient(Context context) {
 	     try {
-	    	 KeyStore localTrustStore = KeyStore.getInstance("BKS");
-	    	 InputStream in = context.getResources().openRawResource(R.raw.emm_truststore);
-	    	 localTrustStore.load(in, CommonUtilities.TRUSTSTORE_PASSWORD.toCharArray());
-
-	    	 SchemeRegistry schemeRegistry = new SchemeRegistry();
-	    	 schemeRegistry.register(new Scheme("http", PlainSocketFactory
-	    	                 .getSocketFactory(), 80));
-	    	 SSLSocketFactory sslSocketFactory = new SSLSocketFactory(localTrustStore);
-	    	 schemeRegistry.register(new Scheme("https", sslSocketFactory, 443));
-	    	 HttpParams params = new BasicHttpParams();
-	    	 ClientConnectionManager cm = 
-	    	     new ThreadSafeClientConnManager(params, schemeRegistry);
-
-	    	 HttpClient client = new DefaultHttpClient(cm, params);
+	    	 HttpClient client = null;
+	    	 if (CommonUtilities.SERVER_PROTOCOL.toLowerCase().equals("https://")){
+	    		 KeyStore localTrustStore = KeyStore.getInstance("BKS");
+		    	 InputStream in = context.getResources().openRawResource(R.raw.emm_truststore);
+		    	 localTrustStore.load(in, CommonUtilities.TRUSTSTORE_PASSWORD.toCharArray());
+		    	 SchemeRegistry schemeRegistry = new SchemeRegistry();
+		    	 schemeRegistry.register(new Scheme("http", PlainSocketFactory
+		    	                 .getSocketFactory(), 80));
+		    	 SSLSocketFactory sslSocketFactory = new SSLSocketFactory(localTrustStore);
+		    	 schemeRegistry.register(new Scheme("https", sslSocketFactory, 443));
+		    	 HttpParams params = new BasicHttpParams();
+		    	 ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
+		    	 client = new DefaultHttpClient(cm, params);
+	    	 } else {
+	    		 client = new DefaultHttpClient();
+	    	 }
+	    	 
 	    	 return client;
 	     } catch (Exception e) {
 	    	 e.printStackTrace();

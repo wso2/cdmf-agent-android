@@ -41,7 +41,7 @@ public class CommonUtilities {
 
 	public static void setSERVER_URL(String sERVER_URL) {
 		SERVER_IP = sERVER_URL;
-		SERVER_URL = "https://"+sERVER_URL+":"+SERVER_PORT+"/mdm/api/";
+		SERVER_URL = SERVER_PROTOCOL+sERVER_URL+":"+SERVER_PORT+"/mdm/api/";
 	}
 
 	/**

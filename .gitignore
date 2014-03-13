@@ -227,6 +227,4 @@ pip-log.txt
 #################
 plugins/ActionBarSherlock/library/bin/
 plugins/ActionBarSherlock/library/gen/
-
-
-
+lint.xml

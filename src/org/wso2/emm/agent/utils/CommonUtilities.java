@@ -24,7 +24,7 @@ import android.content.SharedPreferences;
  * app.
  */
 public class CommonUtilities {
-	public static boolean DEBUG_MODE_ENABLED = true;
+	public static boolean DEBUG_MODE_ENABLED = false;
 
 	public static String SERVER_IP = "----ADD YOUR HOSTNAME HERE----";
 	public static String SERVER_PORT = "9443";

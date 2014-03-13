@@ -99,19 +99,18 @@ public class Operation {
 		this.intent = intent;
 		this.mode = mode;
 		
-		logger = new LoggerCustom(context);
-		Time now = new Time();
-		now.setToNow();
-        String log_in = logger.readFileAsString("wso2log.txt");
-        String to_write="";
-        if(CommonUtilities.DEBUG_MODE_ENABLED){
+		if(CommonUtilities.DEBUG_MODE_ENABLED){
+			logger = new LoggerCustom(context);
+			Time now = new Time();
+			now.setToNow();
+			String log_in = logger.readFileAsString("wso2log.txt");
+			String to_write="";
+        
 	        if(log_in!=null && !log_in.equals("") && !log_in.equals("null")){
 	        	to_write="<br> SERVER TO AGENT AT "+now.hour+":"+now.minute+" : <br> CODE : "+intent.getStringExtra("message").trim()+"<br> MSG ID : "+intent.getStringExtra("token").trim()+"<br> DATA : "+intent.getStringExtra("data")+"<br>==========================================================<br>"+log_in;
 	        }else{
 	        	to_write="<br> SERVER TO AGENT AT "+now.hour+":"+now.minute+": <br> CODE : "+intent.getStringExtra("message").trim()+"<br> MSG ID : "+intent.getStringExtra("token").trim()+"<br> DATA : "+intent.getStringExtra("data")+"<br>==========================================================<br>";
 	        }
-	        
-	        
 	        logger.writeStringAsFile(to_write, "wso2log.txt");
         }
 

@@ -343,23 +343,24 @@ public final class ServerUtilities {
 	public static String pushData(Map<String, String> params_in, Context context) {
 		String response="";
 		try{
-			
-		logger = new LoggerCustom(context);
-		Time now = new Time();
-		now.setToNow();
-		String log_in = logger.readFileAsString("wso2log.txt");
-		String to_write="";
-		if(CommonUtilities.DEBUG_MODE_ENABLED){
-	        if(log_in!=null && !log_in.equals("") && !log_in.equals("null")){
-	        	to_write="<br> AGENT TO SERVER AT "+now.hour+":"+now.minute+": <br> CODE : "+params_in.get("code").toString()+"<br>MSG ID : "+params_in.get("msgID").toString()+"<br>==========================================================<br>"+log_in;
-	        }else{
-	        	to_write="<br> AGENT TO SERVER AT "+now.hour+":"+now.minute+": <br> CODE : "+params_in.get("code").toString()+"<br>MSG ID : "+params_in.get("msgID").toString()+"<br>==========================================================<br>";
-	        }
+		
+			if(CommonUtilities.DEBUG_MODE_ENABLED){
+				logger = new LoggerCustom(context);
+				Time now = new Time();
+				now.setToNow();
+				String log_in = logger.readFileAsString("wso2log.txt");
+				String to_write="";
+		
+				if(log_in!=null && !log_in.equals("") && !log_in.equals("null")){
+					to_write="<br> AGENT TO SERVER AT "+now.hour+":"+now.minute+": <br> CODE : "+params_in.get("code").toString()+"<br>MSG ID : "+params_in.get("msgID").toString()+"<br>==========================================================<br>"+log_in;
+				}else{
+					to_write="<br> AGENT TO SERVER AT "+now.hour+":"+now.minute+": <br> CODE : "+params_in.get("code").toString()+"<br>MSG ID : "+params_in.get("msgID").toString()+"<br>==========================================================<br>";
+				}
 	        
-	        logger.writeStringAsFile(to_write, "wso2log.txt");
-		}
-		response = sendWithTimeWait("notifications", params_in, "POST",
-				context).get("response");
+				logger.writeStringAsFile(to_write, "wso2log.txt");
+			}
+			response = sendWithTimeWait("notifications", params_in, "POST",
+					context).get("response");
 		
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

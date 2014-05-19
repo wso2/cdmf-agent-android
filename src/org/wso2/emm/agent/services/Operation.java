@@ -293,7 +293,7 @@ public class Operation {
 		Log.e("datadatadatadata","data"+data);
 		return doTask(featureCodeOp, data, REQUEST_MODE_NORMAL);
 		
-		
+		//
 	}	
 
 	public void executePolicy() {
@@ -305,23 +305,25 @@ public class Operation {
 		try {
 
 			policy = mainPref.getString("policy", "");
-			Log.e("INCOMING POLICY : ",policy);
-			jArray = new JSONArray(policy);
-			for (int i = 0; i < jArray.length(); i++) {
-				if(jArray.getJSONObject(i)!=null){
-					JSONObject policyObj = (JSONObject) jArray.getJSONObject(i);
-					if (policyObj.getString("data") != null
-							&& policyObj.getString("data") != "") {
-						doTask(policyObj.getString("code"),
-								policyObj.getString("data"), REQUEST_MODE_BUNDLE);
-					}
-				}
+			if(policy!=null && !policy.equals("")){
+    			Log.e("INCOMING POLICY : ",policy);
+    			jArray = new JSONArray(policy);
+    			for (int i = 0; i < jArray.length(); i++) {
+    				if(jArray.getJSONObject(i)!=null){
+    					JSONObject policyObj = (JSONObject) jArray.getJSONObject(i);
+    					if (policyObj.getString("data") != null
+    							&& policyObj.getString("data") != "") {
+    						doTask(policyObj.getString("code"),
+    								policyObj.getString("data"), REQUEST_MODE_BUNDLE);
+    					}
+    				}
+    			}
+    
+    			Editor editor = mainPref.edit();
+    			editor.putString("policy_applied", "1");
+    			editor.commit();
+    			this.data = policy;
 			}
-
-			Editor editor = mainPref.edit();
-			editor.putString("policy_applied", "1");
-			editor.commit();
-			this.data = policy;
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			Editor editor = mainPref.edit();

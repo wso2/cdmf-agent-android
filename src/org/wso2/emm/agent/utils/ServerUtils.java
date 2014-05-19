@@ -4,6 +4,8 @@ import org.wso2.mobile.idp.proxy.APIController;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
 import org.wso2.mobile.idp.proxy.APIUtilities;
 
+import android.util.Log;
+
 public class ServerUtils {
 
 	/**
@@ -18,6 +20,7 @@ public class ServerUtils {
 	 */
 	public static void callSecuredAPI(String endpoint, String methodType, APIResultCallBack apiResultCallBack, int requestCode) {
 		APIUtilities apiUtilities = new APIUtilities();
+		Log.e("CommonUtilities.SERVER_URL + endpoint + CommonUtilities.API_VERSION",CommonUtilities.SERVER_URL + endpoint + CommonUtilities.API_VERSION);
 		apiUtilities.setEndPoint(CommonUtilities.SERVER_URL + endpoint + CommonUtilities.API_VERSION);
 		apiUtilities.setHttpMethod(methodType);
 		APIController apiController = new APIController();

@@ -29,7 +29,7 @@ public class CommonUtilities {
 	public static boolean DEBUG_MODE_ENABLED = false;
 	public static boolean LOCAL_NOTIFICATIONS_ENABLED = false;
 	public static boolean GCM_ENABLED = true;
-
+//
 	//public static String SERVER_IP = "192.168.1.4";
 	//public static String SERVER_IP = "10.100.5.36";
 	public static String SERVER_IP = "10.10.10.123";

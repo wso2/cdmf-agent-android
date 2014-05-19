@@ -140,7 +140,7 @@ public class MainActivity extends Activity implements APIResultCallBack {
 					requestParams.put("regid", regId);
 					requestParams.put("properties", jsObject.toString());
 					requestParams.put("osversion", osVersion);
-					requestParams.put("username", "admin");
+					requestParams.put("username", "chatura");
 					requestParams.put("platform", "Android");
 					requestParams.put("vendor",
 							deviceInfo.getDeviceManufacturer());
@@ -151,7 +151,6 @@ public class MainActivity extends Activity implements APIResultCallBack {
 					apiUtilities.setEndPoint(CommonUtilities.SERVER_URL
 							+ CommonUtilities.REGISTER_ENDPOINT
 							+ CommonUtilities.API_VERSION);
-					//apiUtilities.setEndPoint("http://10.100.5.36:9763/emm/api/devicess/registerr/1.0.0");
 					apiUtilities.setHttpMethod("POST");
 					apiUtilities.setRequestParams(requestParams);
 					APIController apiController = new APIController();
@@ -231,6 +230,7 @@ public class MainActivity extends Activity implements APIResultCallBack {
 				if (responseStatus.equals(CommonUtilities.REGISTERATION_SUCCESSFUL)) {
 					Intent intent = new Intent(MainActivity.this,AlreadyRegisteredActivity.class);
 		        	intent.putExtra(getResources().getString(R.string.intent_extra_regid), regId);
+		        	intent.putExtra(getResources().getString(R.string.intent_extra_fresh_reg_flag), true);
 		        	intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		        	startActivity(intent);
 		        	//finish();

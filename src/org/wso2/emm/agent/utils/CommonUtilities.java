@@ -1,5 +1,5 @@
 /*
- ~ Copyright (c) 2013, WSO2Mobile Inc. (http://www.wso2mobile.com) All Rights Reserved.
+ ~ Copyright (c) 2013, WSO2Mobile Inc. (http://wso2.com/) All Rights Reserved.
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -31,7 +31,8 @@ public class CommonUtilities {
 	public static boolean GCM_ENABLED = true;
 
 	//public static String SERVER_IP = "192.168.1.4";
-	public static String SERVER_IP = "10.100.5.36";
+	//public static String SERVER_IP = "10.100.5.36";
+	public static String SERVER_IP = "10.10.10.123";
 	public static String SERVER_PORT = "9763";
 	public static String SERVER_PROTOCOL = "http://";
 	public static String API_VERSION = "1.0.0";
@@ -58,18 +59,24 @@ public class CommonUtilities {
 
 	/* Added for OAuth implementation */
 	
-	public static final String CLIENT_ID = "5Dk_yIPR6vOKOCbKQQk77ysz6iEa";
-	public static final String CLIENT_SECRET = "7yEjoCOydXXEsytxGEYk5kkr4c8a";
+	public static final String CLIENT_ID = "JXaYc73VDwsenUnRUdFeNr9hfx4a";
+	public static final String CLIENT_SECRET = "rgQZq_3TY2VTtf48Y3g7y9YOZtwa";
 	
 	public static final String EMPTY_STRING = "";
 	public static final String STATUS_KEY = "status";
 	
+	/* Request codes. */
 	public static final int REGISTER_REQUEST_CODE = 300;
 	public static final int IS_REGISTERED_REQUEST_CODE = 301;
 	public static final int SENDER_ID_REQUEST_CODE = 303;
 	public static final int LICENSE_REQUEST_CODE = 304;
 	public static final int UNREGISTER_REQUEST_CODE = 305;
 	public static final int NOTIFICATION_REQUEST_CODE = 306;
+	
+	/* Method types. */
+	public static final String GET_METHOD = "GET";
+	public static final String POST_METHOD = "POST";
+	
 
 	public static String getSERVER_URL() {
 		return SERVER_URL;

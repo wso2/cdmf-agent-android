@@ -29,7 +29,7 @@ public class AlarmReceiver extends BroadcastReceiver implements APIResultCallBac
     public void onReceive(Context context, Intent intent) {
         Log.d(DEBUG_TAG, "Recurring alarm; requesting download service.");
         this.context = context;
-        String mode=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_notifier));
+        String mode=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_message_mode));
 		if(mode.trim().toUpperCase().equals("LOCAL")){
 			getOperations();
 		}
@@ -44,6 +44,7 @@ public class AlarmReceiver extends BroadcastReceiver implements APIResultCallBac
 			String regId=mainPref.getString(context.getResources().getString(R.string.shared_pref_regId), "");
 			Map<String, String> params = new HashMap<String, String>();
 			params.put("regId", regId);
+			Log.e("regId",regId+"");
 			
 			APIUtilities apiUtilities = new APIUtilities();
 			apiUtilities.setEndPoint(CommonUtilities.SERVER_URL
@@ -51,6 +52,7 @@ public class AlarmReceiver extends BroadcastReceiver implements APIResultCallBac
 					+ CommonUtilities.API_VERSION);
 
 			apiUtilities.setHttpMethod("POST");
+			Log.e("endpoint", apiUtilities.getEndPoint());
 			APIController apiController = new APIController();
 			apiController.invokeAPI(apiUtilities, this,
 					CommonUtilities.NOTIFICATION_REQUEST_CODE);

@@ -20,7 +20,7 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver{
     }
     
     private void setRecurringAlarm(Context context) {
-    	String mode=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_notifier));
+    	String mode=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_message_mode));
     	SharedPreferences mainPref = context.getSharedPreferences(
     	                                         		         context.getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
     	long interval=mainPref.getLong(context.getResources().getString(R.string.shared_pref_interval), 1);

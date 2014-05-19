@@ -153,5 +153,8 @@
     <string name="server_util_req_type_post">POST</string>
     <string name="server_util_req_type_get">GET</string>
     <string name="title_activity_log">LogActivity</string>
+    
+    <!--  Headings -->
+     <string name="registration_heading">Set your server address here to start registration, i.e : www.abc.com</string>
 
 </resources>

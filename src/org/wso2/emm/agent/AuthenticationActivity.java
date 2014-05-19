@@ -498,6 +498,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 	@Override
 	public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
+		//{response=<ams:fault xmlns:ams="http://wso2.org/apimanager/security"><ams:code>900901</ams:code><ams:message>Invalid Credentials</ams:message><ams:description>Access failure for API: /emm/api/devices/sender_id, version: 1.0.0 with key: b1cfe043cc6aab24d05147dfc7b47f6</ams:description></ams:fault>, status=403}
 		manipulateSenderIdResponse(result, requestCode);
 		manipulateLicenseResponse(result, requestCode);
 

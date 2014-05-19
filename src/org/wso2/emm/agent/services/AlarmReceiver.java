@@ -42,8 +42,8 @@ public class AlarmReceiver extends BroadcastReceiver implements APIResultCallBac
 					.getSharedPreferences(context.getResources().getString(R.string.shared_pref_package),
 							Context.MODE_PRIVATE);
 			String regId=mainPref.getString(context.getResources().getString(R.string.shared_pref_regId), "");
-			Map<String, String> params = new HashMap<String, String>();
-			params.put("regId", regId);
+			Map<String, String> requestParams = new HashMap<String, String>();
+			requestParams.put("regId", regId);
 			Log.e("regId",regId+"");
 			
 			APIUtilities apiUtilities = new APIUtilities();
@@ -52,6 +52,7 @@ public class AlarmReceiver extends BroadcastReceiver implements APIResultCallBac
 					+ CommonUtilities.API_VERSION);
 
 			apiUtilities.setHttpMethod("POST");
+			apiUtilities.setRequestParams(requestParams);
 			Log.e("endpoint", apiUtilities.getEndPoint());
 			APIController apiController = new APIController();
 			apiController.invokeAPI(apiUtilities, this,

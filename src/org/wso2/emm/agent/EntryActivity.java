@@ -254,7 +254,7 @@ public class EntryActivity extends Activity {
 	        	        //mLicenseTask.execute();
 	        			Intent intent = new Intent(EntryActivity.this,AuthenticationActivity.class);
 	        			intent.putExtra(getResources().getString(R.string.intent_extra_regid), regId);
-	        			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+	        			//intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 	        			startActivity(intent);
 	        			//finish();
 	        		}

@@ -12,8 +12,10 @@
  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  ~ See the License for the specific language governing permissions and
  ~ limitations under the License.
-*/
+ */
 package org.wso2.emm.agent.utils;
+
+import org.wso2.emm.agent.R;
 
 import android.content.Context;
 import android.content.Intent;
@@ -25,32 +27,69 @@ import android.content.SharedPreferences;
  */
 public class CommonUtilities {
 	public static boolean DEBUG_MODE_ENABLED = false;
+	public static boolean LOCAL_NOTIFICATIONS_ENABLED = false;
+	public static boolean GCM_ENABLED = true;
 
-	public static String SERVER_IP = "----ADD YOUR HOSTNAME HERE----";
-	public static String SERVER_PORT = "9443";
-	public static String SERVER_PROTOCOL = "https://";
-	public static String SERVER_APP_ENDPOINT = "/mdm/api/";
-	public static String SERVER_URL = SERVER_PROTOCOL+SERVER_IP+":"+SERVER_PORT+SERVER_APP_ENDPOINT;
-    public static final String TRUSTSTORE_PASSWORD = "----ADD YOUR TRUST STORE PASSWORD HERE----";
-	public static final String EULA_TITLE = "----ADD YOUR AGREEMENT TITLE HERE----";
-	public static final String EULA_TEXT = "----ADD YOUR POLICY AGREEMENT HERE----";
+	//public static String SERVER_IP = "192.168.1.4";
+	public static String SERVER_IP = "10.100.5.36";
+	public static String SERVER_PORT = "9763";
+	public static String SERVER_PROTOCOL = "http://";
+	public static String API_VERSION = "1.0.0";
+	
+	public static String SERVER_APP_ENDPOINT = "/emm/api/";
+	public static String OAUTH_ENDPOINT = "/oauth2/token";
+	public static String SENDER_ID_ENDPOINT = "devices/sender_id/";
+	public static String IS_REGISTERED_ENDPOINT = "devices/isregistered/";
+	public static String LICENSE_ENDPOINT = "devices/license/";
+	public static String REGISTER_ENDPOINT = "devices/register/";
+	public static String UNREGISTER_ENDPOINT = "devices/unregister/";
+	public static String NOTIFICATION_ENDPOINT = "notifications/pendingOperations/";
+	
+	public static String SERVER_URL = SERVER_PROTOCOL + SERVER_IP + ":"
+			+ SERVER_PORT + SERVER_APP_ENDPOINT;
+	public static String SERVER_OAUTH_URL = SERVER_PROTOCOL + SERVER_IP + ":"
+			+ SERVER_PORT + OAUTH_ENDPOINT;
+	public static String SERVER_REQUEST_SENDER_ID_URL = SERVER_PROTOCOL
+			+ SERVER_IP + ":" + SERVER_PORT + SENDER_ID_ENDPOINT + API_VERSION;
 
-    	public static String getSERVER_URL() {
+	public static final String TRUSTSTORE_PASSWORD = "wso2mobile123";
+	public static final String EULA_TITLE = "-POLICY AGREEMENT-";
+	public static final String EULA_TEXT = "Test policy agreement.";
+
+	/* Added for OAuth implementation */
+	
+	public static final String CLIENT_ID = "5Dk_yIPR6vOKOCbKQQk77ysz6iEa";
+	public static final String CLIENT_SECRET = "7yEjoCOydXXEsytxGEYk5kkr4c8a";
+	
+	public static final String EMPTY_STRING = "";
+	public static final String STATUS_KEY = "status";
+	
+	public static final int REGISTER_REQUEST_CODE = 300;
+	public static final int IS_REGISTERED_REQUEST_CODE = 301;
+	public static final int SENDER_ID_REQUEST_CODE = 303;
+	public static final int LICENSE_REQUEST_CODE = 304;
+	public static final int UNREGISTER_REQUEST_CODE = 305;
+	public static final int NOTIFICATION_REQUEST_CODE = 306;
+
+	public static String getSERVER_URL() {
 		return SERVER_URL;
 	}
 
 	public static void setSERVER_URL(String sERVER_URL) {
 		SERVER_IP = sERVER_URL;
-		SERVER_URL = SERVER_PROTOCOL+sERVER_URL+":"+SERVER_PORT+"/mdm/api/";
+		/*SERVER_URL = SERVER_PROTOCOL + sERVER_URL + ":" + SERVER_PORT
+				+ "/mdm/api/";*/
+		SERVER_URL = SERVER_PROTOCOL + sERVER_URL + ":" + SERVER_PORT
+				+SERVER_APP_ENDPOINT;
 	}
 
 	/**
-     * Google API project id registered to use GCM.
-     */
+	 * Google API project id registered to use GCM.
+	 */
 
-	public static String SENDER_ID = "----ADD YOUR SENDER ID HERE----";
-	
-    	public static String getSENDER_ID() {
+	public static String SENDER_ID = "236529527108";
+
+	public static String getSENDER_ID() {
 		return SENDER_ID;
 	}
 
@@ -59,32 +98,35 @@ public class CommonUtilities {
 	}
 
 	/**
-     * Tag used on log messages.
-     */
+	 * Tag used on log messages.
+	 */
 	public static final String TAG = "WSO2MDM";
 
-    /**
-     * Intent used to display a message in the screen.
-     */
-	public static final String DISPLAY_MESSAGE_ACTION =
-            "com.google.android.gcm.demo.app.DISPLAY_MESSAGE";
+	/**
+	 * Intent used to display a message in the screen.
+	 */
+	public static final String DISPLAY_MESSAGE_ACTION = "com.google.android.gcm.demo.app.DISPLAY_MESSAGE";
 
-    /**
-     * Intent's extra that contains the message to be displayed.
-     */
+	/**
+	 * Intent's extra that contains the message to be displayed.
+	 */
 	public static final String EXTRA_MESSAGE = "message";
 	public static final int MESSAGE_MODE_GCM = 1;
-	public static final int MESSAGE_MODE_SMS = 2;	
-    
+	public static final int MESSAGE_MODE_SMS = 2;
+	public static final int MESSAGE_MODE_LOCAL = 3;
+	
+
 	/**
 	 * Status codes
 	 */
 	public static final String REQUEST_SUCCESSFUL = "200";
 	public static final String REGISTERATION_SUCCESSFUL = "201";
-	
+	public static final String REQUEST_FAILED = "500";
+	public static final String AUTHENTICATION_FAILED = "400";
+
 	/**
-     * Operation IDs
-     */
+	 * Operation IDs
+	 */
 	public static final String OPERATION_DEVICE_INFO = "500A";
 	public static final String OPERATION_DEVICE_LOCATION = "501A";
 	public static final String OPERATION_GET_APPLICATION_LIST = "502A";
@@ -113,19 +155,29 @@ public class CommonUtilities {
 	public static final String OPERATION_POLICY_MONITOR = "501P";
 	public static final String OPERATION_BLACKLIST_APPS = "528B";
 	public static final String OPERATION_POLICY_REVOKE = "502P";
-    
-    /**
-     * Notifies UI to display a message.
-     * <p>
-     * This method is defined in the common helper because it's used both by
-     * the UI and the background service.
-     *
-     * @param context application's context.
-     * @param message message to be displayed.
-     */
+
+	/**
+	 * Notifies UI to display a message.
+	 * <p>
+	 * This method is defined in the common helper because it's used both by the
+	 * UI and the background service.
+	 * 
+	 * @param context
+	 *            application's context.
+	 * @param message
+	 *            message to be displayed.
+	 */
 	public static void displayMessage(Context context, String message) {
-        Intent intent = new Intent(DISPLAY_MESSAGE_ACTION);
-        intent.putExtra(EXTRA_MESSAGE, message);
-        context.sendBroadcast(intent);
-    }
+		Intent intent = new Intent(DISPLAY_MESSAGE_ACTION);
+		intent.putExtra(EXTRA_MESSAGE, message);
+		context.sendBroadcast(intent);
+	}
+	
+	public static String getPref(Context context, String key) {
+		SharedPreferences mainPref = context.getSharedPreferences(context
+				.getResources().getString(R.string.shared_pref_package),
+				Context.MODE_PRIVATE);
+		return mainPref.getString(key, "");
+	}
+
 }

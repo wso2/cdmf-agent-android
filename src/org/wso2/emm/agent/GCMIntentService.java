@@ -58,13 +58,18 @@ public class GCMIntentService extends GCMBaseIntentService {
    
 
     @Override
-    protected void onRegistered(Context context, String registrationId) {
-    	if(CommonUtilities.DEBUG_MODE_ENABLED){Log.i(TAG, "Device registered: regId = " + registrationId);}
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(getResources().getString(R.string.shared_pref_regId), registrationId);
-        editor.commit();
-    }
+	protected void onRegistered(Context context, String registrationId) {
+		if (CommonUtilities.DEBUG_MODE_ENABLED) {
+			Log.i(TAG, "Device registered: regId = " + registrationId);
+		}
+		SharedPreferences preferences = context.getSharedPreferences(
+				getResources().getString(R.string.shared_pref_package),
+				Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = preferences.edit();
+		editor.putString(getResources().getString(R.string.shared_pref_regId),
+				registrationId);
+		editor.commit();
+	}
 
     @Override
     protected void onUnregistered(Context context, String registrationId) {

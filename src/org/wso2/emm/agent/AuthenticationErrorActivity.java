@@ -15,8 +15,6 @@
 */
 package org.wso2.emm.agent;
 
-import org.wso2.emm.agent.R;
-
 import com.google.android.gcm.GCMRegistrar;
 
 import android.os.Bundle;

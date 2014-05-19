@@ -23,6 +23,9 @@ import org.wso2.emm.agent.services.Operation;
 import org.wso2.emm.agent.services.WSO2DeviceAdminReceiver;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtilities;
+import org.wso2.mobile.idp.proxy.APIController;
+import org.wso2.mobile.idp.proxy.APIResultCallBack;
+import org.wso2.mobile.idp.proxy.APIUtilities;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
@@ -51,7 +54,7 @@ import android.widget.TextView;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 
-public class AlreadyRegisteredActivity extends SherlockActivity {
+public class AlreadyRegisteredActivity extends SherlockActivity implements APIResultCallBack {
 	AsyncTask<Void, Void, Void> mRegisterTask;
 	AsyncTask<Void, Void, Void> mCheckRegisterTask;
 	static final int ACTIVATION_REQUEST = 47; // identifies our request id
@@ -170,8 +173,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity {
 
 		@Override
 		public void onClick(View view) {
-			// TODO Auto-generated method stub
-
 			int iTag = (Integer) view.getTag();
 
 			switch (iTag) {
@@ -205,103 +206,25 @@ public class AlreadyRegisteredActivity extends SherlockActivity {
 
 	public void startUnRegistration() {
 		final Context context = AlreadyRegisteredActivity.this;
-		mRegisterTask = new AsyncTask<Void, Void, Void>() {
-
-			@Override
-			protected Void doInBackground(Void... params) {
-				Map<String, String> paramss = new HashMap<String, String>();
-				paramss.put(
-						getResources().getString(R.string.intent_extra_regid),
-						regId);
-				// ServerUtilities.sendToServer(context, "/UNRegister",
-				// paramss);
-				unregState = ServerUtilities.unregister(regId, context);
-				return null;
-			}
-
-			ProgressDialog progressDialog;
-
-			// declare other objects as per your need
-			@Override
-			protected void onPreExecute() {
-				progressDialog = ProgressDialog.show(
-						AlreadyRegisteredActivity.this,
-						getResources().getString(
-								R.string.dialog_message_unregistering),
-						getResources().getString(
-								R.string.dialog_message_please_wait), true);
-
-				// do initialization of required objects objects here
-			};
-
-			@Override
-			protected void onPostExecute(Void result) {
-				if (unregState) {
-					/*
-					 * Intent intent = new
-					 * Intent(AlreadyRegisteredActivity.this,
-					 * EntryActivity.class); intent.putExtra("regid", regId);
-					 * startActivity(intent); finish();
-					 */
-					txtRegText
-							.setText(R.string.register_text_view_text_unregister);
-					btnUnregister.setText(R.string.register_button_text);
-					btnUnregister.setTag(TAG_BTN_RE_REGISTER);
-					btnUnregister
-							.setOnClickListener(onClickListener_BUTTON_CLICKED);
-
-					devicePolicyManager.removeActiveAdmin(demoDeviceAdmin);
-					try {
-						SharedPreferences mainPref = context
-								.getSharedPreferences(
-										getResources().getString(
-												R.string.shared_pref_package),
-										Context.MODE_PRIVATE);
-						Editor editor = mainPref.edit();
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_policy), "");
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_isagreed), "0");
-						editor.putString(
-								getResources().getString(R.string.shared_pref_regId), "");
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_registered), "0");
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_ip), "");
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_sender_id), "");
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_eula), "");
-						
-						editor.commit();
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				} else {
-					Intent intent = new Intent(AlreadyRegisteredActivity.this,
-							AuthenticationErrorActivity.class);
-					intent.putExtra(
-							getResources().getString(
-									R.string.intent_extra_regid), regId);
-					intent.putExtra(
-							getResources().getString(
-									R.string.intent_extra_from_activity),
-							AlreadyRegisteredActivity.class.getSimpleName());
-					startActivity(intent);
-				}
-				mRegisterTask = null;
-				progressDialog.dismiss();
-			}
-
-		};
-		mRegisterTask.execute(null, null, null);
+		
+		progressDialog = ProgressDialog.show(
+				AlreadyRegisteredActivity.this,
+				getResources().getString(
+						R.string.dialog_message_unregistering),
+				getResources().getString(
+						R.string.dialog_message_please_wait), true);
+		
+		regId = CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_regId));
+		
+		Map<String, String> requestParams = new HashMap<String, String>();
+		requestParams.put("regid", regId);
+		
+		APIUtilities apiUtilities = new APIUtilities();
+		apiUtilities.setEndPoint(CommonUtilities.SERVER_URL + CommonUtilities.UNREGISTER_ENDPOINT + CommonUtilities.API_VERSION);
+		apiUtilities.setHttpMethod("POST");
+		apiUtilities.setRequestParams(requestParams);
+		APIController apiController = new APIController();
+		apiController.invokeAPI(apiUtilities, this, CommonUtilities.UNREGISTER_REQUEST_CODE);
 
 	}
 
@@ -426,82 +349,38 @@ public class AlreadyRegisteredActivity extends SherlockActivity {
 
 	@Override
 	protected void onResume() {
-		// TODO Auto-generated method stub
-		mCheckRegisterTask = new AsyncTask<Void, Void, Void>() {
+		OnCancelListener cancelListener = new OnCancelListener() {
 			@Override
-			protected Void doInBackground(Void... params) {
-				try {
-					state = ServerUtilities.isRegistered(regId, context);
-				} catch (Exception e) {
-					e.printStackTrace();
-					// HandleNetworkError(e);
-					// Toast.makeText(getApplicationContext(), "No Connection",
-					// Toast.LENGTH_LONG).show();
-				}
-				return null;
-			}
-
-			// declare other objects as per your need
-			@Override
-			protected void onPreExecute() {
-				progressDialog = ProgressDialog.show(
-						AlreadyRegisteredActivity.this, getResources()
-								.getString(R.string.dialog_checking_reg),
-						getResources().getString(R.string.dialog_please_wait),
-						true);
-				progressDialog.setCancelable(true);
-				progressDialog.setOnCancelListener(cancelListener);
-				// do initialization of required objects objects here
-			};
-
-			OnCancelListener cancelListener = new OnCancelListener() {
-				@Override
-				public void onCancel(DialogInterface arg0) {
-					showAlert(
-							getResources().getString(
-									R.string.error_connect_to_server),
-							getResources().getString(
-									R.string.error_heading_connection));
-				}
-			};
-
-			@Override
-			protected void onPostExecute(Void result) {
-				if (progressDialog != null && progressDialog.isShowing()) {
-					progressDialog.dismiss();
-				}
-				SharedPreferences mainPref = context.getSharedPreferences(
-						getResources().getString(R.string.shared_pref_package),
-						Context.MODE_PRIVATE);
-				String success = mainPref.getString(
+			public void onCancel(DialogInterface arg0) {
+				showAlert(
 						getResources().getString(
-								R.string.shared_pref_registered), "");
-				if (success.trim().equals(
+								R.string.error_connect_to_server),
 						getResources().getString(
-								R.string.shared_pref_reg_success))) {
-					state = true;
-				}
-
-				if (!state){
-					Intent intent = new Intent(AlreadyRegisteredActivity.this,
-							SettingsActivity.class);
-					intent.putExtra(
-							getResources().getString(
-									R.string.intent_extra_regid), regId);
-					intent.putExtra(
-							getResources().getString(
-									R.string.intent_extra_from_activity),
-							AlreadyRegisteredActivity.class.getSimpleName());
-					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-					startActivity(intent);
-					// finish();
-				}
-				mCheckRegisterTask = null;
-
+								R.string.error_heading_connection));
 			}
-
 		};
-		mCheckRegisterTask.execute(null, null, null);
+		
+		progressDialog = ProgressDialog.show(
+				AlreadyRegisteredActivity.this, getResources()
+						.getString(R.string.dialog_checking_reg),
+				getResources().getString(R.string.dialog_please_wait),
+				true);
+		progressDialog.setCancelable(true);
+		progressDialog.setOnCancelListener(cancelListener);
+		
+		
+		
+		Map<String, String> requestParams = new HashMap<String, String>();
+		requestParams.put("regid", regId);
+		
+		APIUtilities apiUtilities = new APIUtilities();
+		apiUtilities.setEndPoint(CommonUtilities.SERVER_URL + CommonUtilities.IS_REGISTERED_ENDPOINT + CommonUtilities.API_VERSION);
+		
+		apiUtilities.setHttpMethod("POST");
+		apiUtilities.setRequestParams(requestParams);
+		APIController apiController = new APIController();
+		apiController.invokeAPI(apiUtilities, this, CommonUtilities.IS_REGISTERED_REQUEST_CODE);
+
 		super.onResume();
 
 	}
@@ -539,14 +418,107 @@ public class AlreadyRegisteredActivity extends SherlockActivity {
 
 	}
 
-	/*
-	 * public boolean onOptionsItemSelected(MenuItem item) { switch
-	 * (item.getItemId()) { case R.id.info: Intent intent = new
-	 * Intent(AllReadyRegistered.this,AgentSettingsActivity.class);
-	 * intent.putExtra("from_activity_name",
-	 * AllReadyRegistered.class.getSimpleName()); intent.putExtra("regid",
-	 * regId); startActivity(intent); return true; default: return
-	 * super.onOptionsItemSelected(item); } }
-	 */
+	@Override
+	public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
+		String responseStatus = "";
+
+		if (requestCode == CommonUtilities.UNREGISTER_REQUEST_CODE) {
+			stopProgressDialog();
+			if (result != null) {
+				responseStatus = result.get(CommonUtilities.STATUS_KEY);
+				if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
+					txtRegText
+							.setText(R.string.register_text_view_text_unregister);
+					btnUnregister.setText(R.string.register_button_text);
+					btnUnregister.setTag(TAG_BTN_RE_REGISTER);
+					btnUnregister
+							.setOnClickListener(onClickListener_BUTTON_CLICKED);
+
+					devicePolicyManager.removeActiveAdmin(demoDeviceAdmin);
+					try {
+						SharedPreferences mainPref = context
+								.getSharedPreferences(
+										getResources().getString(
+												R.string.shared_pref_package),
+										Context.MODE_PRIVATE);
+						Editor editor = mainPref.edit();
+						editor.putString(
+								getResources().getString(
+										R.string.shared_pref_policy), "");
+						editor.putString(
+								getResources().getString(
+										R.string.shared_pref_isagreed), "0");
+						editor.putString(
+								getResources().getString(R.string.shared_pref_regId), "");
+						editor.putString(
+								getResources().getString(
+										R.string.shared_pref_registered), "0");
+						editor.putString(
+								getResources().getString(
+										R.string.shared_pref_ip), "");
+						editor.putString(
+								getResources().getString(
+										R.string.shared_pref_sender_id), "");
+						editor.putString(
+								getResources().getString(
+										R.string.shared_pref_eula), "");
+						
+						editor.commit();
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		
+				} else {
+					Intent intent = new Intent(AlreadyRegisteredActivity.this,
+							AuthenticationErrorActivity.class);
+					intent.putExtra(
+							getResources().getString(
+									R.string.intent_extra_regid), regId);
+					intent.putExtra(
+							getResources().getString(
+									R.string.intent_extra_from_activity),
+							AlreadyRegisteredActivity.class.getSimpleName());
+					startActivity(intent);
+				}
+
+			} else {
+				// TODO NEED TO IMPLEMENT
+			}
+
+		}
+		
+		if (requestCode == CommonUtilities.IS_REGISTERED_REQUEST_CODE) {
+			stopProgressDialog();
+			if (result != null) {
+				responseStatus = result.get(CommonUtilities.STATUS_KEY);
+				if (!responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
+					Intent intent = new Intent(AlreadyRegisteredActivity.this,
+							SettingsActivity.class);
+					intent.putExtra(
+							getResources().getString(
+									R.string.intent_extra_regid), regId);
+					intent.putExtra(
+							getResources().getString(
+									R.string.intent_extra_from_activity),
+							AlreadyRegisteredActivity.class.getSimpleName());
+					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					startActivity(intent);
+
+				} 
+
+			} else {
+				// TODO NEED TO IMPLEMENT
+			}
+
+		}
+		
+	}
+	
+	private void stopProgressDialog() {
+		if (progressDialog != null && progressDialog.isShowing()) {
+			progressDialog.dismiss();
+		}
+	}
 
 }

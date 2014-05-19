@@ -41,8 +41,6 @@
     <string name="title_activity_agent_settings">AgentSettingsActivity</string>
     <string name="title_activity_available_operations">AvailableOperationsActivity</string>
     <string name="title_activity_pin_code">PinCodeActivity</string>
-    <string name="menu_item_operations">Operations</string>
-    <string name="menu_item_phone_info">Phone Info</string>
     <string name="menu_item_pin">Change PIN</string>
     <string name="menu_item_ip">Change Server Address</string>
      <string name="menu_item_log">Debug Log</string>
@@ -50,6 +48,8 @@
     <string name="device_admin_enable_alert">This will enable device administration</string>
     <string name="device_enroll_type_byod">BYOD</string>
     <string name="device_enroll_type_cope">COPE</string>
+    <string name="title_init_msg_error">Initialization Failed. Please try again.</string>
+   	<string name="title_head_init_error">Initialization Failed</string>
 
     <!-- TEXT FIELD HINTS -->
     <string name="hint_new_pin">New PIN Code</string>
@@ -84,6 +84,9 @@
     <string name="shared_pref_reg_fail">0</string>
     <string name="shared_pref_reg_type">deviceType</string>
     <string name="shared_pref_sender_id">senderID</string>
+    <string name="shared_pref_message_mode">mode</string>
+    <string name="shared_pref_interval">interval</string>
+    <string name="shared_pref_notifier">notifier</string>
 
     <!-- ERROR MESSAGES -->
     <string name="error_connect_to_server">Could not connect to server please check your internet connection and try again</string>

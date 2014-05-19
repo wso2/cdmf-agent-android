@@ -20,6 +20,7 @@
     <!-- Keeps the processor from sleeping when a message is received. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!--
      Creates a custom permission so only this app can receive its messages.
 
@@ -96,7 +97,8 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name="org.wso2.emm.agent.services.WSO2DeviceAdminReceiver"           android:permission="android.permission.BIND_DEVICE_ADMIN" >
+            android:name="org.wso2.emm.agent.services.WSO2DeviceAdminReceiver"          
+            android:permission="android.permission.BIND_DEVICE_ADMIN" >
             <intent-filter>
 
                 <!-- This action is required -->
@@ -112,6 +114,14 @@
         <receiver android:name="org.wso2.emm.agent.services.SMSReceiver">
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name="org.wso2.emm.agent.services.AlarmReceiver"></receiver>
+        <receiver android:name="org.wso2.emm.agent.services.DeviceStartupIntentReceiver" android:enabled="true" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
         <!-- End List of Receivers -->

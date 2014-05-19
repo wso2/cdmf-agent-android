@@ -31,8 +31,8 @@ public class CommonUtilities {
 	public static boolean GCM_ENABLED = true;
 
 	//public static String SERVER_IP = "192.168.1.4";
-	//public static String SERVER_IP = "10.100.5.36";
-	public static String SERVER_IP = "10.10.10.123";
+	public static String SERVER_IP = "10.100.5.36";
+	//public static String SERVER_IP = "10.10.10.123";
 	public static String SERVER_PORT = "9763";
 	public static String SERVER_PROTOCOL = "http://";
 	public static String API_VERSION = "1.0.0";
@@ -59,8 +59,10 @@ public class CommonUtilities {
 
 	/* Added for OAuth implementation */
 	
-	public static final String CLIENT_ID = "JXaYc73VDwsenUnRUdFeNr9hfx4a";
-	public static final String CLIENT_SECRET = "rgQZq_3TY2VTtf48Y3g7y9YOZtwa";
+	/*public static final String CLIENT_ID = "JXaYc73VDwsenUnRUdFeNr9hfx4a";
+	public static final String CLIENT_SECRET = "rgQZq_3TY2VTtf48Y3g7y9YOZtwa";*/
+	public static final String CLIENT_ID = "5Dk_yIPR6vOKOCbKQQk77ysz6iEa";
+	public static final String CLIENT_SECRET = "7yEjoCOydXXEsytxGEYk5kkr4c8a";
 	
 	public static final String EMPTY_STRING = "";
 	public static final String STATUS_KEY = "status";

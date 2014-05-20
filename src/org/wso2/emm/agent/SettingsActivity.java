@@ -182,6 +182,7 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		Map<String, String> requestParams = new HashMap<String, String>();
 		requestParams.put("regid", regId);
 
+		// Call isRegistered API.
 		ServerUtils.callSecuredAPI(CommonUtilities.IS_REGISTERED_ENDPOINT,
 				CommonUtilities.POST_METHOD, requestParams,
 				SettingsActivity.this,

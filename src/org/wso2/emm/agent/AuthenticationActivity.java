@@ -662,7 +662,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 						getResources().getString(R.string.dialog_license_agreement),
 						getResources().getString(R.string.dialog_please_wait), cancelListener);
 
-				/* Requests the License agreement. */
+				// Call device license agreement API.
 				ServerUtils.callSecuredAPI(CommonUtilities.LICENSE_ENDPOINT, CommonUtilities.GET_METHOD, null,
 						AuthenticationActivity.this, CommonUtilities.LICENSE_REQUEST_CODE);
 
@@ -696,7 +696,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 					getResources().getString(R.string.button_ok), dialogClickListener);
 			alertDialog.show();
 		} else {
-			// Requesting sender ID.
+			// Call get sender ID API.
 			ServerUtils.callSecuredAPI(CommonUtilities.SENDER_ID_ENDPOINT, CommonUtilities.GET_METHOD, null,
 					AuthenticationActivity.this, CommonUtilities.SENDER_ID_REQUEST_CODE);
 		}

@@ -21,9 +21,8 @@ import java.util.Map;
 import org.wso2.emm.agent.services.Operation;
 import org.wso2.emm.agent.services.WSO2DeviceAdminReceiver;
 import org.wso2.emm.agent.utils.CommonUtilities;
-import org.wso2.mobile.idp.proxy.APIController;
+import org.wso2.emm.agent.utils.ServerUtils;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
-import org.wso2.mobile.idp.proxy.APIUtilities;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -202,25 +201,25 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 
 	public void startUnRegistration() {
 		final Context context = AlreadyRegisteredActivity.this;
-		
-		progressDialog = ProgressDialog.show(
-				AlreadyRegisteredActivity.this,
-				getResources().getString(
-						R.string.dialog_message_unregistering),
-				getResources().getString(
-						R.string.dialog_message_please_wait), true);
-		
-		regId = CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_regId));
-		
+
+		progressDialog = ProgressDialog
+				.show(AlreadyRegisteredActivity.this,
+						getResources().getString(
+								R.string.dialog_message_unregistering),
+						getResources().getString(
+								R.string.dialog_message_please_wait), true);
+
+		regId = CommonUtilities.getPref(context, context.getResources()
+				.getString(R.string.shared_pref_regId));
+
 		Map<String, String> requestParams = new HashMap<String, String>();
 		requestParams.put("regid", regId);
-		
-		APIUtilities apiUtilities = new APIUtilities();
-		apiUtilities.setEndPoint(CommonUtilities.SERVER_URL + CommonUtilities.UNREGISTER_ENDPOINT + CommonUtilities.API_VERSION);
-		apiUtilities.setHttpMethod("POST");
-		apiUtilities.setRequestParams(requestParams);
-		APIController apiController = new APIController();
-		apiController.invokeAPI(apiUtilities, this, CommonUtilities.UNREGISTER_REQUEST_CODE);
+
+		// Call device unregister API.
+		ServerUtils.callSecuredAPI(CommonUtilities.UNREGISTER_ENDPOINT,
+				CommonUtilities.POST_METHOD, requestParams,
+				AlreadyRegisteredActivity.this,
+				CommonUtilities.UNREGISTER_REQUEST_CODE);
 
 	}
 
@@ -364,18 +363,13 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		progressDialog.setCancelable(true);
 		progressDialog.setOnCancelListener(cancelListener);
 		
-		
-		
+		// Call isRegistered API.
 		Map<String, String> requestParams = new HashMap<String, String>();
 		requestParams.put("regid", regId);
-		
-		APIUtilities apiUtilities = new APIUtilities();
-		apiUtilities.setEndPoint(CommonUtilities.SERVER_URL + CommonUtilities.IS_REGISTERED_ENDPOINT + CommonUtilities.API_VERSION);
-		
-		apiUtilities.setHttpMethod("POST");
-		apiUtilities.setRequestParams(requestParams);
-		APIController apiController = new APIController();
-		apiController.invokeAPI(apiUtilities, this, CommonUtilities.IS_REGISTERED_REQUEST_CODE);
+		ServerUtils.callSecuredAPI(CommonUtilities.IS_REGISTERED_ENDPOINT,
+				CommonUtilities.POST_METHOD, requestParams,
+				AlreadyRegisteredActivity.this,
+				CommonUtilities.IS_REGISTERED_REQUEST_CODE);
 
 		super.onResume();
 

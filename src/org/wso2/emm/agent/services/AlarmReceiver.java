@@ -5,9 +5,8 @@ import java.util.Map;
 
 import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.utils.CommonUtilities;
-import org.wso2.mobile.idp.proxy.APIController;
+import org.wso2.emm.agent.utils.ServerUtils;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
-import org.wso2.mobile.idp.proxy.APIUtilities;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -34,30 +33,26 @@ public class AlarmReceiver extends BroadcastReceiver implements APIResultCallBac
     public String getOperations(){
 		String server_res = null;
 		try {
-			SharedPreferences mainPref = context
-					.getSharedPreferences(context.getResources().getString(R.string.shared_pref_package),
-							Context.MODE_PRIVATE);
-			String regId=mainPref.getString(context.getResources().getString(R.string.shared_pref_regId), "");
+			SharedPreferences mainPref = context.getSharedPreferences(context
+					.getResources().getString(R.string.shared_pref_package),
+					Context.MODE_PRIVATE);
+			String regId = mainPref.getString(
+					context.getResources()
+							.getString(R.string.shared_pref_regId), "");
 			Map<String, String> requestParams = new HashMap<String, String>();
 			requestParams.put("regId", regId);
-			Log.e("regId",regId+"");
-			
-			APIUtilities apiUtilities = new APIUtilities();
-			apiUtilities.setEndPoint(CommonUtilities.SERVER_URL
-					+ CommonUtilities.NOTIFICATION_ENDPOINT	
-					+ CommonUtilities.API_VERSION);
+			Log.e("regId", regId + "");
 
-			apiUtilities.setHttpMethod("POST");
-			apiUtilities.setRequestParams(requestParams);
-			Log.e("endpoint", apiUtilities.getEndPoint());
-			APIController apiController = new APIController();
-			apiController.invokeAPI(apiUtilities, this,
+			// Call notifications API.
+			ServerUtils.callSecuredAPI(CommonUtilities.NOTIFICATION_ENDPOINT,
+					CommonUtilities.GET_METHOD, requestParams,
+					AlarmReceiver.this,
 					CommonUtilities.NOTIFICATION_REQUEST_CODE);
-//			server_res = "[{\"feature_code\": \"500P\",\"data\": ["+
-//			                 " {\"mesage_id\": \"2\", \"data\": {\"feature_code\": \"506A\",\"data\": {\"notification\":\"sdfsdf\"}}}"+
-//			             " ]},{\"feature_code\": \"513A\",\"data\": [{\"mesage_id\": \"2\",\"data\": {\"function\": \"disabled\"}}]}]";
-			//Log.e("server_res",server_res);
-			//server_res=ServerUtilities.readJson(context);
+			// server_res = "[{\"feature_code\": \"500P\",\"data\": ["+
+			// " {\"mesage_id\": \"2\", \"data\": {\"feature_code\": \"506A\",\"data\": {\"notification\":\"sdfsdf\"}}}"+
+			// " ]},{\"feature_code\": \"513A\",\"data\": [{\"mesage_id\": \"2\",\"data\": {\"function\": \"disabled\"}}]}]";
+			// Log.e("server_res",server_res);
+			// server_res=ServerUtilities.readJson(context);
 			return server_res;
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -122,28 +122,30 @@ public class MainActivity extends Activity implements APIResultCallBack {
 					.getString(R.string.shared_pref_reg_type), "");
 			
 			osVersion = deviceInfo.getOsVersion();
-			try {
-				jsObject.put("device", deviceInfo.getDevice());
-				jsObject.put("imei", deviceInfo.getDeviceId());
-				jsObject.put("imsi", deviceInfo.getIMSINumber());
-				jsObject.put("model", deviceInfo.getDeviceModel());
+		try {
+			jsObject.put("device", deviceInfo.getDevice());
+			jsObject.put("imei", deviceInfo.getDeviceId());
+			jsObject.put("imsi", deviceInfo.getIMSINumber());
+			jsObject.put("model", deviceInfo.getDeviceModel());
 
-					Map<String, String> requestParams = new HashMap<String, String>();
-					requestParams.put("regid", regId);
-					requestParams.put("properties", jsObject.toString());
-					requestParams.put("osversion", osVersion);
-					requestParams.put("username", username);
-					requestParams.put("platform", "Android");
-					requestParams.put("vendor",
-							deviceInfo.getDeviceManufacturer());
-					requestParams.put("type", type);
-					requestParams.put("mac", deviceInfo.getMACAddress());
-					
-					ServerUtils.callSecuredAPI(CommonUtilities.REGISTER_ENDPOINT, CommonUtilities.POST_METHOD, requestParams, MainActivity.this, CommonUtilities.REGISTER_REQUEST_CODE);
-					
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
+			Map<String, String> requestParams = new HashMap<String, String>();
+			requestParams.put("regid", regId);
+			requestParams.put("properties", jsObject.toString());
+			requestParams.put("osversion", osVersion);
+			requestParams.put("username", username);
+			requestParams.put("platform", "Android");
+			requestParams.put("vendor", deviceInfo.getDeviceManufacturer());
+			requestParams.put("type", type);
+			requestParams.put("mac", deviceInfo.getMACAddress());
+
+			// Call device registration API.
+			ServerUtils.callSecuredAPI(CommonUtilities.REGISTER_ENDPOINT,
+					CommonUtilities.POST_METHOD, requestParams,
+					MainActivity.this, CommonUtilities.REGISTER_REQUEST_CODE);
+
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 
     }
 

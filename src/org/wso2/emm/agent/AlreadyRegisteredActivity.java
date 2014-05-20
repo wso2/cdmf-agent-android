@@ -18,8 +18,10 @@ package org.wso2.emm.agent;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.wso2.emm.agent.api.PhoneState;
 import org.wso2.emm.agent.services.Operation;
 import org.wso2.emm.agent.services.WSO2DeviceAdminReceiver;
+import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtils;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
@@ -215,11 +217,17 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		Map<String, String> requestParams = new HashMap<String, String>();
 		requestParams.put("regid", regId);
 
-		// Call device unregister API.
-		ServerUtils.callSecuredAPI(CommonUtilities.UNREGISTER_ENDPOINT,
-				CommonUtilities.POST_METHOD, requestParams,
-				AlreadyRegisteredActivity.this,
-				CommonUtilities.UNREGISTER_REQUEST_CODE);
+		// Check network connection availability before calling the API.
+		if (PhoneState.isNetworkAvailable(context)) {
+			// Call device unregister API.
+			ServerUtils.callSecuredAPI(CommonUtilities.UNREGISTER_ENDPOINT,
+					CommonUtilities.POST_METHOD, requestParams,
+					AlreadyRegisteredActivity.this,
+					CommonUtilities.UNREGISTER_REQUEST_CODE);
+		} else {
+			CommonDialogUtils
+					.showNetworkUnavailableMessage(AlreadyRegisteredActivity.this);
+		}
 
 	}
 
@@ -354,22 +362,26 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 								R.string.error_heading_connection));
 			}
 		};
-		
-		progressDialog = ProgressDialog.show(
-				AlreadyRegisteredActivity.this, getResources()
-						.getString(R.string.dialog_checking_reg),
-				getResources().getString(R.string.dialog_please_wait),
-				true);
+
+		progressDialog = ProgressDialog.show(AlreadyRegisteredActivity.this,
+				getResources().getString(R.string.dialog_checking_reg),
+				getResources().getString(R.string.dialog_please_wait), true);
 		progressDialog.setCancelable(true);
 		progressDialog.setOnCancelListener(cancelListener);
-		
-		// Call isRegistered API.
-		Map<String, String> requestParams = new HashMap<String, String>();
-		requestParams.put("regid", regId);
-		ServerUtils.callSecuredAPI(CommonUtilities.IS_REGISTERED_ENDPOINT,
-				CommonUtilities.POST_METHOD, requestParams,
-				AlreadyRegisteredActivity.this,
-				CommonUtilities.IS_REGISTERED_REQUEST_CODE);
+
+		// Check network connection availability before calling the API.
+		if (PhoneState.isNetworkAvailable(context)) {
+			// Call isRegistered API.
+			Map<String, String> requestParams = new HashMap<String, String>();
+			requestParams.put("regid", regId);
+			ServerUtils.callSecuredAPI(CommonUtilities.IS_REGISTERED_ENDPOINT,
+					CommonUtilities.POST_METHOD, requestParams,
+					AlreadyRegisteredActivity.this,
+					CommonUtilities.IS_REGISTERED_REQUEST_CODE);
+		} else {
+			CommonDialogUtils
+					.showNetworkUnavailableMessage(AlreadyRegisteredActivity.this);
+		}
 
 		super.onResume();
 

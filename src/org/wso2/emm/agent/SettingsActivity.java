@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import org.wso2.emm.agent.api.DeviceInfo;
+import org.wso2.emm.agent.api.PhoneState;
+import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtils;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
@@ -182,11 +184,18 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		Map<String, String> requestParams = new HashMap<String, String>();
 		requestParams.put("regid", regId);
 
-		// Call isRegistered API.
-		ServerUtils.callSecuredAPI(CommonUtilities.IS_REGISTERED_ENDPOINT,
-				CommonUtilities.POST_METHOD, requestParams,
-				SettingsActivity.this,
-				CommonUtilities.IS_REGISTERED_REQUEST_CODE);
+		// Check network connection availability before calling the API.
+		if (PhoneState.isNetworkAvailable(context)) {
+			// Call isRegistered API.
+			ServerUtils.callSecuredAPI(CommonUtilities.IS_REGISTERED_ENDPOINT,
+					CommonUtilities.POST_METHOD, requestParams,
+					SettingsActivity.this,
+					CommonUtilities.IS_REGISTERED_REQUEST_CODE);
+		} else {
+			CommonDialogUtils
+					.showNetworkUnavailableMessage(SettingsActivity.this);
+		}
+
 	}
 	
 	DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {

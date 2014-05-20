@@ -374,7 +374,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		editor.putString(getResources().getString(R.string.shared_pref_reg_type), deviceType);
 		editor.commit();
 
-		// Check connection availability before calling the API.
+		// Check network connection availability before calling the API.
 		if (PhoneState.isNetworkAvailable(context)) {
 			initializeIDPLib();
 		} else {
@@ -632,39 +632,61 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	}
 
 	/**
-	 * Fetches License.
+	 * Gets device License agreement.
 	 * 
 	 */
 	private void getLicense() {
-		SharedPreferences mainPref = context.getSharedPreferences(getResources()
-				.getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
-		isAgreed = mainPref.getString(getResources().getString(R.string.shared_pref_isagreed), "");
-		String eula = mainPref.getString(getResources().getString(R.string.shared_pref_eula), "");
-		String type = mainPref.getString(getResources().getString(R.string.shared_pref_reg_type), "");
+		SharedPreferences mainPref = context.getSharedPreferences(
+				getResources().getString(R.string.shared_pref_package),
+				Context.MODE_PRIVATE);
+		isAgreed = mainPref.getString(
+				getResources().getString(R.string.shared_pref_isagreed), "");
+		String eula = mainPref.getString(
+				getResources().getString(R.string.shared_pref_eula), "");
+		String type = mainPref.getString(
+				getResources().getString(R.string.shared_pref_reg_type), "");
 
-		if (type.trim().equals(getResources().getString(R.string.device_enroll_type_byod))) {
+		if (type.trim().equals(
+				getResources().getString(R.string.device_enroll_type_byod))) {
 			if (!isAgreed.equals("1")) {
 				Map<String, String> requestParams = new HashMap<String, String>();
-				requestParams.put("domain", txtDomain.getText().toString().trim());
+				requestParams.put("domain", txtDomain.getText().toString()
+						.trim());
 
 				// Get License
 				OnCancelListener cancelListener = new OnCancelListener() {
 
 					@Override
 					public void onCancel(DialogInterface arg0) {
-						showAlertSingle(getResources().getString(R.string.error_enrollment_failed_detail),
-								getResources().getString(R.string.error_enrollment_failed));
+						showAlertSingle(
+								getResources()
+										.getString(
+												R.string.error_enrollment_failed_detail),
+								getResources().getString(
+										R.string.error_enrollment_failed));
 						// finish();
 					}
 				};
 
-				CommonDialogUtils.showPrgressDialog(AuthenticationActivity.this,
-						getResources().getString(R.string.dialog_license_agreement),
-						getResources().getString(R.string.dialog_please_wait), cancelListener);
+				CommonDialogUtils.showPrgressDialog(
+						AuthenticationActivity.this,
+						getResources().getString(
+								R.string.dialog_license_agreement),
+						getResources().getString(R.string.dialog_please_wait),
+						cancelListener);
 
-				// Call device license agreement API.
-				ServerUtils.callSecuredAPI(CommonUtilities.LICENSE_ENDPOINT, CommonUtilities.GET_METHOD, null,
-						AuthenticationActivity.this, CommonUtilities.LICENSE_REQUEST_CODE);
+				// Check network connection availability before calling the API.
+				if (PhoneState.isNetworkAvailable(context)) {
+					// Call device license agreement API.
+					ServerUtils.callSecuredAPI(
+							CommonUtilities.LICENSE_ENDPOINT,
+							CommonUtilities.GET_METHOD, null,
+							AuthenticationActivity.this,
+							CommonUtilities.LICENSE_REQUEST_CODE);
+				} else {
+					CommonDialogUtils
+							.showNetworkUnavailableMessage(AuthenticationActivity.this);
+				}
 
 			} else {
 				loadPincodeAcitvity();
@@ -685,20 +707,35 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 	@Override
 	public void onAPIAccessRecive(String status) {
-		
-		if (status != null && status.trim().equals(CommonUtilities.AUTHENTICATION_FAILED)) {
+
+		if (status != null
+				&& status.trim().equals(CommonUtilities.AUTHENTICATION_FAILED)) {
 			if (progressDialog != null) {
 				progressDialog.dismiss();
 			}
-			alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
-					getResources().getString(R.string.title_head_authentication_error),
-					getResources().getString(R.string.error_authentication_failed),
-					getResources().getString(R.string.button_ok), dialogClickListener);
+			alertDialog = CommonDialogUtils
+					.getAlertDialogWithOneButtonAndTitle(
+							context,
+							getResources().getString(
+									R.string.title_head_authentication_error),
+							getResources().getString(
+									R.string.error_authentication_failed),
+							getResources().getString(R.string.button_ok),
+							dialogClickListener);
 			alertDialog.show();
 		} else {
-			// Call get sender ID API.
-			ServerUtils.callSecuredAPI(CommonUtilities.SENDER_ID_ENDPOINT, CommonUtilities.GET_METHOD, null,
-					AuthenticationActivity.this, CommonUtilities.SENDER_ID_REQUEST_CODE);
+			// Check network connection availability before calling the API.
+			if (PhoneState.isNetworkAvailable(context)) {
+				// Call get sender ID API.
+				ServerUtils.callSecuredAPI(CommonUtilities.SENDER_ID_ENDPOINT,
+						CommonUtilities.GET_METHOD, null,
+						AuthenticationActivity.this,
+						CommonUtilities.SENDER_ID_REQUEST_CODE);
+			} else {
+				CommonDialogUtils
+						.showNetworkUnavailableMessage(AuthenticationActivity.this);
+			}
+
 		}
 	}
 

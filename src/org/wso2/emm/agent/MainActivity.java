@@ -20,7 +20,9 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.emm.agent.api.DeviceInfo;
+import org.wso2.emm.agent.api.PhoneState;
 import org.wso2.emm.agent.services.WSO2DeviceAdminReceiver;
+import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtils;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
@@ -138,10 +140,17 @@ public class MainActivity extends Activity implements APIResultCallBack {
 			requestParams.put("type", type);
 			requestParams.put("mac", deviceInfo.getMACAddress());
 
-			// Call device registration API.
-			ServerUtils.callSecuredAPI(CommonUtilities.REGISTER_ENDPOINT,
-					CommonUtilities.POST_METHOD, requestParams,
-					MainActivity.this, CommonUtilities.REGISTER_REQUEST_CODE);
+			// Check network connection availability before calling the API.
+			if (PhoneState.isNetworkAvailable(context)) {
+				// Call device registration API.
+				ServerUtils.callSecuredAPI(CommonUtilities.REGISTER_ENDPOINT,
+						CommonUtilities.POST_METHOD, requestParams,
+						MainActivity.this, CommonUtilities.REGISTER_REQUEST_CODE);
+			} else {
+				CommonDialogUtils
+						.showNetworkUnavailableMessage(MainActivity.this);
+			}
+			
 
 		} catch (JSONException e) {
 			e.printStackTrace();

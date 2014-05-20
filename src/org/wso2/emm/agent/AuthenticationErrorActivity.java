@@ -57,7 +57,7 @@ public class AuthenticationErrorActivity extends Activity {
 		btnTryAgain.setTag(TAG_BTN_TRY_AGAIN);
 		btnTryAgain.setOnClickListener(onClickListener_BUTTON_CLICKED);
 		
-		if(FROM_ACTIVITY.equals(MainActivity.class.getSimpleName())){
+		if(FROM_ACTIVITY.equals(RegistrationActivity.class.getSimpleName())){
 			txtMsg.setText(getResources().getString(R.string.error_registration_failed));
 		}else if(FROM_ACTIVITY.equals(AlreadyRegisteredActivity.class.getSimpleName())){
 			txtMsg.setText(getResources().getString(R.string.error_unregistration_failed));

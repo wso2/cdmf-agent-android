@@ -68,8 +68,7 @@
         android:screenOrientation="portrait"
         android:theme="@style/TopBarTheme" >
         <activity
-            android:name="org.wso2.emm.agent.MainActivity"
-            android:label="@string/app_name"
+            android:name="org.wso2.emm.agent.RegistrationActivity"
             android:screenOrientation="portrait"
             android:theme="@style/TopBarTheme" >
         </activity>
@@ -134,13 +133,11 @@
         </activity>
         <activity
             android:name="org.wso2.emm.agent.AlreadyRegisteredActivity"
-            android:label="@string/title_activity_all_ready_registered"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Sherlock" >
         </activity>
         <activity
             android:name="org.wso2.emm.agent.AuthenticationActivity"
-            android:label="@string/title_activity_authentication"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Sherlock"
             android:windowSoftInputMode="stateUnchanged|adjustPan" >
@@ -178,7 +175,6 @@
         </activity>
         <activity
             android:name="org.wso2.emm.agent.PinCodeActivity"
-            android:label="@string/title_activity_pin_code"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateUnchanged|adjustPan" >
         </activity>

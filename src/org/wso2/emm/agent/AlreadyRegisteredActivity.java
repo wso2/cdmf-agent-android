@@ -102,9 +102,15 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 			}
 
 		}
-		if (regId == null || regId.equals("")) {
-			regId = GCMRegistrar.getRegistrationId(this);
+		
+		String regIden=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_regId));
+		if(!regIden.equals("")){
+			regId=regIden;
 		}
+		
+//		if (regId == null || regId.equals("")) {
+//			regId = GCMRegistrar.getRegistrationId(this);
+//		}
 
 		if (freshRegFlag) {
 			try {
@@ -119,7 +125,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 									R.string.device_admin_enable_alert));
 					startActivityForResult(intent1, ACTIVATION_REQUEST);
 				}
-				operation.executePolicy();
+				//operation.executePolicy();
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}

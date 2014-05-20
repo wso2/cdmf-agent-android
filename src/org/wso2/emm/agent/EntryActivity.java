@@ -113,9 +113,9 @@ public class EntryActivity extends Activity {
 				regId = extras.getString(getResources().getString(R.string.intent_extra_regid));
 			}
 		}
-		if(regId == null || regId.equals("")){
-			regId = GCMRegistrar.getRegistrationId(this);
-		}
+//		if(regId == null || regId.equals("")){
+//			regId = GCMRegistrar.getRegistrationId(this);
+//		}
 		
 		SharedPreferences mainPref = context.getSharedPreferences(
     			getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);

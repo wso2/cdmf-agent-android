@@ -148,7 +148,7 @@ public class Operation {
 								.equals("0")
 						|| mainPref.getString("policy_applied", "").trim()
 								.equals("")) {*/
-					executePolicy();
+					//executePolicy();
 				//}
 				/*
 				 * JSONArray jArray = new JSONArray(data); for(int i = 0;
@@ -298,7 +298,7 @@ public class Operation {
 		JSONArray jArray = null;
 		SharedPreferences mainPref = context.getSharedPreferences("com.mdm",
 				Context.MODE_PRIVATE);
-
+//			[{"code" : "500P", "data" : [{"messageId" : "178", "data" : [{"code" : "508A", "data" : {"function" : "Enable"}}, {"code" : "526A", "data" : {"password" : "1234"}}]}]}]
 		try {
 
 			policy = mainPref.getString("policy", "");
@@ -342,8 +342,9 @@ public class Operation {
 		try {
 
 			String policy = mainPref.getString("policy", "");
-			Log.e("policypolicypolicy",policy);
-			
+			Log.e("policy revoke() ",policy);
+//			[{"data":{"function":"Enable"},"code":"508A"},{"data":{"password":"12345"},"code":"526A"}]
+
 			jArray = new JSONArray(policy.trim());
 			for (int i = 0; i < jArray.length(); i++) {
 				if(jArray.getJSONObject(i)!=null){
@@ -394,7 +395,7 @@ public class Operation {
 							devicePolicyManager.setPasswordQuality(cameraAdmin,
 									DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
 						}
-					
+//							policyObj.getString("code").trim().equals(CommonUtilities.OPERATION_CHANGE_LOCK_CODE)
 				}
 			}
 

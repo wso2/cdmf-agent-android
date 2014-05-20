@@ -25,14 +25,18 @@ import org.json.simple.parser.JSONParser;
 import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.parser.PayloadParser;
 import org.wso2.emm.agent.utils.CommonUtilities;
+import org.wso2.emm.agent.utils.LoggerCustom;
 import org.wso2.emm.agent.utils.ServerUtilities;
 import org.wso2.mobile.idp.proxy.APIController;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
 import org.wso2.mobile.idp.proxy.APIUtilities;
 
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -76,37 +80,41 @@ public class ProcessMessage  implements APIResultCallBack{
 	}
 	
 	
-    public String getOperations(String replyData){
-    	
-		String server_res = null;
-		try {
-			SharedPreferences mainPref = c
-					.getSharedPreferences(c.getResources().getString(R.string.shared_pref_package),
-							Context.MODE_PRIVATE);
-			String regId=mainPref.getString(c.getResources().getString(R.string.shared_pref_regId), "");
-			Map<String, String> requestParams = new HashMap<String, String>();
-			if(replyData != null){
-				requestParams.put("data", replyPayload);
-			}
-			requestParams.put("regId", regId);
-			Log.e("regId",regId+"");
-			
-			APIUtilities apiUtilities = new APIUtilities();
-			apiUtilities.setEndPoint(CommonUtilities.SERVER_URL
-					+ CommonUtilities.NOTIFICATION_ENDPOINT	
-					+ CommonUtilities.API_VERSION);
+	public void getOperations(String replyData) {
+		DevicePolicyManager devicePolicyManager =
+		                                          (DevicePolicyManager) c.getSystemService(Context.DEVICE_POLICY_SERVICE);
+		ComponentName demoDeviceAdmin = new ComponentName(c, WSO2DeviceAdminReceiver.class);
+		if (devicePolicyManager.isAdminActive(demoDeviceAdmin)) {
+			try {
+				SharedPreferences mainPref =
+				                             c.getSharedPreferences(c.getResources()
+				                                                     .getString(R.string.shared_pref_package),
+				                                                    Context.MODE_PRIVATE);
+				String regId =
+				               mainPref.getString(c.getResources()
+				                                   .getString(R.string.shared_pref_regId), "");
+				Map<String, String> requestParams = new HashMap<String, String>();
+				if (replyData != null) {
+					requestParams.put("data", replyPayload);
+				}
+				requestParams.put("regId", regId);
+				Log.e("regId", regId + "");
 
-			apiUtilities.setHttpMethod("POST");
-			apiUtilities.setRequestParams(requestParams);
-			Log.e("endpoint", apiUtilities.getEndPoint());
-			APIController apiController = new APIController();
-			apiController.invokeAPI(apiUtilities, this,
-			CommonUtilities.NOTIFICATION_REQUEST_CODE);
-			return server_res;
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
+				APIUtilities apiUtilities = new APIUtilities();
+				apiUtilities.setEndPoint(CommonUtilities.SERVER_URL +
+				                         CommonUtilities.NOTIFICATION_ENDPOINT +
+				                         CommonUtilities.API_VERSION);
+
+				apiUtilities.setHttpMethod("POST");
+				apiUtilities.setRequestParams(requestParams);
+				Log.e("endpoint", apiUtilities.getEndPoint());
+				APIController apiController = new APIController();
+				apiController.invokeAPI(apiUtilities, this,
+				                        CommonUtilities.NOTIFICATION_REQUEST_CODE);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -160,22 +168,35 @@ public class ProcessMessage  implements APIResultCallBack{
     	        		msgId=innerArr.getJSONObject(x).getString("messageId");
     	        		jsReply.put("messageId", msgId);
     	        		
-//    	        		if (featureCode.equals(CommonUtilities.OPERATION_POLICY_BUNDLE)) {
-//    						SharedPreferences mainPrefp =
-//    						                              c.getSharedPreferences("com.mdm",
-//    						                                                    Context.MODE_PRIVATE);
-//    						Editor editorp = mainPrefp.edit();
-//    						editorp.putString("policy", "");
-//    						editorp.commit();
-//
-//    						SharedPreferences mainPref =
-//    						                             c.getSharedPreferences("com.mdm",
-//    						                                                    Context.MODE_PRIVATE);
-//    						Editor editor = mainPref.edit();
-//    						editor.putString("policy", innerArr.getJSONObject(x).getJSONObject("data")
-//    						                                   .getJSONArray("policies").toString());
-//    						editor.commit();
-//    		        	}
+    	        		if (featureCode.equals(CommonUtilities.OPERATION_POLICY_BUNDLE)) {
+    						SharedPreferences mainPrefp =
+    						                              c.getSharedPreferences("com.mdm",
+    						                                                    Context.MODE_PRIVATE);
+    						
+//    	        		05-20 16:38:41.606: E/responseresponse(17879):  
+//    	       [{"code" : "500P", "data" : [{"messageId" : "827", "data" : [{"code" : "508A", "data" : {"function" : "Enable"}}, {"code" : "526A", "data" : {"password" : "1234"}}]}]}]
+
+//////    						05-20 14:43:41.650: E/responseresponse(8126):  
+////    							[{"code" : "500P", "data" : [{"messageId" : "178", "data" : [{"code" : "508A", "data" : {"function" : "Enable"}}, {"code" : "526A", "data" : {"password" : "1234"}}]}]}]
+
+    						
+    						Editor editorp = mainPrefp.edit();
+    						editorp.putString("policy", "");
+    						editorp.commit();
+
+    						SharedPreferences mainPref =
+    						                             c.getSharedPreferences("com.mdm",
+    						                                                    Context.MODE_PRIVATE);
+    						Editor editor = mainPref.edit();
+    						String arrToPut=innerArr.getJSONObject(0).getJSONArray("data").toString();
+    						
+    						LoggerCustom l =new LoggerCustom(c);
+    						l.writeStringAsFile(arrToPut, "wso2log.txt");
+    						
+    						Log.e("aslkdmlamsd",arrToPut);
+    						editor.putString("policy", arrToPut);
+    						editor.commit();
+    		        	}
     	        		
     	        		String msgData=innerArr.getJSONObject(x).getString("data");
     	        		JSONObject dataObj=new JSONObject("{}");

@@ -89,7 +89,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		context = AlreadyRegisteredActivity.this;
 		Bundle extras = getIntent().getExtras();
 		if (extras != null) {
-
 			if (extras.containsKey(getResources().getString(
 					R.string.intent_extra_fresh_reg_flag))) {
 				freshRegFlag = extras.getBoolean(getResources().getString(
@@ -97,7 +96,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 			}
 
 		}
-
 		
 		
 		String regIden=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_regId));
@@ -189,7 +187,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 				break;
 			case TAG_BTN_RE_REGISTER:
 				Intent intent = new Intent(AlreadyRegisteredActivity.this,
-						EntryActivity.class);
+						SettingsActivity.class);
 				intent.putExtra(
 						getResources().getString(R.string.intent_extra_regid),
 						regId);
@@ -234,17 +232,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 
 	}
 
-	public void startOptionActivity() {
-		Intent intent = new Intent(AlreadyRegisteredActivity.this,
-				AgentSettingsActivity.class);
-		intent.putExtra(
-				getResources().getString(R.string.intent_extra_from_activity),
-				AlreadyRegisteredActivity.class.getSimpleName());
-		intent.putExtra(getResources().getString(R.string.intent_extra_regid),
-				regId);
-		startActivity(intent);
-	}
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		if(CommonUtilities.DEBUG_MODE_ENABLED){
@@ -258,18 +245,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.operation_setting:
-			Intent intentOP = new Intent(AlreadyRegisteredActivity.this,
-					AvailableOperationsActivity.class);
-			intentOP.putExtra(
-					getResources().getString(
-							R.string.intent_extra_from_activity),
-					AlreadyRegisteredActivity.class.getSimpleName());
-			intentOP.putExtra(
-					getResources().getString(R.string.intent_extra_regid),
-					regId);
-			startActivity(intentOP);
-			return true;
 		case R.id.info_setting:
 			Intent intentIN = new Intent(AlreadyRegisteredActivity.this,
 					DisplayDeviceInfoActivity.class);
@@ -277,9 +252,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 					getResources().getString(
 							R.string.intent_extra_from_activity),
 					AlreadyRegisteredActivity.class.getSimpleName());
-			intentIN.putExtra(
-					getResources().getString(R.string.intent_extra_regid),
-					regId);
 			startActivity(intentIN);
 			return true;
 		case R.id.pin_setting:
@@ -289,9 +261,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 					getResources().getString(
 							R.string.intent_extra_from_activity),
 					AlreadyRegisteredActivity.class.getSimpleName());
-			intentPIN.putExtra(
-					getResources().getString(R.string.intent_extra_regid),
-					regId);
 			startActivity(intentPIN);
 			return true;
 		case R.id.ip_setting:
@@ -308,9 +277,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 					getResources().getString(
 							R.string.intent_extra_from_activity),
 					AlreadyRegisteredActivity.class.getSimpleName());
-			intentIP.putExtra(
-					getResources().getString(R.string.intent_extra_regid),
-					regId);
 			startActivity(intentIP);
 			return true;
 		case R.id.debug_log:
@@ -442,43 +408,8 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 					btnUnregister
 							.setOnClickListener(onClickListener_BUTTON_CLICKED);
 
-					devicePolicyManager.removeActiveAdmin(demoDeviceAdmin);
-					try {
-						SharedPreferences mainPref = context
-								.getSharedPreferences(
-										getResources().getString(
-												R.string.shared_pref_package),
-										Context.MODE_PRIVATE);
-						Editor editor = mainPref.edit();
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_policy), "");
-						editor.putString(
-											getResources().getString(
-													R.string.shared_pref_device_active), "");
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_isagreed), "0");
-						editor.putString(
-								getResources().getString(R.string.shared_pref_regId), "");
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_registered), "0");
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_ip), "");
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_sender_id), "");
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_eula), "");
-						
-						editor.commit();
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+
+					ServerUtils.clearAppData(context);
 		
 				} else {
 					Intent intent = new Intent(AlreadyRegisteredActivity.this,

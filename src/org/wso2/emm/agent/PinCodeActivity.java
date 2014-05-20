@@ -72,15 +72,7 @@ public class PinCodeActivity extends Activity {
 			}
 		}
 		
-		lblPin = (TextView) findViewById(R.id.lblPin);
-		txtPin = (EditText) findViewById(R.id.txtPinCode);
-		txtOldPin = (EditText) findViewById(R.id.txtOldPinCode);
-		btnPin = (Button) findViewById(R.id.btnSetPin);
-		btnPin.setTag(TAG_BTN_SET_PIN);
-		btnPin.setOnClickListener(onClickListener_BUTTON_CLICKED);
-		btnPin.setEnabled(false);
-		btnPin.setBackground(getResources().getDrawable(R.drawable.btn_grey));
-		btnPin.setTextColor(getResources().getColor(R.color.black));
+		initializeComponents();
 		
 		if(FROM_ACTIVITY != null && FROM_ACTIVITY.equals(AlreadyRegisteredActivity.class.getSimpleName())){
 			lblPin.setVisibility(View.GONE);
@@ -102,7 +94,6 @@ public class PinCodeActivity extends Activity {
 
 				@Override
 				public void afterTextChanged(Editable s) {
-					// TODO Auto-generated method stub
 					enableSubmitIfReady();
 				}
 			});
@@ -121,7 +112,6 @@ public class PinCodeActivity extends Activity {
 
 				@Override
 				public void afterTextChanged(Editable s) {
-					// TODO Auto-generated method stub
 					enableSubmitIfReady();
 				}
 			});
@@ -140,19 +130,32 @@ public class PinCodeActivity extends Activity {
 
 				@Override
 				public void afterTextChanged(Editable s) {
-					// TODO Auto-generated method stub
 					enableSubmitIfReady();
 				}
 			});
 		}
 	}
 
+	/**
+	 * Initializes UI components.
+	 * 
+	 */
+	private void initializeComponents() {
+		lblPin = (TextView) findViewById(R.id.lblPin);
+		txtPin = (EditText) findViewById(R.id.txtPinCode);
+		txtOldPin = (EditText) findViewById(R.id.txtOldPinCode);
+		btnPin = (Button) findViewById(R.id.btnSetPin);
+		btnPin.setTag(TAG_BTN_SET_PIN);
+		btnPin.setOnClickListener(onClickListener_BUTTON_CLICKED);
+		btnPin.setEnabled(false);
+		btnPin.setBackground(getResources().getDrawable(R.drawable.btn_grey));
+		btnPin.setTextColor(getResources().getColor(R.color.black));
+	}
+
 	OnClickListener onClickListener_BUTTON_CLICKED = new OnClickListener() {
 
 		@Override
 		public void onClick(View view) {
-			// TODO Auto-generated method stub
-
 			int iTag = (Integer) view.getTag();
 
 			switch (iTag) {

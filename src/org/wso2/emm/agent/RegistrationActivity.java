@@ -208,14 +208,12 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 			if (requestCode == CommonUtilities.REGISTER_REQUEST_CODE) {
 				if (responseStatus.equals(CommonUtilities.REGISTERATION_SUCCESSFUL)) {
 					Intent intent = new Intent(RegistrationActivity.this,AlreadyRegisteredActivity.class);
-		        	intent.putExtra(getResources().getString(R.string.intent_extra_regid), regId);
 		        	intent.putExtra(getResources().getString(R.string.intent_extra_fresh_reg_flag), true);
 		        	intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		        	startActivity(intent);
 		        	//finish();
 		    	}else{
 		    		Intent intent = new Intent(RegistrationActivity.this,AuthenticationErrorActivity.class);
-		        	intent.putExtra(getResources().getString(R.string.intent_extra_regid), regId);
 		        	intent.putExtra(getResources().getString(R.string.intent_extra_from_activity), RegistrationActivity.class.getSimpleName());
 		        	intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		        	startActivity(intent);

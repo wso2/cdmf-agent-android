@@ -65,7 +65,7 @@ import com.actionbarsherlock.view.MenuItem;
 import com.google.android.gcm.GCMRegistrar;
 
 public class AuthenticationActivity extends SherlockActivity implements APIAccessCallBack, APIResultCallBack {
-	String regId = "";
+
 	Button authenticate;
 	EditText username;
 	EditText txtDomain;
@@ -117,20 +117,6 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 		DeviceInfo deviceInfo = new DeviceInfo(AuthenticationActivity.this);
 
-		Bundle extras = getIntent().getExtras();
-		if (extras != null) {
-			if (extras.containsKey(getResources().getString(R.string.intent_extra_regid))) {
-				regId = extras.getString(getResources().getString(R.string.intent_extra_regid));
-			}
-		}
-		if (regId == null || regId.equals("")) {
-			regId = GCMRegistrar.getRegistrationId(this);
-		}
-
-		String regIden = CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_regId));
-		if (!regIden.equals("")) {
-			regId = regIden;
-		}
 
 		username.addTextChangedListener(new TextWatcher() {
 			@Override
@@ -407,17 +393,6 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 				getResources().getString(R.string.dialog_please_wait), true);
 	}
 
-	/**
-	 * Starts Option Activity.
-	 * 
-	 */
-	public void startOptionActivity() {
-		Intent intent = new Intent(AuthenticationActivity.this, DisplayDeviceInfoActivity.class);
-		intent.putExtra(getResources().getString(R.string.intent_extra_from_activity),
-				AuthenticationActivity.class.getSimpleName());
-		intent.putExtra(getResources().getString(R.string.intent_extra_regid), regId);
-		startActivity(intent);
-	}
 
 	@SuppressLint("NewApi")
 	public void enableSubmitIfReady() {
@@ -459,7 +434,6 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			Intent intentIP = new Intent(AuthenticationActivity.this, SettingsActivity.class);
 			intentIP.putExtra(getResources().getString(R.string.intent_extra_from_activity),
 					AuthenticationActivity.class.getSimpleName());
-			intentIP.putExtra(getResources().getString(R.string.intent_extra_regid), regId);
 			startActivity(intentIP);
 			return true;
 		default:
@@ -580,12 +554,9 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 					editor.commit();
 
 					manageLocalPushNotification(mode, interval, editor);
-					stopProgressDialog();
 					getLicense();
 
 				} else {
-					stopProgressDialog();
-
 					alertDialog = CommonDialogUtils.getAlertDialogWithOneButton(AuthenticationActivity.this,
 							getResources().getString(R.string.title_init_msg_error),
 							getResources().getString(R.string.button_ok), senderIdFailedClickListener);
@@ -692,7 +663,6 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 	private void loadPincodeAcitvity() {
 		Intent intent = new Intent(AuthenticationActivity.this, PinCodeActivity.class);
-		intent.putExtra(getResources().getString(R.string.intent_extra_regid), regId);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		intent.putExtra(getResources().getString(R.string.intent_extra_username), username.getText().toString().trim());
 		startActivity(intent);

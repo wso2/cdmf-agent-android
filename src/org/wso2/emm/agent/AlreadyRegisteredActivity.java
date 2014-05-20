@@ -88,8 +88,14 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		operation = new Operation(AlreadyRegisteredActivity.this);
 		context = AlreadyRegisteredActivity.this;
 		Bundle extras = getIntent().getExtras();
+		if (extras != null) {
+			if (extras.containsKey(getResources().getString(
+					R.string.intent_extra_fresh_reg_flag))) {
+				freshRegFlag = extras.getBoolean(getResources().getString(
+						R.string.intent_extra_fresh_reg_flag));
+			}
 
-
+		}
 		
 		
 		String regIden=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_regId));
@@ -181,7 +187,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 				break;
 			case TAG_BTN_RE_REGISTER:
 				Intent intent = new Intent(AlreadyRegisteredActivity.this,
-						EntryActivity.class);
+						SettingsActivity.class);
 				intent.putExtra(
 						getResources().getString(R.string.intent_extra_regid),
 						regId);
@@ -402,40 +408,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 					btnUnregister
 							.setOnClickListener(onClickListener_BUTTON_CLICKED);
 
-					devicePolicyManager.removeActiveAdmin(demoDeviceAdmin);
-					try {
-						SharedPreferences mainPref = context
-								.getSharedPreferences(
-										getResources().getString(
-												R.string.shared_pref_package),
-										Context.MODE_PRIVATE);
-						Editor editor = mainPref.edit();
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_policy), "");
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_isagreed), "0");
-						editor.putString(
-								getResources().getString(R.string.shared_pref_regId), "");
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_registered), "0");
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_ip), "");
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_sender_id), "");
-						editor.putString(
-								getResources().getString(
-										R.string.shared_pref_eula), "");
-						
-						editor.commit();
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					ServerUtils.clearAppData(context);
 		
 				} else {
 					Intent intent = new Intent(AlreadyRegisteredActivity.this,

@@ -26,7 +26,6 @@ import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.parser.PayloadParser;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.LoggerCustom;
-import org.wso2.emm.agent.utils.ServerUtilities;
 import org.wso2.mobile.idp.proxy.APIController;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
 import org.wso2.mobile.idp.proxy.APIUtilities;

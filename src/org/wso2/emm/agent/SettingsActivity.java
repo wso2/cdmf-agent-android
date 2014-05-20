@@ -303,19 +303,9 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 					AlreadyRegisteredActivity.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(intent);
-			// }
 
-			/*
-			 * if (authenticationActivityFlag && responseStatus != null) {
-			 * authenticationActivityFlag = false; intent = new
-			 * Intent(SettingsActivity.this,AuthenticationActivity.class);
-			 * intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			 * startActivity(intent); }
-			 */
-			/*
-			 * } else { // What do we do }
-			 */
-
+		}else{
+			ServerUtils.clearAppData(context);
 		}
 	}
 

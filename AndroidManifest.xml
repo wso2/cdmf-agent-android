@@ -127,11 +127,6 @@
         <service android:name="org.wso2.emm.agent.GCMIntentService" />
 
         <activity
-            android:name="org.wso2.emm.agent.EntryActivity"
-            android:label="@string/app_name"
-            android:screenOrientation="portrait" >
-        </activity>
-        <activity
             android:name="org.wso2.emm.agent.AlreadyRegisteredActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Sherlock" >
@@ -162,16 +157,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <activity
-            android:name="org.wso2.emm.agent.AgentSettingsActivity"
-            android:label="@string/title_activity_agent_settings"
-            android:screenOrientation="portrait" >
-        </activity>
-        <activity
-            android:name="org.wso2.emm.agent.AvailableOperationsActivity"
-            android:label="@string/title_activity_available_operations"
-            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name="org.wso2.emm.agent.PinCodeActivity"

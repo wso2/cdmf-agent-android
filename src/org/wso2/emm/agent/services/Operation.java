@@ -36,7 +36,6 @@ import org.wso2.emm.agent.api.WiFiConfig;
 import org.wso2.emm.agent.models.PInfo;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.LoggerCustom;
-import org.wso2.emm.agent.utils.ServerUtilities;
 
 import android.annotation.TargetApi;
 import android.app.Notification;
@@ -56,8 +55,6 @@ import android.telephony.SmsManager;
 import android.text.format.Time;
 import android.util.Log;
 import android.widget.Toast;
-
-import com.google.android.gcm.GCMRegistrar;
 
 public class Operation {
 
@@ -689,7 +686,6 @@ public class Operation {
 				if (pin.trim().equals(pinSaved.trim())) {
 					Toast.makeText(context, "Device is being wiped",
 							Toast.LENGTH_LONG).show();
-					startUnRegistration(context);
 					try {
 	    				Thread.sleep(4000);
 	    			} catch (InterruptedException e) {
@@ -1820,120 +1816,6 @@ public class Operation {
 		Log.v("VOLUME AFTER: ",
 				"" + audioManager.getStreamVolume(AudioManager.STREAM_RING));
 
-	}
-	
-	public void startUnRegistration(Context app_context){
-		final Context context = app_context;
-		try{
-		mRegisterTask = new AsyncTask<Void, Void, Void>() {
-
-            @Override
-            protected Void doInBackground(Void... params) {
-            	 Map<String, String> paramss = new HashMap<String, String>();
-            	 SharedPreferences mainPref = context
-         				.getSharedPreferences(
-         						context
-         						.getResources().getString(
-         								R.string.shared_pref_package),
-         						Context.MODE_PRIVATE);
-            	 String regId="";
-            	 regId = mainPref.getString(context
-								.getResources().getString(R.string.shared_pref_regId), "");
-            	 if(regId == null || regId.equals("")){
-         			regId = GCMRegistrar.getRegistrationId(context);
-         		}
-                 paramss.put("regid", regId);
-//            	ServerUtilities.sendToServer(context, "/UNRegister", paramss);
-                 boolean unregState=ServerUtilities.unregister(regId, context);
-                return null;
-            }
-            
-            //ProgressDialog progressDialog;
-            //declare other objects as per your need
-            @Override
-            protected void onPreExecute()
-            {
-                //progressDialog= ProgressDialog.show(context, "Unregistering Device","Please wait", true);
-
-                //do initialization of required objects objects here                
-            };    
-
-
-            @Override
-            protected void onPostExecute(Void result) {
-	            	try {
-	            		SharedPreferences mainPref = context
-								.getSharedPreferences(
-										context
-										.getResources().getString(
-												R.string.shared_pref_package),
-										Context.MODE_PRIVATE);
-						Editor editor = mainPref.edit();
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_policy), "");
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_isagreed), "0");
-						editor.putString(
-								context
-								.getResources().getString(R.string.shared_pref_regId), "");
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_registered), "0");
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_ip), "");
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_sender_id), "");
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_eula), "");
-						
-						editor.commit();
-	        		} catch (Exception e) {
-	        			// TODO Auto-generated catch block
-	        			e.printStackTrace();
-	        		}
-                mRegisterTask = null;
-                //progressDialog.dismiss();
-            }
-
-        };
-        mRegisterTask.execute(null, null, null);
-		}catch(Exception ex){
-			ex.printStackTrace();
-		}
-	}
-
-	/**
-	 * Issues a notification to inform the user that server has sent a message.
-	 */
-	private static void generateNotification(Context context, String message) {
-		int icon = R.drawable.ic_stat_gcm;
-		long when = System.currentTimeMillis();
-		NotificationManager notificationManager = (NotificationManager) context
-				.getSystemService(Context.NOTIFICATION_SERVICE);
-		Notification notification = new Notification(icon, message, when);
-		String title = context.getString(R.string.app_name);
-		Intent notificationIntent = new Intent(context, NotifyActivity.class);
-		notificationIntent.putExtra("notification", message);
-		// set intent so it does not start a new activity
-		notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-				| Intent.FLAG_ACTIVITY_SINGLE_TOP);
-		PendingIntent intent = PendingIntent.getActivity(context, 0,
-				notificationIntent, 0);
-		notification.setLatestEventInfo(context, title, message, intent);
-		notification.flags |= Notification.FLAG_SHOW_LIGHTS;
-		notificationManager.notify(0, notification);
-		Toast.makeText(context, message, Toast.LENGTH_LONG).show();
 	}
 
 }

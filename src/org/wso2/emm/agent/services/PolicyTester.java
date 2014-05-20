@@ -30,7 +30,6 @@ import org.wso2.emm.agent.api.PhoneState;
 import org.wso2.emm.agent.api.WiFiConfig;
 import org.wso2.emm.agent.models.PInfo;
 import org.wso2.emm.agent.utils.CommonUtilities;
-import org.wso2.emm.agent.utils.ServerUtilities;
 
 import android.annotation.TargetApi;
 import android.app.admin.DevicePolicyManager;

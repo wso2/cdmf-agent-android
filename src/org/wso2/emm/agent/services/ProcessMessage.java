@@ -22,19 +22,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.wso2.emm.agent.AlreadyRegisteredActivity;
-import org.wso2.emm.agent.AuthenticationErrorActivity;
-import org.wso2.emm.agent.MainActivity;
 import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.parser.PayloadParser;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtilities;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.util.Log;
 

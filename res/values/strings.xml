@@ -67,7 +67,7 @@
     <string name="intent_extra_main_activity">main_activity_name</string>
     <string name="intent_extra_message">message</string>
     <string name="intent_extra_fresh_reg_flag">freshRegFlag</string>
-    <string name="intent_extra_email">email</string>
+    <string name="intent_extra_username">email</string>
     <string name="intent_extra_notification">notification</string>
 
     <!-- SHARED PREF KEYS -->

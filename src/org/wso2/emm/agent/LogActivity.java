@@ -15,11 +15,10 @@
 */
 package org.wso2.emm.agent;
 
-import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.utils.LoggerCustom;
 
-import android.os.Bundle;
 import android.app.Activity;
+import android.os.Bundle;
 import android.text.Html;
 import android.view.Menu;
 import android.view.View;

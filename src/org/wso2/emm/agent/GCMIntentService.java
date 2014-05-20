@@ -16,11 +16,6 @@
 package org.wso2.emm.agent;
 
 
-import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.api.ApplicationManager;
 import org.wso2.emm.agent.services.Config;
 import org.wso2.emm.agent.services.ProcessMessage;
@@ -33,8 +28,6 @@ import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.PowerManager;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.android.gcm.GCMBaseIntentService;

@@ -27,9 +27,7 @@ import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtils;
 import org.wso2.mobile.idp.proxy.APIAccessCallBack;
-import org.wso2.mobile.idp.proxy.APIController;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
-import org.wso2.mobile.idp.proxy.APIUtilities;
 import org.wso2.mobile.idp.proxy.IdentityProxy;
 
 import android.annotation.SuppressLint;
@@ -664,7 +662,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 						getResources().getString(R.string.dialog_please_wait), cancelListener);
 
 				/* Requests the License agreement. */
-				ServerUtils.callSecuredAPI(CommonUtilities.LICENSE_ENDPOINT, CommonUtilities.GET_METHOD,
+				ServerUtils.callSecuredAPI(CommonUtilities.LICENSE_ENDPOINT, CommonUtilities.GET_METHOD, null,
 						AuthenticationActivity.this, CommonUtilities.LICENSE_REQUEST_CODE);
 
 			} else {
@@ -680,12 +678,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		Intent intent = new Intent(AuthenticationActivity.this, PinCodeActivity.class);
 		intent.putExtra(getResources().getString(R.string.intent_extra_regid), regId);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		if (txtDomain.getText() != null && txtDomain.getText().toString().trim() != "") {
-			intent.putExtra(getResources().getString(R.string.intent_extra_email), username.getText().toString().trim()
-					+ "@" + txtDomain.getText().toString().trim());
-		} else {
-			intent.putExtra(getResources().getString(R.string.intent_extra_email), username.getText().toString().trim());
-		}
+		intent.putExtra(getResources().getString(R.string.intent_extra_username), username.getText().toString().trim());
 		startActivity(intent);
 	}
 
@@ -704,7 +697,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 					dialogClickListener);
 		} else {
 			// Requesting sender ID.
-			ServerUtils.callSecuredAPI(CommonUtilities.SENDER_ID_ENDPOINT, CommonUtilities.GET_METHOD,
+			ServerUtils.callSecuredAPI(CommonUtilities.SENDER_ID_ENDPOINT, CommonUtilities.GET_METHOD, null,
 					AuthenticationActivity.this, CommonUtilities.SENDER_ID_REQUEST_CODE);
 		}
 	}

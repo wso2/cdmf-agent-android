@@ -38,8 +38,6 @@ import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.LoggerCustom;
 import org.wso2.emm.agent.utils.ServerUtilities;
 
-import com.google.android.gcm.GCMRegistrar;
-
 import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -52,15 +50,14 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.telephony.SmsManager;
 import android.text.format.Time;
-import android.util.JsonReader;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.google.android.gcm.GCMRegistrar;
 
 public class Operation {
 

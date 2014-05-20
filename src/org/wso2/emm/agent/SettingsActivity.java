@@ -21,10 +21,8 @@ import java.util.concurrent.TimeoutException;
 
 import org.wso2.emm.agent.api.DeviceInfo;
 import org.wso2.emm.agent.utils.CommonUtilities;
-import org.wso2.emm.agent.utils.ServerUtilities;
-import org.wso2.mobile.idp.proxy.APIController;
+import org.wso2.emm.agent.utils.ServerUtils;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
-import org.wso2.mobile.idp.proxy.APIUtilities;
 import org.wso2.mobile.idp.proxy.IdentityProxy;
 
 import android.app.Activity;
@@ -32,7 +30,6 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -125,7 +122,6 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 					// Check registration.
 					isRegistered();
 					
-					// SHOW PROGRESS DIALOG
 					progressDialog = ProgressDialog.show(SettingsActivity.this, getResources().getString(R.string.dialog_sender_id),getResources().getString(R.string.dialog_please_wait), true);
 					
 				}
@@ -177,17 +173,19 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		});
 	}
 
+	/**
+	 * Checks whether device is registered or NOT.
+	 * 
+	 */
 	private void isRegistered() {
+
 		Map<String, String> requestParams = new HashMap<String, String>();
-		//requestParams.put("regid", regId);
-		
-		APIUtilities apiUtilities = new APIUtilities();
-		apiUtilities.setEndPoint(CommonUtilities.SERVER_URL + CommonUtilities.IS_REGISTERED_ENDPOINT + CommonUtilities.API_VERSION);
-		
-		apiUtilities.setHttpMethod("POST");
-		apiUtilities.setRequestParams(requestParams);
-		APIController apiController = new APIController();
-		apiController.invokeAPI(apiUtilities, this, CommonUtilities.IS_REGISTERED_REQUEST_CODE);
+		requestParams.put("regid", regId);
+
+		ServerUtils.callSecuredAPI(CommonUtilities.IS_REGISTERED_ENDPOINT,
+				CommonUtilities.POST_METHOD, requestParams,
+				SettingsActivity.this,
+				CommonUtilities.IS_REGISTERED_REQUEST_CODE);
 	}
 	
 	DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {

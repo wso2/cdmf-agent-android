@@ -38,10 +38,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.media.AudioManager;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.util.Log;
 

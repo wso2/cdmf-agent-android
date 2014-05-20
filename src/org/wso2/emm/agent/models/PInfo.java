@@ -15,11 +15,6 @@
 */
 package org.wso2.emm.agent.models;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import android.content.pm.PackageInfo;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 public class PInfo {

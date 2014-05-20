@@ -15,17 +15,17 @@
 */
 package org.wso2.emm.agent;
 
-import com.google.android.gcm.GCMRegistrar;
-
-import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
+
+import com.google.android.gcm.GCMRegistrar;
 
 public class AuthenticationErrorActivity extends Activity {
     String regId = "";

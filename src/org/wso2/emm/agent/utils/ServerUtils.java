@@ -1,5 +1,7 @@
 package org.wso2.emm.agent.utils;
 
+import java.util.Map;
+
 import org.wso2.mobile.idp.proxy.APIController;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
 import org.wso2.mobile.idp.proxy.APIUtilities;
@@ -16,10 +18,14 @@ public class ServerUtils {
 	 * @param apiResultCallBack the API result call back object
 	 * @param requestCode the request code
 	 */
-	public static void callSecuredAPI(String endpoint, String methodType, APIResultCallBack apiResultCallBack, int requestCode) {
+	public static void callSecuredAPI(String endpoint, String methodType, Map<String, String> requestParams, APIResultCallBack apiResultCallBack, int requestCode) {
+		
 		APIUtilities apiUtilities = new APIUtilities();
 		apiUtilities.setEndPoint(CommonUtilities.SERVER_URL + endpoint + CommonUtilities.API_VERSION);
 		apiUtilities.setHttpMethod(methodType);
+		if (requestParams != null) {
+			apiUtilities.setRequestParams(requestParams);
+		}
 		APIController apiController = new APIController();
 		apiController.invokeAPI(apiUtilities, apiResultCallBack, requestCode);
 	}

@@ -18,41 +18,38 @@ package org.wso2.emm.agent;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.wso2.emm.agent.R;
+import org.wso2.emm.agent.api.PhoneState;
 import org.wso2.emm.agent.services.Operation;
 import org.wso2.emm.agent.services.WSO2DeviceAdminReceiver;
+import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtilities;
-import org.wso2.emm.agent.utils.ServerUtilities;
-import org.wso2.mobile.idp.proxy.APIController;
+import org.wso2.emm.agent.utils.ServerUtils;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
-import org.wso2.mobile.idp.proxy.APIUtilities;
 
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockActivity;
-import com.google.android.gcm.GCMRegistrar;
-
-import android.os.AsyncTask;
-import android.os.Build;
-import android.os.Bundle;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.SharedPreferences.Editor;
-import android.util.Log;
+import android.os.AsyncTask;
+import android.os.Build;
+import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.google.android.gcm.GCMRegistrar;
 
 public class AlreadyRegisteredActivity extends SherlockActivity implements APIResultCallBack {
 	AsyncTask<Void, Void, Void> mRegisterTask;
@@ -206,25 +203,31 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 
 	public void startUnRegistration() {
 		final Context context = AlreadyRegisteredActivity.this;
-		
-		progressDialog = ProgressDialog.show(
-				AlreadyRegisteredActivity.this,
-				getResources().getString(
-						R.string.dialog_message_unregistering),
-				getResources().getString(
-						R.string.dialog_message_please_wait), true);
-		
-		regId = CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_regId));
-		
+
+		progressDialog = ProgressDialog
+				.show(AlreadyRegisteredActivity.this,
+						getResources().getString(
+								R.string.dialog_message_unregistering),
+						getResources().getString(
+								R.string.dialog_message_please_wait), true);
+
+		regId = CommonUtilities.getPref(context, context.getResources()
+				.getString(R.string.shared_pref_regId));
+
 		Map<String, String> requestParams = new HashMap<String, String>();
 		requestParams.put("regid", regId);
-		
-		APIUtilities apiUtilities = new APIUtilities();
-		apiUtilities.setEndPoint(CommonUtilities.SERVER_URL + CommonUtilities.UNREGISTER_ENDPOINT + CommonUtilities.API_VERSION);
-		apiUtilities.setHttpMethod("POST");
-		apiUtilities.setRequestParams(requestParams);
-		APIController apiController = new APIController();
-		apiController.invokeAPI(apiUtilities, this, CommonUtilities.UNREGISTER_REQUEST_CODE);
+
+		// Check network connection availability before calling the API.
+		if (PhoneState.isNetworkAvailable(context)) {
+			// Call device unregister API.
+			ServerUtils.callSecuredAPI(CommonUtilities.UNREGISTER_ENDPOINT,
+					CommonUtilities.POST_METHOD, requestParams,
+					AlreadyRegisteredActivity.this,
+					CommonUtilities.UNREGISTER_REQUEST_CODE);
+		} else {
+			CommonDialogUtils
+					.showNetworkUnavailableMessage(AlreadyRegisteredActivity.this);
+		}
 
 	}
 
@@ -359,27 +362,26 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 								R.string.error_heading_connection));
 			}
 		};
-		
-		progressDialog = ProgressDialog.show(
-				AlreadyRegisteredActivity.this, getResources()
-						.getString(R.string.dialog_checking_reg),
-				getResources().getString(R.string.dialog_please_wait),
-				true);
+
+		progressDialog = ProgressDialog.show(AlreadyRegisteredActivity.this,
+				getResources().getString(R.string.dialog_checking_reg),
+				getResources().getString(R.string.dialog_please_wait), true);
 		progressDialog.setCancelable(true);
 		progressDialog.setOnCancelListener(cancelListener);
-		
-		
-		
-		Map<String, String> requestParams = new HashMap<String, String>();
-		requestParams.put("regid", regId);
-		
-		APIUtilities apiUtilities = new APIUtilities();
-		apiUtilities.setEndPoint(CommonUtilities.SERVER_URL + CommonUtilities.IS_REGISTERED_ENDPOINT + CommonUtilities.API_VERSION);
-		
-		apiUtilities.setHttpMethod("POST");
-		apiUtilities.setRequestParams(requestParams);
-		APIController apiController = new APIController();
-		apiController.invokeAPI(apiUtilities, this, CommonUtilities.IS_REGISTERED_REQUEST_CODE);
+
+		// Check network connection availability before calling the API.
+		if (PhoneState.isNetworkAvailable(context)) {
+			// Call isRegistered API.
+			Map<String, String> requestParams = new HashMap<String, String>();
+			requestParams.put("regid", regId);
+			ServerUtils.callSecuredAPI(CommonUtilities.IS_REGISTERED_ENDPOINT,
+					CommonUtilities.POST_METHOD, requestParams,
+					AlreadyRegisteredActivity.this,
+					CommonUtilities.IS_REGISTERED_REQUEST_CODE);
+		} else {
+			CommonDialogUtils
+					.showNetworkUnavailableMessage(AlreadyRegisteredActivity.this);
+		}
 
 		super.onResume();
 

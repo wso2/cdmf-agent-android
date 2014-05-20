@@ -16,16 +16,10 @@
 
 package org.wso2.emm.agent;
 
-import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.api.DeviceInfo;
 import org.wso2.emm.agent.utils.CommonUtilities;
-import org.wso2.emm.agent.utils.LoggerCustom;
 import org.wso2.emm.agent.utils.ServerUtilities;
 
-import com.google.android.gcm.GCMRegistrar;
-
-import android.os.AsyncTask;
-import android.os.Bundle;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -37,10 +31,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.os.AsyncTask;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.TextView;
+
+import com.google.android.gcm.GCMRegistrar;
 
 
 public class EntryActivity extends Activity {

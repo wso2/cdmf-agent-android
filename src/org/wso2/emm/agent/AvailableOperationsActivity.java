@@ -15,13 +15,12 @@
 */
 package org.wso2.emm.agent;
 
-import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.api.DeviceInfo;
 
-import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;

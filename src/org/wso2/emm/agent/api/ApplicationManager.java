@@ -25,11 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.wso2.emm.agent.R;
-import org.wso2.emm.agent.R.drawable;
 import org.wso2.emm.agent.models.PInfo;
 import org.wso2.emm.agent.utils.CommonUtilities;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;

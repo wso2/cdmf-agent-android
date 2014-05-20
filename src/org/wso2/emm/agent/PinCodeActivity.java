@@ -16,9 +16,6 @@
 package org.wso2.emm.agent;
 
 
-import org.wso2.emm.agent.R;
-
-import android.os.Bundle;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -27,6 +24,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -43,7 +41,7 @@ public class PinCodeActivity extends Activity {
 	private EditText txtPin;
 	private EditText txtOldPin;
 	private Button btnPin;
-	private String EMAIL = null;
+	private String username = null;
 	private String REG_ID = "";
 	private final int TAG_BTN_SET_PIN = 0;
 	private String FROM_ACTIVITY = null;
@@ -57,8 +55,8 @@ public class PinCodeActivity extends Activity {
 
 		Bundle extras = getIntent().getExtras();
 		if (extras != null) {
-			if (extras.containsKey(getResources().getString(R.string.intent_extra_email))) {
-				EMAIL = extras.getString(getResources().getString(R.string.intent_extra_email));
+			if (extras.containsKey(getResources().getString(R.string.intent_extra_username))) {
+				username = extras.getString(getResources().getString(R.string.intent_extra_username));
 			}
 
 			if (extras.containsKey(getResources().getString(R.string.intent_extra_regid))) {
@@ -209,7 +207,7 @@ public class PinCodeActivity extends Activity {
 			Intent intent = new Intent(PinCodeActivity.this, MainActivity.class);
 			intent.putExtra(getResources().getString(R.string.intent_extra_regid), REG_ID);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			intent.putExtra(getResources().getString(R.string.intent_extra_email), EMAIL);
+			intent.putExtra(getResources().getString(R.string.intent_extra_username), username);
 			startActivity(intent);
 		}
 	}

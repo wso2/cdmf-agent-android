@@ -3,21 +3,16 @@ package org.wso2.emm.agent.services;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.wso2.emm.agent.AuthenticationActivity;
 import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.utils.CommonUtilities;
-import org.wso2.emm.agent.utils.ServerUtilities;
-import org.wso2.mobile.idp.proxy.APIController;
+import org.wso2.emm.agent.utils.ServerUtils;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
-import org.wso2.mobile.idp.proxy.APIUtilities;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
 
 public class AlarmReceiver extends BroadcastReceiver {
 	 
@@ -35,7 +30,5 @@ public class AlarmReceiver extends BroadcastReceiver {
 			msg.getOperations(null);
 		}
     }
-     
-
  
 }

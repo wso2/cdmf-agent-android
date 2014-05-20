@@ -6,17 +6,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.wso2.emm.agent.AuthenticationActivity;
-import org.wso2.emm.agent.PinCodeActivity;
-import org.wso2.emm.agent.R;
-import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
-
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 
 public class APIResultCallBackImpl implements APIResultCallBack {
 

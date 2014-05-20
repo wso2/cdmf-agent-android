@@ -67,7 +67,7 @@
     <string name="intent_extra_main_activity">main_activity_name</string>
     <string name="intent_extra_message">message</string>
     <string name="intent_extra_fresh_reg_flag">freshRegFlag</string>
-    <string name="intent_extra_email">email</string>
+    <string name="intent_extra_username">username</string>
     <string name="intent_extra_notification">notification</string>
 
     <!-- SHARED PREF KEYS -->
@@ -97,6 +97,8 @@
     <string name="error_enrollment_failed">Enrollment failed</string>
     <string name="error_enrollment_failed_detail">Enrollment failed, please contact administrator</string>
     <string name="error_auth_failed_detail">Authentication failed due to a connection failure please check your network connection and try again.</string>
+    <string name="error_authentication_failed">Incorrect login information. Please try again.</string>
+     <string name="error_network_unavailable">"Network connectivity is unavailable. Please check your network connectivity."</string>
 
     <!-- DIALOG TITLES AND MESSAGES -->
     <string name="dialog_authenticate">Authenticating</string>

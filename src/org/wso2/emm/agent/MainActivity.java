@@ -19,20 +19,14 @@ import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.api.DeviceInfo;
+import org.wso2.emm.agent.api.PhoneState;
 import org.wso2.emm.agent.services.WSO2DeviceAdminReceiver;
+import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtilities;
-import org.wso2.emm.agent.utils.ServerUtilities;
-import org.wso2.mobile.idp.proxy.APIController;
+import org.wso2.emm.agent.utils.ServerUtils;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
-import org.wso2.mobile.idp.proxy.APIUtilities;
 
-import com.google.android.gcm.GCMRegistrar;
-
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.app.admin.DevicePolicyManager;
@@ -41,6 +35,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.os.AsyncTask;
+import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -52,7 +48,7 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity implements APIResultCallBack {
 	 String regId = "";
-	 String email = "";
+	 String username = "";
 	 TextView mDisplay;
 	 Context context;
 	 boolean regState = false;
@@ -84,15 +80,15 @@ public class MainActivity extends Activity implements APIResultCallBack {
 				regId = extras.getString(getResources().getString(R.string.intent_extra_regid));
 			}*/
 			
-			if(extras.containsKey(getResources().getString(R.string.intent_extra_email))){
-				email = extras.getString(getResources().getString(R.string.intent_extra_email));
+			if(extras.containsKey(getResources().getString(R.string.intent_extra_username))){
+				username = extras.getString(getResources().getString(R.string.intent_extra_username));
 			}
 		}
 
 		SharedPreferences mainPref = this.getSharedPreferences( getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
 		Editor editor = mainPref.edit();
 		regId = mainPref.getString(getResources().getString(R.string.shared_pref_regId), "");
-		editor.putString(getResources().getString(R.string.shared_pref_username), email);
+		editor.putString(getResources().getString(R.string.shared_pref_username), username);
 		editor.commit();
 		
 		//Enroll automatically
@@ -120,8 +116,6 @@ public class MainActivity extends Activity implements APIResultCallBack {
 			DeviceInfo deviceInfo = new DeviceInfo(MainActivity.this);
 			JSONObject jsObject = new JSONObject();
 			String osVersion = "";
-			String response = "";
-			boolean state = false;
 			SharedPreferences mainPref = MainActivity.this.getSharedPreferences(
 					MainActivity.this.getResources().getString(
 							R.string.shared_pref_package),
@@ -130,53 +124,38 @@ public class MainActivity extends Activity implements APIResultCallBack {
 					.getString(R.string.shared_pref_reg_type), "");
 			
 			osVersion = deviceInfo.getOsVersion();
-			try {
-				jsObject.put("device", deviceInfo.getDevice());
-				jsObject.put("imei", deviceInfo.getDeviceId());
-				jsObject.put("imsi", deviceInfo.getIMSINumber());
-				jsObject.put("model", deviceInfo.getDeviceModel());
+		try {
+			jsObject.put("device", deviceInfo.getDevice());
+			jsObject.put("imei", deviceInfo.getDeviceId());
+			jsObject.put("imsi", deviceInfo.getIMSINumber());
+			jsObject.put("model", deviceInfo.getDeviceModel());
 
-					Map<String, String> requestParams = new HashMap<String, String>();
-					requestParams.put("regid", regId);
-					requestParams.put("properties", jsObject.toString());
-					requestParams.put("osversion", osVersion);
-					requestParams.put("username", "chatura");
-					requestParams.put("platform", "Android");
-					requestParams.put("vendor",
-							deviceInfo.getDeviceManufacturer());
-					requestParams.put("type", type);
-					requestParams.put("mac", deviceInfo.getMACAddress());
+			Map<String, String> requestParams = new HashMap<String, String>();
+			requestParams.put("regid", regId);
+			requestParams.put("properties", jsObject.toString());
+			requestParams.put("osversion", osVersion);
+			requestParams.put("username", username);
+			requestParams.put("platform", "Android");
+			requestParams.put("vendor", deviceInfo.getDeviceManufacturer());
+			requestParams.put("type", type);
+			requestParams.put("mac", deviceInfo.getMACAddress());
 
-					APIUtilities apiUtilities = new APIUtilities();
-					apiUtilities.setEndPoint(CommonUtilities.SERVER_URL
-							+ CommonUtilities.REGISTER_ENDPOINT
-							+ CommonUtilities.API_VERSION);
-					apiUtilities.setHttpMethod("POST");
-					apiUtilities.setRequestParams(requestParams);
-					APIController apiController = new APIController();
-					apiController.invokeAPI(apiUtilities, MainActivity.this,
-							CommonUtilities.REGISTER_REQUEST_CODE);
-					
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			// Check network connection availability before calling the API.
+			if (PhoneState.isNetworkAvailable(context)) {
+				// Call device registration API.
+				ServerUtils.callSecuredAPI(CommonUtilities.REGISTER_ENDPOINT,
+						CommonUtilities.POST_METHOD, requestParams,
+						MainActivity.this, CommonUtilities.REGISTER_REQUEST_CODE);
+			} else {
+				CommonDialogUtils
+						.showNetworkUnavailableMessage(MainActivity.this);
 			}
 			
-		
-		
-		/*btnEnroll.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				
-				progressDialog= ProgressDialog.show(MainActivity.this, "Enrolling Device","Please wait", true);
-				
-				//do the registration
-				
 
-				
-			}
-		});*/
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
     }
 
     @Override

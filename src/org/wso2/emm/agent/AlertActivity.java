@@ -15,15 +15,13 @@
 */
 package org.wso2.emm.agent;
 
-import org.wso2.emm.agent.R;
-
-import com.actionbarsherlock.app.SherlockActivity;
-
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
+
+import com.actionbarsherlock.app.SherlockActivity;
 
 public class AlertActivity extends SherlockActivity {
 	String message = "";

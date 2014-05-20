@@ -29,11 +29,9 @@ public class CommonUtilities {
 	public static boolean DEBUG_MODE_ENABLED = false;
 	public static boolean LOCAL_NOTIFICATIONS_ENABLED = false;
 	public static boolean GCM_ENABLED = true;
-//
-	//public static String SERVER_IP = "192.168.1.4";
-//	public static String SERVER_IP = "10.100.5.36";
+
 	public static String SERVER_IP = "10.100.5.70";
-//	public static String SERVER_IP = "10.10.10.123";
+
 	public static String SERVER_PORT = "9763";
 	public static String SERVER_PROTOCOL = "http://";
 	public static String API_VERSION = "1.0.0";

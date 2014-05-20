@@ -90,8 +90,12 @@ public class GCMIntentService extends GCMBaseIntentService {
 		String code = intent.getStringExtra(getResources().getString(R.string.intent_extra_message)).trim();
 
         Config.context = this;
-
-    	processMsg = new ProcessMessage(Config.context, CommonUtilities.MESSAGE_MODE_GCM, intent);
+        String mode=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_notifier));
+		if(mode.trim().toUpperCase().equals("GCM")){
+			ProcessMessage msg=new ProcessMessage(context);
+			msg.getOperations(null);
+		}
+    	//processMsg = new ProcessMessage(Config.context, CommonUtilities.MESSAGE_MODE_GCM, intent);
     }
 	    
 

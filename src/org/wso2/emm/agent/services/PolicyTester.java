@@ -139,7 +139,7 @@ public class PolicyTester {
 			params.put("status", "200");
 			params.put("data", finalArray.toString());
 			
-			ServerUtilities.pushData(params, context);
+			//ServerUtilities.pushData(params, context);
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

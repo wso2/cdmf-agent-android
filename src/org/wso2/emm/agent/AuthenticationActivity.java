@@ -724,7 +724,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		 * recurringDownload);
 		 */
 
-		alarms.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime, 15000 * duration, recurringDownload);
+		alarms.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime, 20000 * duration, recurringDownload);
 
 	}
 

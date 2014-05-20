@@ -29,6 +29,9 @@ import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.parser.PayloadParser;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtilities;
+import org.wso2.mobile.idp.proxy.APIController;
+import org.wso2.mobile.idp.proxy.APIResultCallBack;
+import org.wso2.mobile.idp.proxy.APIUtilities;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -38,7 +41,7 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class ProcessMessage {
+public class ProcessMessage  implements APIResultCallBack{
 	Operation operation;
 	Map<String, String> params;
 	AsyncTask<Void, Void, String> sendReply;
@@ -72,15 +75,72 @@ public class ProcessMessage {
 		operation = new Operation(context, mode, intent);
 	}
 	
-	//local notification message handler
-	public ProcessMessage(Context context, int mode, String msg) {
-		c=context;
-		if(msg!=null && !msg.equals("")){
-    		Log.e("", " "+msg);
-    		messageExecute(msg);
+	// local notification message handler
+	public ProcessMessage(Context context) {
+		c = context;
+	}
+	
+	
+    public String getOperations(String replyData){
+    	
+		String server_res = null;
+		try {
+			SharedPreferences mainPref = c
+					.getSharedPreferences(c.getResources().getString(R.string.shared_pref_package),
+							Context.MODE_PRIVATE);
+			String regId=mainPref.getString(c.getResources().getString(R.string.shared_pref_regId), "");
+			Map<String, String> requestParams = new HashMap<String, String>();
+			if(replyData != null){
+				requestParams.put("data", replyPayload);
+			}
+			requestParams.put("regId", regId);
+			Log.e("regId",regId+"");
+			
+			APIUtilities apiUtilities = new APIUtilities();
+			apiUtilities.setEndPoint(CommonUtilities.SERVER_URL
+					+ CommonUtilities.NOTIFICATION_ENDPOINT	
+					+ CommonUtilities.API_VERSION);
+
+			apiUtilities.setHttpMethod("POST");
+			apiUtilities.setRequestParams(requestParams);
+			Log.e("endpoint", apiUtilities.getEndPoint());
+			APIController apiController = new APIController();
+			apiController.invokeAPI(apiUtilities, this,
+			CommonUtilities.NOTIFICATION_REQUEST_CODE);
+			return server_res;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@Override
+	public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
+		String responseStatus = "";
+		String response = "";
+		if (requestCode == CommonUtilities.NOTIFICATION_REQUEST_CODE) { 
+			if (result != null) {
+				responseStatus = result.get(CommonUtilities.STATUS_KEY);
+				
+				if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
+					response = result.get("response");
+					//processMsg = new ProcessMessage(context, CommonUtilities.MESSAGE_MODE_LOCAL, response);
+					if(response!=null && !response.equals("") && !response.equals("null")){
+			    		Log.e("responseresponse", " "+response);
+			    		messageExecute(response);
+					}
+				}
+			}
 		}
 		
 	}
+	
+	
+	
+	
+	
+	
 
 	private void messageExecute(String msg) {
 		JSONArray repArray =new JSONArray();
@@ -168,62 +228,7 @@ public class ProcessMessage {
 			
 			replyPayload=ps.generateReply(repArray,regId);
 			Log.e("reply",replyPayload);
-			sendReply = new AsyncTask<Void, Void, String>() {
-				
-		        @Override
-		        protected String doInBackground(Void... params) {
-		        	try{
-		        		SharedPreferences mainPref = c
-		        				.getSharedPreferences(c.getResources().getString(R.string.shared_pref_package),
-		        						Context.MODE_PRIVATE);
-		        		String regId=mainPref.getString(c.getResources().getString(R.string.shared_pref_regId), "");
-
-		        		
-		        		
-		        		Map<String, String> paramsReply = new HashMap<String, String>();
-		        		responsePayload = new HashMap<String, String>();
-		        		paramsReply.put("regId", regId);
-		        		paramsReply.put("data", replyPayload);
-		        		responsePayload=ServerUtilities.sendWithTimeWait("notifications/pendingOperations", paramsReply,
-		        		 				"POST", c);
-		        		
-		        		
-		    			
-		        	}catch(Exception e){
-		        		e.printStackTrace();
-		        	}
-		        	return null;
-		        }
-		
-		       
-		        @Override
-		        protected void onPreExecute()
-		        {
-		           
-		            //do initialization of required objects objects here                
-		        }; 
-		        @Override
-		        protected void onPostExecute(String result) {
-		        	try{
-		        	String status = responsePayload.get("status");
-	        		String res =  responsePayload.get("response");
-	        		if(status!=null && status.equalsIgnoreCase("200")){
-	        			if(res!=null){
-	        				messageExecute(res);
-	        			}    			
-	        		}
-	        		
-	        		
-	    			Log.v("OPERATION RESPONSE", responsePayload.get("response"));
-		        	}catch(Exception e){
-		        		e.printStackTrace();
-		        	}
-		        	sendReply = null;
-		           
-		        }
-		
-		    };
-		    sendReply.execute(null, null, null);
+			getOperations(replyPayload);
 			
 		}
 	    

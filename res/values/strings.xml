@@ -116,7 +116,6 @@
     <string name="register_text_view_text_unregister">Device un-registration successful, click to re-register to the MDM</string>
 
     <!-- AGENT SETTINGS ACTIVITY -->
-    <string name="menu_item_operations">Operations</string>
     <string name="menu_item_phone_info">Phone Info</string>
     <string name="menu_item_change_pin">Change PIN code</string>
     <string name="menu_item_change_ip">Change IP address</string>

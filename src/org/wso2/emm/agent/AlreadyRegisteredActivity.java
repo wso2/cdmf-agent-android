@@ -226,17 +226,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 
 	}
 
-	public void startOptionActivity() {
-		Intent intent = new Intent(AlreadyRegisteredActivity.this,
-				AgentSettingsActivity.class);
-		intent.putExtra(
-				getResources().getString(R.string.intent_extra_from_activity),
-				AlreadyRegisteredActivity.class.getSimpleName());
-		intent.putExtra(getResources().getString(R.string.intent_extra_regid),
-				regId);
-		startActivity(intent);
-	}
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		if(CommonUtilities.DEBUG_MODE_ENABLED){
@@ -250,18 +239,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.operation_setting:
-			Intent intentOP = new Intent(AlreadyRegisteredActivity.this,
-					AvailableOperationsActivity.class);
-			intentOP.putExtra(
-					getResources().getString(
-							R.string.intent_extra_from_activity),
-					AlreadyRegisteredActivity.class.getSimpleName());
-			intentOP.putExtra(
-					getResources().getString(R.string.intent_extra_regid),
-					regId);
-			startActivity(intentOP);
-			return true;
 		case R.id.info_setting:
 			Intent intentIN = new Intent(AlreadyRegisteredActivity.this,
 					DisplayDeviceInfoActivity.class);
@@ -269,9 +246,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 					getResources().getString(
 							R.string.intent_extra_from_activity),
 					AlreadyRegisteredActivity.class.getSimpleName());
-			intentIN.putExtra(
-					getResources().getString(R.string.intent_extra_regid),
-					regId);
 			startActivity(intentIN);
 			return true;
 		case R.id.pin_setting:
@@ -281,9 +255,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 					getResources().getString(
 							R.string.intent_extra_from_activity),
 					AlreadyRegisteredActivity.class.getSimpleName());
-			intentPIN.putExtra(
-					getResources().getString(R.string.intent_extra_regid),
-					regId);
 			startActivity(intentPIN);
 			return true;
 		case R.id.ip_setting:
@@ -300,9 +271,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 					getResources().getString(
 							R.string.intent_extra_from_activity),
 					AlreadyRegisteredActivity.class.getSimpleName());
-			intentIP.putExtra(
-					getResources().getString(R.string.intent_extra_regid),
-					regId);
 			startActivity(intentIP);
 			return true;
 		case R.id.debug_log:

@@ -51,7 +51,6 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 	TextView ip;
 	Button optionBtn;
 	private String FROM_ACTIVITY = null;
-	private String REG_ID = "";
 	Context context;
 	String senderID=null;
 	DeviceInfo info = null;
@@ -76,16 +75,7 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 			if(extras.containsKey(getResources().getString(R.string.intent_extra_from_activity))){
 				FROM_ACTIVITY = extras.getString(getResources().getString(R.string.intent_extra_from_activity));
 			}
-			
-			if(extras.containsKey(getResources().getString(R.string.intent_extra_regid))){
-				REG_ID = extras.getString(getResources().getString(R.string.intent_extra_regid));
-			}
-			
-			String regIden=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_regId));
-			if(!regIden.equals("")){
-				REG_ID = regIden;
-			}
-			
+			String regId = CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_regId));
 		}
 		
 		// Need to move to a library
@@ -115,32 +105,30 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		regId = mainPref.getString(getResources().getString(R.string.shared_pref_reg_success), "");		
 		
 		try {
-			if(IdentityProxy.getInstance().getToken() != null) {
-				
-				if(REG_ID == null || REG_ID.equals("")){
-					REG_ID = GCMRegistrar.getRegistrationId(this);
-				} else {
+			// Check the session.
+			if (IdentityProxy.getInstance().getToken() != null) {
+				if (regId != null && !regId.equals("")) {
 					// Check registration.
 					isRegistered();
-					
-					progressDialog = ProgressDialog.show(SettingsActivity.this, getResources().getString(R.string.dialog_sender_id),getResources().getString(R.string.dialog_please_wait), true);
-					
+
+					progressDialog = ProgressDialog
+							.show(SettingsActivity.this,
+									getResources().getString(
+											R.string.dialog_sender_id),
+									getResources().getString(
+											R.string.dialog_please_wait), true);
 				}
-				
+
 			}
 		} catch (TimeoutException e) {
-			// TODO Handle this
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Handle this
 			e.printStackTrace();
 		}
     	
 		if(ipSaved != null && ipSaved != ""){
 			ip.setText(ipSaved);
-			
-			// Shall we move this Authentication activity???
-			Intent intent = new Intent(SettingsActivity.this,EntryActivity.class);
+			Intent intent = new Intent(SettingsActivity.this,AuthenticationActivity.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(intent);	
 		}else{
@@ -260,11 +248,6 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 	    	this.finish();
     		return true;
 	    }else if (keyCode == KeyEvent.KEYCODE_BACK && FROM_ACTIVITY != null && FROM_ACTIVITY.equals(AuthenticationActivity.class.getSimpleName())) {
-    		/*Intent intent = new Intent(SettingsActivity.this,AuthenticationActivity.class);
-    		intent.putExtra("from_activity_name", SettingsActivity.class.getSimpleName());
-    		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-    		intent.putExtra("regid", REG_ID);
-    		startActivity(intent);*/
 	    	int pid = android.os.Process.myPid(); 
 	    	android.os.Process.killProcess(pid); 
     		return true;
@@ -293,13 +276,6 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
                 }
             }
         });
-        /*builder1.setNegativeButton("No",
-                new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                dialog.cancel();
-            }
-        });*/
-
         AlertDialog alert = builder.create();
         alert.show();
 	}
@@ -325,9 +301,6 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 			}
 			intent = new Intent(SettingsActivity.this,
 					AlreadyRegisteredActivity.class);
-			intent.putExtra(
-					getResources().getString(R.string.intent_extra_regid),
-					REG_ID);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(intent);
 			// }

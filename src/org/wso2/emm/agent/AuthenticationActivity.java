@@ -690,12 +690,11 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			if (progressDialog != null) {
 				progressDialog.dismiss();
 			}
-			CommonDialogUtils.getAlertDialogWithTwoButtonAndTitle(context,
+			alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
 					getResources().getString(R.string.title_head_authentication_error),
-					getResources().getString(R.string.error_auth_failed_detail),
-					getResources().getString(R.string.info_label_rooted_answer_no),
-					getResources().getString(R.string.info_label_rooted_answer_yes), dialogClickListener,
-					dialogClickListener);
+					getResources().getString(R.string.error_authentication_failed),
+					getResources().getString(R.string.button_ok), dialogClickListener);
+			alertDialog.show();
 		} else {
 			// Requesting sender ID.
 			ServerUtils.callSecuredAPI(CommonUtilities.SENDER_ID_ENDPOINT, CommonUtilities.GET_METHOD, null,

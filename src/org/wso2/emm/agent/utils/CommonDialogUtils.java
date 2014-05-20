@@ -72,7 +72,7 @@ public abstract class CommonDialogUtils {
 		AlertDialog.Builder builder = CommonDialogUtils
 				.getAlertDialogWithOneButton(
 						context,
-						"Network connectivity is unavailable. Please check your network connectivity.",
+						context.getResources().getString(R.string.error_network_unavailable),
 						context.getResources().getString(R.string.button_ok), null);
 		builder.show();
 	}
@@ -88,6 +88,18 @@ public abstract class CommonDialogUtils {
 		builder.setMessage(message)
 				.setPositiveButton(positiveBtnLabel, positiveClickListener)
 				.setNegativeButton(negetiveBtnLabel, negativeClickListener);
+
+		return builder;
+	}
+	
+	public static AlertDialog.Builder getAlertDialogWithOneButtonAndTitle(Context context,
+			String title, String message,
+			String positiveBtnLabel, DialogInterface.OnClickListener positiveClickListener) {
+		
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		builder.setTitle(title);
+		builder.setMessage(message)
+				.setPositiveButton(positiveBtnLabel, positiveClickListener);
 
 		return builder;
 	}

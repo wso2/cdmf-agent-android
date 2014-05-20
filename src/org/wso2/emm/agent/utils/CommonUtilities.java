@@ -32,6 +32,7 @@ public class CommonUtilities {
 
 	public static String SERVER_IP = "192.168.1.4";
 	//public static String SERVER_IP = "10.100.5.36";
+	//public static String SERVER_IP = "192.168.1.4";
 	//public static String SERVER_IP = "10.10.10.123";
 	public static String SERVER_PORT = "9763";
 	public static String SERVER_PROTOCOL = "http://";

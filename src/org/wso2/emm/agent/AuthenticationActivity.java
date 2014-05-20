@@ -554,6 +554,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	 *            the sender ID request code
 	 */
 	private void manipulateSenderIdResponse(Map<String, String> result, int requestCode) {
+		Log.e("status",""+requestCode+"  "+result.get("response"));
 		String responseStatus;
 		JSONObject response;
 		if (requestCode == CommonUtilities.SENDER_ID_REQUEST_CODE) {
@@ -684,7 +685,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 	@Override
 	public void onAPIAccessRecive(String status) {
-
+		
 		if (status != null && status.trim().equals(CommonUtilities.AUTHENTICATION_FAILED)) {
 			if (progressDialog != null) {
 				progressDialog.dismiss();

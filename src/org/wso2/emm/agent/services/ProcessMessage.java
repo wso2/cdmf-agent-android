@@ -70,8 +70,10 @@ public class ProcessMessage {
 	//local notification message handler
 	public ProcessMessage(Context context, int mode, String msg) {
 		c=context;
-		Log.e("", " "+msg);
-		messageExecute(msg);
+		if(msg!=null && !msg.equals("")){
+    		Log.e("", " "+msg);
+    		messageExecute(msg);
+		}
 		
 	}
 
@@ -175,7 +177,6 @@ public class ProcessMessage {
 		        		
 		        		Map<String, String> paramsReply = new HashMap<String, String>();
 		        		responsePayload = new HashMap<String, String>();
-		        		Log.e("",regId);
 		        		paramsReply.put("regId", regId);
 		        		paramsReply.put("data", replyPayload);
 		        		responsePayload=ServerUtilities.sendWithTimeWait("notifications/pendingOperations", paramsReply,

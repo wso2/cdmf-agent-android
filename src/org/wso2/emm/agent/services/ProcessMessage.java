@@ -81,10 +81,8 @@ public class ProcessMessage  implements APIResultCallBack{
 	
 	
 	public void getOperations(String replyData) {
-		DevicePolicyManager devicePolicyManager =
-		                                          (DevicePolicyManager) c.getSystemService(Context.DEVICE_POLICY_SERVICE);
-		ComponentName demoDeviceAdmin = new ComponentName(c, WSO2DeviceAdminReceiver.class);
-		if (devicePolicyManager.isAdminActive(demoDeviceAdmin)) {
+		String isActive = CommonUtilities.getPref(c, c.getResources().getString(R.string.shared_pref_device_active));
+		if (isActive.equals("1")) {
 			try {
 				SharedPreferences mainPref =
 				                             c.getSharedPreferences(c.getResources()

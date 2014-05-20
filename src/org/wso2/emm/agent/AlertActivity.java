@@ -49,7 +49,7 @@ public class AlertActivity extends SherlockActivity {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				finish();
+				AlertActivity.this.finish();
 			}
 		});
 	}

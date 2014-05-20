@@ -55,6 +55,9 @@ public class WSO2DeviceAdminReceiver extends DeviceAdminReceiver {
 		operation = new Operation(context);
 		SharedPreferences mainPref = context.getSharedPreferences("com.mdm",
 				Context.MODE_PRIVATE);
+		Editor editor = mainPref.edit();
+		editor.putString(context.getResources().getString(R.string.shared_pref_device_active), "1");
+		editor.commit();
 
 		try {
 			policy = mainPref.getString("policy", "");

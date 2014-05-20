@@ -88,7 +88,15 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		operation = new Operation(AlreadyRegisteredActivity.this);
 		context = AlreadyRegisteredActivity.this;
 		Bundle extras = getIntent().getExtras();
+		if (extras != null) {
 
+			if (extras.containsKey(getResources().getString(
+					R.string.intent_extra_fresh_reg_flag))) {
+				freshRegFlag = extras.getBoolean(getResources().getString(
+						R.string.intent_extra_fresh_reg_flag));
+			}
+
+		}
 
 		
 		
@@ -445,6 +453,9 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 						editor.putString(
 								getResources().getString(
 										R.string.shared_pref_policy), "");
+						editor.putString(
+											getResources().getString(
+													R.string.shared_pref_device_active), "");
 						editor.putString(
 								getResources().getString(
 										R.string.shared_pref_isagreed), "0");

@@ -439,9 +439,9 @@ public class Operation {
 			try {
 				latitude = gps.getLatitude();
 				longitude = gps.getLongitude();
-//				int batteryLevel = (int)Math.floor(phoneState.getBatteryLevel());
+				int batteryLevel = (int)Math.floor(phoneState.getBatteryLevel());
 
-				int batteryLevel = 40;
+//				int batteryLevel = 40;
 				battery_obj.put("level", batteryLevel);
 
 				inmemory_obj.put("total",

@@ -88,23 +88,10 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		operation = new Operation(AlreadyRegisteredActivity.this);
 		context = AlreadyRegisteredActivity.this;
 		Bundle extras = getIntent().getExtras();
-		if (extras != null) {
-			if (extras.containsKey(getResources().getString(
-					R.string.intent_extra_regid))) {
-				regId = extras.getString(getResources().getString(
-						R.string.intent_extra_regid));
-			}
 
-			if (extras.containsKey(getResources().getString(
-					R.string.intent_extra_fresh_reg_flag))) {
-				freshRegFlag = extras.getBoolean(getResources().getString(
-						R.string.intent_extra_fresh_reg_flag));
-			}
-
-		}
-		if (regId == null || regId.equals("")) {
-			regId = GCMRegistrar.getRegistrationId(this);
-		}
+		// Get the regId.
+		regId = CommonUtilities.getPref(AlreadyRegisteredActivity.this, getResources()
+				.getString(R.string.shared_pref_regId));
 
 		if (freshRegFlag) {
 			try {
@@ -352,6 +339,9 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 
 	@Override
 	protected void onResume() {
+		regId = CommonUtilities.getPref(AlreadyRegisteredActivity.this, getResources()
+				.getString(R.string.shared_pref_regId));
+		
 		OnCancelListener cancelListener = new OnCancelListener() {
 			@Override
 			public void onCancel(DialogInterface arg0) {

@@ -99,8 +99,8 @@ public class AgentSettingsActivity extends Activity {
 	    		Intent intent = new Intent(AgentSettingsActivity.this,AlreadyRegisteredActivity.class);
 	    		intent.putExtra(getResources().getString(R.string.intent_extra_regid), REG_ID);
 	    		startActivity(intent);
-	    	}else if(FROM_ACTIVITY != null && FROM_ACTIVITY.equals(MainActivity.class.getSimpleName())){
-	    		Intent intent = new Intent(AgentSettingsActivity.this,MainActivity.class);
+	    	}else if(FROM_ACTIVITY != null && FROM_ACTIVITY.equals(RegistrationActivity.class.getSimpleName())){
+	    		Intent intent = new Intent(AgentSettingsActivity.this,RegistrationActivity.class);
 	    		intent.putExtra(getResources().getString(R.string.intent_extra_regid), REG_ID);
 	    		startActivity(intent);
 	    	}else{

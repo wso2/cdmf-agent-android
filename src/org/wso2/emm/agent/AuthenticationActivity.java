@@ -496,10 +496,11 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 	@Override
 	public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
-		//{response=<ams:fault xmlns:ams="http://wso2.org/apimanager/security"><ams:code>900901</ams:code><ams:message>Invalid Credentials</ams:message><ams:description>Access failure for API: /emm/api/devices/sender_id, version: 1.0.0 with key: b1cfe043cc6aab24d05147dfc7b47f6</ams:description></ams:fault>, status=403}
-		manipulateSenderIdResponse(result, requestCode);
-		manipulateLicenseResponse(result, requestCode);
-
+		if (requestCode == CommonUtilities.SENDER_ID_REQUEST_CODE) {
+			manipulateSenderIdResponse(result);
+		} else if (requestCode == CommonUtilities.LICENSE_REQUEST_CODE) {
+			manipulateLicenseResponse(result);
+		}
 	}
 
 	/**
@@ -507,13 +508,10 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	 * 
 	 * @param result
 	 *            the result of the license agreement request
-	 * @param requestCode
-	 *            the license agreement request code
 	 */
-	private void manipulateLicenseResponse(Map<String, String> result, int requestCode) {
+	private void manipulateLicenseResponse(Map<String, String> result) {
 		String responseStatus;
-		if (requestCode == CommonUtilities.LICENSE_REQUEST_CODE) {
-			CommonDialogUtils.stopProgressDialog();
+			CommonDialogUtils.stopProgressDialog(progressDialog);
 			String licenseAgreement = "";
 			
 			if (result != null) {
@@ -541,8 +539,6 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			} else {
 				// TODO NEED TO IMPLEMENT
 			}
-
-		}
 	}
 
 	/**
@@ -550,14 +546,11 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	 * 
 	 * @param result
 	 *            the result of the sender ID request
-	 * @param requestCode
-	 *            the sender ID request code
 	 */
-	private void manipulateSenderIdResponse(Map<String, String> result, int requestCode) {
-		Log.e("status",""+requestCode+"  "+result.get("response"));
+	private void manipulateSenderIdResponse(Map<String, String> result) {
 		String responseStatus;
 		JSONObject response;
-		if (requestCode == CommonUtilities.SENDER_ID_REQUEST_CODE) {
+		
 			String senderId = "";
 			String mode = "";
 			long interval = 1;
@@ -601,7 +594,6 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 				}
 			}
 
-		}
 	}
 
 	private void manageLocalPushNotification(String mode, long interval, Editor editor) {
@@ -668,12 +660,13 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 					}
 				};
 
-				CommonDialogUtils.showPrgressDialog(
+				progressDialog = CommonDialogUtils.showPrgressDialog(
 						AuthenticationActivity.this,
 						getResources().getString(
 								R.string.dialog_license_agreement),
 						getResources().getString(R.string.dialog_please_wait),
 						cancelListener);
+				progressDialog.show();
 
 				// Check network connection availability before calling the API.
 				if (PhoneState.isNetworkAvailable(context)) {
@@ -710,9 +703,8 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 		if (status != null
 				&& status.trim().equals(CommonUtilities.AUTHENTICATION_FAILED)) {
-			if (progressDialog != null) {
-				progressDialog.dismiss();
-			}
+			CommonDialogUtils.stopProgressDialog(progressDialog);
+			
 			alertDialog = CommonDialogUtils
 					.getAlertDialogWithOneButtonAndTitle(
 							context,

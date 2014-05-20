@@ -14,8 +14,6 @@ import android.content.DialogInterface.OnCancelListener;
  */
 public abstract class CommonDialogUtils {
 	
-	private static ProgressDialog progressDialog;
-	
 	/**
 	 * Return an Alert Dialog with one button.
 	 * 
@@ -112,19 +110,21 @@ public abstract class CommonDialogUtils {
 	 * @param message the message
 	 * @param cancelListener the OnCancelListener
 	 */
-	public static void showPrgressDialog (Context context, String title, String message, OnCancelListener cancelListener) {
-		progressDialog = ProgressDialog.show(context,
+	public static ProgressDialog showPrgressDialog (Context context, String title, String message, OnCancelListener cancelListener) {
+		ProgressDialog progressDialog = ProgressDialog.show(context,
 				context.getResources().getString(R.string.dialog_license_agreement),
 				context.getResources().getString(R.string.dialog_please_wait), true);
 		progressDialog.setCancelable(true);
 		progressDialog.setOnCancelListener(cancelListener);
+		
+		return progressDialog;
 	}
 	
 	/**
 	 * Stops progressDialog.
 	 * 
 	 */
-	public static void stopProgressDialog() {
+	public static void stopProgressDialog(ProgressDialog progressDialog) {
 		if (progressDialog != null && progressDialog.isShowing()) {
 			progressDialog.dismiss();
 		}

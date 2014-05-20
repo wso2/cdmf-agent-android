@@ -83,11 +83,12 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 			
 			String regIden=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_regId));
 			if(!regIden.equals("")){
-				REG_ID=regIden;
+				REG_ID = regIden;
 			}
 			
 		}
 		
+		// Need to move to a library
 		if((info.getSdkVersion() >= android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) && !info.isRooted()){
         	accessFlag = true;
         }else{
@@ -111,15 +112,13 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		SharedPreferences mainPref = context.getSharedPreferences(
 				getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
 		String ipSaved = mainPref.getString(getResources().getString(R.string.shared_pref_ip), "");	
-		regId = mainPref.getString(getResources().getString(R.string.shared_pref_reg_success), "");	
-		;
-		
+		regId = mainPref.getString(getResources().getString(R.string.shared_pref_reg_success), "");		
 		
 		try {
 			if(IdentityProxy.getInstance().getToken() != null) {
 				
-				if(regId == null || regId.equals("")){
-					regId = GCMRegistrar.getRegistrationId(this);
+				if(REG_ID == null || REG_ID.equals("")){
+					REG_ID = GCMRegistrar.getRegistrationId(this);
 				} else {
 					// Check registration.
 					isRegistered();
@@ -139,6 +138,8 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
     	
 		if(ipSaved != null && ipSaved != ""){
 			ip.setText(ipSaved);
+			
+			// Shall we move this Authentication activity???
 			Intent intent = new Intent(SettingsActivity.this,EntryActivity.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(intent);	

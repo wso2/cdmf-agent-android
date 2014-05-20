@@ -1,17 +1,13 @@
 package org.wso2.emm.agent.services;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.utils.CommonUtilities;
-import org.wso2.emm.agent.utils.ServerUtils;
-import org.wso2.mobile.idp.proxy.APIResultCallBack;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.util.Log;
 
 public class AlarmReceiver extends BroadcastReceiver {

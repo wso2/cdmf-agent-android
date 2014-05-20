@@ -204,7 +204,7 @@ public class PinCodeActivity extends Activity {
     		intent.putExtra(getResources().getString(R.string.intent_extra_regid), REG_ID);
     		startActivity(intent);
 		}else{
-			Intent intent = new Intent(PinCodeActivity.this, MainActivity.class);
+			Intent intent = new Intent(PinCodeActivity.this, RegistrationActivity.class);
 			intent.putExtra(getResources().getString(R.string.intent_extra_regid), REG_ID);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			intent.putExtra(getResources().getString(R.string.intent_extra_username), username);

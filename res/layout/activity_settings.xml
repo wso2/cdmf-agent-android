@@ -81,7 +81,7 @@
 	    android:gravity="center"
 	    android:textSize="16sp"
         android:textColor="#372c24"
-	    android:text="Set your server address here to start registration, i.e : www.abc.com"/>
+	    android:text="@string/registration_heading"/>
 		
       <EditText
           android:id="@+id/editText1"

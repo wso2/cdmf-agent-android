@@ -36,6 +36,7 @@ import org.wso2.emm.agent.api.WiFiConfig;
 import org.wso2.emm.agent.models.PInfo;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.LoggerCustom;
+import org.wso2.emm.agent.utils.ServerUtils;
 
 import android.annotation.TargetApi;
 import android.app.Notification;
@@ -1644,7 +1645,32 @@ public class Operation {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}else if (code_input
+		}else if (code_input.equals(CommonUtilities.OPERATION_ENTERPRISE_WIPE_DATA)) {
+			try {
+				Map<String, String> inparams = new HashMap<String, String>();
+
+				
+				inparams.put("code", code_input);
+				inparams.put("msgID", token);
+				inparams.put("status", "200");
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
+					//ServerUtilities.pushData(inparams, context);
+				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
+//					smsManager.sendTextMessage(recepient, null,
+//							"Lock code changed Successfully", null, null);
+				}
+				ServerUtils.clearAppData(context);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		else if (code_input
 				.equals(CommonUtilities.OPERATION_BLACKLIST_APPS)) {
 			ArrayList<PInfo> apps = appList.getInstalledApps(false); /*
 																	 * false =

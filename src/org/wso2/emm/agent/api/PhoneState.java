@@ -104,7 +104,7 @@ public class PhoneState {
 	*Returns the device battery information
 	*/
 	public float getBatteryLevel(){
-		Intent batteryIntent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+		Intent batteryIntent = context.getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 	    int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 	    int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 

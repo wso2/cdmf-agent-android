@@ -136,7 +136,7 @@ public class CommonUtilities {
 	public static final String OPERATION_DEVICE_LOCATION = "501A";
 	public static final String OPERATION_GET_APPLICATION_LIST = "502A";
 	public static final String OPERATION_LOCK_DEVICE = "503A";
-	public static final String OPERATION_WIPE_DATA = "504A";
+	public static final String OPERATION_WIPE_DATA = "504A";//reset device
 	public static final String OPERATION_CLEAR_PASSWORD = "505A";
 	public static final String OPERATION_NOTIFICATION = "506A";
 	public static final String OPERATION_WIFI = "507A";
@@ -156,6 +156,7 @@ public class CommonUtilities {
 	public static final String OPERATION_EMAIL_CONFIGURATION = "520A";
 	public static final String OPERATION_INSTALL_GOOGLE_APP = "522A";
 	public static final String OPERATION_CHANGE_LOCK_CODE = "526A";
+	public static final String OPERATION_ENTERPRISE_WIPE_DATA = "527A";//unnregister device
 	public static final String OPERATION_POLICY_BUNDLE = "500P";
 	public static final String OPERATION_POLICY_MONITOR = "501P";
 	public static final String OPERATION_BLACKLIST_APPS = "528B";

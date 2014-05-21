@@ -65,7 +65,7 @@ public class WSO2DeviceAdminReceiver extends DeviceAdminReceiver implements APIR
 		try {
 			policy = mainPref.getString("policy", "");
 			if(policy!=null && !policy.equals("")){
-				operation.executePolicy();
+				//operation.executePolicy();
 			}
 		}catch(Exception ex){
 			

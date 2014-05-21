@@ -49,7 +49,6 @@ import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
-import com.google.android.gcm.GCMRegistrar;
 
 public class AlreadyRegisteredActivity extends SherlockActivity implements APIResultCallBack {
 	AsyncTask<Void, Void, Void> mRegisterTask;
@@ -78,6 +77,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		setContentView(R.layout.activity_already_registered);
 		getSupportActionBar().setDisplayShowCustomEnabled(true);
 		getSupportActionBar().setCustomView(R.layout.custom_sherlock_bar);
+		getSupportActionBar().setTitle(R.string.empty_app_title);
 		View homeIcon = findViewById(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ? android.R.id.home
 				: R.id.abs__home);
 		((View) homeIcon.getParent()).setVisibility(View.GONE);

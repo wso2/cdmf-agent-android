@@ -89,6 +89,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		setContentView(R.layout.activity_authentication);
 		getSupportActionBar().setDisplayShowCustomEnabled(true);
 		getSupportActionBar().setCustomView(R.layout.custom_sherlock_bar);
+		getSupportActionBar().setTitle(R.string.empty_app_title);
 		View homeIcon = findViewById(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ? android.R.id.home
 				: R.id.abs__home);
 		((View) homeIcon.getParent()).setVisibility(View.GONE);
@@ -485,34 +486,45 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	 */
 	private void manipulateLicenseResponse(Map<String, String> result) {
 		String responseStatus;
-			CommonDialogUtils.stopProgressDialog(progressDialog);
-			String licenseAgreement = "";
-			
-			if (result != null) {
-				responseStatus = result.get(CommonUtilities.STATUS_KEY);
-				if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
-					licenseAgreement = result.get("response");
+		CommonDialogUtils.stopProgressDialog(progressDialog);
 
-					SharedPreferences mainPref = AuthenticationActivity.this.getSharedPreferences(getResources()
-							.getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
-					Editor editor = mainPref.edit();
-					editor.putString(getResources().getString(R.string.shared_pref_eula), licenseAgreement);
-					editor.commit();
+		String licenseAgreement = "";
 
-					if (licenseAgreement != null && !licenseAgreement.equals(CommonUtilities.EMPTY_STRING)) {
-						showAlert(licenseAgreement, CommonUtilities.EULA_TITLE);
-					} else {
-						showErrorMessage(getResources().getString(R.string.error_enrollment_failed_detail),
-								getResources().getString(R.string.error_enrollment_failed));
-					}
+		if (result != null) {
+			responseStatus = result.get(CommonUtilities.STATUS_KEY);
+			if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
+				licenseAgreement = result.get("response");
 
+				SharedPreferences mainPref = AuthenticationActivity.this
+						.getSharedPreferences(
+								getResources().getString(
+										R.string.shared_pref_package),
+								Context.MODE_PRIVATE);
+				Editor editor = mainPref.edit();
+				editor.putString(
+						getResources().getString(R.string.shared_pref_eula),
+						licenseAgreement);
+				editor.commit();
+
+				if (licenseAgreement != null
+						&& !licenseAgreement
+								.equals(CommonUtilities.EMPTY_STRING)) {
+					showAlert(licenseAgreement, CommonUtilities.EULA_TITLE);
 				} else {
-					// TODO NEED TO IMPLEMENT
+					showErrorMessage(
+							getResources().getString(
+									R.string.error_enrollment_failed_detail),
+							getResources().getString(
+									R.string.error_enrollment_failed));
 				}
 
 			} else {
 				// TODO NEED TO IMPLEMENT
 			}
+
+		} else {
+			// TODO NEED TO IMPLEMENT
+		}
 	}
 
 	/**
@@ -524,46 +536,61 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	private void manipulateSenderIdResponse(Map<String, String> result) {
 		String responseStatus;
 		JSONObject response;
+		String senderId = "";
+		String mode = "";
+		long interval = 1;
 		
-			String senderId = "";
-			String mode = "";
-			long interval = 1;
-			if (result != null) {
-				responseStatus = result.get(CommonUtilities.STATUS_KEY);
-				if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
-					try {
-						response = new JSONObject(result.get("response"));
-						senderId = response.getString("sender_id");
-						mode = response.getString("notifier");
-						Double intervl = Double.parseDouble(response.getString("notifierInterval"));
-						interval = intervl.intValue();
+		CommonDialogUtils.stopProgressDialog(progressDialog);
+		
+		if (result != null) {
+			responseStatus = result.get(CommonUtilities.STATUS_KEY);
+			if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
+				try {
+					response = new JSONObject(result.get("response"));
+					senderId = response.getString("sender_id");
+					mode = response.getString("notifier");
+					Double intervl = Double.parseDouble(response
+							.getString("notifierInterval"));
+					interval = intervl.intValue();
 
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
-					if (!senderId.equals("")) {
-						CommonUtilities.setSENDER_ID(senderId);
-						GCMRegistrar.register(context, senderId);
-					}
-					SharedPreferences mainPref = context.getSharedPreferences(
-							getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
-					Editor editor = mainPref.edit();
-					editor.putString(getResources().getString(R.string.shared_pref_sender_id), senderId);
-					editor.putString(getResources().getString(R.string.shared_pref_message_mode), mode);
-					editor.putLong(getResources().getString(R.string.shared_pref_interval), interval);
-					editor.commit();
-
-					manageLocalPushNotification(mode, interval, editor);
-					getLicense();
-
-				} else {
-					alertDialog = CommonDialogUtils.getAlertDialogWithOneButton(AuthenticationActivity.this,
-							getResources().getString(R.string.title_init_msg_error),
-							getResources().getString(R.string.button_ok), senderIdFailedClickListener);
-					alertDialog.show();
-
+				} catch (JSONException e) {
+					e.printStackTrace();
 				}
+				if (!senderId.equals("")) {
+					CommonUtilities.setSENDER_ID(senderId);
+					GCMRegistrar.register(context, senderId);
+				}
+				SharedPreferences mainPref = context.getSharedPreferences(
+						getResources().getString(R.string.shared_pref_package),
+						Context.MODE_PRIVATE);
+				Editor editor = mainPref.edit();
+				editor.putString(
+						getResources()
+								.getString(R.string.shared_pref_sender_id),
+						senderId);
+				editor.putString(
+						getResources().getString(
+								R.string.shared_pref_message_mode), mode);
+				editor.putLong(
+						getResources().getString(R.string.shared_pref_interval),
+						interval);
+				editor.commit();
+
+				manageLocalPushNotification(mode, interval, editor);
+				getLicense();
+
+			} else {
+				alertDialog = CommonDialogUtils
+						.getAlertDialogWithOneButton(
+								AuthenticationActivity.this,
+								getResources().getString(
+										R.string.title_init_msg_error),
+								getResources().getString(R.string.button_ok),
+								senderIdFailedClickListener);
+				alertDialog.show();
+
 			}
+		}
 
 	}
 
@@ -637,8 +664,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 								R.string.dialog_license_agreement),
 						getResources().getString(R.string.dialog_please_wait),
 						cancelListener);
-				progressDialog.show();
-
+	
 				// Check network connection availability before calling the API.
 				if (PhoneState.isNetworkAvailable(context)) {
 					// Call device license agreement API.

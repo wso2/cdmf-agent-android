@@ -35,7 +35,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -53,12 +52,9 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 	 Context context;
 	 boolean regState = false;
 	 boolean successFlag = false;
-	 private final int TAG_BTN_UNREGISTER = 0;
-	 private final int TAG_BTN_OPTIONS = 1;
 	 Button btnEnroll = null;
 	 RelativeLayout btnLayout = null;
 	 ProgressDialog progressDialog;
-	 AsyncTask<Void, Void, String> mRegisterTask;
 	 
 	static final int ACTIVATION_REQUEST = 47; // identifies our request id
 	DevicePolicyManager devicePolicyManager;
@@ -66,7 +62,6 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
         setContentView(R.layout.activity_main);
         
         devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
@@ -76,12 +71,10 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		
 		Bundle extras = getIntent().getExtras();
 		if (extras != null) {
-			/*if(extras.containsKey(getResources().getString(R.string.intent_extra_regid))){
-				regId = extras.getString(getResources().getString(R.string.intent_extra_regid));
-			}*/
-			
-			if(extras.containsKey(getResources().getString(R.string.intent_extra_username))){
-				username = extras.getString(getResources().getString(R.string.intent_extra_username));
+			if (extras.containsKey(getResources().getString(
+					R.string.intent_extra_username))) {
+				username = extras.getString(getResources().getString(
+						R.string.intent_extra_username));
 			}
 		}
 
@@ -94,7 +87,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		//Enroll automatically
 		final Context context = RegistrationActivity.this;
 		
-		registrateDevice();
+		registerDevice();
 		        
 		
 		btnEnroll = (Button)findViewById(R.id.btnEnroll);
@@ -111,8 +104,10 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		});
     }
 		
-		private void registrateDevice() {
-			progressDialog= ProgressDialog.show(RegistrationActivity.this, getResources().getString(R.string.dialog_enrolling),getResources().getString(R.string.dialog_please_wait), true);
+		private void registerDevice() {
+			progressDialog = CommonDialogUtils.showPrgressDialog(RegistrationActivity.this, getResources().getString(R.string.dialog_enrolling), getResources().getString(R.string.dialog_please_wait), null);
+			progressDialog.show();
+	
 			DeviceInfo deviceInfo = new DeviceInfo(RegistrationActivity.this);
 			JSONObject jsObject = new JSONObject();
 			String osVersion = "";
@@ -169,10 +164,6 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
    	        return true;
    	    }
    	    else if (keyCode == KeyEvent.KEYCODE_HOME) {
-   	    	/*Intent i = new Intent();
-   	    	i.setAction(Intent.ACTION_MAIN);
-   	    	i.addCategory(Intent.CATEGORY_HOME);
-   	    	this.startActivity(i);*/
    	    	finish();
    	        return true;
    	    }
@@ -181,26 +172,16 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-    	//MenuInflater inflater = getMenuInflater();
-    	//inflater.inflate(R.menu.options_menu, menu);
         return true;
     }
-    public boolean onOptionsItemSelected(MenuItem item) {
-    	/*switch (item.getItemId()) {
-    	case R.id.info:
-    		Intent intent = new Intent(MainActivity.this,DisplayDeviceInfo.class);
-    		startActivity(intent);
-    		return true;
-    	default:*/
-    		return super.onOptionsItemSelected(item);
-    	//}
-    }
+
+	public boolean onOptionsItemSelected(MenuItem item) {
+		return super.onOptionsItemSelected(item);
+	}
 
 	@Override
 	public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
-		if (progressDialog!=null && progressDialog.isShowing()){
-    		progressDialog.dismiss();
-        }
+		CommonDialogUtils.stopProgressDialog(progressDialog);
 		String responseStatus = "";
 		if (result != null) {
 			responseStatus = result.get(CommonUtilities.STATUS_KEY);

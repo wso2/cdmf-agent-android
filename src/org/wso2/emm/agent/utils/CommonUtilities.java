@@ -30,7 +30,7 @@ public class CommonUtilities {
 	public static boolean LOCAL_NOTIFICATIONS_ENABLED = false;
 	public static boolean GCM_ENABLED = true;
 
-	public static String SERVER_IP = "10.100.5.70";
+	public static String SERVER_IP = "10.100.5.36";
 
 	public static String SERVER_PORT = "9763";
 	public static String SERVER_PROTOCOL = "http://";
@@ -57,8 +57,8 @@ public class CommonUtilities {
 	public static final String EULA_TEXT = "Test policy agreement.";
 
 	/* Added for OAuth implementation */
-	public static final String CLIENT_ID = "gmjJgsZNfbrSQ9YL2wk_cjN5gD8a";
-	public static final String CLIENT_SECRET = "rAxGlmuGYj_6FfrU9_fGGcXvf4ga";
+	public static final String CLIENT_ID = "5Dk_yIPR6vOKOCbKQQk77ysz6iEa";
+	public static final String CLIENT_SECRET = "7yEjoCOydXXEsytxGEYk5kkr4c8a";
 
 	public static final String EMPTY_STRING = "";
 	public static final String STATUS_KEY = "status";

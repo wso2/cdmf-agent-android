@@ -64,7 +64,6 @@
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name"
         android:screenOrientation="portrait"
         android:theme="@style/TopBarTheme" >
         <activity
@@ -139,7 +138,6 @@
         </activity>
         <activity
             android:name="org.wso2.emm.agent.AuthenticationErrorActivity"
-            android:label="@string/title_activity_authentication_error"
             android:screenOrientation="portrait" >
         </activity>
         <activity
@@ -149,7 +147,6 @@
         </activity>
         <activity
             android:name="org.wso2.emm.agent.SettingsActivity"
-            android:label="@string/app_name"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateUnchanged|adjustPan" >
             <intent-filter>

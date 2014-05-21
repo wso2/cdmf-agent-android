@@ -102,7 +102,7 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		SharedPreferences mainPref = context.getSharedPreferences(
 				getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
 		String ipSaved = mainPref.getString(getResources().getString(R.string.shared_pref_ip), "");	
-		regId = mainPref.getString(getResources().getString(R.string.shared_pref_reg_success), "");		
+		regId = mainPref.getString(getResources().getString(R.string.shared_pref_regId), "");		
 		
 		try {
 			// Check the session.

@@ -38,6 +38,7 @@
     <string name="title_activity_notify">NotifyActivity</string>
     <string name="title_activity_agent_settings">AgentSettingsActivity</string>
     <string name="title_activity_available_operations">AvailableOperationsActivity</string>
+    <string name="menu_item_operations">Operations</string>
     <string name="menu_item_pin">Change PIN</string>
     <string name="menu_item_ip">Change Server Address</string>
      <string name="menu_item_log">Debug Log</string>

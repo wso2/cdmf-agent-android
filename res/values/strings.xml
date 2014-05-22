@@ -97,11 +97,13 @@
     <string name="error_enrollment_failed_detail">Enrollment failed, please contact administrator</string>
     <string name="error_auth_failed_detail">Authentication failed due to a connection failure please check your network connection and try again.</string>
     <string name="error_authentication_failed">Incorrect login information. Please try again.</string>
-    <string name="error_network_unavailable">"Network connectivity is unavailable. Please check your network connectivity."</string>
-    <string name="error_for_all_unknown_registration_failures">"Cannot proceed the registration. Please contact administrator."</string>
-    <string name="error_for_all_unknown_authentication_failures">"Cannot proceed the authentication. Please contact administrator."</string>
-    <string name="error_for_all_unknown_unregister_failures">"Cannot unregister the device. Please contact administrator."</string>
-    <string name="error_for_all_unknown_notification_failures">"Cannot execute the operation. Please contact administrator."</string>
+    <string name="error_network_unavailable">Network connectivity is unavailable. Please check your network connectivity.</string>
+    <string name="error_for_all_unknown_registration_failures">Cannot proceed the registration. Please contact administrator.</string>
+    <string name="error_for_all_unknown_authentication_failures">Cannot proceed the authentication. Please contact administrator.</string>
+    <string name="error_for_all_unknown_unregister_failures">Cannot unregister the device. Please contact administrator.</string>
+    <string name="error_for_all_unknown_notification_failures">Cannot execute the operation. Please contact administrator.</string>
+    <string name="error_internal_server">Server is unavailable. Please contact administrator.</string>
+    <string name="error_invalid_server_address">Invalid server Address. Please try again.</string>
 
     <!-- DIALOG TITLES AND MESSAGES -->
     <string name="dialog_authenticate">Authenticating</string>

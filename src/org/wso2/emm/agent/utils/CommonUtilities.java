@@ -128,6 +128,7 @@ public class CommonUtilities {
 	public static final String REGISTERATION_SUCCESSFUL = "201";
 	public static final String REQUEST_FAILED = "500";
 	public static final String AUTHENTICATION_FAILED = "400";
+	public static final String INTERNAL_SERVER_ERROR = "500";
 
 	/**
 	 * Operation IDs

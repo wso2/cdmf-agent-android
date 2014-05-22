@@ -698,13 +698,13 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 	@Override
 	public void onAPIAccessRecive(String status) {
-		
 		if (status != null) {
 			if (status.trim().equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
 				// Check network connection availability before calling the API.
 				if (PhoneState.isNetworkAvailable(context)) {
 					// Call get sender ID API.
-					ServerUtils.callSecuredAPI(AuthenticationActivity.this, CommonUtilities.SENDER_ID_ENDPOINT,
+					ServerUtils.callSecuredAPI(AuthenticationActivity.this,
+							CommonUtilities.SENDER_ID_ENDPOINT,
 							CommonUtilities.GET_METHOD, null,
 							AuthenticationActivity.this,
 							CommonUtilities.SENDER_ID_REQUEST_CODE);
@@ -712,41 +712,50 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 					CommonDialogUtils
 							.showNetworkUnavailableMessage(AuthenticationActivity.this);
 				}
-				
-			} else if (status.trim().equals(CommonUtilities.AUTHENTICATION_FAILED)) {
+
+			} else if (status.trim().equals(
+					CommonUtilities.AUTHENTICATION_FAILED)) {
 				CommonDialogUtils.stopProgressDialog(progressDialog);
 				alertDialog = CommonDialogUtils
 						.getAlertDialogWithOneButtonAndTitle(
 								context,
-								getResources().getString(
-										R.string.title_head_authentication_error),
+								getResources()
+										.getString(
+												R.string.title_head_authentication_error),
 								getResources().getString(
 										R.string.error_authentication_failed),
 								getResources().getString(R.string.button_ok),
 								dialogClickListener);
 				alertDialog.show();
+			} else if (status.trim().equals(
+					CommonUtilities.INTERNAL_SERVER_ERROR)) {
+				CommonDialogUtils.stopProgressDialog(progressDialog);
+				alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context, getResources().getString(
+						R.string.title_head_authentication_error), getResources().getString(
+								R.string.error_internal_server), getResources().getString(R.string.button_ok), null);
+				alertDialog.show();
+				
 			} else {
 				showCommonErrorMessage();
 			}
-			
+
 		} else {
 			showCommonErrorMessage();
 		}
 
 	}
 
+	/**
+	 * Shows common error message.
+	 * 
+	 */
 	private void showCommonErrorMessage() {
 		CommonDialogUtils.stopProgressDialog(progressDialog);
-		alertDialog = CommonDialogUtils
-				.getAlertDialogWithOneButtonAndTitle(
-						context,
-						getResources().getString(
-								R.string.title_head_authentication_error),
-						getResources().getString(
-								R.string.error_for_all_unknown_authentication_failures),
-						getResources().getString(R.string.button_ok),
-						dialogClickListener);
+		alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context, getResources().getString(
+				R.string.title_head_authentication_error), getResources().getString(
+						R.string.error_for_all_unknown_authentication_failures), getResources().getString(R.string.button_ok), null);
 		alertDialog.show();
+		
 	}
 
 	private void startLocalNotification(long duration) {

@@ -73,7 +73,6 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 			if(extras.containsKey(getResources().getString(R.string.intent_extra_from_activity))){
 				FROM_ACTIVITY = extras.getString(getResources().getString(R.string.intent_extra_from_activity));
 			}
-			String regId = CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_regId));
 		}
 		
 		// Need to move to a library

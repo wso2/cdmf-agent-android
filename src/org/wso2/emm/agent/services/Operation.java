@@ -222,57 +222,58 @@ public class Operation {
 	
 	
 	public Operation(Context context, int mode, String json) {
-	     		this.context = context;
-	     		this.mode = mode;
-	     		this.params = params;
-	     		this.recepient = recepient;
-	     		
-	     		if (params.get("data") != null) {
-	     			data = params.get("data");
-	     			Log.v("Data", data);
-	     		}
-	     		
-	     		if(params.get("code").trim().equals(CommonUtilities.OPERATION_POLICY_MONITOR)){
-	     			policy_token = params.get("token").trim();
-	     			policy_code = params.get("code").trim();
-	     			Log.v("Token", policy_token);
-	     		}else{
-	     			token = params.get("token").trim();
-	     			code = params.get("code").trim();
-	     			Log.v("Code", code);
-	     			Log.v("Token", token);
-	     		}
-	     		
-	     		
+		this.context = context;
+		this.mode = mode;
+		this.params = params;
+		this.recepient = recepient;
 
-	     		if (params.get("code").trim().equals(CommonUtilities.OPERATION_POLICY_BUNDLE)) {
-	     			try {
-	     				SharedPreferences mainPrefp = context.getSharedPreferences(
-	     						"com.mdm", Context.MODE_PRIVATE);
-	     				Editor editorp = mainPrefp.edit();
-	     				editorp.putString("policy", "");
-	     				editorp.commit();
-	     				
-	     				SharedPreferences mainPref = context.getSharedPreferences(
-	     						"com.mdm", Context.MODE_PRIVATE);
-	     				Editor editor = mainPref.edit();
-	     				editor.putString("policy", data);
-	     				editor.commit();
+		if (params.get("data") != null) {
+			data = params.get("data");
+			Log.v("Data", data);
+		}
 
-	     				executePolicy();
+		if (params.get("code").trim()
+				.equals(CommonUtilities.OPERATION_POLICY_MONITOR)) {
+			policy_token = params.get("token").trim();
+			policy_code = params.get("code").trim();
+			Log.v("Token", policy_token);
+		} else {
+			token = params.get("token").trim();
+			code = params.get("code").trim();
+			Log.v("Code", code);
+			Log.v("Token", token);
+		}
 
-	     			} catch (Exception e) {
-	     				// TODO Auto-generated catch block
-	     				e.printStackTrace();
-	     			}
+		if (params.get("code").trim()
+				.equals(CommonUtilities.OPERATION_POLICY_BUNDLE)) {
+			try {
+				SharedPreferences mainPrefp = context.getSharedPreferences(
+						"com.mdm", Context.MODE_PRIVATE);
+				Editor editorp = mainPrefp.edit();
+				editorp.putString("policy", "");
+				editorp.commit();
 
-	     		}else if(params.get("code").trim().equals(CommonUtilities.OPERATION_POLICY_MONITOR)) {
-	     			doTask(policy_code, data, REQUEST_MODE_NORMAL);
-	     		}else{
-	     			doTask(code, data, REQUEST_MODE_NORMAL);
-	     		}
+				SharedPreferences mainPref = context.getSharedPreferences(
+						"com.mdm", Context.MODE_PRIVATE);
+				Editor editor = mainPref.edit();
+				editor.putString("policy", data);
+				editor.commit();
 
-	     	}
+				executePolicy();
+
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		} else if (params.get("code").trim()
+				.equals(CommonUtilities.OPERATION_POLICY_MONITOR)) {
+			doTask(policy_code, data, REQUEST_MODE_NORMAL);
+		} else {
+			doTask(code, data, REQUEST_MODE_NORMAL);
+		}
+
+	}
 	
 	public JSONArray operate(String featureCode, JSONObject json) {
 		this.mode = mode;

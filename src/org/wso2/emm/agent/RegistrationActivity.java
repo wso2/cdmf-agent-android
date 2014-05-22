@@ -138,9 +138,11 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 			// Check network connection availability before calling the API.
 			if (PhoneState.isNetworkAvailable(context)) {
 				// Call device registration API.
-				ServerUtils.callSecuredAPI(RegistrationActivity.this, CommonUtilities.REGISTER_ENDPOINT,
+				ServerUtils.callSecuredAPI(RegistrationActivity.this,
+						CommonUtilities.REGISTER_ENDPOINT,
 						CommonUtilities.POST_METHOD, requestParams,
-						RegistrationActivity.this, CommonUtilities.REGISTER_REQUEST_CODE);
+						RegistrationActivity.this,
+						CommonUtilities.REGISTER_REQUEST_CODE);
 			} else {
 				CommonDialogUtils
 						.showNetworkUnavailableMessage(RegistrationActivity.this);

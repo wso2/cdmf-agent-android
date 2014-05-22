@@ -28,13 +28,18 @@ public class ServerUtils {
 	 * @param apiResultCallBack the API result call back object
 	 * @param requestCode the request code
 	 */
-	public static void callSecuredAPI(Context context, String endpoint, String methodType, Map<String, String> requestParams, APIResultCallBack apiResultCallBack, int requestCode) {
-		String serverIP = CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_ip));
+	public static void callSecuredAPI(Context context, String endpoint,
+			String methodType, Map<String, String> requestParams,
+			APIResultCallBack apiResultCallBack, int requestCode) {
+		String serverIP = CommonUtilities.getPref(context, context
+				.getResources().getString(R.string.shared_pref_ip));
 		String serverURL = CommonUtilities.SERVER_PROTOCOL + serverIP + ":"
-				+ CommonUtilities.SERVER_PORT + CommonUtilities.SERVER_APP_ENDPOINT;
-		
+				+ CommonUtilities.SERVER_PORT
+				+ CommonUtilities.SERVER_APP_ENDPOINT;
+
 		APIUtilities apiUtilities = new APIUtilities();
-		apiUtilities.setEndPoint(serverURL + endpoint + CommonUtilities.API_VERSION);
+		apiUtilities.setEndPoint(serverURL + endpoint
+				+ CommonUtilities.API_VERSION);
 		apiUtilities.setHttpMethod(methodType);
 		if (requestParams != null) {
 			apiUtilities.setRequestParams(requestParams);

@@ -174,7 +174,8 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		// Check network connection availability before calling the API.
 		if (PhoneState.isNetworkAvailable(context)) {
 			// Call isRegistered API.
-			ServerUtils.callSecuredAPI(SettingsActivity.this, CommonUtilities.IS_REGISTERED_ENDPOINT,
+			ServerUtils.callSecuredAPI(SettingsActivity.this,
+					CommonUtilities.IS_REGISTERED_ENDPOINT,
 					CommonUtilities.POST_METHOD, requestParams,
 					SettingsActivity.this,
 					CommonUtilities.IS_REGISTERED_REQUEST_CODE);

@@ -666,7 +666,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 								R.string.dialog_license_agreement),
 						getResources().getString(R.string.dialog_please_wait),
 						cancelListener);
-	
+
 				// Check network connection availability before calling the API.
 				if (PhoneState.isNetworkAvailable(context)) {
 					// Call device license agreement API.

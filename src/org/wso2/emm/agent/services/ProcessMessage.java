@@ -77,7 +77,6 @@ public class ProcessMessage  implements APIResultCallBack{
 		this.context = context;
 	}
 	
-	
 	public void getOperations(String replyData) {
 		String isActive = CommonUtilities.getPref(context, context
 				.getResources().getString(R.string.shared_pref_device_active));

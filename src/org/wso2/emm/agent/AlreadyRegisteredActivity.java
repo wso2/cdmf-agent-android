@@ -321,6 +321,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 
 	@Override
 	protected void onResume() {
+		super.onResume();
 		regId = CommonUtilities.getPref(AlreadyRegisteredActivity.this, getResources()
 				.getString(R.string.shared_pref_regId));
 		
@@ -354,8 +355,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 			CommonDialogUtils
 					.showNetworkUnavailableMessage(AlreadyRegisteredActivity.this);
 		}
-
-		super.onResume();
 
 	}
 

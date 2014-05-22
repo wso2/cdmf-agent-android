@@ -28,6 +28,7 @@
     <string name="title_activity_register_successful">RegisterSuccessful</string>
     <string name="title_activity_entry">Entry</string>
     <string name="title_head_authentication_error">Authentication Failed</string>
+    <string name="title_head_registration_error">Registration Failed</string>
     <string name="device_admin_enabled">Device Admin Enabled</string>
     <string name="device_admin_disabled">Device Admin Disabled</string>
     <string name="device_not_compatible_error">You are not allowed to enroll because your device is rooted and device OS version is older than 4.0.3</string>
@@ -86,6 +87,8 @@
     <string name="shared_pref_interval">interval</string>
     <string name="shared_pref_notifier">notifier</string>
     <string name="shared_pref_device_active">0</string>
+    <string name="shared_pref_client_id">ClientID</string>
+    <string name="shared_pref_client_secret">ClientSecret</string>
 
     <!-- ERROR MESSAGES -->
     <string name="error_connect_to_server">Could not connect to server please check your internet connection and try again</string>

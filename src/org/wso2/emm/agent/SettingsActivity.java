@@ -37,6 +37,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
@@ -46,6 +47,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class SettingsActivity extends Activity implements APIResultCallBack {
+	
+	private String TAG = SettingsActivity.class.getSimpleName();
+	
 	TextView ip;
 	Button optionBtn;
 	private String FROM_ACTIVITY = null;
@@ -58,6 +62,7 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 	AsyncTask<Void, Void, String> mSenderIDTask;
 	ProgressDialog progressDialog;
 	String regId;
+	AlertDialog.Builder alertDialog;
 	
 	boolean alreadyRegisteredActivityFlag = false;
 	boolean authenticationActivityFlag = false;
@@ -102,27 +107,30 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		regId = mainPref.getString(getResources().getString(R.string.shared_pref_regId), "");		
 		
 		try {
-			// Check the session.
-			if (IdentityProxy.getInstance().getToken() != null) {
-				if (regId != null && !regId.equals("")) {
-					// Check registration.
-					isRegistered();
+			if (FROM_ACTIVITY == null) {
+				// Check the session.
+				if (IdentityProxy.getInstance().getToken() != null) {
+					if (regId != null && !regId.equals("")) {
+						// Check registration.
+						isRegistered();
 
-					progressDialog = ProgressDialog
-							.show(SettingsActivity.this,
-									getResources().getString(
-											R.string.dialog_sender_id),
-									getResources().getString(
-											R.string.dialog_please_wait), true);
+						progressDialog = ProgressDialog.show(
+								SettingsActivity.this,
+								getResources().getString(
+										R.string.dialog_sender_id),
+								getResources().getString(
+										R.string.dialog_please_wait), true);
+					}
+
 				}
-
 			}
+
 		} catch (TimeoutException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-    	
+
 		if(ipSaved != null && ipSaved != ""){
 			ip.setText(ipSaved);
 			Intent intent = new Intent(SettingsActivity.this,AuthenticationActivity.class);
@@ -285,25 +293,65 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		return true;
 	}
 
-	@Override
 	public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
 		String responseStatus = CommonUtilities.EMPTY_STRING;
 		if (result != null) {
 			responseStatus = result.get(CommonUtilities.STATUS_KEY);
-		}
-		if (!responseStatus.equals(CommonUtilities.EMPTY_STRING)
-				&& responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL) && requestCode == CommonUtilities.IS_REGISTERED_REQUEST_CODE) {
-			Intent intent = null;
-			if (progressDialog != null) {
-				progressDialog.dismiss();
-			}
-			intent = new Intent(SettingsActivity.this,
-					AlreadyRegisteredActivity.class);
-			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			startActivity(intent);
 
-		}else{
+			if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)
+					&& requestCode == CommonUtilities.IS_REGISTERED_REQUEST_CODE) {
+				Intent intent = null;
+				if (progressDialog != null) {
+					progressDialog.dismiss();
+				}
+				intent = new Intent(SettingsActivity.this,
+						AlreadyRegisteredActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(intent);
+
+			} else if (responseStatus
+					.equals(CommonUtilities.INTERNAL_SERVER_ERROR)) {
+				Log.e(TAG, "The value of status is null in onAPIAccessRecive()");
+				alertDialog = CommonDialogUtils
+						.getAlertDialogWithOneButtonAndTitle(
+								context,
+								getResources().getString(
+										R.string.title_head_registration_error),
+								getResources().getString(
+										R.string.error_internal_server),
+								getResources().getString(R.string.button_ok),
+								null);
+				alertDialog.show();
+				ServerUtils.clearAppData(context);
+			} else {
+				Log.e(TAG, "The value of status is : " + responseStatus);
+				ServerUtils.clearAppData(context);
+				
+				alertDialog = CommonDialogUtils
+						.getAlertDialogWithOneButtonAndTitle(
+								context,
+								getResources().getString(
+										R.string.title_head_registration_error),
+								getResources().getString(
+										R.string.error_internal_server),
+								getResources().getString(R.string.button_ok),
+								null);
+				alertDialog.show();
+			}
+		} else {
+			Log.e(TAG, "The result is null in onReceiveAPIResult()");
 			ServerUtils.clearAppData(context);
+			
+			alertDialog = CommonDialogUtils
+					.getAlertDialogWithOneButtonAndTitle(
+							context,
+							getResources().getString(
+									R.string.title_head_registration_error),
+							getResources().getString(
+									R.string.error_for_all_unknown_registration_failures),
+							getResources().getString(R.string.button_ok),
+							null);
+			alertDialog.show();
 		}
 	}
 

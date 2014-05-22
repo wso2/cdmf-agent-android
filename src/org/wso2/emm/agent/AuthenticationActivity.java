@@ -43,6 +43,7 @@ import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -64,7 +65,10 @@ import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.google.android.gcm.GCMRegistrar;
 
-public class AuthenticationActivity extends SherlockActivity implements APIAccessCallBack, APIResultCallBack {
+public class AuthenticationActivity extends SherlockActivity implements
+		APIAccessCallBack, APIResultCallBack {
+
+	private String TAG = AuthenticationActivity.class.getSimpleName();
 
 	Button authenticate;
 	EditText username;
@@ -113,19 +117,21 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		authenticate.setEnabled(false);
 		authenticate.setTag(TAG_BTN_AUTHENTICATE);
 		authenticate.setOnClickListener(onClickListener_BUTTON_CLICKED);
-		authenticate.setBackground(getResources().getDrawable(R.drawable.btn_grey));
+		authenticate.setBackground(getResources().getDrawable(
+				R.drawable.btn_grey));
 		authenticate.setTextColor(getResources().getColor(R.color.black));
 
 		DeviceInfo deviceInfo = new DeviceInfo(AuthenticationActivity.this);
 
-
 		username.addTextChangedListener(new TextWatcher() {
 			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
 			}
 
 			@Override
-			public void onTextChanged(CharSequence s, int start, int before, int count) {
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
 				enableSubmitIfReady();
 			}
 
@@ -137,11 +143,13 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 		password.addTextChangedListener(new TextWatcher() {
 			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
 			}
 
 			@Override
-			public void onTextChanged(CharSequence s, int start, int before, int count) {
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
 				enableSubmitIfReady();
 			}
 
@@ -169,27 +177,50 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			switch (iTag) {
 
 			case TAG_BTN_AUTHENTICATE:
-				if (username.getText() != null && !username.getText().toString().trim().equals("")
-						&& password.getText() != null && !password.getText().toString().trim().equals("")) {
+				if (username.getText() != null
+						&& !username.getText().toString().trim().equals("")
+						&& password.getText() != null
+						&& !password.getText().toString().trim().equals("")) {
 					if (radioBYOD.isChecked()) {
-						deviceType = getResources().getString(R.string.device_enroll_type_byod);
+						deviceType = getResources().getString(
+								R.string.device_enroll_type_byod);
 					} else {
-						deviceType = getResources().getString(R.string.device_enroll_type_cope);
+						deviceType = getResources().getString(
+								R.string.device_enroll_type_cope);
 					}
-					AlertDialog.Builder builder = new AlertDialog.Builder(AuthenticationActivity.this);
+					AlertDialog.Builder builder = new AlertDialog.Builder(
+							AuthenticationActivity.this);
 					builder.setMessage(
-							getResources().getString(R.string.dialog_init_middle) + " " + deviceType + " "
-									+ getResources().getString(R.string.dialog_init_end))
-							.setNegativeButton(getResources().getString(R.string.info_label_rooted_answer_yes),
+							getResources().getString(
+									R.string.dialog_init_middle)
+									+ " "
+									+ deviceType
+									+ " "
+									+ getResources().getString(
+											R.string.dialog_init_end))
+							.setNegativeButton(
+									getResources()
+											.getString(
+													R.string.info_label_rooted_answer_yes),
 									dialogClickListener)
-							.setPositiveButton(getResources().getString(R.string.info_label_rooted_answer_no),
+							.setPositiveButton(
+									getResources()
+											.getString(
+													R.string.info_label_rooted_answer_no),
 									dialogClickListener).show();
 				} else {
-					if (username.getText() != null && !username.getText().toString().trim().equals("")) {
-						Toast.makeText(context, getResources().getString(R.string.toast_error_password),
+					if (username.getText() != null
+							&& !username.getText().toString().trim().equals("")) {
+						Toast.makeText(
+								context,
+								getResources().getString(
+										R.string.toast_error_password),
 								Toast.LENGTH_LONG).show();
 					} else {
-						Toast.makeText(context, getResources().getString(R.string.toast_error_username),
+						Toast.makeText(
+								context,
+								getResources().getString(
+										R.string.toast_error_username),
 								Toast.LENGTH_LONG).show();
 					}
 				}
@@ -210,12 +241,13 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		builder.setMessage(message);
 		builder.setTitle(title);
 		builder.setCancelable(true);
-		builder.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int id) {
-				cancelEntry();
-				dialog.dismiss();
-			}
-		});
+		builder.setPositiveButton(getResources().getString(R.string.button_ok),
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						cancelEntry();
+						dialog.dismiss();
+					}
+				});
 		AlertDialog alert = builder.create();
 		alert.show();
 	}
@@ -234,15 +266,21 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		web.loadDataWithBaseURL(null, html, mime, encoding, null);
 
 		Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
-		Button cancelButton = (Button) dialog.findViewById(R.id.dialogButtonCancel);
+		Button cancelButton = (Button) dialog
+				.findViewById(R.id.dialogButtonCancel);
 
 		dialogButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				SharedPreferences mainPref = AuthenticationActivity.this.getSharedPreferences(
-						getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
+				SharedPreferences mainPref = AuthenticationActivity.this
+						.getSharedPreferences(
+								getResources().getString(
+										R.string.shared_pref_package),
+								Context.MODE_PRIVATE);
 				Editor editor = mainPref.edit();
-				editor.putString(getResources().getString(R.string.shared_pref_isagreed), "1");
+				editor.putString(
+						getResources().getString(R.string.shared_pref_isagreed),
+						"1");
 				editor.commit();
 				dialog.dismiss();
 				loadPincodeAcitvity();
@@ -252,18 +290,21 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		cancelButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				cancelEntry();
 				dialog.dismiss();
+				cancelEntry();
 			}
 		});
 
 		dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
 
 			@Override
-			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-				if (keyCode == KeyEvent.KEYCODE_SEARCH && event.getRepeatCount() == 0) {
+			public boolean onKey(DialogInterface dialog, int keyCode,
+					KeyEvent event) {
+				if (keyCode == KeyEvent.KEYCODE_SEARCH
+						&& event.getRepeatCount() == 0) {
 					return true;
-				} else if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+				} else if (keyCode == KeyEvent.KEYCODE_BACK
+						&& event.getRepeatCount() == 0) {
 					return true;
 				}
 				return false;
@@ -274,18 +315,24 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	}
 
 	public void cancelEntry() {
-		SharedPreferences mainPref = context.getSharedPreferences(getResources()
-				.getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
+		SharedPreferences mainPref = context.getSharedPreferences(
+				getResources().getString(R.string.shared_pref_package),
+				Context.MODE_PRIVATE);
 		Editor editor = mainPref.edit();
-		editor.putString(getResources().getString(R.string.shared_pref_policy), "");
-		editor.putString(getResources().getString(R.string.shared_pref_isagreed), "0");
-		editor.putString(getResources().getString(R.string.shared_pref_registered), "0");
+		editor.putString(getResources().getString(R.string.shared_pref_policy),
+				"");
+		editor.putString(getResources()
+				.getString(R.string.shared_pref_isagreed), "0");
+		editor.putString(
+				getResources().getString(R.string.shared_pref_registered), "0");
 		editor.putString(getResources().getString(R.string.shared_pref_ip), "");
 		editor.commit();
 		// finish();
 
-		Intent intentIP = new Intent(AuthenticationActivity.this, SettingsActivity.class);
-		intentIP.putExtra(getResources().getString(R.string.intent_extra_from_activity),
+		Intent intentIP = new Intent(AuthenticationActivity.this,
+				SettingsActivity.class);
+		intentIP.putExtra(
+				getResources().getString(R.string.intent_extra_from_activity),
 				AuthenticationActivity.class.getSimpleName());
 		intentIP.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intentIP);
@@ -313,12 +360,13 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		builder.setMessage(message);
 		builder.setTitle(title);
 		builder.setCancelable(true);
-		builder.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int id) {
-				// cancelEntry();
-				dialog.cancel();
-			}
-		});
+		builder.setPositiveButton(getResources().getString(R.string.button_ok),
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						// cancelEntry();
+						dialog.cancel();
+					}
+				});
 		/*
 		 * builder1.setNegativeButton("No", new
 		 * DialogInterface.OnClickListener() { public void
@@ -334,11 +382,12 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		builder.setMessage(message);
 		builder.setTitle(title);
 		builder.setCancelable(true);
-		builder.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int id) {
-				dialog.dismiss();
-			}
-		});
+		builder.setPositiveButton(getResources().getString(R.string.button_ok),
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						dialog.dismiss();
+					}
+				});
 		/*
 		 * builder1.setNegativeButton("No", new
 		 * DialogInterface.OnClickListener() { public void
@@ -355,18 +404,100 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	public void startAuthentication() {
 		final Context context = AuthenticationActivity.this;
 
-		SharedPreferences mainPref = context.getSharedPreferences(getResources()
-				.getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
+		SharedPreferences mainPref = context.getSharedPreferences(
+				getResources().getString(R.string.shared_pref_package),
+				Context.MODE_PRIVATE);
 		Editor editor = mainPref.edit();
-		editor.putString(getResources().getString(R.string.shared_pref_reg_type), deviceType);
+		editor.putString(getResources()
+				.getString(R.string.shared_pref_reg_type), deviceType);
 		editor.commit();
 
 		// Check network connection availability before calling the API.
 		if (PhoneState.isNetworkAvailable(context)) {
 			initializeIDPLib();
 		} else {
-			CommonDialogUtils.showNetworkUnavailableMessage(AuthenticationActivity.this);
+			CommonDialogUtils
+					.showNetworkUnavailableMessage(AuthenticationActivity.this);
 		}
+
+	}
+
+	private void getOauthClientInfo() {
+		AsyncTask<Void, Void, String> mLicenseTask = new AsyncTask<Void, Void, String>() {
+
+			@Override
+			protected String doInBackground(Void... params) {
+				// boolean registered =
+				// ServerUtilities.register(context, regId);
+				String response = "";
+				try {
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return response;
+			}
+
+			@Override
+			protected void onPreExecute() {
+				progressDialog = ProgressDialog.show(
+						AuthenticationActivity.this,
+						getResources().getString(
+								R.string.dialog_license_agreement),
+						getResources().getString(R.string.dialog_please_wait),
+						true);
+				progressDialog.setCancelable(true);
+				progressDialog.setOnCancelListener(cancelListener);
+			};
+
+			OnCancelListener cancelListener = new OnCancelListener() {
+
+				@Override
+				public void onCancel(DialogInterface arg0) {
+					showAlertSingle(
+							getResources().getString(
+									R.string.error_enrollment_failed_detail),
+							getResources().getString(
+									R.string.error_enrollment_failed));
+					// finish();
+				}
+			};
+
+			@Override
+			protected void onPostExecute(String result) {
+				String responseStatus = "";
+				JSONObject response = null;
+				String clienId = "";
+				String clientSecret = "";
+				
+				try {
+					response = new JSONObject(result);
+					clienId = response.getString("client_id");
+					clientSecret = response.getString("client_secret");
+					
+					SharedPreferences mainPref = AuthenticationActivity.this
+							.getSharedPreferences(
+									getResources().getString(
+											R.string.shared_pref_package),
+									Context.MODE_PRIVATE);
+					Editor editor = mainPref.edit();
+					editor.putString(
+							getResources().getString(
+									R.string.shared_pref_client_id), clienId);
+					editor.putString(
+							getResources().getString(
+									R.string.shared_pref_client_secret), clienId);
+					editor.commit();
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+
+
+			}
+
+		};
+
+		mLicenseTask.execute();
 
 	}
 
@@ -375,20 +506,27 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	 * client secret.
 	 */
 	private void initializeIDPLib() {
-		String serverIP = CommonUtilities.getPref(AuthenticationActivity.this, context.getResources().getString(R.string.shared_pref_ip));
+		String serverIP = CommonUtilities.getPref(AuthenticationActivity.this,
+				context.getResources().getString(R.string.shared_pref_ip));
 		String serverURL = CommonUtilities.SERVER_PROTOCOL + serverIP + ":"
 				+ CommonUtilities.SERVER_PORT + CommonUtilities.OAUTH_ENDPOINT;
-		if (txtDomain.getText() != null && !txtDomain.getText().toString().trim().equals("")) {
-			IdentityProxy.getInstance()
-					.init(CommonUtilities.CLIENT_ID, CommonUtilities.CLIENT_SECRET,
-							username.getText().toString().trim() + "@" + txtDomain.getText().toString().trim(),
-							password.getText().toString().trim(), CommonUtilities.SERVER_OAUTH_URL,
-							AuthenticationActivity.this);
+		if (txtDomain.getText() != null
+				&& !txtDomain.getText().toString().trim().equals("")) {
+			IdentityProxy.getInstance().init(
+					CommonUtilities.CLIENT_ID,
+					CommonUtilities.CLIENT_SECRET,
+					username.getText().toString().trim() + "@"
+							+ txtDomain.getText().toString().trim(),
+					password.getText().toString().trim(),
+					CommonUtilities.SERVER_OAUTH_URL,
+					AuthenticationActivity.this);
 
-		} else {			
-			IdentityProxy.getInstance().init(CommonUtilities.CLIENT_ID, CommonUtilities.CLIENT_SECRET,
-					username.getText().toString().trim(), password.getText().toString().trim(),
-					serverURL, AuthenticationActivity.this);
+		} else {
+			IdentityProxy.getInstance().init(CommonUtilities.CLIENT_ID,
+					CommonUtilities.CLIENT_SECRET,
+					username.getText().toString().trim(),
+					password.getText().toString().trim(), serverURL,
+					AuthenticationActivity.this);
 		}
 
 		progressDialog = ProgressDialog.show(AuthenticationActivity.this,
@@ -396,22 +534,24 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 				getResources().getString(R.string.dialog_please_wait), true);
 	}
 
-
 	@SuppressLint("NewApi")
 	public void enableSubmitIfReady() {
 
 		boolean isReady = false;
 
-		if (username.getText().toString().length() >= 1 && password.getText().toString().length() >= 1) {
+		if (username.getText().toString().length() >= 1
+				&& password.getText().toString().length() >= 1) {
 			isReady = true;
 		}
 
 		if (isReady) {
-			authenticate.setBackground(getResources().getDrawable(R.drawable.btn_orange));
+			authenticate.setBackground(getResources().getDrawable(
+					R.drawable.btn_orange));
 			authenticate.setTextColor(getResources().getColor(R.color.white));
 			authenticate.setEnabled(true);
 		} else {
-			authenticate.setBackground(getResources().getDrawable(R.drawable.btn_grey));
+			authenticate.setBackground(getResources().getDrawable(
+					R.drawable.btn_grey));
 			authenticate.setTextColor(getResources().getColor(R.color.black));
 			authenticate.setEnabled(false);
 		}
@@ -428,14 +568,21 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.ip_setting:
-			SharedPreferences mainPref = AuthenticationActivity.this.getSharedPreferences(
-					getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
+			SharedPreferences mainPref = AuthenticationActivity.this
+					.getSharedPreferences(
+							getResources().getString(
+									R.string.shared_pref_package),
+							Context.MODE_PRIVATE);
 			Editor editor = mainPref.edit();
-			editor.putString(getResources().getString(R.string.shared_pref_ip), "");
+			editor.putString(getResources().getString(R.string.shared_pref_ip),
+					"");
 			editor.commit();
 
-			Intent intentIP = new Intent(AuthenticationActivity.this, SettingsActivity.class);
-			intentIP.putExtra(getResources().getString(R.string.intent_extra_from_activity),
+			Intent intentIP = new Intent(AuthenticationActivity.this,
+					SettingsActivity.class);
+			intentIP.putExtra(
+					getResources().getString(
+							R.string.intent_extra_from_activity),
 					AuthenticationActivity.class.getSimpleName());
 			startActivity(intentIP);
 			return true;
@@ -466,7 +613,8 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			password.setText(CommonUtilities.EMPTY_STRING);
 			txtDomain.setText(CommonUtilities.EMPTY_STRING);
 			authenticate.setEnabled(false);
-			authenticate.setBackground(getResources().getDrawable(R.drawable.btn_grey));
+			authenticate.setBackground(getResources().getDrawable(
+					R.drawable.btn_grey));
 			authenticate.setTextColor(getResources().getColor(R.color.black));
 		}
 	};
@@ -520,12 +668,17 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 									R.string.error_enrollment_failed));
 				}
 
+			} else if (responseStatus
+					.equals(CommonUtilities.INTERNAL_SERVER_ERROR)) {
+				Log.e(TAG, "The result is : " + result);
+				showInternalServerErrorMessage();
 			} else {
-				// TODO NEED TO IMPLEMENT
+				showRegistrationCommonErrorMessage();
 			}
 
 		} else {
-			// TODO NEED TO IMPLEMENT
+			Log.e(TAG, "The result is null in manipulateLicenseResponse()");
+			showRegistrationCommonErrorMessage();
 		}
 	}
 
@@ -541,9 +694,9 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		String senderId = "";
 		String mode = "";
 		long interval = 1;
-		
+
 		CommonDialogUtils.stopProgressDialog(progressDialog);
-		
+
 		if (result != null) {
 			responseStatus = result.get(CommonUtilities.STATUS_KEY);
 			if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
@@ -581,27 +734,43 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 				manageLocalPushNotification(mode, interval, editor);
 				getLicense();
 
-			} else {
-				alertDialog = CommonDialogUtils
-						.getAlertDialogWithOneButton(
-								AuthenticationActivity.this,
-								getResources().getString(
-										R.string.title_init_msg_error),
-								getResources().getString(R.string.button_ok),
-								senderIdFailedClickListener);
-				alertDialog.show();
+			} else if (responseStatus
+					.equals(CommonUtilities.INTERNAL_SERVER_ERROR)) {
+				Log.e(TAG, "The result is : " + result);
+				showInternalServerErrorMessage();
 
+			} else {
+				Log.e(TAG, "The result is : " + result);
+				showRegistrationCommonErrorMessage();
 			}
+		} else {
+			Log.e(TAG, "The result is null in manipulateSenderIdResponse()");
+			showRegistrationCommonErrorMessage();
 		}
 
 	}
 
-	private void manageLocalPushNotification(String mode, long interval, Editor editor) {
+	private void showRegistrationCommonErrorMessage() {
+		alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(
+				context,
+				getResources()
+						.getString(R.string.title_head_registration_error),
+				getResources().getString(R.string.error_internal_server),
+				getResources().getString(R.string.button_ok),
+				senderIdFailedClickListener);
+		alertDialog.show();
+	}
+
+	private void manageLocalPushNotification(String mode, long interval,
+			Editor editor) {
 		if (mode.trim().toUpperCase().contains("LOCAL")) {
 			CommonUtilities.LOCAL_NOTIFICATIONS_ENABLED = true;
 			CommonUtilities.GCM_ENABLED = false;
-			String androidID = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
-			editor.putString(getResources().getString(R.string.shared_pref_regId), androidID);
+			String androidID = Secure.getString(context.getContentResolver(),
+					Secure.ANDROID_ID);
+			editor.putString(
+					getResources().getString(R.string.shared_pref_regId),
+					androidID);
 			editor.commit();
 			startLocalNotification(interval);
 		} else if (mode.trim().toUpperCase().contains("GCM")) {
@@ -610,16 +779,6 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			editor.commit();
 			GCMRegistrar.register(context, CommonUtilities.SENDER_ID);
 
-		}
-	}
-
-	/**
-	 * Stops progressDialog.
-	 * 
-	 */
-	private void stopProgressDialog() {
-		if (progressDialog != null && progressDialog.isShowing()) {
-			progressDialog.dismiss();
 		}
 	}
 
@@ -672,7 +831,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 					// Call device license agreement API.
 					ServerUtils.callSecuredAPI(AuthenticationActivity.this,
 							CommonUtilities.LICENSE_ENDPOINT,
-							CommonUtilities.GET_METHOD, null,
+							CommonUtilities.GET_METHOD, requestParams,
 							AuthenticationActivity.this,
 							CommonUtilities.LICENSE_REQUEST_CODE);
 				} else {
@@ -690,9 +849,12 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	}
 
 	private void loadPincodeAcitvity() {
-		Intent intent = new Intent(AuthenticationActivity.this, PinCodeActivity.class);
+		Intent intent = new Intent(AuthenticationActivity.this,
+				PinCodeActivity.class);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		intent.putExtra(getResources().getString(R.string.intent_extra_username), username.getText().toString().trim());
+		intent.putExtra(getResources()
+				.getString(R.string.intent_extra_username), username.getText()
+				.toString().trim());
 		startActivity(intent);
 	}
 
@@ -730,32 +892,47 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			} else if (status.trim().equals(
 					CommonUtilities.INTERNAL_SERVER_ERROR)) {
 				CommonDialogUtils.stopProgressDialog(progressDialog);
-				alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context, getResources().getString(
-						R.string.title_head_authentication_error), getResources().getString(
-								R.string.error_internal_server), getResources().getString(R.string.button_ok), null);
-				alertDialog.show();
-				
+				showInternalServerErrorMessage();
+
 			} else {
-				showCommonErrorMessage();
+				Log.e(TAG, "Status: " + status);
+				showAuthCommonErrorMessage();
 			}
 
 		} else {
-			showCommonErrorMessage();
+			Log.e(TAG, "The value of status is null in onAPIAccessRecive()");
+			showAuthCommonErrorMessage();
 		}
 
 	}
 
+	private void showInternalServerErrorMessage() {
+		alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(
+				context,
+				getResources().getString(
+						R.string.title_head_authentication_error),
+				getResources().getString(R.string.error_internal_server),
+				getResources().getString(R.string.button_ok), null);
+		alertDialog.show();
+	}
+
 	/**
-	 * Shows common error message.
+	 * Shows common error message for authentication.
 	 * 
 	 */
-	private void showCommonErrorMessage() {
+	private void showAuthCommonErrorMessage() {
 		CommonDialogUtils.stopProgressDialog(progressDialog);
-		alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context, getResources().getString(
-				R.string.title_head_authentication_error), getResources().getString(
-						R.string.error_for_all_unknown_authentication_failures), getResources().getString(R.string.button_ok), null);
+		alertDialog = CommonDialogUtils
+				.getAlertDialogWithOneButtonAndTitle(
+						context,
+						getResources().getString(
+								R.string.title_head_authentication_error),
+						getResources()
+								.getString(
+										R.string.error_for_all_unknown_authentication_failures),
+						getResources().getString(R.string.button_ok), null);
 		alertDialog.show();
-		
+
 	}
 
 	private void startLocalNotification(long duration) {
@@ -763,16 +940,18 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		firstTime += 1 * 1000;
 
 		Intent downloader = new Intent(context, AlarmReceiver.class);
-		PendingIntent recurringDownload = PendingIntent.getBroadcast(context, 0, downloader,
-				PendingIntent.FLAG_CANCEL_CURRENT);
-		AlarmManager alarms = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+		PendingIntent recurringDownload = PendingIntent.getBroadcast(context,
+				0, downloader, PendingIntent.FLAG_CANCEL_CURRENT);
+		AlarmManager alarms = (AlarmManager) context
+				.getSystemService(Context.ALARM_SERVICE);
 		/*
 		 * alarms.setInexactRepeating(AlarmManager.RTC_WAKEUP,
 		 * updateTime.getTimeInMillis(), AlarmManager.INTERVAL_DAY,
 		 * recurringDownload);
 		 */
 
-		alarms.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime, 20000 * duration, recurringDownload);
+		alarms.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime,
+				20000 * duration, recurringDownload);
 
 	}
 

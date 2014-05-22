@@ -36,6 +36,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -46,6 +47,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class RegistrationActivity extends Activity implements APIResultCallBack {
+	
+	private String TAG = RegistrationActivity.class.getSimpleName();
+	
 	 String regId = "";
 	 String username = "";
 	 TextView mDisplay;
@@ -196,20 +200,34 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		        	startActivity(intent);
 		        	//finish();
 		    	}else{
-		    		Intent intent = new Intent(RegistrationActivity.this,AuthenticationErrorActivity.class);
-		        	intent.putExtra(getResources().getString(R.string.intent_extra_from_activity), RegistrationActivity.class.getSimpleName());
-		        	intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		        	startActivity(intent);
+		    		Log.e(TAG, "The result is : " + result);
+					Log.e(TAG, "The responseStatus is : " + responseStatus);
+		    		loadAuthenticationErrorActivity();
 		        	//finish();
 		    	}
 			} else {
-				// TODO Implementation
+				Log.e(TAG, "The result is : " + result);
+				Log.e(TAG, "The responseStatus is : " + responseStatus);
+				loadAuthenticationErrorActivity();
 			}
 		} else {
-			// TODO Implementation
+			Log.e(TAG, "The result is null in onReceiveAPIResult(). ");
+			Log.e(TAG, "The responseStatus is : " + responseStatus);
+			loadAuthenticationErrorActivity();
 		}
 		
 		
+	}
+
+	/**
+	 * Loads Authentication error activity.
+	 * 
+	 */
+	private void loadAuthenticationErrorActivity() {
+		Intent intent = new Intent(RegistrationActivity.this,AuthenticationErrorActivity.class);
+		intent.putExtra(getResources().getString(R.string.intent_extra_from_activity), RegistrationActivity.class.getSimpleName());
+		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		startActivity(intent);
 	} 
 
    

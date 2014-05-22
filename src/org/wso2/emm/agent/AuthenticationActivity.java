@@ -862,12 +862,15 @@ public class AuthenticationActivity extends SherlockActivity implements
 	public void onAPIAccessRecive(String status) {
 		if (status != null) {
 			if (status.trim().equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
+				Map<String, String> requestParams = new HashMap<String, String>();
+				requestParams.put("domain", txtDomain.getText().toString()
+						.trim());
 				// Check network connection availability before calling the API.
 				if (PhoneState.isNetworkAvailable(context)) {
 					// Call get sender ID API.
 					ServerUtils.callSecuredAPI(AuthenticationActivity.this,
 							CommonUtilities.SENDER_ID_ENDPOINT,
-							CommonUtilities.GET_METHOD, null,
+							CommonUtilities.GET_METHOD, requestParams,
 							AuthenticationActivity.this,
 							CommonUtilities.SENDER_ID_REQUEST_CODE);
 				} else {

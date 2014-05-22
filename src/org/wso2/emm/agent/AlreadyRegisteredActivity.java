@@ -221,7 +221,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		// Check network connection availability before calling the API.
 		if (PhoneState.isNetworkAvailable(context)) {
 			// Call device unregister API.
-			ServerUtils.callSecuredAPI(CommonUtilities.UNREGISTER_ENDPOINT,
+			ServerUtils.callSecuredAPI(AlreadyRegisteredActivity.this, CommonUtilities.UNREGISTER_ENDPOINT,
 					CommonUtilities.POST_METHOD, requestParams,
 					AlreadyRegisteredActivity.this,
 					CommonUtilities.UNREGISTER_REQUEST_CODE);
@@ -346,7 +346,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 			// Call isRegistered API.
 			Map<String, String> requestParams = new HashMap<String, String>();
 			requestParams.put("regid", regId);
-			ServerUtils.callSecuredAPI(CommonUtilities.IS_REGISTERED_ENDPOINT,
+			ServerUtils.callSecuredAPI(AlreadyRegisteredActivity.this, CommonUtilities.IS_REGISTERED_ENDPOINT,
 					CommonUtilities.POST_METHOD, requestParams,
 					AlreadyRegisteredActivity.this,
 					CommonUtilities.IS_REGISTERED_REQUEST_CODE);

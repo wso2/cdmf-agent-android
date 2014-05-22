@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.json.JSONArray;
 import org.wso2.emm.agent.R;
-import org.wso2.emm.agent.api.PhoneState;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtils;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
@@ -100,7 +99,7 @@ public class WSO2DeviceAdminReceiver extends DeviceAdminReceiver implements APIR
 		Map<String, String> requestParams = new HashMap<String, String>();
 		requestParams.put("regid", regId);
 		ServerUtils.clearAppData(app_context);
-		ServerUtils.callSecuredAPI(CommonUtilities.UNREGISTER_ENDPOINT,
+		ServerUtils.callSecuredAPI(app_context, CommonUtilities.UNREGISTER_ENDPOINT,
 				CommonUtilities.POST_METHOD, requestParams, WSO2DeviceAdminReceiver.this,
 				CommonUtilities.UNREGISTER_REQUEST_CODE);
 	}

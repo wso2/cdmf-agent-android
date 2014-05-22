@@ -20,6 +20,7 @@ public class ServerUtils {
 	/**
 	 * calls the secured API
 	 * 
+	 * @param context the Activity which calls an API
 	 * @param serverUrl the server url
 	 * @param endpoint the API endpoint
 	 * @param apiVersion the API version
@@ -27,11 +28,13 @@ public class ServerUtils {
 	 * @param apiResultCallBack the API result call back object
 	 * @param requestCode the request code
 	 */
-	public static void callSecuredAPI(String endpoint, String methodType, Map<String, String> requestParams, APIResultCallBack apiResultCallBack, int requestCode) {
+	public static void callSecuredAPI(Context context, String endpoint, String methodType, Map<String, String> requestParams, APIResultCallBack apiResultCallBack, int requestCode) {
+		String serverIP = CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_ip));
+		String serverURL = CommonUtilities.SERVER_PROTOCOL + serverIP + ":"
+				+ CommonUtilities.SERVER_PORT + CommonUtilities.SERVER_APP_ENDPOINT;
 		
 		APIUtilities apiUtilities = new APIUtilities();
-		Log.e("CommonUtilities.SERVER_URL + endpoint + CommonUtilities.API_VERSION",CommonUtilities.SERVER_URL + endpoint + CommonUtilities.API_VERSION);
-		apiUtilities.setEndPoint(CommonUtilities.SERVER_URL + endpoint + CommonUtilities.API_VERSION);
+		apiUtilities.setEndPoint(serverURL + endpoint + CommonUtilities.API_VERSION);
 		apiUtilities.setHttpMethod(methodType);
 		if (requestParams != null) {
 			apiUtilities.setRequestParams(requestParams);

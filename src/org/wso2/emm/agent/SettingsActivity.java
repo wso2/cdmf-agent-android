@@ -45,8 +45,6 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gcm.GCMRegistrar;
-
 public class SettingsActivity extends Activity implements APIResultCallBack {
 	TextView ip;
 	Button optionBtn;
@@ -176,7 +174,7 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		// Check network connection availability before calling the API.
 		if (PhoneState.isNetworkAvailable(context)) {
 			// Call isRegistered API.
-			ServerUtils.callSecuredAPI(CommonUtilities.IS_REGISTERED_ENDPOINT,
+			ServerUtils.callSecuredAPI(SettingsActivity.this, CommonUtilities.IS_REGISTERED_ENDPOINT,
 					CommonUtilities.POST_METHOD, requestParams,
 					SettingsActivity.this,
 					CommonUtilities.IS_REGISTERED_REQUEST_CODE);

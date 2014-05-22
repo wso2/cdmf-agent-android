@@ -375,7 +375,9 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	 * client secret.
 	 */
 	private void initializeIDPLib() {
-
+		String serverIP = CommonUtilities.getPref(AuthenticationActivity.this, context.getResources().getString(R.string.shared_pref_ip));
+		String serverURL = CommonUtilities.SERVER_PROTOCOL + serverIP + ":"
+				+ CommonUtilities.SERVER_PORT + CommonUtilities.OAUTH_ENDPOINT;
 		if (txtDomain.getText() != null && !txtDomain.getText().toString().trim().equals("")) {
 			IdentityProxy.getInstance()
 					.init(CommonUtilities.CLIENT_ID, CommonUtilities.CLIENT_SECRET,
@@ -383,10 +385,10 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 							password.getText().toString().trim(), CommonUtilities.SERVER_OAUTH_URL,
 							AuthenticationActivity.this);
 
-		} else {
+		} else {			
 			IdentityProxy.getInstance().init(CommonUtilities.CLIENT_ID, CommonUtilities.CLIENT_SECRET,
 					username.getText().toString().trim(), password.getText().toString().trim(),
-					CommonUtilities.SERVER_OAUTH_URL, AuthenticationActivity.this);
+					serverURL, AuthenticationActivity.this);
 		}
 
 		progressDialog = ProgressDialog.show(AuthenticationActivity.this,
@@ -668,7 +670,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 				// Check network connection availability before calling the API.
 				if (PhoneState.isNetworkAvailable(context)) {
 					// Call device license agreement API.
-					ServerUtils.callSecuredAPI(
+					ServerUtils.callSecuredAPI(AuthenticationActivity.this,
 							CommonUtilities.LICENSE_ENDPOINT,
 							CommonUtilities.GET_METHOD, null,
 							AuthenticationActivity.this,
@@ -696,35 +698,55 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 	@Override
 	public void onAPIAccessRecive(String status) {
-
-		if (status != null
-				&& status.trim().equals(CommonUtilities.AUTHENTICATION_FAILED)) {
-			CommonDialogUtils.stopProgressDialog(progressDialog);
-			
-			alertDialog = CommonDialogUtils
-					.getAlertDialogWithOneButtonAndTitle(
-							context,
-							getResources().getString(
-									R.string.title_head_authentication_error),
-							getResources().getString(
-									R.string.error_authentication_failed),
-							getResources().getString(R.string.button_ok),
-							dialogClickListener);
-			alertDialog.show();
-		} else {
-			// Check network connection availability before calling the API.
-			if (PhoneState.isNetworkAvailable(context)) {
-				// Call get sender ID API.
-				ServerUtils.callSecuredAPI(CommonUtilities.SENDER_ID_ENDPOINT,
-						CommonUtilities.GET_METHOD, null,
-						AuthenticationActivity.this,
-						CommonUtilities.SENDER_ID_REQUEST_CODE);
+		
+		if (status != null) {
+			if (status.trim().equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
+				// Check network connection availability before calling the API.
+				if (PhoneState.isNetworkAvailable(context)) {
+					// Call get sender ID API.
+					ServerUtils.callSecuredAPI(AuthenticationActivity.this, CommonUtilities.SENDER_ID_ENDPOINT,
+							CommonUtilities.GET_METHOD, null,
+							AuthenticationActivity.this,
+							CommonUtilities.SENDER_ID_REQUEST_CODE);
+				} else {
+					CommonDialogUtils
+							.showNetworkUnavailableMessage(AuthenticationActivity.this);
+				}
+				
+			} else if (status.trim().equals(CommonUtilities.AUTHENTICATION_FAILED)) {
+				CommonDialogUtils.stopProgressDialog(progressDialog);
+				alertDialog = CommonDialogUtils
+						.getAlertDialogWithOneButtonAndTitle(
+								context,
+								getResources().getString(
+										R.string.title_head_authentication_error),
+								getResources().getString(
+										R.string.error_authentication_failed),
+								getResources().getString(R.string.button_ok),
+								dialogClickListener);
+				alertDialog.show();
 			} else {
-				CommonDialogUtils
-						.showNetworkUnavailableMessage(AuthenticationActivity.this);
+				showCommonErrorMessage();
 			}
-
+			
+		} else {
+			showCommonErrorMessage();
 		}
+
+	}
+
+	private void showCommonErrorMessage() {
+		CommonDialogUtils.stopProgressDialog(progressDialog);
+		alertDialog = CommonDialogUtils
+				.getAlertDialogWithOneButtonAndTitle(
+						context,
+						getResources().getString(
+								R.string.title_head_authentication_error),
+						getResources().getString(
+								R.string.error_for_all_unknown_authentication_failures),
+						getResources().getString(R.string.button_ok),
+						dialogClickListener);
+		alertDialog.show();
 	}
 
 	private void startLocalNotification(long duration) {

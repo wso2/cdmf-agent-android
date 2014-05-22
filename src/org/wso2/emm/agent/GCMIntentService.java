@@ -58,12 +58,12 @@ public class GCMIntentService extends GCMBaseIntentService {
 		SharedPreferences preferences = context.getSharedPreferences(
 				getResources().getString(R.string.shared_pref_package),
 				Context.MODE_PRIVATE);
-		if (preferences.getString(getResources().getString(R.string.shared_pref_message_mode), "").trim().toUpperCase().contains("GCM")) {
-    		SharedPreferences.Editor editor = preferences.edit();
-    		editor.putString(getResources().getString(R.string.shared_pref_regId),
-    				registrationId);
-    		editor.commit();
-		}
+		//if (preferences.getString(getResources().getString(R.string.shared_pref_message_mode), "").trim().toUpperCase().contains("GCM")) {
+		SharedPreferences.Editor editor = preferences.edit();
+		editor.putString(getResources().getString(R.string.shared_pref_regId),
+				registrationId);
+		editor.commit();
+		//}
 	}
 
     @Override

@@ -80,6 +80,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 	Activity activity;
 	Context context;
 	String isAgreed = "";
+	String senderId = "";
 	String eula = "";
 	ProgressDialog progressDialog;
 	AlertDialog.Builder alertDialog;
@@ -423,13 +424,28 @@ public class AuthenticationActivity extends SherlockActivity implements
 	}
 
 	private void getOauthClientInfo() {
-		AsyncTask<Void, Void, String> mLicenseTask = new AsyncTask<Void, Void, String>() {
+		AsyncTask<Void, Void, Map<String, String>> mLicenseTask = new AsyncTask<Void, Void, Map<String, String>>() {
 
 			@Override
-			protected String doInBackground(Void... params) {
-				// boolean registered =
-				// ServerUtilities.register(context, regId);
-				String response = "";
+			protected Map<String, String> doInBackground(Void... params) {
+				String usernameParam = "";
+				Map<String, String> requestParams = new HashMap<String, String>();
+				if (txtDomain.getText() != null
+						&& !txtDomain.getText().toString().trim().equals("")) {
+					usernameParam = username.getText().toString().trim() + "@"
+							+ txtDomain.getText().toString().trim();
+					requestParams.put("domain", txtDomain.getText().toString()
+							.trim());
+				} else {
+					usernameParam = username.getText().toString().trim();
+				}
+				
+				requestParams.put("username", usernameParam);
+				requestParams.put("password", txtDomain.getText().toString()
+						.trim());
+				
+				Map<String, String> response = ServerUtils.sendWithTimeWait(
+						"users/authenticate", requestParams, "POST", context);
 				try {
 
 				} catch (Exception e) {
@@ -440,12 +456,9 @@ public class AuthenticationActivity extends SherlockActivity implements
 
 			@Override
 			protected void onPreExecute() {
-				progressDialog = ProgressDialog.show(
-						AuthenticationActivity.this,
-						getResources().getString(
-								R.string.dialog_license_agreement),
-						getResources().getString(R.string.dialog_please_wait),
-						true);
+				progressDialog = ProgressDialog.show(AuthenticationActivity.this,
+						getResources().getString(R.string.dialog_authenticate),
+						getResources().getString(R.string.dialog_please_wait), true);
 				progressDialog.setCancelable(true);
 				progressDialog.setOnCancelListener(cancelListener);
 			};
@@ -454,44 +467,71 @@ public class AuthenticationActivity extends SherlockActivity implements
 
 				@Override
 				public void onCancel(DialogInterface arg0) {
-					showAlertSingle(
-							getResources().getString(
-									R.string.error_enrollment_failed_detail),
-							getResources().getString(
-									R.string.error_enrollment_failed));
-					// finish();
+					CommonDialogUtils.stopProgressDialog(progressDialog);
+					showAuthCommonErrorMessage();
 				}
 			};
 
 			@Override
-			protected void onPostExecute(String result) {
+			protected void onPostExecute(Map<String, String> result) {
 				String responseStatus = "";
 				JSONObject response = null;
 				String clienId = "";
 				String clientSecret = "";
-				
-				try {
-					response = new JSONObject(result);
-					clienId = response.getString("client_id");
-					clientSecret = response.getString("client_secret");
-					
-					SharedPreferences mainPref = AuthenticationActivity.this
-							.getSharedPreferences(
-									getResources().getString(
-											R.string.shared_pref_package),
-									Context.MODE_PRIVATE);
-					Editor editor = mainPref.edit();
-					editor.putString(
-							getResources().getString(
-									R.string.shared_pref_client_id), clienId);
-					editor.putString(
-							getResources().getString(
-									R.string.shared_pref_client_secret), clienId);
-					editor.commit();
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
+				if (result != null) {
+					try {
+						responseStatus = result.get("status");
+						if (!responseStatus
+								.equals(CommonUtilities.EMPTY_STRING)) {
+							if (responseStatus
+									.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
+								response = new JSONObject(
+										result.get("response"));
+								clienId = response.getString("client_id");
+								clientSecret = response
+										.getString("client_secret");
 
+								SharedPreferences mainPref = AuthenticationActivity.this
+										.getSharedPreferences(
+												getResources()
+														.getString(
+																R.string.shared_pref_package),
+												Context.MODE_PRIVATE);
+								Editor editor = mainPref.edit();
+								editor.putString(
+										getResources().getString(
+												R.string.shared_pref_client_id),
+										clienId);
+								editor.putString(
+										getResources()
+												.getString(
+														R.string.shared_pref_client_secret),
+										clienId);
+								editor.commit();
+							} else if (responseStatus.trim().equals(
+									CommonUtilities.INTERNAL_SERVER_ERROR)) {
+								CommonDialogUtils
+										.stopProgressDialog(progressDialog);
+								showInternalServerErrorMessage();
+							} else {
+								Log.e(TAG, "responseStatus: " + responseStatus);
+								CommonDialogUtils.stopProgressDialog(progressDialog);
+								showAuthCommonErrorMessage();
+							}
+						} else {
+							Log.e(TAG, "responseStatus: " + responseStatus);
+							CommonDialogUtils.stopProgressDialog(progressDialog);
+							showAuthCommonErrorMessage();
+						}
+
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				} else {
+					Log.e(TAG,
+							"The value of status is null in onAPIAccessRecive()");
+					showAuthCommonErrorMessage();
+				}
 
 			}
 
@@ -528,10 +568,6 @@ public class AuthenticationActivity extends SherlockActivity implements
 					password.getText().toString().trim(), serverURL,
 					AuthenticationActivity.this);
 		}
-
-		progressDialog = ProgressDialog.show(AuthenticationActivity.this,
-				getResources().getString(R.string.dialog_authenticate),
-				getResources().getString(R.string.dialog_please_wait), true);
 	}
 
 	@SuppressLint("NewApi")
@@ -691,7 +727,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 	private void manipulateSenderIdResponse(Map<String, String> result) {
 		String responseStatus;
 		JSONObject response;
-		String senderId = "";
+		
 		String mode = "";
 		long interval = 1;
 
@@ -711,18 +747,19 @@ public class AuthenticationActivity extends SherlockActivity implements
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}
-				if (!senderId.equals("")) {
-					CommonUtilities.setSENDER_ID(senderId);
-					GCMRegistrar.register(context, senderId);
-				}
 				SharedPreferences mainPref = context.getSharedPreferences(
 						getResources().getString(R.string.shared_pref_package),
 						Context.MODE_PRIVATE);
 				Editor editor = mainPref.edit();
-				editor.putString(
-						getResources()
-								.getString(R.string.shared_pref_sender_id),
-						senderId);
+				
+				if (senderId!=null && !senderId.equals("")) {
+					CommonUtilities.setSENDER_ID(senderId);
+					GCMRegistrar.register(context, senderId);
+					editor.putString(
+							getResources()
+									.getString(R.string.shared_pref_sender_id),
+							senderId);
+				}
 				editor.putString(
 						getResources().getString(
 								R.string.shared_pref_message_mode), mode);
@@ -731,7 +768,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 						interval);
 				editor.commit();
 
-				manageLocalPushNotification(mode, interval, editor);
+				managePushNotification(mode, interval, editor);
 				getLicense();
 
 			} else if (responseStatus
@@ -761,24 +798,31 @@ public class AuthenticationActivity extends SherlockActivity implements
 		alertDialog.show();
 	}
 
-	private void manageLocalPushNotification(String mode, long interval,
+	private void managePushNotification(String mode, long interval,
 			Editor editor) {
 		if (mode.trim().toUpperCase().contains("LOCAL")) {
 			CommonUtilities.LOCAL_NOTIFICATIONS_ENABLED = true;
 			CommonUtilities.GCM_ENABLED = false;
 			String androidID = Secure.getString(context.getContentResolver(),
 					Secure.ANDROID_ID);
+			if (senderId!=null && senderId.equals("")) {
 			editor.putString(
 					getResources().getString(R.string.shared_pref_regId),
 					androidID);
+			}
 			editor.commit();
+		
 			startLocalNotification(interval);
 		} else if (mode.trim().toUpperCase().contains("GCM")) {
 			CommonUtilities.LOCAL_NOTIFICATIONS_ENABLED = false;
 			CommonUtilities.GCM_ENABLED = true;
-			editor.commit();
+			//editor.commit();
 			GCMRegistrar.register(context, CommonUtilities.SENDER_ID);
-
+		}
+		
+		if (senderId!=null && !senderId.equals("")) {
+			CommonUtilities.GCM_ENABLED = true;
+			GCMRegistrar.register(context, CommonUtilities.SENDER_ID);
 		}
 	}
 
@@ -899,11 +943,13 @@ public class AuthenticationActivity extends SherlockActivity implements
 
 			} else {
 				Log.e(TAG, "Status: " + status);
+				CommonDialogUtils.stopProgressDialog(progressDialog);
 				showAuthCommonErrorMessage();
 			}
 
 		} else {
 			Log.e(TAG, "The value of status is null in onAPIAccessRecive()");
+			CommonDialogUtils.stopProgressDialog(progressDialog);
 			showAuthCommonErrorMessage();
 		}
 
@@ -924,7 +970,6 @@ public class AuthenticationActivity extends SherlockActivity implements
 	 * 
 	 */
 	private void showAuthCommonErrorMessage() {
-		CommonDialogUtils.stopProgressDialog(progressDialog);
 		alertDialog = CommonDialogUtils
 				.getAlertDialogWithOneButtonAndTitle(
 						context,

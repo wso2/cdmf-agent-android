@@ -321,7 +321,10 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	@Override
 	protected void onResume() {
 		super.onResume();
+		Log.e("**************** ", "RRRRRRRRRRRRRRRR"+freshRegFlag);
+		
 		if (!freshRegFlag) {
+			Log.e("**************** ", "QQQQQQQQQQQQQQQ"+freshRegFlag);
 			regId = CommonUtilities.getPref(AlreadyRegisteredActivity.this,
 					getResources().getString(R.string.shared_pref_regId));
 
@@ -360,7 +363,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 						.showNetworkUnavailableMessage(AlreadyRegisteredActivity.this);
 			}
 		}
-
+		freshRegFlag=false;
 	}
 
 	public void showAlert(String message, String title) {

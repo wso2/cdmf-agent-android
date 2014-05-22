@@ -59,6 +59,8 @@ public class CommonUtilities {
 	/* Added for OAuth implementation */
 	public static final String CLIENT_ID = "5Dk_yIPR6vOKOCbKQQk77ysz6iEa";
 	public static final String CLIENT_SECRET = "7yEjoCOydXXEsytxGEYk5kkr4c8a";
+	/*public static final String CLIENT_ID = "M3Gqf8YHfG_b2fATZfd0O5Qkw28a";
+	public static final String CLIENT_SECRET = "TakNnm94xhqMzsuOHiIx64w6D10a";*/
 
 	public static final String EMPTY_STRING = "";
 	public static final String STATUS_KEY = "status";

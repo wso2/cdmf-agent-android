@@ -15,17 +15,21 @@
 */
 package org.wso2.emm.agent;
 
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import org.wso2.emm.agent.api.DeviceInfo;
 import org.wso2.emm.agent.api.PhoneState;
+import org.wso2.emm.agent.proxy.APIResultCallBack;
+import org.wso2.emm.agent.proxy.IdentityProxy;
+import org.wso2.emm.agent.proxy.ServerUtilitiesTemp;
 import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtils;
-import org.wso2.mobile.idp.proxy.APIResultCallBack;
-import org.wso2.mobile.idp.proxy.IdentityProxy;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -109,10 +113,21 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 			CommonUtilities.setSERVER_URL(ipSaved);
 		}
 		
+		if(CommonUtilities.SERVER_PROTOCOL.equalsIgnoreCase("https://")){
+			 Log.e("https","https");
+	    	 InputStream in = context.getResources().openRawResource(R.raw.emm_truststore);
+	    	 ServerUtilitiesTemp.enableSSL(in, CommonUtilities.TRUSTSTORE_PASSWORD);
+		}
+		else{
+			Log.e("http","http");
+		}
+		
+		
+		
 		try {
 			if (FROM_ACTIVITY == null) {
 				// Check the session.
-				if (IdentityProxy.getInstance().getToken() != null) {
+				if (IdentityProxy.getInstance().getToken(this.getApplicationContext()) != null) {
 					if (regId != null && !regId.equals("")) {
 						// Check registration.
 						isRegistered();
@@ -178,9 +193,10 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 	 * 
 	 */
 	private void isRegistered() {
-
+		Log.e("isReg", "isReg");
 		Map<String, String> requestParams = new HashMap<String, String>();
 		requestParams.put("regid", regId);
+		Log.e("regID", regId);
 
 		// Check network connection availability before calling the API.
 		if (PhoneState.isNetworkAvailable(context)) {

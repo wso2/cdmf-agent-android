@@ -24,12 +24,10 @@ import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.parser.PayloadParser;
+import org.wso2.emm.agent.proxy.APIResultCallBack;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.LoggerCustom;
 import org.wso2.emm.agent.utils.ServerUtils;
-import org.wso2.mobile.idp.proxy.APIController;
-import org.wso2.mobile.idp.proxy.APIResultCallBack;
-import org.wso2.mobile.idp.proxy.APIUtilities;
 
 import android.content.Context;
 import android.content.Intent;

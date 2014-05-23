@@ -30,10 +30,10 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 import org.wso2.emm.agent.R;
+import org.wso2.emm.agent.proxy.APIController;
+import org.wso2.emm.agent.proxy.APIResultCallBack;
+import org.wso2.emm.agent.proxy.APIUtilities;
 import org.wso2.emm.agent.services.WSO2DeviceAdminReceiver;
-import org.wso2.mobile.idp.proxy.APIController;
-import org.wso2.mobile.idp.proxy.APIResultCallBack;
-import org.wso2.mobile.idp.proxy.APIUtilities;
 
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;

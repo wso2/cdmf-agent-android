@@ -558,7 +558,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 					username.getText().toString().trim() + "@"
 							+ txtDomain.getText().toString().trim(),
 					password.getText().toString().trim(),
-					CommonUtilities.SERVER_OAUTH_URL,
+					serverURL,
 					AuthenticationActivity.this);
 
 		} else {

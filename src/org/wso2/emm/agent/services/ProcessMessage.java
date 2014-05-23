@@ -26,12 +26,11 @@ import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.parser.PayloadParser;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.LoggerCustom;
+import org.wso2.emm.agent.utils.ServerUtils;
 import org.wso2.mobile.idp.proxy.APIController;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
 import org.wso2.mobile.idp.proxy.APIUtilities;
 
-import android.app.admin.DevicePolicyManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -44,7 +43,7 @@ public class ProcessMessage  implements APIResultCallBack{
 	Map<String, String> params;
 	AsyncTask<Void, Void, String> sendReply;
 	Map<String, String> responsePayload;
-	Context c;
+	Context context;
 	String replyPayload;
 	public static boolean stillProcessing=false;
 	
@@ -63,7 +62,6 @@ public class ProcessMessage  implements APIResultCallBack{
             
             operation = new Operation(context, mode, params, recepient);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     	
@@ -73,46 +71,38 @@ public class ProcessMessage  implements APIResultCallBack{
 	
 	// local notification message handler
 	public ProcessMessage(Context context) {
-		c = context;
+		this.context = context;
 	}
-	
 	
 	public void getOperations(String replyData) {
 		Log.e("stillProcessing",stillProcessing+" ");
 		if(stillProcessing==false){
-    		String isActive = CommonUtilities.getPref(c, c.getResources().getString(R.string.shared_pref_device_active));
+    		String isActive = CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_device_active));
     		if (isActive.equals("1")) {
     			try {
     				SharedPreferences mainPref =
-    				                             c.getSharedPreferences(c.getResources()
+    						context.getSharedPreferences(context.getResources()
     				                                                     .getString(R.string.shared_pref_package),
     				                                                    Context.MODE_PRIVATE);
     				String regId =
-    				               mainPref.getString(c.getResources()
+    				               mainPref.getString(context.getResources()
     				                                   .getString(R.string.shared_pref_regId), "");
     				Map<String, String> requestParams = new HashMap<String, String>();
     				if (replyData != null) {
     					requestParams.put("data", replyPayload);
     				}
     				requestParams.put("regId", regId);
-    				Log.e("regId", regId + "");
     
-    				APIUtilities apiUtilities = new APIUtilities();
-    				apiUtilities.setEndPoint(CommonUtilities.SERVER_URL +
-    				                         CommonUtilities.NOTIFICATION_ENDPOINT +
-    				                         CommonUtilities.API_VERSION);
-    
-    				apiUtilities.setHttpMethod("POST");
-    				apiUtilities.setRequestParams(requestParams);
-    				Log.e("endpoint", apiUtilities.getEndPoint());
-    				APIController apiController = new APIController();
-    				apiController.invokeAPI(apiUtilities, this,
-    				                        CommonUtilities.NOTIFICATION_REQUEST_CODE);
+    				ServerUtils.callSecuredAPI(context,
+    				   						CommonUtilities.NOTIFICATION_ENDPOINT,
+    				   						CommonUtilities.POST_METHOD, requestParams,
+    				   						ProcessMessage.this,
+    				   						CommonUtilities.NOTIFICATION_REQUEST_CODE);
     			} catch (Exception e) {
-    				// TODO Auto-generated catch block
     				e.printStackTrace();
     			}
     		}
+
 		}
 		
 	}
@@ -170,7 +160,7 @@ public class ProcessMessage  implements APIResultCallBack{
     	        		
     	        		if (featureCode.equals(CommonUtilities.OPERATION_POLICY_BUNDLE)) {
     						SharedPreferences mainPrefp =
-    						                              c.getSharedPreferences("com.mdm",
+    						                              context.getSharedPreferences("com.mdm",
     						                                                    Context.MODE_PRIVATE);
     						
     						Editor editorp = mainPrefp.edit();
@@ -178,12 +168,12 @@ public class ProcessMessage  implements APIResultCallBack{
     						editorp.commit();
 
     						SharedPreferences mainPref =
-    						                             c.getSharedPreferences("com.mdm",
+    						                             context.getSharedPreferences("com.mdm",
     						                                                    Context.MODE_PRIVATE);
     						Editor editor = mainPref.edit();
     						String arrToPut=innerArr.getJSONObject(0).getJSONArray("data").toString();
     						
-    						LoggerCustom l =new LoggerCustom(c);
+    						LoggerCustom l =new LoggerCustom(context);
     						l.writeStringAsFile(arrToPut, "wso2log.txt");
     						
     						Log.e("aslkdmlamsd",arrToPut);
@@ -193,7 +183,7 @@ public class ProcessMessage  implements APIResultCallBack{
     	        		
     	        		String msgData=innerArr.getJSONObject(x).getString("data");
     	        		JSONObject dataObj=new JSONObject("{}");
-    	        		operation = new Operation(c);
+    	        		operation = new Operation(context);
     	        		if(featureCode.equalsIgnoreCase(CommonUtilities.OPERATION_POLICY_REVOKE)){
     	        			 operation.operate(featureCode,jsReply);
     	        			 jsReply.put("status", msgId);
@@ -231,8 +221,8 @@ public class ProcessMessage  implements APIResultCallBack{
 	        e.printStackTrace();
         }
 		finally{
-			SharedPreferences mainPref = c.getSharedPreferences( c.getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
-			String regId=mainPref.getString(c.getResources().getString(R.string.shared_pref_regId), "");
+			SharedPreferences mainPref = context.getSharedPreferences( context.getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
+			String regId=mainPref.getString(context.getResources().getString(R.string.shared_pref_regId), "");
 			PayloadParser ps=new PayloadParser();
 			
 			replyPayload=ps.generateReply(repArray,regId);

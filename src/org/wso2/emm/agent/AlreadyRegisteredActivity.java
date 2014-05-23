@@ -39,6 +39,7 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -49,9 +50,11 @@ import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
-import com.google.android.gcm.GCMRegistrar;
 
 public class AlreadyRegisteredActivity extends SherlockActivity implements APIResultCallBack {
+	
+	private String TAG = AlreadyRegisteredActivity.class.getSimpleName();
+	
 	AsyncTask<Void, Void, Void> mRegisterTask;
 	AsyncTask<Void, Void, Void> mCheckRegisterTask;
 	static final int ACTIVATION_REQUEST = 47; // identifies our request id
@@ -78,6 +81,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		setContentView(R.layout.activity_already_registered);
 		getSupportActionBar().setDisplayShowCustomEnabled(true);
 		getSupportActionBar().setCustomView(R.layout.custom_sherlock_bar);
+		getSupportActionBar().setTitle(R.string.empty_app_title);
 		View homeIcon = findViewById(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ? android.R.id.home
 				: R.id.abs__home);
 		((View) homeIcon.getParent()).setVisibility(View.GONE);
@@ -102,10 +106,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		if(!regIden.equals("")){
 			regId=regIden;
 		}
-		
-//		if (regId == null || regId.equals("")) {
-//			regId = GCMRegistrar.getRegistrationId(this);
-//		}
 
 		if (freshRegFlag) {
 			try {
@@ -146,7 +146,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 			}
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -221,7 +220,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		// Check network connection availability before calling the API.
 		if (PhoneState.isNetworkAvailable(context)) {
 			// Call device unregister API.
-			ServerUtils.callSecuredAPI(CommonUtilities.UNREGISTER_ENDPOINT,
+			ServerUtils.callSecuredAPI(AlreadyRegisteredActivity.this, CommonUtilities.UNREGISTER_ENDPOINT,
 					CommonUtilities.POST_METHOD, requestParams,
 					AlreadyRegisteredActivity.this,
 					CommonUtilities.UNREGISTER_REQUEST_CODE);
@@ -321,42 +320,50 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 
 	@Override
 	protected void onResume() {
-		regId = CommonUtilities.getPref(AlreadyRegisteredActivity.this, getResources()
-				.getString(R.string.shared_pref_regId));
-		
-		OnCancelListener cancelListener = new OnCancelListener() {
-			@Override
-			public void onCancel(DialogInterface arg0) {
-				showAlert(
-						getResources().getString(
-								R.string.error_connect_to_server),
-						getResources().getString(
-								R.string.error_heading_connection));
-			}
-		};
-
-		progressDialog = ProgressDialog.show(AlreadyRegisteredActivity.this,
-				getResources().getString(R.string.dialog_checking_reg),
-				getResources().getString(R.string.dialog_please_wait), true);
-		progressDialog.setCancelable(true);
-		progressDialog.setOnCancelListener(cancelListener);
-
-		// Check network connection availability before calling the API.
-		if (PhoneState.isNetworkAvailable(context)) {
-			// Call isRegistered API.
-			Map<String, String> requestParams = new HashMap<String, String>();
-			requestParams.put("regid", regId);
-			ServerUtils.callSecuredAPI(CommonUtilities.IS_REGISTERED_ENDPOINT,
-					CommonUtilities.POST_METHOD, requestParams,
-					AlreadyRegisteredActivity.this,
-					CommonUtilities.IS_REGISTERED_REQUEST_CODE);
-		} else {
-			CommonDialogUtils
-					.showNetworkUnavailableMessage(AlreadyRegisteredActivity.this);
-		}
-
 		super.onResume();
+		Log.e("**************** ", "RRRRRRRRRRRRRRRR"+freshRegFlag);
+		
+		if (!freshRegFlag) {
+			Log.e("**************** ", "QQQQQQQQQQQQQQQ"+freshRegFlag);
+			regId = CommonUtilities.getPref(AlreadyRegisteredActivity.this,
+					getResources().getString(R.string.shared_pref_regId));
 
+			OnCancelListener cancelListener = new OnCancelListener() {
+				@Override
+				public void onCancel(DialogInterface arg0) {
+					showAlert(
+							getResources().getString(
+									R.string.error_connect_to_server),
+							getResources().getString(
+									R.string.error_heading_connection));
+				}
+			};
+
+			progressDialog = ProgressDialog
+					.show(AlreadyRegisteredActivity.this,
+							getResources().getString(
+									R.string.dialog_checking_reg),
+							getResources().getString(
+									R.string.dialog_please_wait), true);
+			progressDialog.setCancelable(true);
+			progressDialog.setOnCancelListener(cancelListener);
+
+			// Check network connection availability before calling the API.
+			if (PhoneState.isNetworkAvailable(context)) {
+				// Call isRegistered API.
+				Map<String, String> requestParams = new HashMap<String, String>();
+				requestParams.put("regid", regId);
+				ServerUtils.callSecuredAPI(AlreadyRegisteredActivity.this,
+						CommonUtilities.IS_REGISTERED_ENDPOINT,
+						CommonUtilities.POST_METHOD, requestParams,
+						AlreadyRegisteredActivity.this,
+						CommonUtilities.IS_REGISTERED_REQUEST_CODE);
+			} else {
+				CommonDialogUtils
+						.showNetworkUnavailableMessage(AlreadyRegisteredActivity.this);
+			}
+		}
+		freshRegFlag=false;
 	}
 
 	public void showAlert(String message, String title) {
@@ -408,24 +415,18 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 					btnUnregister
 							.setOnClickListener(onClickListener_BUTTON_CLICKED);
 
-
 					ServerUtils.clearAppData(context);
 		
 				} else {
-					Intent intent = new Intent(AlreadyRegisteredActivity.this,
-							AuthenticationErrorActivity.class);
-					intent.putExtra(
-							getResources().getString(
-									R.string.intent_extra_regid), regId);
-					intent.putExtra(
-							getResources().getString(
-									R.string.intent_extra_from_activity),
-							AlreadyRegisteredActivity.class.getSimpleName());
-					startActivity(intent);
+					Log.e(TAG, "The result is : " + result);
+					Log.e(TAG, "The responseStatus is : " + responseStatus);
+					loadAuthenticationErrorActivity();
 				}
 
 			} else {
-				// TODO NEED TO IMPLEMENT
+				Log.e(TAG, "The result is null in onReceiveAPIResult().");
+				Log.e(TAG, "The responseStatus is : " + responseStatus);
+				loadAuthenticationErrorActivity();
 			}
 
 		}
@@ -455,6 +456,19 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 
 		}
 		
+	}
+
+	private void loadAuthenticationErrorActivity() {
+		Intent intent = new Intent(AlreadyRegisteredActivity.this,
+				AuthenticationErrorActivity.class);
+		intent.putExtra(
+				getResources().getString(
+						R.string.intent_extra_regid), regId);
+		intent.putExtra(
+				getResources().getString(
+						R.string.intent_extra_from_activity),
+				AlreadyRegisteredActivity.class.getSimpleName());
+		startActivity(intent);
 	}
 	
 	private void stopProgressDialog() {

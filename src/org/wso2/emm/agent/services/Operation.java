@@ -24,8 +24,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.wso2.emm.agent.AlertActivity;
-import org.wso2.emm.agent.NotifyActivity;
-import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.api.ApplicationManager;
 import org.wso2.emm.agent.api.DeviceInfo;
 import org.wso2.emm.agent.api.GPSTracker;
@@ -39,9 +37,6 @@ import org.wso2.emm.agent.utils.LoggerCustom;
 import org.wso2.emm.agent.utils.ServerUtils;
 
 import android.annotation.TargetApi;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -227,57 +222,58 @@ public class Operation {
 	
 	
 	public Operation(Context context, int mode, String json) {
-	     		this.context = context;
-	     		this.mode = mode;
-	     		this.params = params;
-	     		this.recepient = recepient;
-	     		
-	     		if (params.get("data") != null) {
-	     			data = params.get("data");
-	     			Log.v("Data", data);
-	     		}
-	     		
-	     		if(params.get("code").trim().equals(CommonUtilities.OPERATION_POLICY_MONITOR)){
-	     			policy_token = params.get("token").trim();
-	     			policy_code = params.get("code").trim();
-	     			Log.v("Token", policy_token);
-	     		}else{
-	     			token = params.get("token").trim();
-	     			code = params.get("code").trim();
-	     			Log.v("Code", code);
-	     			Log.v("Token", token);
-	     		}
-	     		
-	     		
+		this.context = context;
+		this.mode = mode;
+		this.params = params;
+		this.recepient = recepient;
 
-	     		if (params.get("code").trim().equals(CommonUtilities.OPERATION_POLICY_BUNDLE)) {
-	     			try {
-	     				SharedPreferences mainPrefp = context.getSharedPreferences(
-	     						"com.mdm", Context.MODE_PRIVATE);
-	     				Editor editorp = mainPrefp.edit();
-	     				editorp.putString("policy", "");
-	     				editorp.commit();
-	     				
-	     				SharedPreferences mainPref = context.getSharedPreferences(
-	     						"com.mdm", Context.MODE_PRIVATE);
-	     				Editor editor = mainPref.edit();
-	     				editor.putString("policy", data);
-	     				editor.commit();
+		if (params.get("data") != null) {
+			data = params.get("data");
+			Log.v("Data", data);
+		}
 
-	     				executePolicy();
+		if (params.get("code").trim()
+				.equals(CommonUtilities.OPERATION_POLICY_MONITOR)) {
+			policy_token = params.get("token").trim();
+			policy_code = params.get("code").trim();
+			Log.v("Token", policy_token);
+		} else {
+			token = params.get("token").trim();
+			code = params.get("code").trim();
+			Log.v("Code", code);
+			Log.v("Token", token);
+		}
 
-	     			} catch (Exception e) {
-	     				// TODO Auto-generated catch block
-	     				e.printStackTrace();
-	     			}
+		if (params.get("code").trim()
+				.equals(CommonUtilities.OPERATION_POLICY_BUNDLE)) {
+			try {
+				SharedPreferences mainPrefp = context.getSharedPreferences(
+						"com.mdm", Context.MODE_PRIVATE);
+				Editor editorp = mainPrefp.edit();
+				editorp.putString("policy", "");
+				editorp.commit();
 
-	     		}else if(params.get("code").trim().equals(CommonUtilities.OPERATION_POLICY_MONITOR)) {
-	     			doTask(policy_code, data, REQUEST_MODE_NORMAL);
-	     		}else{
-	     			doTask(code, data, REQUEST_MODE_NORMAL);
-	     		}
+				SharedPreferences mainPref = context.getSharedPreferences(
+						"com.mdm", Context.MODE_PRIVATE);
+				Editor editor = mainPref.edit();
+				editor.putString("policy", data);
+				editor.commit();
 
-	     	}
+				executePolicy();
+
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		} else if (params.get("code").trim()
+				.equals(CommonUtilities.OPERATION_POLICY_MONITOR)) {
+			doTask(policy_code, data, REQUEST_MODE_NORMAL);
+		} else {
+			doTask(code, data, REQUEST_MODE_NORMAL);
+		}
+
+	}
 	
 	public JSONArray operate(String featureCode, JSONObject json) {
 		this.mode = mode;

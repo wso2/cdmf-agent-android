@@ -46,9 +46,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gcm.GCMRegistrar;
-
 public class SettingsActivity extends Activity implements APIResultCallBack {
+	
+	private String TAG = SettingsActivity.class.getSimpleName();
+	
 	TextView ip;
 	Button optionBtn;
 	private String FROM_ACTIVITY = null;
@@ -61,6 +62,7 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 	AsyncTask<Void, Void, String> mSenderIDTask;
 	ProgressDialog progressDialog;
 	String regId;
+	AlertDialog.Builder alertDialog;
 	
 	boolean alreadyRegisteredActivityFlag = false;
 	boolean authenticationActivityFlag = false;
@@ -76,7 +78,6 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 			if(extras.containsKey(getResources().getString(R.string.intent_extra_from_activity))){
 				FROM_ACTIVITY = extras.getString(getResources().getString(R.string.intent_extra_from_activity));
 			}
-			String regId = CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_regId));
 		}
 		
 		// Need to move to a library
@@ -109,20 +110,22 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		}
 		
 		try {
-			// Check the session.
-			if (IdentityProxy.getInstance().getToken() != null) {
-				if (regId != null && !regId.equals("")) {
-					// Check registration.
-					isRegistered();
+			if (FROM_ACTIVITY == null) {
+				// Check the session.
+				if (IdentityProxy.getInstance().getToken() != null) {
+					if (regId != null && !regId.equals("")) {
+						// Check registration.
+						isRegistered();
 
-					progressDialog = ProgressDialog
-							.show(SettingsActivity.this,
-									getResources().getString(
-											R.string.dialog_sender_id),
-									getResources().getString(
-											R.string.dialog_please_wait), true);
+						progressDialog = ProgressDialog.show(
+								SettingsActivity.this,
+								getResources().getString(
+										R.string.dialog_sender_id),
+								getResources().getString(
+										R.string.dialog_please_wait), true);
+					}
+
 				}
-
 			}
 
 		} catch (TimeoutException e) {
@@ -130,7 +133,7 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-    	
+
 		if(ipSaved != null && ipSaved != ""){
 			ip.setText(ipSaved);
 			CommonUtilities.setSERVER_URL(ipSaved);
@@ -182,7 +185,8 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		// Check network connection availability before calling the API.
 		if (PhoneState.isNetworkAvailable(context)) {
 			// Call isRegistered API.
-			ServerUtils.callSecuredAPI(CommonUtilities.IS_REGISTERED_ENDPOINT,
+			ServerUtils.callSecuredAPI(SettingsActivity.this,
+					CommonUtilities.IS_REGISTERED_ENDPOINT,
 					CommonUtilities.POST_METHOD, requestParams,
 					SettingsActivity.this,
 					CommonUtilities.IS_REGISTERED_REQUEST_CODE);
@@ -293,25 +297,65 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		return true;
 	}
 
-	@Override
 	public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
 		String responseStatus = CommonUtilities.EMPTY_STRING;
 		if (result != null) {
 			responseStatus = result.get(CommonUtilities.STATUS_KEY);
-		}
-		if (!responseStatus.equals(CommonUtilities.EMPTY_STRING)
-				&& responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL) && requestCode == CommonUtilities.IS_REGISTERED_REQUEST_CODE) {
-			Intent intent = null;
-			if (progressDialog != null) {
-				progressDialog.dismiss();
-			}
-			intent = new Intent(SettingsActivity.this,
-					AlreadyRegisteredActivity.class);
-			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			startActivity(intent);
 
-		}else{
+			if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)
+					&& requestCode == CommonUtilities.IS_REGISTERED_REQUEST_CODE) {
+				Intent intent = null;
+				if (progressDialog != null) {
+					progressDialog.dismiss();
+				}
+				intent = new Intent(SettingsActivity.this,
+						AlreadyRegisteredActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(intent);
+
+			} else if (responseStatus
+					.equals(CommonUtilities.INTERNAL_SERVER_ERROR)) {
+				Log.e(TAG, "The value of status is null in onAPIAccessRecive()");
+				alertDialog = CommonDialogUtils
+						.getAlertDialogWithOneButtonAndTitle(
+								context,
+								getResources().getString(
+										R.string.title_head_registration_error),
+								getResources().getString(
+										R.string.error_internal_server),
+								getResources().getString(R.string.button_ok),
+								null);
+				alertDialog.show();
+				ServerUtils.clearAppData(context);
+			} else {
+				Log.e(TAG, "The value of status is : " + responseStatus);
+				ServerUtils.clearAppData(context);
+				
+				alertDialog = CommonDialogUtils
+						.getAlertDialogWithOneButtonAndTitle(
+								context,
+								getResources().getString(
+										R.string.title_head_registration_error),
+								getResources().getString(
+										R.string.error_internal_server),
+								getResources().getString(R.string.button_ok),
+								null);
+				alertDialog.show();
+			}
+		} else {
+			Log.e(TAG, "The result is null in onReceiveAPIResult()");
 			ServerUtils.clearAppData(context);
+			
+			alertDialog = CommonDialogUtils
+					.getAlertDialogWithOneButtonAndTitle(
+							context,
+							getResources().getString(
+									R.string.title_head_registration_error),
+							getResources().getString(
+									R.string.error_for_all_unknown_registration_failures),
+							getResources().getString(R.string.button_ok),
+							null);
+			alertDialog.show();
 		}
 	}
 

@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.json.JSONArray;
 import org.wso2.emm.agent.R;
-import org.wso2.emm.agent.api.PhoneState;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtils;
 import org.wso2.mobile.idp.proxy.APIResultCallBack;
@@ -96,14 +95,16 @@ public class WSO2DeviceAdminReceiver extends DeviceAdminReceiver implements APIR
 	}
 	
 	public void startUnRegistration(Context app_context) {
-		String regId = CommonUtilities.getPref(app_context, app_context.getResources()
-				.getString(R.string.shared_pref_regId));
+		String regId = CommonUtilities.getPref(app_context, app_context
+				.getResources().getString(R.string.shared_pref_regId));
 
 		Map<String, String> requestParams = new HashMap<String, String>();
 		requestParams.put("regid", regId);
 		ServerUtils.clearAppData(app_context);
-		ServerUtils.callSecuredAPI(CommonUtilities.UNREGISTER_ENDPOINT,
-				CommonUtilities.POST_METHOD, requestParams, WSO2DeviceAdminReceiver.this,
+		ServerUtils.callSecuredAPI(app_context,
+				CommonUtilities.UNREGISTER_ENDPOINT,
+				CommonUtilities.POST_METHOD, requestParams,
+				WSO2DeviceAdminReceiver.this,
 				CommonUtilities.UNREGISTER_REQUEST_CODE);
 	}
 

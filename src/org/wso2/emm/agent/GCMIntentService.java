@@ -58,12 +58,12 @@ public class GCMIntentService extends GCMBaseIntentService {
 		SharedPreferences preferences = context.getSharedPreferences(
 				getResources().getString(R.string.shared_pref_package),
 				Context.MODE_PRIVATE);
-		if (preferences.getString(getResources().getString(R.string.shared_pref_message_mode), "").trim().toUpperCase().contains("GCM")) {
-    		SharedPreferences.Editor editor = preferences.edit();
-    		editor.putString(getResources().getString(R.string.shared_pref_regId),
-    				registrationId);
-    		editor.commit();
-		}
+		//if (preferences.getString(getResources().getString(R.string.shared_pref_message_mode), "").trim().toUpperCase().contains("GCM")) {
+		SharedPreferences.Editor editor = preferences.edit();
+		editor.putString(getResources().getString(R.string.shared_pref_regId),
+				registrationId);
+		editor.commit();
+		//}
 	}
 
     @Override
@@ -130,7 +130,7 @@ public class GCMIntentService extends GCMBaseIntentService {
         NotificationManager notificationManager = (NotificationManager)
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
         Notification notification = new Notification(icon, message, when);
-        //String title = context.getString(R.string.app_name);
+        String title = context.getString(R.string.app_name);
         Intent notificationIntent = new Intent(context, NotifyActivity.class);
         notificationIntent.putExtra(context.getResources().getString(R.string.intent_extra_notification), message);
         // set intent so it does not start a new activity
@@ -138,7 +138,7 @@ public class GCMIntentService extends GCMBaseIntentService {
                 Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent intent =
                 PendingIntent.getActivity(context, 0, notificationIntent, 0);
-        notification.setLatestEventInfo(context, "@@@@@", message, intent);
+        notification.setLatestEventInfo(context, title, message, intent);
         notification.flags |= Notification.FLAG_AUTO_CANCEL;
         notificationManager.notify(0, notification);
     }

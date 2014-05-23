@@ -90,6 +90,17 @@ public abstract class CommonDialogUtils {
 		return builder;
 	}
 	
+	/**
+	 * Returns an Alert Dialog with one button and title.
+	 * 
+	 * @param context the activity which need this alert.
+	 * @param title the alert title
+	 * @param message the alert message
+	 * @param positiveBtnLabel the positive button label
+	 * @param positiveClickListener the positive button listener
+	 * 
+	 * @return an alert dialog
+	 */
 	public static AlertDialog.Builder getAlertDialogWithOneButtonAndTitle(Context context,
 			String title, String message,
 			String positiveBtnLabel, DialogInterface.OnClickListener positiveClickListener) {
@@ -105,7 +116,7 @@ public abstract class CommonDialogUtils {
 	/**
 	 * Shows the ProgressDialog.
 	 * 
-	 * @param context the Activity which needs the ProgressDialog.
+	 * @param context the Activity which needs the ProgressDialog
 	 * @param title the title
 	 * @param message the message
 	 * @param cancelListener the OnCancelListener

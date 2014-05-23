@@ -32,6 +32,7 @@ public class CommonUtilities {
 
 	public static String SERVER_IP = "192.168.1.6";
 
+
 	public static String SERVER_PORT = "9763";
 	public static String SERVER_PROTOCOL = "http://";
 	public static String API_VERSION = "1.0.0";
@@ -57,8 +58,10 @@ public class CommonUtilities {
 	public static final String EULA_TEXT = "Test policy agreement.";
 
 	/* Added for OAuth implementation */
-	public static final String CLIENT_ID = "gmjJgsZNfbrSQ9YL2wk_cjN5gD8a";
-	public static final String CLIENT_SECRET = "rAxGlmuGYj_6FfrU9_fGGcXvf4ga";
+	public static final String CLIENT_ID = "5Dk_yIPR6vOKOCbKQQk77ysz6iEa";
+	public static final String CLIENT_SECRET = "7yEjoCOydXXEsytxGEYk5kkr4c8a";
+	/*public static final String CLIENT_ID = "M3Gqf8YHfG_b2fATZfd0O5Qkw28a";
+	public static final String CLIENT_SECRET = "TakNnm94xhqMzsuOHiIx64w6D10a";*/
 
 	public static final String EMPTY_STRING = "";
 	public static final String STATUS_KEY = "status";
@@ -132,6 +135,7 @@ public class CommonUtilities {
 	public static final String REGISTERATION_SUCCESSFUL = "201";
 	public static final String REQUEST_FAILED = "500";
 	public static final String AUTHENTICATION_FAILED = "400";
+	public static final String INTERNAL_SERVER_ERROR = "500";
 
 	/**
 	 * Operation IDs

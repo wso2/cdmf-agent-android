@@ -89,6 +89,8 @@
     <string name="shared_pref_device_active">0</string>
     <string name="shared_pref_client_id">ClientID</string>
     <string name="shared_pref_client_secret">ClientSecret</string>
+    
+    <!-- PARA KEYS -->
 
     <!-- ERROR MESSAGES -->
     <string name="error_connect_to_server">Could not connect to server please check your internet connection and try again</string>

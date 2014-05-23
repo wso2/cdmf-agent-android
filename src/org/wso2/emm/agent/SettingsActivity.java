@@ -104,7 +104,10 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		SharedPreferences mainPref = context.getSharedPreferences(
 				getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
 		String ipSaved = mainPref.getString(getResources().getString(R.string.shared_pref_ip), "");	
-		regId = mainPref.getString(getResources().getString(R.string.shared_pref_regId), "");		
+		regId = mainPref.getString(getResources().getString(R.string.shared_pref_regId), "");
+		if(ipSaved != null && ipSaved != ""){
+			CommonUtilities.setSERVER_URL(ipSaved);
+		}
 		
 		try {
 			if (FROM_ACTIVITY == null) {
@@ -133,6 +136,7 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 
 		if(ipSaved != null && ipSaved != ""){
 			ip.setText(ipSaved);
+			CommonUtilities.setSERVER_URL(ipSaved);
 			Intent intent = new Intent(SettingsActivity.this,AuthenticationActivity.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(intent);	

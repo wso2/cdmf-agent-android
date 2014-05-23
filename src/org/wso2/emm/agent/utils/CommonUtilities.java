@@ -30,7 +30,8 @@ public class CommonUtilities {
 	public static boolean LOCAL_NOTIFICATIONS_ENABLED = false;
 	public static boolean GCM_ENABLED = true;
 
-	public static String SERVER_IP = "10.100.5.36";
+	public static String SERVER_IP = "192.168.1.6";
+
 
 	public static String SERVER_PORT = "9763";
 	public static String SERVER_PROTOCOL = "http://";
@@ -88,6 +89,10 @@ public class CommonUtilities {
 				+ "/mdm/api/";*/
 		SERVER_URL = SERVER_PROTOCOL + sERVER_URL + ":" + SERVER_PORT
 				+SERVER_APP_ENDPOINT;
+		SERVER_OAUTH_URL = SERVER_PROTOCOL + SERVER_IP + ":"
+				+ SERVER_PORT + OAUTH_ENDPOINT;
+		SERVER_REQUEST_SENDER_ID_URL = SERVER_PROTOCOL
+				+ SERVER_IP + ":" + SERVER_PORT + SENDER_ID_ENDPOINT + API_VERSION;
 	}
 
 	/**

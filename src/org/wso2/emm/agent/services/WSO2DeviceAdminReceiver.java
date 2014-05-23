@@ -60,8 +60,10 @@ public class WSO2DeviceAdminReceiver extends DeviceAdminReceiver implements APIR
 		Editor editor = mainPref.edit();
 		editor.putString(context.getResources().getString(R.string.shared_pref_device_active), "1");
 		editor.commit();
-
-		try {
+		
+		ProcessMessage pm=new ProcessMessage(context);
+		pm.getOperations(null);
+		try {	
 			policy = mainPref.getString("policy", "");
 			if(policy!=null && !policy.equals("")){
 				//operation.executePolicy();

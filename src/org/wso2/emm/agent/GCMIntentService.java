@@ -82,13 +82,17 @@ public class GCMIntentService extends GCMBaseIntentService {
     
 	@Override
     protected void onMessage(Context context, Intent intent) {
-		String code = intent.getStringExtra(getResources().getString(R.string.intent_extra_message)).trim();
-
+		Log.e("onmsg","onmsg");
+		
         Config.context = this;
-        String mode=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_notifier));
+        String mode=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_message_mode));
 		if(mode.trim().toUpperCase().equals("GCM")){
+			Log.e("onmsg","GCM");
 			ProcessMessage msg=new ProcessMessage(context);
 			msg.getOperations(null);
+		}
+		else{
+			Log.e("onmsg","mode");
 		}
     	//processMsg = new ProcessMessage(Config.context, CommonUtilities.MESSAGE_MODE_GCM, intent);
     }

@@ -45,6 +45,7 @@ public class ProcessMessage  implements APIResultCallBack{
 	Map<String, String> responsePayload;
 	Context context;
 	String replyPayload;
+	public static boolean stillProcessing=false;
 	
 	public ProcessMessage(Context context, int mode, String message, String recepient) {
 		// TODO Auto-generated constructor stub
@@ -61,16 +62,12 @@ public class ProcessMessage  implements APIResultCallBack{
             
             operation = new Operation(context, mode, params, recepient);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     	
 	}
 	
-	public ProcessMessage(Context context, int mode, Intent intent) {
-		// TODO Auto-generated constructor stub
-		operation = new Operation(context, mode, intent);
-	}
+	
 	
 	// local notification message handler
 	public ProcessMessage(Context context) {
@@ -78,43 +75,48 @@ public class ProcessMessage  implements APIResultCallBack{
 	}
 	
 	public void getOperations(String replyData) {
-		String isActive = CommonUtilities.getPref(context, context
-				.getResources().getString(R.string.shared_pref_device_active));
-		if (isActive.equals("1")) {
-			try {
-				SharedPreferences mainPref = context.getSharedPreferences(
-						context.getResources().getString(
-								R.string.shared_pref_package),
-						Context.MODE_PRIVATE);
-				String regId = mainPref.getString(context.getResources()
-						.getString(R.string.shared_pref_regId), "");
-				Map<String, String> requestParams = new HashMap<String, String>();
-				if (replyData != null) {
-					requestParams.put("data", replyPayload);
-				}
-				requestParams.put("regId", regId);
-				Log.e("regId", regId + "");
+		Log.e("stillProcessing",stillProcessing+" ");
+		if(stillProcessing==false){
+    		String isActive = CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_device_active));
+    		if (isActive.equals("1")) {
+    			try {
+    				SharedPreferences mainPref =
+    						context.getSharedPreferences(context.getResources()
+    				                                                     .getString(R.string.shared_pref_package),
+    				                                                    Context.MODE_PRIVATE);
+    				String regId =
+    				               mainPref.getString(context.getResources()
+    				                                   .getString(R.string.shared_pref_regId), "");
+    				Map<String, String> requestParams = new HashMap<String, String>();
+    				if (replyData != null) {
+    					requestParams.put("data", replyPayload);
+    				}
+    				requestParams.put("regId", regId);
+    
+    				ServerUtils.callSecuredAPI(context,
+    				   						CommonUtilities.NOTIFICATION_ENDPOINT,
+    				   						CommonUtilities.POST_METHOD, requestParams,
+    				   						ProcessMessage.this,
+    				   						CommonUtilities.NOTIFICATION_REQUEST_CODE);
+    			} catch (Exception e) {
+    				e.printStackTrace();
+    			}
+    		}
 
-				ServerUtils.callSecuredAPI(context,
-						CommonUtilities.NOTIFICATION_ENDPOINT,
-						CommonUtilities.POST_METHOD, requestParams,
-						ProcessMessage.this,
-						CommonUtilities.NOTIFICATION_REQUEST_CODE);
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 		}
+		
 	}
 
 	@Override
 	public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
 		String responseStatus = "";
 		String response = "";
+		Log.e("onReceiveAPIResult",requestCode +" ");
 		if (requestCode == CommonUtilities.NOTIFICATION_REQUEST_CODE) { 
+			Log.e("onReceiveAPIResult",responseStatus +"2");
 			if (result != null) {
 				responseStatus = result.get(CommonUtilities.STATUS_KEY);
-				
+				Log.e("onReceiveAPIResult",responseStatus +" ");
 				if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
 					response = result.get("response");
 					//processMsg = new ProcessMessage(context, CommonUtilities.MESSAGE_MODE_LOCAL, response);
@@ -135,14 +137,13 @@ public class ProcessMessage  implements APIResultCallBack{
 	
 
 	private void messageExecute(String msg) {
+		stillProcessing=true;
 		JSONArray repArray =new JSONArray();
 		JSONObject jsReply=null;
 		String msgId="";
 		
 		
 		JSONArray dataReply=null;
-        
-		
 		try {
 	        JSONArray jArr=new JSONArray(msg.trim());
 	        for(int i=0;i<jArr.length();i++){
@@ -161,13 +162,6 @@ public class ProcessMessage  implements APIResultCallBack{
     						SharedPreferences mainPrefp =
     						                              context.getSharedPreferences("com.mdm",
     						                                                    Context.MODE_PRIVATE);
-    						
-//    	        		05-20 16:38:41.606: E/responseresponse(17879):  
-//    	       [{"code" : "500P", "data" : [{"messageId" : "827", "data" : [{"code" : "508A", "data" : {"function" : "Enable"}}, {"code" : "526A", "data" : {"password" : "1234"}}]}]}]
-
-//////    						05-20 14:43:41.650: E/responseresponse(8126):  
-////    							[{"code" : "500P", "data" : [{"messageId" : "178", "data" : [{"code" : "508A", "data" : {"function" : "Enable"}}, {"code" : "526A", "data" : {"password" : "1234"}}]}]}]
-
     						
     						Editor editorp = mainPrefp.edit();
     						editorp.putString("policy", "");
@@ -232,7 +226,8 @@ public class ProcessMessage  implements APIResultCallBack{
 			PayloadParser ps=new PayloadParser();
 			
 			replyPayload=ps.generateReply(repArray,regId);
-			Log.e("reply",replyPayload);
+			Log.e("reply Payload",replyPayload);
+			stillProcessing=false;
 			getOperations(replyPayload);
 			
 		}

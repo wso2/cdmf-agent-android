@@ -816,12 +816,8 @@ public class AuthenticationActivity extends SherlockActivity implements
 		} else if (mode.trim().toUpperCase().contains("GCM")) {
 			CommonUtilities.LOCAL_NOTIFICATIONS_ENABLED = false;
 			CommonUtilities.GCM_ENABLED = true;
-			editor.commit();
-			String senderIDen=CommonUtilities.getPref(context, getResources().getString(R.string.shared_pref_sender_id));
-			CommonUtilities.SENDER_ID=senderIDen;
-			GCMRegistrar.register(context, senderIDen);
-
-
+			//editor.commit();
+			GCMRegistrar.register(context, CommonUtilities.SENDER_ID);
 		}
 		
 		if (senderId!=null && !senderId.equals("")) {

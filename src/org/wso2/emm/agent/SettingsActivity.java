@@ -37,6 +37,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
@@ -102,7 +103,10 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		SharedPreferences mainPref = context.getSharedPreferences(
 				getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
 		String ipSaved = mainPref.getString(getResources().getString(R.string.shared_pref_ip), "");	
-		regId = mainPref.getString(getResources().getString(R.string.shared_pref_regId), "");		
+		regId = mainPref.getString(getResources().getString(R.string.shared_pref_regId), "");
+		if(ipSaved != null && ipSaved != ""){
+			CommonUtilities.setSERVER_URL(ipSaved);
+		}
 		
 		try {
 			// Check the session.
@@ -120,6 +124,7 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 				}
 
 			}
+
 		} catch (TimeoutException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
@@ -128,6 +133,7 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
     	
 		if(ipSaved != null && ipSaved != ""){
 			ip.setText(ipSaved);
+			CommonUtilities.setSERVER_URL(ipSaved);
 			Intent intent = new Intent(SettingsActivity.this,AuthenticationActivity.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(intent);	

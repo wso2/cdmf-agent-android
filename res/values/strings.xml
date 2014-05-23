@@ -82,7 +82,7 @@
     <string name="shared_pref_sender_id">senderID</string>
     <string name="shared_pref_message_mode">mode</string>
     <string name="shared_pref_interval">interval</string>
-    <string name="shared_pref_notifier">notifier</string>
+    
     <string name="shared_pref_device_active">0</string>
 
     <!-- ERROR MESSAGES -->

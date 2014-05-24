@@ -25,18 +25,22 @@ import org.json.simple.parser.JSONParser;
 import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.parser.PayloadParser;
 import org.wso2.emm.agent.proxy.APIResultCallBack;
+import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.LoggerCustom;
 import org.wso2.emm.agent.utils.ServerUtils;
 
+import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.util.Log;
 
 public class ProcessMessage  implements APIResultCallBack{
+	
+	private String TAG = ProcessMessage.class.getSimpleName();
+	
 	Operation operation;
 	Map<String, String> params;
 	AsyncTask<Void, Void, String> sendReply;
@@ -44,6 +48,7 @@ public class ProcessMessage  implements APIResultCallBack{
 	Context context;
 	String replyPayload;
 	public static boolean stillProcessing=false;
+	AlertDialog.Builder alertDialog;
 	
 	public ProcessMessage(Context context, int mode, String message, String recepient) {
 		// TODO Auto-generated constructor stub
@@ -115,14 +120,17 @@ public class ProcessMessage  implements APIResultCallBack{
 			if (result != null) {
 				responseStatus = result.get(CommonUtilities.STATUS_KEY);
 				Log.e("onReceiveAPIResult",responseStatus +" ");
-				if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
-					response = result.get("response");
-					//processMsg = new ProcessMessage(context, CommonUtilities.MESSAGE_MODE_LOCAL, response);
-					if(response!=null && !response.equals("") && !response.equals("null")){
-			    		Log.e("responseresponse", " "+response);
-			    		messageExecute(response);
-					}
+				if (responseStatus != null) {
+					if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
+						response = result.get("response");
+						//processMsg = new ProcessMessage(context, CommonUtilities.MESSAGE_MODE_LOCAL, response);
+						if(response!=null && !response.equals("") && !response.equals("null")){
+				    		Log.e("responseresponse", " "+response);
+				    		messageExecute(response);
+						}
+					} 
 				}
+				
 			}
 		}
 		

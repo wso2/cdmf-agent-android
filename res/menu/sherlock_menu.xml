@@ -14,10 +14,6 @@
                 android:id="@+id/pin_setting"
                 android:title="@string/menu_item_pin">
             </item>
-            <item
-                android:id="@+id/ip_setting"
-                android:title="@string/menu_item_ip">
-            </item>
         </menu>
     </item>
 </menu>

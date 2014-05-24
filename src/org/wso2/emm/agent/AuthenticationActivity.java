@@ -597,12 +597,12 @@ public class AuthenticationActivity extends SherlockActivity implements
 				Log.e(TAG, "The result is : " + result);
 				showInternalServerErrorMessage();
 			} else {
-				showRegistrationCommonErrorMessage();
+				showEnrollementFailedErrorMessage();
 			}
 
 		} else {
 			Log.e(TAG, "The result is null in manipulateLicenseResponse()");
-			showRegistrationCommonErrorMessage();
+			showEnrollementFailedErrorMessage();
 		}
 	}
 
@@ -666,21 +666,21 @@ public class AuthenticationActivity extends SherlockActivity implements
 
 			} else {
 				Log.e(TAG, "The result is : " + result);
-				showRegistrationCommonErrorMessage();
+				showEnrollementFailedErrorMessage();
 			}
 		} else {
 			Log.e(TAG, "The result is null in manipulateSenderIdResponse()");
-			showRegistrationCommonErrorMessage();
+			showEnrollementFailedErrorMessage();
 		}
 
 	}
 
-	private void showRegistrationCommonErrorMessage() {
+	private void showEnrollementFailedErrorMessage() {
 		alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(
 				context,
 				getResources()
-						.getString(R.string.title_head_registration_error),
-				getResources().getString(R.string.error_internal_server),
+						.getString(R.string.error_enrollment_failed),
+				getResources().getString(R.string.error_enrollment_failed_detail),
 				getResources().getString(R.string.button_ok),
 				senderIdFailedClickListener);
 		alertDialog.show();
@@ -849,7 +849,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 		alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(
 				context,
 				getResources().getString(
-						R.string.title_head_authentication_error),
+						R.string.title_head_connection_error),
 				getResources().getString(R.string.error_internal_server),
 				getResources().getString(R.string.button_ok), null);
 		alertDialog.show();

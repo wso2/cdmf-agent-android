@@ -81,10 +81,10 @@ public class AccessTokenHandler extends Activity {
             String refreshToken = null;
             String accessToken = null;
             try {
-                JSONObject response = new JSONObject(result);
                 IdentityProxy identityProxy = IdentityProxy.getInstance();
 
                 if (responseCode != null && responseCode.equals("200")) {
+                	JSONObject response = new JSONObject(result);
                 	  
                 	refreshToken = response.getString("refresh_token");
                     accessToken = response.getString("access_token");

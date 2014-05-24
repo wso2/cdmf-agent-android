@@ -19,12 +19,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.wso2.emm.agent.api.PhoneState;
+import org.wso2.emm.agent.proxy.APIResultCallBack;
 import org.wso2.emm.agent.services.Operation;
 import org.wso2.emm.agent.services.WSO2DeviceAdminReceiver;
 import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtils;
-import org.wso2.mobile.idp.proxy.APIResultCallBack;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;

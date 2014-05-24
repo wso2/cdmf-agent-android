@@ -6,8 +6,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.wso2.emm.agent.proxy.APIResultCallBack;
 import org.wso2.emm.agent.utils.CommonUtilities;
-import org.wso2.mobile.idp.proxy.APIResultCallBack;
 
 public class APIResultCallBackImpl implements APIResultCallBack {
 

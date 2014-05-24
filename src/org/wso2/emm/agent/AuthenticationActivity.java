@@ -22,13 +22,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.emm.agent.api.DeviceInfo;
 import org.wso2.emm.agent.api.PhoneState;
+import org.wso2.emm.agent.proxy.APIAccessCallBack;
+import org.wso2.emm.agent.proxy.APIResultCallBack;
+import org.wso2.emm.agent.proxy.IdentityProxy;
 import org.wso2.emm.agent.services.AlarmReceiver;
 import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtils;
-import org.wso2.mobile.idp.proxy.APIAccessCallBack;
-import org.wso2.mobile.idp.proxy.APIResultCallBack;
-import org.wso2.mobile.idp.proxy.IdentityProxy;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -434,6 +434,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 				+ CommonUtilities.SERVER_PORT + CommonUtilities.OAUTH_ENDPOINT;
 		if (txtDomain.getText() != null
 				&& !txtDomain.getText().toString().trim().equals("")) {
+			
 			IdentityProxy.getInstance().init(
 					CommonUtilities.CLIENT_ID,
 					CommonUtilities.CLIENT_SECRET,
@@ -441,14 +442,14 @@ public class AuthenticationActivity extends SherlockActivity implements
 							+ txtDomain.getText().toString().trim(),
 					password.getText().toString().trim(),
 					serverURL,
-					AuthenticationActivity.this);
+					AuthenticationActivity.this,this.getApplicationContext());
 
 		} else {
 			IdentityProxy.getInstance().init(CommonUtilities.CLIENT_ID,
 					CommonUtilities.CLIENT_SECRET,
 					username.getText().toString().trim(),
 					password.getText().toString().trim(), serverURL,
-					AuthenticationActivity.this);
+					AuthenticationActivity.this,this.getApplicationContext());
 		}
 		progressDialog = ProgressDialog.show(AuthenticationActivity.this,
 				getResources().getString(R.string.dialog_authenticate),
@@ -543,6 +544,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 	@Override
 	public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
 		if (requestCode == CommonUtilities.SENDER_ID_REQUEST_CODE) {
+			Log.e("sender","rec"+result);
 			manipulateSenderIdResponse(result);
 		} else if (requestCode == CommonUtilities.LICENSE_REQUEST_CODE) {
 			manipulateLicenseResponse(result);
@@ -558,7 +560,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 	private void manipulateLicenseResponse(Map<String, String> result) {
 		String responseStatus;
 		CommonDialogUtils.stopProgressDialog(progressDialog);
-
+		Log.e("get licence", "res");
 		String licenseAgreement = "";
 
 		if (result != null) {
@@ -691,11 +693,11 @@ public class AuthenticationActivity extends SherlockActivity implements
 			CommonUtilities.GCM_ENABLED = false;
 			String androidID = Secure.getString(context.getContentResolver(),
 					Secure.ANDROID_ID);
-			if (senderId!=null && senderId.equals("")) {
+			//if (senderId == null || senderId.equals("")) {
 			editor.putString(
 					getResources().getString(R.string.shared_pref_regId),
 					androidID);
-			}
+			//}
 			editor.commit();
 		
 			startLocalNotification(interval);
@@ -706,10 +708,10 @@ public class AuthenticationActivity extends SherlockActivity implements
 			GCMRegistrar.register(context, CommonUtilities.SENDER_ID);
 		}
 		
-		if (senderId!=null && !senderId.equals("")) {
-			CommonUtilities.GCM_ENABLED = true;
-			GCMRegistrar.register(context, CommonUtilities.SENDER_ID);
-		}
+//		if (senderId!=null && !senderId.equals("")) {
+//			CommonUtilities.GCM_ENABLED = true;
+//			GCMRegistrar.register(context, CommonUtilities.SENDER_ID);
+//		}
 	}
 
 	/**
@@ -717,6 +719,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 	 * 
 	 */
 	private void getLicense() {
+		Log.e("get licence", "get licence");
 		SharedPreferences mainPref = context.getSharedPreferences(
 				getResources().getString(R.string.shared_pref_package),
 				Context.MODE_PRIVATE);
@@ -798,6 +801,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 				// Check network connection availability before calling the API.
 				if (PhoneState.isNetworkAvailable(context)) {
 					// Call get sender ID API.
+					Log.e("sender id ","call");
 					ServerUtils.callSecuredAPI(AuthenticationActivity.this,
 							CommonUtilities.SENDER_ID_ENDPOINT,
 							CommonUtilities.GET_METHOD, requestParams,

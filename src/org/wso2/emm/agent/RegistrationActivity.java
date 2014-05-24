@@ -21,11 +21,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.emm.agent.api.DeviceInfo;
 import org.wso2.emm.agent.api.PhoneState;
+import org.wso2.emm.agent.proxy.APIResultCallBack;
 import org.wso2.emm.agent.services.WSO2DeviceAdminReceiver;
 import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtils;
-import org.wso2.mobile.idp.proxy.APIResultCallBack;
 
 import android.app.Activity;
 import android.app.ProgressDialog;

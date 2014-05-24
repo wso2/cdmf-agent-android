@@ -21,9 +21,9 @@ import java.util.Map;
 
 import org.json.JSONArray;
 import org.wso2.emm.agent.R;
+import org.wso2.emm.agent.proxy.APIResultCallBack;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtils;
-import org.wso2.mobile.idp.proxy.APIResultCallBack;
 
 import android.app.admin.DeviceAdminReceiver;
 import android.content.Context;

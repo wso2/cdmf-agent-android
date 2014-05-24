@@ -423,124 +423,6 @@ public class AuthenticationActivity extends SherlockActivity implements
 
 	}
 
-	private void getOauthClientInfo() {
-		AsyncTask<Void, Void, Map<String, String>> mLicenseTask = new AsyncTask<Void, Void, Map<String, String>>() {
-
-			@Override
-			protected Map<String, String> doInBackground(Void... params) {
-				String usernameParam = "";
-				Map<String, String> requestParams = new HashMap<String, String>();
-				if (txtDomain.getText() != null
-						&& !txtDomain.getText().toString().trim().equals("")) {
-					usernameParam = username.getText().toString().trim() + "@"
-							+ txtDomain.getText().toString().trim();
-					requestParams.put("domain", txtDomain.getText().toString()
-							.trim());
-				} else {
-					usernameParam = username.getText().toString().trim();
-				}
-				
-				requestParams.put("username", usernameParam);
-				requestParams.put("password", txtDomain.getText().toString()
-						.trim());
-				
-				Map<String, String> response = ServerUtils.sendWithTimeWait(
-						"users/authenticate", requestParams, "POST", context);
-				try {
-
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				return response;
-			}
-
-			@Override
-			protected void onPreExecute() {
-				progressDialog = ProgressDialog.show(AuthenticationActivity.this,
-						getResources().getString(R.string.dialog_authenticate),
-						getResources().getString(R.string.dialog_please_wait), true);
-				progressDialog.setCancelable(true);
-				progressDialog.setOnCancelListener(cancelListener);
-			};
-
-			OnCancelListener cancelListener = new OnCancelListener() {
-
-				@Override
-				public void onCancel(DialogInterface arg0) {
-					CommonDialogUtils.stopProgressDialog(progressDialog);
-					showAuthCommonErrorMessage();
-				}
-			};
-
-			@Override
-			protected void onPostExecute(Map<String, String> result) {
-				String responseStatus = "";
-				JSONObject response = null;
-				String clienId = "";
-				String clientSecret = "";
-				if (result != null) {
-					try {
-						responseStatus = result.get("status");
-						if (!responseStatus
-								.equals(CommonUtilities.EMPTY_STRING)) {
-							if (responseStatus
-									.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
-								response = new JSONObject(
-										result.get("response"));
-								clienId = response.getString("client_id");
-								clientSecret = response
-										.getString("client_secret");
-
-								SharedPreferences mainPref = AuthenticationActivity.this
-										.getSharedPreferences(
-												getResources()
-														.getString(
-																R.string.shared_pref_package),
-												Context.MODE_PRIVATE);
-								Editor editor = mainPref.edit();
-								editor.putString(
-										getResources().getString(
-												R.string.shared_pref_client_id),
-										clienId);
-								editor.putString(
-										getResources()
-												.getString(
-														R.string.shared_pref_client_secret),
-										clienId);
-								editor.commit();
-							} else if (responseStatus.trim().equals(
-									CommonUtilities.INTERNAL_SERVER_ERROR)) {
-								CommonDialogUtils
-										.stopProgressDialog(progressDialog);
-								showInternalServerErrorMessage();
-							} else {
-								Log.e(TAG, "responseStatus: " + responseStatus);
-								CommonDialogUtils.stopProgressDialog(progressDialog);
-								showAuthCommonErrorMessage();
-							}
-						} else {
-							Log.e(TAG, "responseStatus: " + responseStatus);
-							CommonDialogUtils.stopProgressDialog(progressDialog);
-							showAuthCommonErrorMessage();
-						}
-
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
-				} else {
-					Log.e(TAG,
-							"The value of status is null in onAPIAccessRecive()");
-					showAuthCommonErrorMessage();
-				}
-
-			}
-
-		};
-
-		mLicenseTask.execute();
-
-	}
-
 	/**
 	 * Initialize the Android IDP sdk by passing user credentials,client ID and
 	 * client secret.
@@ -568,6 +450,9 @@ public class AuthenticationActivity extends SherlockActivity implements
 					password.getText().toString().trim(), serverURL,
 					AuthenticationActivity.this);
 		}
+		progressDialog = ProgressDialog.show(AuthenticationActivity.this,
+				getResources().getString(R.string.dialog_authenticate),
+				getResources().getString(R.string.dialog_please_wait), true);
 	}
 
 	@SuppressLint("NewApi")
@@ -693,8 +578,9 @@ public class AuthenticationActivity extends SherlockActivity implements
 				editor.commit();
 
 				if (licenseAgreement != null
-						&& !licenseAgreement
-								.equals(CommonUtilities.EMPTY_STRING)) {
+						&& (!licenseAgreement
+								.equals(CommonUtilities.EMPTY_STRING) && !licenseAgreement
+								.equals(CommonUtilities.NULL_STRING))) {
 					showAlert(licenseAgreement, CommonUtilities.EULA_TITLE);
 				} else {
 					showErrorMessage(

@@ -321,32 +321,13 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	@Override
 	protected void onResume() {
 		super.onResume();
-		Log.e("**************** ", "RRRRRRRRRRRRRRRR"+freshRegFlag);
-		
 		if (!freshRegFlag) {
-			Log.e("**************** ", "QQQQQQQQQQQQQQQ"+freshRegFlag);
-			regId = CommonUtilities.getPref(AlreadyRegisteredActivity.this,
-					getResources().getString(R.string.shared_pref_regId));
-
-			OnCancelListener cancelListener = new OnCancelListener() {
-				@Override
-				public void onCancel(DialogInterface arg0) {
-					showAlert(
-							getResources().getString(
-									R.string.error_connect_to_server),
-							getResources().getString(
-									R.string.error_heading_connection));
-				}
-			};
-
 			progressDialog = ProgressDialog
 					.show(AlreadyRegisteredActivity.this,
 							getResources().getString(
 									R.string.dialog_checking_reg),
 							getResources().getString(
 									R.string.dialog_please_wait), true);
-			progressDialog.setCancelable(true);
-			progressDialog.setOnCancelListener(cancelListener);
 
 			// Check network connection availability before calling the API.
 			if (PhoneState.isNetworkAvailable(context)) {
@@ -362,8 +343,39 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 				CommonDialogUtils
 						.showNetworkUnavailableMessage(AlreadyRegisteredActivity.this);
 			}
+			
 		}
-		freshRegFlag=false;
+		
+		/*
+		Log.e("**************** ", "RRRRRRRRRRRRRRRR"+freshRegFlag);
+		
+		
+			Log.e("**************** ", "QQQQQQQQQQQQQQQ"+freshRegFlag);
+			
+			
+			regId = CommonUtilities.getPref(AlreadyRegisteredActivity.this,
+					getResources().getString(R.string.shared_pref_regId));
+
+			OnCancelListener cancelListener = new OnCancelListener() {
+				@Override
+				public void onCancel(DialogInterface arg0) {
+					showAlert(
+							getResources().getString(
+									R.string.error_connect_to_server),
+							getResources().getString(
+									R.string.error_heading_connection));
+				}
+			};
+
+			
+		}
+		freshRegFlag=false;*/
+	}
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		freshRegFlag = false;
 	}
 
 	public void showAlert(String message, String title) {

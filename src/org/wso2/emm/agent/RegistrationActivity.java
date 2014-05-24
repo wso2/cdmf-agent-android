@@ -108,21 +108,24 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		});
     }
 		
-		private void registerDevice() {
-			progressDialog = CommonDialogUtils.showPrgressDialog(RegistrationActivity.this, getResources().getString(R.string.dialog_enrolling), getResources().getString(R.string.dialog_please_wait), null);
-			progressDialog.show();
-	
-			DeviceInfo deviceInfo = new DeviceInfo(RegistrationActivity.this);
-			JSONObject jsObject = new JSONObject();
-			String osVersion = "";
-			SharedPreferences mainPref = RegistrationActivity.this.getSharedPreferences(
-					RegistrationActivity.this.getResources().getString(
-							R.string.shared_pref_package),
-					Context.MODE_PRIVATE);
-			String type = mainPref.getString(RegistrationActivity.this.getResources()
-					.getString(R.string.shared_pref_reg_type), "");
-			
-			osVersion = deviceInfo.getOsVersion();
+	private void registerDevice() {
+		progressDialog = CommonDialogUtils.showPrgressDialog(
+				RegistrationActivity.this,
+				getResources().getString(R.string.dialog_enrolling),
+				getResources().getString(R.string.dialog_please_wait), null);
+		progressDialog.show();
+
+		DeviceInfo deviceInfo = new DeviceInfo(RegistrationActivity.this);
+		JSONObject jsObject = new JSONObject();
+		String osVersion = "";
+		SharedPreferences mainPref = RegistrationActivity.this
+				.getSharedPreferences(RegistrationActivity.this.getResources()
+						.getString(R.string.shared_pref_package),
+						Context.MODE_PRIVATE);
+		String type = mainPref.getString(RegistrationActivity.this
+				.getResources().getString(R.string.shared_pref_reg_type), "");
+
+		osVersion = deviceInfo.getOsVersion();
 		try {
 			jsObject.put("device", deviceInfo.getDevice());
 			jsObject.put("imei", deviceInfo.getDeviceId());
@@ -151,13 +154,12 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 				CommonDialogUtils
 						.showNetworkUnavailableMessage(RegistrationActivity.this);
 			}
-			
 
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 
-    }
+	}
 
     @Override
    	public boolean onKeyDown(int keyCode, KeyEvent event) {

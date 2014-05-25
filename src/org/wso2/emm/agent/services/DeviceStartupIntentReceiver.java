@@ -33,7 +33,7 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver{
 		    AlarmManager alarms = (AlarmManager) context.getSystemService(
 		            Context.ALARM_SERVICE);
 		    alarms.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime,
-		                        interval*20000, recurringDownload);
+		                        interval*60000, recurringDownload);
     	}
 	}
 }

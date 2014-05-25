@@ -56,8 +56,8 @@ public class CommonUtilities {
 	public static final String EULA_TEXT = "Test policy agreement.";
 
 	/* Added for OAuth implementation */
-	public static final String CLIENT_ID = "SUXBlnG0a6fBV3Sxq2fXI7I_Avsa";
-	public static final String CLIENT_SECRET = "b4WCra2_6U2IfrqBWWr8C71dHjYa";
+	public static final String CLIENT_ID = "gmjJgsZNfbrSQ9YL2wk_cjN5gD8a";
+	public static final String CLIENT_SECRET = "rAxGlmuGYj_6FfrU9_fGGcXvf4ga";
 	/*public static final String CLIENT_ID = "M3Gqf8YHfG_b2fATZfd0O5Qkw28a";
 	public static final String CLIENT_SECRET = "TakNnm94xhqMzsuOHiIx64w6D10a";*/
 

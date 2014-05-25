@@ -889,7 +889,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 		 */
 
 		alarms.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime,
-				20000 * duration, recurringDownload);
+				60000 * duration, recurringDownload);
 
 	}
 

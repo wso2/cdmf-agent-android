@@ -86,7 +86,7 @@ public class ServerUtils {
 			apiUtilities.setRequestParams(requestParams);
 		}
 		APIController apiController = new APIController();
-		apiController.invokeAPI(apiUtilities, apiResultCallBack, requestCode);
+		apiController.invokeAPI(apiUtilities, apiResultCallBack, requestCode, context.getApplicationContext());
 	}
 
 	public static void clearAppData(Context context) {

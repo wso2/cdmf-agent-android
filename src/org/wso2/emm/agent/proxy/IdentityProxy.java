@@ -115,21 +115,25 @@ public class IdentityProxy implements CallBack {
          return token;
     }
     
-    public Token getToken() throws Exception, InterruptedException, ExecutionException, TimeoutException {
-        if(token == null){
-            return null;
-        }
-        boolean decision = dateComparison(token.getDate());
-        if (decision) {
-            return token;
-        }
-        RefreshTokenHandler refreshTokenHandler = new RefreshTokenHandler(context, clientID, clientSecret, token);
-        refreshTokenHandler.obtainNewAccessToken();
-        return token;
-    }
+//    public Token getToken() throws Exception, InterruptedException, ExecutionException, TimeoutException {
+//        if(token == null){
+//            return null;
+//        }
+//        boolean decision = dateComparison(token.getDate());
+//        if (decision) {
+//            return token;
+//        }
+//        RefreshTokenHandler refreshTokenHandler = new RefreshTokenHandler(context, clientID, clientSecret, token);
+//        refreshTokenHandler.obtainNewAccessToken();
+//        return token;
+//    }
     
     public Context getContext(){
     	return context;
+    }
+    
+    public void setContext(Context context){
+    	this.context=context;
     }
 
     public boolean dateComparison(Date date) {

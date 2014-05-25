@@ -5,11 +5,15 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import android.content.Context;
 import android.os.AsyncTask;
 
 public class APIController {
 	private static String TAG = "APIController";
-	public  void invokeAPI(APIUtilities apiUtilities, APIResultCallBack apiResultCallBack,int requestCode){
+	public  void invokeAPI(APIUtilities apiUtilities, APIResultCallBack apiResultCallBack,int requestCode, Context context){
+		if(IdentityProxy.getInstance().getContext() == null){
+			IdentityProxy.getInstance().setContext(context);
+		}
 		IdentityProxy.getInstance().setRequestCode(requestCode);
 		new NetworkCallTask(apiResultCallBack).execute(apiUtilities);
 	}
@@ -24,7 +28,7 @@ public class APIController {
 	            APIUtilities apiUtilities = params[0];
 	            Token token;
                 try {
-	                token = IdentityProxy.getInstance().getToken();
+	                token = IdentityProxy.getInstance().getToken(IdentityProxy.getInstance().getContext());
 		    		String accessToken = token.getAccessToken();
 		    		Map<String, String> headers = new HashMap<String, String>();
 		    		headers.put("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");

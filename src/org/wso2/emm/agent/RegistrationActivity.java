@@ -28,10 +28,12 @@ import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtils;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -59,6 +61,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 	 Button btnEnroll = null;
 	 RelativeLayout btnLayout = null;
 	 ProgressDialog progressDialog;
+	 AlertDialog.Builder alertDialog;
 	 
 	static final int ACTIVATION_REQUEST = 47; // identifies our request id
 	DevicePolicyManager devicePolicyManager;
@@ -108,21 +111,24 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		});
     }
 		
-		private void registerDevice() {
-			progressDialog = CommonDialogUtils.showPrgressDialog(RegistrationActivity.this, getResources().getString(R.string.dialog_enrolling), getResources().getString(R.string.dialog_please_wait), null);
-			progressDialog.show();
-	
-			DeviceInfo deviceInfo = new DeviceInfo(RegistrationActivity.this);
-			JSONObject jsObject = new JSONObject();
-			String osVersion = "";
-			SharedPreferences mainPref = RegistrationActivity.this.getSharedPreferences(
-					RegistrationActivity.this.getResources().getString(
-							R.string.shared_pref_package),
-					Context.MODE_PRIVATE);
-			String type = mainPref.getString(RegistrationActivity.this.getResources()
-					.getString(R.string.shared_pref_reg_type), "");
-			
-			osVersion = deviceInfo.getOsVersion();
+	private void registerDevice() {
+		progressDialog = CommonDialogUtils.showPrgressDialog(
+				RegistrationActivity.this,
+				getResources().getString(R.string.dialog_enrolling),
+				getResources().getString(R.string.dialog_please_wait), null);
+		progressDialog.show();
+
+		DeviceInfo deviceInfo = new DeviceInfo(RegistrationActivity.this);
+		JSONObject jsObject = new JSONObject();
+		String osVersion = "";
+		SharedPreferences mainPref = RegistrationActivity.this
+				.getSharedPreferences(RegistrationActivity.this.getResources()
+						.getString(R.string.shared_pref_package),
+						Context.MODE_PRIVATE);
+		String type = mainPref.getString(RegistrationActivity.this
+				.getResources().getString(R.string.shared_pref_reg_type), "");
+
+		osVersion = deviceInfo.getOsVersion();
 		try {
 			jsObject.put("device", deviceInfo.getDevice());
 			jsObject.put("imei", deviceInfo.getDeviceId());
@@ -151,13 +157,12 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 				CommonDialogUtils
 						.showNetworkUnavailableMessage(RegistrationActivity.this);
 			}
-			
 
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 
-    }
+	}
 
     @Override
    	public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -184,6 +189,13 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 	public boolean onOptionsItemSelected(MenuItem item) {
 		return super.onOptionsItemSelected(item);
 	}
+	
+	DialogInterface.OnClickListener registrationFailedOKBtnClickListerner = new DialogInterface.OnClickListener() {
+		@Override
+		public void onClick(DialogInterface arg0, int arg1) {	
+			loadAuthenticationErrorActivity();	
+		}
+	};
 
 	@Override
 	public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
@@ -199,24 +211,62 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		        	intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		        	startActivity(intent);
 		        	//finish();
-		    	}else{
-		    		Log.e(TAG, "The result is : " + result);
+		    	} else if (responseStatus
+						.equals(CommonUtilities.INTERNAL_SERVER_ERROR)) {
+					Log.e(TAG, "The value of status is : " + responseStatus);
+					alertDialog = CommonDialogUtils
+							.getAlertDialogWithOneButtonAndTitle(
+									context,
+									getResources().getString(
+											R.string.title_head_connection_error),
+									getResources().getString(
+											R.string.error_internal_server),
+									getResources().getString(R.string.button_ok),
+									registrationFailedOKBtnClickListerner);
+					alertDialog.show();
+					} else {
+						Log.e(TAG, "The value of status is : " + responseStatus);
 					Log.e(TAG, "The responseStatus is : " + responseStatus);
-		    		loadAuthenticationErrorActivity();
-		        	//finish();
+					alertDialog = CommonDialogUtils
+							.getAlertDialogWithOneButtonAndTitle(
+									context,
+									getResources().getString(
+											R.string.title_head_registration_error),
+									getResources().getString(
+											R.string.error_for_all_unknown_registration_failures),
+									getResources().getString(R.string.button_ok),
+									registrationFailedOKBtnClickListerner);
+					alertDialog.show();
 		    	}
 			} else {
 				Log.e(TAG, "The result is : " + result);
 				Log.e(TAG, "The responseStatus is : " + responseStatus);
-				loadAuthenticationErrorActivity();
+				alertDialog = CommonDialogUtils
+						.getAlertDialogWithOneButtonAndTitle(
+								context,
+								getResources().getString(
+										R.string.title_head_registration_error),
+								getResources().getString(
+										R.string.error_for_all_unknown_registration_failures),
+								getResources().getString(R.string.button_ok),
+								registrationFailedOKBtnClickListerner);
+				alertDialog.show();
 			}
 		} else {
 			Log.e(TAG, "The result is null in onReceiveAPIResult(). ");
 			Log.e(TAG, "The responseStatus is : " + responseStatus);
-			loadAuthenticationErrorActivity();
+			alertDialog = CommonDialogUtils
+					.getAlertDialogWithOneButtonAndTitle(
+							context,
+							getResources().getString(
+									R.string.title_head_registration_error),
+							getResources().getString(
+									R.string.error_for_all_unknown_registration_failures),
+							getResources().getString(R.string.button_ok),
+							registrationFailedOKBtnClickListerner);
+			alertDialog.show();
+		
 		}
-		
-		
 	}
 
 	/**

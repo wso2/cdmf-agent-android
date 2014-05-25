@@ -32,7 +32,6 @@ import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -73,7 +72,9 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	ActionBar actionbar;
 	boolean unregState = false;
 	boolean freshRegFlag = false;
+	boolean isUnregisterBtnClicked = false;
 	Operation operation;
+	AlertDialog.Builder alertDialog;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -124,6 +125,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
+			freshRegFlag = false;
 		}
 		txtRegText = (TextView) findViewById(R.id.txtRegText);
 
@@ -200,9 +202,29 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 
 		}
 	};
+	
+	DialogInterface.OnClickListener isRegisteredFailedOKBtnClickListerner = new DialogInterface.OnClickListener() {
+		@Override
+		public void onClick(DialogInterface arg0, int arg1) {
+			
+			Intent intent = new Intent(AlreadyRegisteredActivity.this,
+					SettingsActivity.class);
+			intent.putExtra(
+					getResources().getString(
+							R.string.intent_extra_regid), regId);
+			intent.putExtra(
+					getResources().getString(
+							R.string.intent_extra_from_activity),
+					AlreadyRegisteredActivity.class.getSimpleName());
+			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(intent);
+			
+		}
+	};
 
 	public void startUnRegistration() {
 		final Context context = AlreadyRegisteredActivity.this;
+		isUnregisterBtnClicked = true;
 
 		progressDialog = ProgressDialog
 				.show(AlreadyRegisteredActivity.this,
@@ -321,33 +343,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	@Override
 	protected void onResume() {
 		super.onResume();
-		Log.e("**************** ", "RRRRRRRRRRRRRRRR"+freshRegFlag);
-		
-		if (!freshRegFlag) {
-			Log.e("**************** ", "QQQQQQQQQQQQQQQ"+freshRegFlag);
-			regId = CommonUtilities.getPref(AlreadyRegisteredActivity.this,
-					getResources().getString(R.string.shared_pref_regId));
-
-			OnCancelListener cancelListener = new OnCancelListener() {
-				@Override
-				public void onCancel(DialogInterface arg0) {
-					showAlert(
-							getResources().getString(
-									R.string.error_connect_to_server),
-							getResources().getString(
-									R.string.error_heading_connection));
-				}
-			};
-
-			progressDialog = ProgressDialog
-					.show(AlreadyRegisteredActivity.this,
-							getResources().getString(
-									R.string.dialog_checking_reg),
-							getResources().getString(
-									R.string.dialog_please_wait), true);
-			progressDialog.setCancelable(true);
-			progressDialog.setOnCancelListener(cancelListener);
-
+		if (!freshRegFlag && !isUnregisterBtnClicked) {
 			// Check network connection availability before calling the API.
 			if (PhoneState.isNetworkAvailable(context)) {
 				// Call isRegistered API.
@@ -362,8 +358,9 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 				CommonDialogUtils
 						.showNetworkUnavailableMessage(AlreadyRegisteredActivity.this);
 			}
+			
 		}
-		freshRegFlag=false;
+
 	}
 
 	public void showAlert(String message, String title) {
@@ -378,12 +375,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 						dialog.cancel();
 					}
 				});
-		/*
-		 * builder1.setNegativeButton("No", new
-		 * DialogInterface.OnClickListener() { public void
-		 * onClick(DialogInterface dialog, int id) { dialog.cancel(); } });
-		 */
-
+	
 		AlertDialog alert = builder.create();
 		alert.show();
 	}
@@ -407,21 +399,40 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 			stopProgressDialog();
 			if (result != null) {
 				responseStatus = result.get(CommonUtilities.STATUS_KEY);
-				if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
-					txtRegText
-							.setText(R.string.register_text_view_text_unregister);
-					btnUnregister.setText(R.string.register_button_text);
-					btnUnregister.setTag(TAG_BTN_RE_REGISTER);
-					btnUnregister
-							.setOnClickListener(onClickListener_BUTTON_CLICKED);
-
-					ServerUtils.clearAppData(context);
-		
+				if (responseStatus != null) {
+					if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
+						txtRegText
+								.setText(R.string.register_text_view_text_unregister);
+						btnUnregister.setText(R.string.register_button_text);
+						btnUnregister.setTag(TAG_BTN_RE_REGISTER);
+						btnUnregister
+								.setOnClickListener(onClickListener_BUTTON_CLICKED);
+						ServerUtils.clearAppData(context);
+			
+					} else if (responseStatus
+							.equals(CommonUtilities.INTERNAL_SERVER_ERROR)) {
+						Log.e(TAG, "The value of status is : " + responseStatus);
+						alertDialog = CommonDialogUtils
+								.getAlertDialogWithOneButtonAndTitle(
+										context,
+										getResources().getString(
+												R.string.title_head_connection_error),
+										getResources().getString(
+												R.string.error_internal_server),
+										getResources().getString(R.string.button_ok),
+										null);
+						alertDialog.show();
+					} else {
+						Log.e(TAG, "The result is : " + result);
+						Log.e(TAG, "The responseStatus is : " + responseStatus);
+						loadAuthenticationErrorActivity();
+					}
 				} else {
-					Log.e(TAG, "The result is : " + result);
+					Log.e(TAG, "The result is null in onReceiveAPIResult().");
 					Log.e(TAG, "The responseStatus is : " + responseStatus);
 					loadAuthenticationErrorActivity();
 				}
+				
 
 			} else {
 				Log.e(TAG, "The result is null in onReceiveAPIResult().");
@@ -435,23 +446,68 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 			stopProgressDialog();
 			if (result != null) {
 				responseStatus = result.get(CommonUtilities.STATUS_KEY);
-				if (!responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
-					Intent intent = new Intent(AlreadyRegisteredActivity.this,
-							SettingsActivity.class);
-					intent.putExtra(
-							getResources().getString(
-									R.string.intent_extra_regid), regId);
-					intent.putExtra(
-							getResources().getString(
-									R.string.intent_extra_from_activity),
-							AlreadyRegisteredActivity.class.getSimpleName());
-					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-					startActivity(intent);
-
-				} 
-
+				if (responseStatus != null) {
+					if (responseStatus
+							.equals(CommonUtilities.INTERNAL_SERVER_ERROR)) {
+						Log.e(TAG, "The value of status is : " + responseStatus);
+						alertDialog = CommonDialogUtils
+								.getAlertDialogWithOneButtonAndTitle(
+										context,
+										getResources().getString(
+												R.string.title_head_connection_error),
+										getResources().getString(
+												R.string.error_internal_server),
+										getResources().getString(R.string.button_ok),
+										null);
+						alertDialog.show();
+					} else if (!responseStatus
+							.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
+						Log.e(TAG, "The value of status is : " + responseStatus);
+						ServerUtils.clearAppData(context);
+						
+						alertDialog = CommonDialogUtils
+								.getAlertDialogWithOneButtonAndTitle(
+										context,
+										getResources().getString(
+												R.string.title_head_registration_error),
+										getResources().getString(
+												R.string.error_for_all_unknown_registration_failures),
+										getResources().getString(R.string.button_ok),
+										isRegisteredFailedOKBtnClickListerner);
+						alertDialog.show();
+						ServerUtils.clearAppData(context);
+					}
+				}  else {
+					Log.e(TAG, "The result is null in onReceiveAPIResult()");
+					ServerUtils.clearAppData(context);
+					
+					alertDialog = CommonDialogUtils
+							.getAlertDialogWithOneButtonAndTitle(
+									context,
+									getResources().getString(
+											R.string.title_head_registration_error),
+									getResources().getString(
+											R.string.error_for_all_unknown_registration_failures),
+									getResources().getString(R.string.button_ok),
+									isRegisteredFailedOKBtnClickListerner);
+					alertDialog.show();
+				}
+				
+				
 			} else {
-				// TODO NEED TO IMPLEMENT
+				Log.e(TAG, "The responseStatus is null in onReceiveAPIResult()");
+				ServerUtils.clearAppData(context);
+				
+				alertDialog = CommonDialogUtils
+						.getAlertDialogWithOneButtonAndTitle(
+								context,
+								getResources().getString(
+										R.string.title_head_registration_error),
+								getResources().getString(
+										R.string.error_for_all_unknown_registration_failures),
+								getResources().getString(R.string.button_ok),
+								null);
+				alertDialog.show();
 			}
 
 		}

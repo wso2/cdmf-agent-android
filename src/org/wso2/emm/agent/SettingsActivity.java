@@ -16,8 +16,6 @@
 package org.wso2.emm.agent;
 
 import java.io.InputStream;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -336,7 +334,7 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 						.getAlertDialogWithOneButtonAndTitle(
 								context,
 								getResources().getString(
-										R.string.title_head_registration_error),
+										R.string.title_head_connection_error),
 								getResources().getString(
 										R.string.error_internal_server),
 								getResources().getString(R.string.button_ok),

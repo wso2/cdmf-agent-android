@@ -415,11 +415,73 @@ public class AuthenticationActivity extends SherlockActivity implements
 
 		// Check network connection availability before calling the API.
 		if (PhoneState.isNetworkAvailable(context)) {
-			initializeIDPLib();
+			getOauthClientInfo();
 		} else {
 			CommonDialogUtils
 					.showNetworkUnavailableMessage(AuthenticationActivity.this);
 		}
+
+	}
+	
+	private void getOauthClientInfo() {
+		AsyncTask<Void, Void, String> mLicenseTask = new AsyncTask<Void, Void, String>() {
+
+			@Override
+			protected String doInBackground(Void... params) {
+
+				String response = "";
+				try {
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return response;
+			}
+
+			@Override
+			protected void onPreExecute() {
+				progressDialog = ProgressDialog.show(AuthenticationActivity.this,
+						getResources().getString(R.string.dialog_authenticate),
+						getResources().getString(R.string.dialog_please_wait), true);
+			};
+
+			@Override
+			protected void onPostExecute(String result) {
+				String responseStatus = "";
+				JSONObject response = null;
+				String clienKey = "";
+				String clientSecret = "";
+				
+				try {
+					response = new JSONObject(result);
+					responseStatus = response.getString("");
+					clienKey = response.getString("client_id");
+					clientSecret = response.getString("client_secret");
+					
+					SharedPreferences mainPref = AuthenticationActivity.this
+							.getSharedPreferences(
+									getResources().getString(
+											R.string.shared_pref_package),
+									Context.MODE_PRIVATE);
+					Editor editor = mainPref.edit();
+					editor.putString(
+							getResources().getString(
+									R.string.shared_pref_client_id), clienKey);
+					editor.putString(
+							getResources().getString(
+									R.string.shared_pref_client_secret), clienKey);
+					editor.commit();
+					initializeIDPLib(clienKey, clientSecret);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+
+
+			}
+
+		};
+
+		mLicenseTask.execute();
 
 	}
 
@@ -427,7 +489,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 	 * Initialize the Android IDP sdk by passing user credentials,client ID and
 	 * client secret.
 	 */
-	private void initializeIDPLib() {
+	private void initializeIDPLib(String clientKey, String clientSecret) {
 		String serverIP = CommonUtilities.getPref(AuthenticationActivity.this,
 				context.getResources().getString(R.string.shared_pref_ip));
 		String serverURL = CommonUtilities.SERVER_PROTOCOL + serverIP + ":"
@@ -436,8 +498,8 @@ public class AuthenticationActivity extends SherlockActivity implements
 				&& !txtDomain.getText().toString().trim().equals("")) {
 			
 			IdentityProxy.getInstance().init(
-					CommonUtilities.CLIENT_ID,
-					CommonUtilities.CLIENT_SECRET,
+					clientKey,
+					clientSecret,
 					username.getText().toString().trim() + "@"
 							+ txtDomain.getText().toString().trim(),
 					password.getText().toString().trim(),
@@ -445,15 +507,12 @@ public class AuthenticationActivity extends SherlockActivity implements
 					AuthenticationActivity.this,this.getApplicationContext());
 
 		} else {
-			IdentityProxy.getInstance().init(CommonUtilities.CLIENT_ID,
-					CommonUtilities.CLIENT_SECRET,
+			IdentityProxy.getInstance().init(clientKey,
+					clientSecret,
 					username.getText().toString().trim(),
 					password.getText().toString().trim(), serverURL,
 					AuthenticationActivity.this,this.getApplicationContext());
 		}
-		progressDialog = ProgressDialog.show(AuthenticationActivity.this,
-				getResources().getString(R.string.dialog_authenticate),
-				getResources().getString(R.string.dialog_please_wait), true);
 	}
 
 	@SuppressLint("NewApi")

@@ -2,6 +2,7 @@ package org.wso2.emm.agent.proxy;
 
 import android.content.Context;
 import android.util.Log;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;
@@ -23,6 +24,8 @@ import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
+import org.wso2.emm.agent.R;
+import org.wso2.emm.agent.utils.CommonUtilities;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -94,6 +97,8 @@ public class ServerUtilitiesTemp {
     		byte[] postData = payload.getBytes();             
     	    try {
     	    	httpPostWithHeaders.setEntity(new ByteArrayEntity(postData));
+    	    	if(httpclient==null)
+    	    		Log.e("httpclient","httpclient");
     	        HttpResponse response = httpclient.execute(httpPostWithHeaders);
     	        String status = String.valueOf(response.getStatusLine().getStatusCode());
     	        Log.d(TAG,status);
@@ -177,9 +182,12 @@ public class ServerUtilitiesTemp {
     public static HttpClient getCertifiedHttpClient() {
         try {
             HttpClient client = null;
-            if (isSSLEnable) {
+            if(CommonUtilities.SERVER_PROTOCOL.equalsIgnoreCase("https://")){
                 KeyStore localTrustStore = KeyStore.getInstance("BKS");
-                localTrustStore.load(inputStream, trustStorePassword.toCharArray());
+                InputStream in = IdentityProxy.getInstance().getContext()
+                		.getResources().openRawResource(R.raw.emm_truststore);
+   	    	 	localTrustStore.load(in, CommonUtilities.TRUSTSTORE_PASSWORD.toCharArray());
+   	    	 
 
                 SchemeRegistry schemeRegistry = new SchemeRegistry();
                 schemeRegistry.register(new Scheme("http", PlainSocketFactory
@@ -192,6 +200,7 @@ public class ServerUtilitiesTemp {
                         new ThreadSafeClientConnManager(params, schemeRegistry);
 
                 client = new DefaultHttpClient(cm, params);
+                
             } else {
                 client = new DefaultHttpClient();
             }

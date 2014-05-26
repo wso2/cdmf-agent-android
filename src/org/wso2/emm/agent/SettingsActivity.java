@@ -111,14 +111,7 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 			CommonUtilities.setSERVER_URL(ipSaved);
 		}
 		
-		if(CommonUtilities.SERVER_PROTOCOL.equalsIgnoreCase("https://")){
-			 Log.e("https","https");
-	    	 InputStream in = context.getResources().openRawResource(R.raw.emm_truststore);
-	    	 ServerUtilitiesTemp.enableSSL(in, CommonUtilities.TRUSTSTORE_PASSWORD);
-		}
-		else{
-			Log.e("http","http");
-		}
+		
 		
 		
 		

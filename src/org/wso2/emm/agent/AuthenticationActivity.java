@@ -485,7 +485,8 @@ public class AuthenticationActivity extends SherlockActivity implements
     					editor.commit();
     					initializeIDPLib(clienKey, clientSecret);
 					}
-					else if(responseStatus.equalsIgnoreCase(CommonUtilities.UNAUTHORIZED_ACCESS) || responseStatus.equalsIgnoreCase(CommonUtilities.UNAUTHORIZED_ACCESS)){
+					else if(responseStatus.equalsIgnoreCase(CommonUtilities.UNAUTHORIZED_ACCESS) || 
+							responseStatus.equalsIgnoreCase(CommonUtilities.NOT_FOUND)){
     					CommonDialogUtils.stopProgressDialog(progressDialog);
     					alertDialog = CommonDialogUtils
     							.getAlertDialogWithOneButtonAndTitle(

@@ -483,6 +483,8 @@ public class AuthenticationActivity extends SherlockActivity implements
     							getResources().getString(
     									R.string.shared_pref_client_secret), clienKey);
     					editor.commit();
+    					CommonUtilities.CLIENT_ID=clienKey;
+    					CommonUtilities.CLIENT_SECRET=clientSecret;
     					initializeIDPLib(clienKey, clientSecret);
 					}
 					else if(responseStatus.equalsIgnoreCase(CommonUtilities.UNAUTHORIZED_ACCESS) || 
@@ -872,11 +874,21 @@ public class AuthenticationActivity extends SherlockActivity implements
 
 	private void loadPincodeAcitvity() {
 		Intent intent = new Intent(AuthenticationActivity.this,
-				PinCodeActivity.class);
-		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		intent.putExtra(getResources()
-				.getString(R.string.intent_extra_username), username.getText()
-				.toString().trim());
+		           				PinCodeActivity.class);
+		           		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		if (txtDomain.getText() != null
+				&& !txtDomain.getText().toString().trim().equals("")) {
+			intent.putExtra(getResources()
+							.getString(R.string.intent_extra_username), username.getText().toString().trim() + "@"
+									+ txtDomain.getText().toString().trim());
+
+		} else {
+			intent.putExtra(getResources()
+							.getString(R.string.intent_extra_username), username.getText()
+							.toString().trim());
+		}
+		
+		
 		startActivity(intent);
 	}
 

@@ -107,8 +107,14 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 				getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
 		String ipSaved = mainPref.getString(getResources().getString(R.string.shared_pref_ip), "");	
 		regId = mainPref.getString(getResources().getString(R.string.shared_pref_regId), "");
+		String clientKey = mainPref.getString(getResources().getString(R.string.shared_pref_client_id), "");
+		String clientSecret = mainPref.getString(getResources().getString(R.string.shared_pref_client_secret), "");
 		if(ipSaved != null && ipSaved != ""){
 			CommonUtilities.setSERVER_URL(ipSaved);
+		}
+		if(!clientKey.equals("") && !clientSecret.equals("")){
+			CommonUtilities.CLIENT_ID=clientKey;
+			CommonUtilities.CLIENT_SECRET=clientSecret;
 		}
 		
 		

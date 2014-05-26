@@ -28,6 +28,7 @@ import org.wso2.emm.agent.proxy.IdentityProxy;
 import org.wso2.emm.agent.services.AlarmReceiver;
 import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtilities;
+import org.wso2.emm.agent.utils.HTTPConnectorUtils;
 import org.wso2.emm.agent.utils.ServerUtils;
 
 import android.annotation.SuppressLint;
@@ -425,17 +426,23 @@ public class AuthenticationActivity extends SherlockActivity implements
 	
 	private void getOauthClientInfo() {
 		AsyncTask<Void, Void, String> mLicenseTask = new AsyncTask<Void, Void, String>() {
-
+			Map<String, String> response=null;
+			
 			@Override
 			protected String doInBackground(Void... params) {
 
-				String response = "";
-				try {
-
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				return response;
+				if (txtDomain.getText() != null
+						&& !txtDomain.getText().toString().trim().equals("")) {
+			
+					response=HTTPConnectorUtils.getClientKey(username.getText().toString().trim() + "@"
+							+ txtDomain.getText().toString().trim(),
+					password.getText().toString().trim(), context);
+        
+        		} else {
+        			response=HTTPConnectorUtils.getClientKey(username.getText().toString().trim(),
+        			            					password.getText().toString().trim(), context);
+        		}
+				return response.get("response");
 			}
 
 			@Override
@@ -443,35 +450,56 @@ public class AuthenticationActivity extends SherlockActivity implements
 				progressDialog = ProgressDialog.show(AuthenticationActivity.this,
 						getResources().getString(R.string.dialog_authenticate),
 						getResources().getString(R.string.dialog_please_wait), true);
+				
+				
+				
 			};
 
 			@Override
 			protected void onPostExecute(String result) {
-				String responseStatus = "";
+				String res=response.get("response");
+				String responseStatus = response.get("status");
 				JSONObject response = null;
 				String clienKey = "";
 				String clientSecret = "";
 				
 				try {
-					response = new JSONObject(result);
-					responseStatus = response.getString("");
-					clienKey = response.getString("client_id");
-					clientSecret = response.getString("client_secret");
+					if(responseStatus.equalsIgnoreCase(CommonUtilities.REQUEST_SUCCESSFUL)){
+    					response = new JSONObject(res);
+    					//responseStatus = response.getString("");
+    					clienKey = response.getString("clientkey");
+    					clientSecret = response.getString("clientsecret");
+    					
+    					SharedPreferences mainPref = AuthenticationActivity.this
+    							.getSharedPreferences(
+    									getResources().getString(
+    											R.string.shared_pref_package),
+    									Context.MODE_PRIVATE);
+    					Editor editor = mainPref.edit();
+    					editor.putString(
+    							getResources().getString(
+    									R.string.shared_pref_client_id), clienKey);
+    					editor.putString(
+    							getResources().getString(
+    									R.string.shared_pref_client_secret), clienKey);
+    					editor.commit();
+    					initializeIDPLib(clienKey, clientSecret);
+					}
+					else if(responseStatus.equalsIgnoreCase(CommonUtilities.UNAUTHORIZED_ACCESS) || responseStatus.equalsIgnoreCase(CommonUtilities.UNAUTHORIZED_ACCESS)){
+    					CommonDialogUtils.stopProgressDialog(progressDialog);
+    					alertDialog = CommonDialogUtils
+    							.getAlertDialogWithOneButtonAndTitle(
+    									context,
+    									getResources()
+    											.getString(
+    													R.string.title_head_authentication_error),
+    									getResources().getString(
+    											R.string.error_for_all_unknown_registration_failures),
+    									getResources().getString(R.string.button_ok),
+    									dialogClickListener);
+    					alertDialog.show();
+					}
 					
-					SharedPreferences mainPref = AuthenticationActivity.this
-							.getSharedPreferences(
-									getResources().getString(
-											R.string.shared_pref_package),
-									Context.MODE_PRIVATE);
-					Editor editor = mainPref.edit();
-					editor.putString(
-							getResources().getString(
-									R.string.shared_pref_client_id), clienKey);
-					editor.putString(
-							getResources().getString(
-									R.string.shared_pref_client_secret), clienKey);
-					editor.commit();
-					initializeIDPLib(clienKey, clientSecret);
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}
@@ -490,6 +518,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 	 * client secret.
 	 */
 	private void initializeIDPLib(String clientKey, String clientSecret) {
+		Log.e("","initializeIDPLib");
 		String serverIP = CommonUtilities.getPref(AuthenticationActivity.this,
 				context.getResources().getString(R.string.shared_pref_ip));
 		String serverURL = CommonUtilities.SERVER_PROTOCOL + serverIP + ":"

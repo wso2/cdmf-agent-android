@@ -56,8 +56,8 @@ public class CommonUtilities {
 	public static final String EULA_TEXT = "Test policy agreement.";
 
 	/* Added for OAuth implementation */
-	public static final String CLIENT_ID = "SUXBlnG0a6fBV3Sxq2fXI7I_Avsa";
-	public static final String CLIENT_SECRET = "b4WCra2_6U2IfrqBWWr8C71dHjYa";
+	public static  String CLIENT_ID = "SUXBlnG0a6fBV3Sxq2fXI7I_Avsa";
+	public static  String CLIENT_SECRET = "b4WCra2_6U2IfrqBWWr8C71dHjYa";
 	/*public static final String CLIENT_ID = "M3Gqf8YHfG_b2fATZfd0O5Qkw28a";
 	public static final String CLIENT_SECRET = "TakNnm94xhqMzsuOHiIx64w6D10a";*/
 
@@ -132,7 +132,10 @@ public class CommonUtilities {
 	public static final String REGISTERATION_SUCCESSFUL = "201";
 	public static final String REQUEST_FAILED = "500";
 	public static final String AUTHENTICATION_FAILED = "400";
+	public static final String UNAUTHORIZED_ACCESS = "401";
+	public static final String NOT_FOUND = "404";
 	public static final String INTERNAL_SERVER_ERROR = "500";
+	
 
 	/**
 	 * Operation IDs

@@ -49,6 +49,7 @@ public class HTTPConnectorUtils {
 			HttpClient client = null;
 			if (CommonUtilities.SERVER_PROTOCOL.toLowerCase()
 					.equals("https://")) {
+				Log.e("","in");
 				KeyStore localTrustStore = KeyStore.getInstance("BKS");
 				InputStream in = context.getResources().openRawResource(
 						R.raw.emm_truststore);
@@ -66,6 +67,7 @@ public class HTTPConnectorUtils {
 						params, schemeRegistry);
 				client = new DefaultHttpClient(cm, params);
 			} else {
+				Log.e("","out");
 				client = new DefaultHttpClient();
 			}
 
@@ -74,6 +76,23 @@ public class HTTPConnectorUtils {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	public static Map<String, String>  getClientKey(String username, String password, Context context) {
+		Map<String, String> params = new HashMap<String, String>();
+		Map<String, String> response = new HashMap<String, String>();
+		
+		params.put("username", username);
+		params.put("password", password);
+		
+		try {
+			response = sendWithTimeWait("devices/clientkey", params,
+					"POST", context);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return response;
+		}
+		return response;
 	}
 
 	public static Map<String, String> sendWithTimeWait(String epPostFix,
@@ -84,7 +103,6 @@ public class HTTPConnectorUtils {
 		for (int i = 1; i <= MAX_ATTEMPTS; i++) {
 			Log.d(TAG, "Attempt #" + i + " to register");
 			try {
-				// response = sendToServer(epPostFix, params, option, context);
 
 				response = postData(context, epPostFix, params);
 				if (response != null && !response.equals(null)) {
@@ -230,7 +248,7 @@ public class HTTPConnectorUtils {
 					+ CommonUtilities.SERVER_PORT
 					+ CommonUtilities.SERVER_APP_ENDPOINT + url;
 		}
-		Log.v(TAG, "Posting '" + params.toString() + "' to " + endpoint);
+		Log.v(TAG, ipSaved+"Posting '" + params.toString() + "' to " + endpoint);
 		StringBuilder bodyBuilder = new StringBuilder();
 		Iterator<Entry<String, String>> iterator = params.entrySet().iterator();
 		// constructs the POST body using the parameters
@@ -244,7 +262,7 @@ public class HTTPConnectorUtils {
 		}
 
 		String body = bodyBuilder.toString();
-		Log.v(TAG, "Posting '" + body + "' to " + url);
+		Log.v(TAG, "Posting '" + body + "' to " + endpoint);
 		byte[] postData = body.getBytes();
 
 		HttpPost httppost = new HttpPost(endpoint);

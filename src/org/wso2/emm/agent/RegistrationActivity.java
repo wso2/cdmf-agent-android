@@ -86,10 +86,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		}
 
 		SharedPreferences mainPref = this.getSharedPreferences( getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
-		Editor editor = mainPref.edit();
 		regId = mainPref.getString(getResources().getString(R.string.shared_pref_regId), "");
-		editor.putString(getResources().getString(R.string.shared_pref_username), username);
-		editor.commit();
 		
 		//Enroll automatically
 		final Context context = RegistrationActivity.this;

@@ -58,20 +58,12 @@ public class RefreshTokenHandler extends Activity {
 		@Override
 		protected String doInBackground(String... params) {
 			Log.e("shan","doInBackground");
-			Log.e("refreshToken 99999999999",token.getRefreshToken());
-	    	Log.e("accessToken 9999999999999",token.getAccessToken());
 			String response = "";
 			
 			Map<String, String> request_params = new HashMap<String, String>();
 			request_params.put("grant_type", "refresh_token");
 			request_params.put("refresh_token", token.getRefreshToken());
 			
-			
-			Log.e("8",token.getRefreshToken());
-	    
-			Log.e("9", CommonUtilities.CLIENT_ID+ "----"+
-                  CommonUtilities.CLIENT_SECRET);
-			Log.e("10","doInBackground");
 			
 			
 			Map<String, String> response_params =

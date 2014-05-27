@@ -41,6 +41,7 @@ public class ProcessMessage  implements APIResultCallBack{
 	
 	private String TAG = ProcessMessage.class.getSimpleName();
 	
+	
 	Operation operation;
 	Map<String, String> params;
 	AsyncTask<Void, Void, String> sendReply;
@@ -101,6 +102,9 @@ public class ProcessMessage  implements APIResultCallBack{
     				   						CommonUtilities.POST_METHOD, requestParams,
     				   						ProcessMessage.this,
     				   						CommonUtilities.NOTIFICATION_REQUEST_CODE);
+    				if(Operation.enterpriseWipe==true){
+    					ServerUtils.clearAppData(context);
+    				}
     			} catch (Exception e) {
     				e.printStackTrace();
     			}
@@ -208,7 +212,9 @@ public class ProcessMessage  implements APIResultCallBack{
         	        			}
         	        		}else {
         	        			if(!msgData.isEmpty() && msgData!=null && !msgData.equalsIgnoreCase("null"))
-        	        				dataObj =new JSONObject(msgData);
+        	        				if(msgData.charAt(0)=='{'){
+        	        					dataObj =new JSONObject(msgData);
+        	        				}
         	        			dataReply= operation.operate(featureCode,dataObj);
         	        			//dataReply.put(resultJson);
         	        		}

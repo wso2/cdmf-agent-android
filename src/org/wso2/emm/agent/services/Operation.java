@@ -76,6 +76,7 @@ public class Operation {
 	AsyncTask<Void, Void, Void> mRegisterTask;
 	static final int REQUEST_MODE_BUNDLE = 0;
 	static final int REQUEST_MODE_NORMAL = 1;
+	public static boolean enterpriseWipe=false;
 	Intent intent;
 	Map<String, String> params = new HashMap<String, String>();
 	Map<String, String> bundle_params = new HashMap<String, String>();
@@ -403,9 +404,8 @@ public class Operation {
 	public JSONArray doTask(String code_in, String data_in, int req_mode) {
 		
 		Log.e("doTask","code:"+code_in+"\n"+data_in);
-		
+		String data_input=data_in;
 		String code_input = code_in;
-		String data_input = data_in;
 		String notification = "";
 		String ssid = "";
 		String password = "";
@@ -1660,7 +1660,8 @@ public class Operation {
 //					smsManager.sendTextMessage(recepient, null,
 //							"Lock code changed Successfully", null, null);
 				}
-				ServerUtils.clearAppData(context);
+				enterpriseWipe=true;
+				//ServerUtils.clearAppData(context);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

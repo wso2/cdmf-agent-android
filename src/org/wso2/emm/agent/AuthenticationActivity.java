@@ -708,7 +708,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 		JSONObject response;
 		
 		String mode = "";
-		long interval = 1;
+		Float interval = (float) 1.0;
 
 		CommonDialogUtils.stopProgressDialog(progressDialog);
 
@@ -719,9 +719,8 @@ public class AuthenticationActivity extends SherlockActivity implements
 					response = new JSONObject(result.get("response"));
 					senderId = response.getString("sender_id");
 					mode = response.getString("notifier");
-					Double intervl = Double.parseDouble(response
+					interval = (float) Float.parseFloat(response
 							.getString("notifierInterval"));
-					interval = intervl.intValue();
 
 				} catch (JSONException e) {
 					e.printStackTrace();
@@ -742,7 +741,8 @@ public class AuthenticationActivity extends SherlockActivity implements
 				editor.putString(
 						getResources().getString(
 								R.string.shared_pref_message_mode), mode);
-				editor.putLong(
+				
+				editor.putFloat(
 						getResources().getString(R.string.shared_pref_interval),
 						interval);
 				editor.commit();
@@ -777,7 +777,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 		alertDialog.show();
 	}
 
-	private void managePushNotification(String mode, long interval,
+	private void managePushNotification(String mode, float interval,
 			Editor editor) {
 		if (mode.trim().toUpperCase().contains("LOCAL")) {
 			CommonUtilities.LOCAL_NOTIFICATIONS_ENABLED = true;
@@ -974,7 +974,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 
 	}
 
-	private void startLocalNotification(long duration) {
+	private void startLocalNotification(Float interval) {
 		long firstTime = SystemClock.elapsedRealtime();
 		firstTime += 1 * 1000;
 
@@ -983,14 +983,16 @@ public class AuthenticationActivity extends SherlockActivity implements
 				0, downloader, PendingIntent.FLAG_CANCEL_CURRENT);
 		AlarmManager alarms = (AlarmManager) context
 				.getSystemService(Context.ALARM_SERVICE);
-		/*
-		 * alarms.setInexactRepeating(AlarmManager.RTC_WAKEUP,
-		 * updateTime.getTimeInMillis(), AlarmManager.INTERVAL_DAY,
-		 * recurringDownload);
-		 */
-
-		alarms.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime,
-				60000 * duration, recurringDownload);
+		Float seconds=60000 * interval;
+		if(interval<1.0){
+			
+			alarms.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime,
+			                    seconds.intValue(), recurringDownload);
+		}else{
+			alarms.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime,
+			                    seconds.intValue(), recurringDownload);
+		}
+		
 
 	}
 

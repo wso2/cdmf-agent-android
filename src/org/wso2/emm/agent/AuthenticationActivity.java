@@ -83,6 +83,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 	String isAgreed = "";
 	String senderId = "";
 	String eula = "";
+	String usernameForRegister = "";
 	ProgressDialog progressDialog;
 	AlertDialog.Builder alertDialog;
 	private final int TAG_BTN_AUTHENTICATE = 0;
@@ -418,6 +419,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 		if (PhoneState.isNetworkAvailable(context)) {
 			getOauthClientInfo();
 		} else {
+			CommonDialogUtils.stopProgressDialog(progressDialog);
 			CommonDialogUtils
 					.showNetworkUnavailableMessage(AuthenticationActivity.this);
 		}
@@ -425,11 +427,11 @@ public class AuthenticationActivity extends SherlockActivity implements
 	}
 	
 	private void getOauthClientInfo() {
-		AsyncTask<Void, Void, String> mLicenseTask = new AsyncTask<Void, Void, String>() {
-			Map<String, String> response=null;
+		AsyncTask<Void, Void, Map<String, String>> mLicenseTask = new AsyncTask<Void, Void, Map<String, String>>() {
 			
 			@Override
-			protected String doInBackground(Void... params) {
+			protected Map<String, String> doInBackground(Void... params) {
+				Map<String, String> response=null;
 
 				if (txtDomain.getText() != null
 						&& !txtDomain.getText().toString().trim().equals("")) {
@@ -442,7 +444,7 @@ public class AuthenticationActivity extends SherlockActivity implements
         			response=HTTPConnectorUtils.getClientKey(username.getText().toString().trim(),
         			            					password.getText().toString().trim(), context);
         		}
-				return response.get("response");
+				return response;
 			}
 
 			@Override
@@ -456,57 +458,82 @@ public class AuthenticationActivity extends SherlockActivity implements
 			};
 
 			@Override
-			protected void onPostExecute(String result) {
-				String res=response.get("response");
-				String responseStatus = response.get("status");
+			protected void onPostExecute(Map<String, String> result) {
 				JSONObject response = null;
 				String clienKey = "";
 				String clientSecret = "";
-				
-				try {
-					if(responseStatus.equalsIgnoreCase(CommonUtilities.REQUEST_SUCCESSFUL)){
-    					response = new JSONObject(res);
-    					//responseStatus = response.getString("");
-    					clienKey = response.getString("clientkey");
-    					clientSecret = response.getString("clientsecret");
-    					
-    					SharedPreferences mainPref = AuthenticationActivity.this
-    							.getSharedPreferences(
-    									getResources().getString(
-    											R.string.shared_pref_package),
-    									Context.MODE_PRIVATE);
-    					Editor editor = mainPref.edit();
-    					editor.putString(
-    							getResources().getString(
-    									R.string.shared_pref_client_id), clienKey);
-    					editor.putString(
-    							getResources().getString(
-    									R.string.shared_pref_client_secret), clienKey);
-    					editor.commit();
-    					CommonUtilities.CLIENT_ID=clienKey;
-    					CommonUtilities.CLIENT_SECRET=clientSecret;
-    					initializeIDPLib(clienKey, clientSecret);
-					}
-					else if(responseStatus.equalsIgnoreCase(CommonUtilities.UNAUTHORIZED_ACCESS) || 
-							responseStatus.equalsIgnoreCase(CommonUtilities.NOT_FOUND)){
-    					CommonDialogUtils.stopProgressDialog(progressDialog);
-    					alertDialog = CommonDialogUtils
-    							.getAlertDialogWithOneButtonAndTitle(
-    									context,
-    									getResources()
-    											.getString(
-    													R.string.title_head_authentication_error),
-    									getResources().getString(
-    											R.string.error_for_all_unknown_registration_failures),
-    									getResources().getString(R.string.button_ok),
-    									dialogClickListener);
-    					alertDialog.show();
-					}
-					
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
 
+				if (result != null) {
+					String responseStatus = result.get("status");
+					try {
+						if (responseStatus != null) {
+							if (responseStatus
+									.equalsIgnoreCase(CommonUtilities.REQUEST_SUCCESSFUL)) {
+								response = new JSONObject(result.get("response"));
+								clienKey = response.getString("clientkey");
+								clientSecret = response
+										.getString("clientsecret");
+
+								SharedPreferences mainPref = AuthenticationActivity.this
+										.getSharedPreferences(
+												getResources()
+														.getString(
+																R.string.shared_pref_package),
+												Context.MODE_PRIVATE);
+								Editor editor = mainPref.edit();
+								editor.putString(
+										getResources().getString(
+												R.string.shared_pref_client_id),
+										clienKey);
+								editor.putString(
+										getResources()
+												.getString(
+														R.string.shared_pref_client_secret),
+										clienKey);
+								editor.commit();
+								initializeIDPLib(clienKey, clientSecret);
+							} else if (responseStatus
+									.equalsIgnoreCase(CommonUtilities.UNAUTHORIZED_ACCESS)) {
+								CommonDialogUtils
+										.stopProgressDialog(progressDialog);
+								alertDialog = CommonDialogUtils
+										.getAlertDialogWithOneButtonAndTitle(
+												context,
+												getResources()
+														.getString(
+																R.string.title_head_authentication_error),
+												getResources()
+														.getString(
+																R.string.error_authentication_failed),
+												getResources().getString(
+														R.string.button_ok),
+												dialogClickListener);
+								alertDialog.show();
+							} else if (responseStatus.trim().equals(
+									CommonUtilities.INTERNAL_SERVER_ERROR)) {
+								CommonDialogUtils
+										.stopProgressDialog(progressDialog);
+								showInternalServerErrorMessage();
+
+							} else {
+								Log.e(TAG, "Status: " + responseStatus);
+								showAuthCommonErrorMessage();
+							}
+						} else {
+							Log.e(TAG,
+									"The value of status is null in getOauthClientInfo()");
+							showAuthCommonErrorMessage();
+						}
+
+					} catch (JSONException e) {
+						Log.e(TAG, e.getMessage());
+						showAuthCommonErrorMessage();
+					}
+				} else {
+					Log.e(TAG,
+							"The result is null in getOauthClientInfo()");
+					showAuthCommonErrorMessage();
+				}
 
 			}
 
@@ -528,20 +555,23 @@ public class AuthenticationActivity extends SherlockActivity implements
 				+ CommonUtilities.SERVER_PORT + CommonUtilities.OAUTH_ENDPOINT;
 		if (txtDomain.getText() != null
 				&& !txtDomain.getText().toString().trim().equals("")) {
+			usernameForRegister = username.getText().toString().trim() + "@"
+					+ txtDomain.getText().toString().trim();
 			
 			IdentityProxy.getInstance().init(
 					clientKey,
 					clientSecret,
-					username.getText().toString().trim() + "@"
-							+ txtDomain.getText().toString().trim(),
+					usernameForRegister,
 					password.getText().toString().trim(),
 					serverURL,
 					AuthenticationActivity.this,this.getApplicationContext());
 
 		} else {
+			usernameForRegister = username.getText().toString().trim();
+			
 			IdentityProxy.getInstance().init(clientKey,
 					clientSecret,
-					username.getText().toString().trim(),
+					usernameForRegister,
 					password.getText().toString().trim(), serverURL,
 					AuthenticationActivity.this,this.getApplicationContext());
 		}
@@ -767,6 +797,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 	}
 
 	private void showEnrollementFailedErrorMessage() {
+		CommonDialogUtils.stopProgressDialog(progressDialog);
 		alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(
 				context,
 				getResources()
@@ -859,6 +890,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 							AuthenticationActivity.this,
 							CommonUtilities.LICENSE_REQUEST_CODE);
 				} else {
+					CommonDialogUtils.stopProgressDialog(progressDialog);
 					CommonDialogUtils
 							.showNetworkUnavailableMessage(AuthenticationActivity.this);
 				}
@@ -896,6 +928,13 @@ public class AuthenticationActivity extends SherlockActivity implements
 	public void onAPIAccessRecive(String status) {
 		if (status != null) {
 			if (status.trim().equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
+				
+				SharedPreferences mainPref = this.getSharedPreferences( getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
+				Editor editor = mainPref.edit();
+				editor.putString(getResources().getString(R.string.shared_pref_username), usernameForRegister);
+				editor.commit();
+				
+				
 				Map<String, String> requestParams = new HashMap<String, String>();
 				requestParams.put("domain", txtDomain.getText().toString()
 						.trim());
@@ -909,6 +948,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 							AuthenticationActivity.this,
 							CommonUtilities.SENDER_ID_REQUEST_CODE);
 				} else {
+					CommonDialogUtils.stopProgressDialog(progressDialog);
 					CommonDialogUtils
 							.showNetworkUnavailableMessage(AuthenticationActivity.this);
 				}
@@ -929,24 +969,22 @@ public class AuthenticationActivity extends SherlockActivity implements
 				alertDialog.show();
 			} else if (status.trim().equals(
 					CommonUtilities.INTERNAL_SERVER_ERROR)) {
-				CommonDialogUtils.stopProgressDialog(progressDialog);
 				showInternalServerErrorMessage();
 
 			} else {
-				Log.e(TAG, "Status: " + status);
-				CommonDialogUtils.stopProgressDialog(progressDialog);
+				Log.e(TAG, "Status: " + status);			
 				showAuthCommonErrorMessage();
 			}
 
 		} else {
 			Log.e(TAG, "The value of status is null in onAPIAccessRecive()");
-			CommonDialogUtils.stopProgressDialog(progressDialog);
 			showAuthCommonErrorMessage();
 		}
 
 	}
 
 	private void showInternalServerErrorMessage() {
+		CommonDialogUtils.stopProgressDialog(progressDialog);
 		alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(
 				context,
 				getResources().getString(
@@ -961,6 +999,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 	 * 
 	 */
 	private void showAuthCommonErrorMessage() {
+		CommonDialogUtils.stopProgressDialog(progressDialog);
 		alertDialog = CommonDialogUtils
 				.getAlertDialogWithOneButtonAndTitle(
 						context,

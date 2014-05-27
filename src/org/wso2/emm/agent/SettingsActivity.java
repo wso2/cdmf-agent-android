@@ -204,6 +204,7 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 					SettingsActivity.this,
 					CommonUtilities.IS_REGISTERED_REQUEST_CODE);
 		} else {
+			CommonDialogUtils.stopProgressDialog(progressDialog);
 			CommonDialogUtils
 					.showNetworkUnavailableMessage(SettingsActivity.this);
 		}

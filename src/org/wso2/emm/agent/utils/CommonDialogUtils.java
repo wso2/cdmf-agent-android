@@ -123,8 +123,8 @@ public abstract class CommonDialogUtils {
 	 */
 	public static ProgressDialog showPrgressDialog (Context context, String title, String message, OnCancelListener cancelListener) {
 		ProgressDialog progressDialog = ProgressDialog.show(context,
-				context.getResources().getString(R.string.dialog_license_agreement),
-				context.getResources().getString(R.string.dialog_please_wait), true);
+				title,
+				message, true);
 		progressDialog.setCancelable(true);
 		progressDialog.setOnCancelListener(cancelListener);
 		

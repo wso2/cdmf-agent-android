@@ -462,6 +462,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 				JSONObject response = null;
 				String clienKey = "";
 				String clientSecret = "";
+
 				if (result != null) {
 					String responseStatus = result.get("status");
 					try {
@@ -905,11 +906,21 @@ public class AuthenticationActivity extends SherlockActivity implements
 
 	private void loadPincodeAcitvity() {
 		Intent intent = new Intent(AuthenticationActivity.this,
-				PinCodeActivity.class);
-		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		intent.putExtra(getResources()
-				.getString(R.string.intent_extra_username), username.getText()
-				.toString().trim());
+		           				PinCodeActivity.class);
+		           		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		if (txtDomain.getText() != null
+				&& !txtDomain.getText().toString().trim().equals("")) {
+			intent.putExtra(getResources()
+							.getString(R.string.intent_extra_username), username.getText().toString().trim() + "@"
+									+ txtDomain.getText().toString().trim());
+
+		} else {
+			intent.putExtra(getResources()
+							.getString(R.string.intent_extra_username), username.getText()
+							.toString().trim());
+		}
+		
+		
 		startActivity(intent);
 	}
 

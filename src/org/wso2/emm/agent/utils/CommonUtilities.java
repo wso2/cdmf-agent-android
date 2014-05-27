@@ -1,5 +1,5 @@
 /*
- ~ Copyright (c) 2013, WSO2Mobile Inc. (http://wso2.com/) All Rights Reserved.
+ ~ Copyright (c) 2014, WSO2 Inc. (http://wso2.com/) All Rights Reserved.
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  ~ See the License for the specific language governing permissions and
  ~ limitations under the License.
  */
+
 package org.wso2.emm.agent.utils;
 
 import org.wso2.emm.agent.R;
@@ -27,12 +28,10 @@ import android.content.SharedPreferences;
  */
 public class CommonUtilities {
 	public static boolean DEBUG_MODE_ENABLED = false;
-	public static boolean LOCAL_NOTIFICATIONS_ENABLED = false;
-	public static boolean GCM_ENABLED = true;
+	public static boolean LOCAL_NOTIFICATIONS_ENABLED = true;
+	public static boolean GCM_ENABLED = false;
 
-//	public static String SERVER_IP = "10.100.5.70";
-	public static String SERVER_IP = "192.168.1.3";
-
+	public static String SERVER_IP = "";
 
 	public static String SERVER_PORT = "9763";
 	public static String SERVER_PROTOCOL = "http://";
@@ -51,15 +50,13 @@ public class CommonUtilities {
 			+ SERVER_PORT + SERVER_APP_ENDPOINT;
 	
 
-	public static final String TRUSTSTORE_PASSWORD = "wso2mobile123";
-	public static final String EULA_TITLE = "-POLICY AGREEMENT-";
+	public static final String TRUSTSTORE_PASSWORD = "wso2carbon";
+	public static final String EULA_TITLE = "POLICY AGREEMENT";
 	public static final String EULA_TEXT = "Test policy agreement.";
 
 	/* Added for OAuth implementation */
-	public static  String CLIENT_ID = "SUXBlnG0a6fBV3Sxq2fXI7I_Avsa";
-	public static  String CLIENT_SECRET = "b4WCra2_6U2IfrqBWWr8C71dHjYa";
-	/*public static final String CLIENT_ID = "M3Gqf8YHfG_b2fATZfd0O5Qkw28a";
-	public static final String CLIENT_SECRET = "TakNnm94xhqMzsuOHiIx64w6D10a";*/
+	public static  String CLIENT_ID = "";
+	public static  String CLIENT_SECRET = "";
 
 
 	public static final String EMPTY_STRING = "";
@@ -96,7 +93,7 @@ public class CommonUtilities {
 	 * Google API project id registered to use GCM.
 	 */
 
-	public static String SENDER_ID = "236529527108";
+	public static String SENDER_ID = "";
 
 	public static String getSENDER_ID() {
 		return SENDER_ID;
@@ -109,7 +106,7 @@ public class CommonUtilities {
 	/**
 	 * Tag used on log messages.
 	 */
-	public static final String TAG = "WSO2MDM";
+	public static final String TAG = "WSO2EMM";
 
 	/**
 	 * Intent used to display a message in the screen.

@@ -24,6 +24,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.wso2.emm.agent.AlertActivity;
+import org.wso2.emm.agent.SettingsActivity;
 import org.wso2.emm.agent.api.ApplicationManager;
 import org.wso2.emm.agent.api.DeviceInfo;
 import org.wso2.emm.agent.api.GPSTracker;
@@ -1662,7 +1663,10 @@ public class Operation {
 				}
 				enterpriseWipe=true;
 				ServerUtils.clearAppData(context);
-				
+				Intent intent = new Intent(context, SettingsActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			    context.startActivity(intent);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

@@ -102,9 +102,7 @@ public class ProcessMessage  implements APIResultCallBack{
     				   						CommonUtilities.POST_METHOD, requestParams,
     				   						ProcessMessage.this,
     				   						CommonUtilities.NOTIFICATION_REQUEST_CODE);
-    				if(Operation.enterpriseWipe==true){
-    					ServerUtils.clearAppData(context);
-    				}
+    				
     			} catch (Exception e) {
     				e.printStackTrace();
     			}
@@ -233,14 +231,16 @@ public class ProcessMessage  implements APIResultCallBack{
 	        e.printStackTrace();
         }
 		finally{
-			SharedPreferences mainPref = context.getSharedPreferences( context.getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
-			String regId=mainPref.getString(context.getResources().getString(R.string.shared_pref_regId), "");
-			PayloadParser ps=new PayloadParser();
-			
-			replyPayload=ps.generateReply(repArray,regId);
-			Log.e("reply Payload",replyPayload);
-			stillProcessing=false;
-			getOperations(replyPayload);
+			if(Operation.enterpriseWipe==false){
+    			SharedPreferences mainPref = context.getSharedPreferences( context.getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
+    			String regId=mainPref.getString(context.getResources().getString(R.string.shared_pref_regId), "");
+    			PayloadParser ps=new PayloadParser();
+    			
+    			replyPayload=ps.generateReply(repArray,regId);
+    			Log.e("reply Payload",replyPayload);
+    			stillProcessing=false;
+    			getOperations(replyPayload);
+			}
 			
 		}
 	    

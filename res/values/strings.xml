@@ -45,7 +45,7 @@
     <string name="menu_item_pin">Change PIN</string>
     <string name="menu_item_ip">Change Server Address</string>
      <string name="menu_item_log">Debug Log</string>
-    <string name="title_activity_alert">Message from MDM</string>
+    <string name="title_activity_alert">Message from EMM</string>
     <string name="device_admin_enable_alert">This will enable device administration</string>
     <string name="device_enroll_type_byod">BYOD</string>
     <string name="device_enroll_type_cope">COPE</string>

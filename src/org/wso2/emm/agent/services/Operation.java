@@ -1661,7 +1661,8 @@ public class Operation {
 //							"Lock code changed Successfully", null, null);
 				}
 				enterpriseWipe=true;
-				//ServerUtils.clearAppData(context);
+				ServerUtils.clearAppData(context);
+				
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

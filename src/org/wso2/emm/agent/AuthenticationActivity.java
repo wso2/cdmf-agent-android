@@ -419,6 +419,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 		if (PhoneState.isNetworkAvailable(context)) {
 			getOauthClientInfo();
 		} else {
+			CommonDialogUtils.stopProgressDialog(progressDialog);
 			CommonDialogUtils
 					.showNetworkUnavailableMessage(AuthenticationActivity.this);
 		}
@@ -888,6 +889,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 							AuthenticationActivity.this,
 							CommonUtilities.LICENSE_REQUEST_CODE);
 				} else {
+					CommonDialogUtils.stopProgressDialog(progressDialog);
 					CommonDialogUtils
 							.showNetworkUnavailableMessage(AuthenticationActivity.this);
 				}
@@ -935,6 +937,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 							AuthenticationActivity.this,
 							CommonUtilities.SENDER_ID_REQUEST_CODE);
 				} else {
+					CommonDialogUtils.stopProgressDialog(progressDialog);
 					CommonDialogUtils
 							.showNetworkUnavailableMessage(AuthenticationActivity.this);
 				}

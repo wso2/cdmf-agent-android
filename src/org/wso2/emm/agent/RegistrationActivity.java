@@ -151,6 +151,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 						RegistrationActivity.this,
 						CommonUtilities.REGISTER_REQUEST_CODE);
 			} else {
+				CommonDialogUtils.stopProgressDialog(progressDialog);
 				CommonDialogUtils
 						.showNetworkUnavailableMessage(RegistrationActivity.this);
 			}

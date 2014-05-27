@@ -247,6 +247,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 					AlreadyRegisteredActivity.this,
 					CommonUtilities.UNREGISTER_REQUEST_CODE);
 		} else {
+			CommonDialogUtils.stopProgressDialog(progressDialog);
 			CommonDialogUtils
 					.showNetworkUnavailableMessage(AlreadyRegisteredActivity.this);
 		}

@@ -1022,7 +1022,7 @@ public class AuthenticationActivity extends SherlockActivity implements
 				0, downloader, PendingIntent.FLAG_CANCEL_CURRENT);
 		AlarmManager alarms = (AlarmManager) context
 				.getSystemService(Context.ALARM_SERVICE);
-		Float seconds=60000 * interval;
+		Float seconds=interval;
 		if(interval<1.0){
 			
 			alarms.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime,

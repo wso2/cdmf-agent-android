@@ -103,10 +103,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		}
 		
 		
-Log.e("freshRegFlag","freshRegFlag-"+freshRegFlag);
-		
-		
-		
 		String regIden=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_regId));
 		if(!regIden.equals("")){
 			regId=regIden;

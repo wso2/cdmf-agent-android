@@ -45,7 +45,7 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver{
 			 * updateTime.getTimeInMillis(), AlarmManager.INTERVAL_DAY,
 			 * recurringDownload);
 			 */
-			Float seconds=60000 * interval;
+			Float seconds=interval;
 			if(interval<1.0){
 				
 				alarms.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime,

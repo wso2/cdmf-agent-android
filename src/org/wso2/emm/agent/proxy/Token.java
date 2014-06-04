@@ -1,8 +1,12 @@
 package org.wso2.emm.agent.proxy;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import android.annotation.SuppressLint;
+import android.util.Log;
 
 /**
  * Persists refresh token to obtain new access token and id token to retrieve login user claims
@@ -12,6 +16,7 @@ public final class Token {
     private String idToken = null;
     private String accessToken = null;
     private Date receivedDate = null;
+    private boolean expired =false;
 
     public Date getDate() {
         return receivedDate;
@@ -61,4 +66,33 @@ public final class Token {
     public void setRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
     }
+
+
+	public void setExpired(boolean expired) {
+	    this.expired = expired;
+    }
+	
+	@SuppressLint("SimpleDateFormat")
+    public static boolean isValid(Date expirationDate) {
+		DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+		Date currentDate = new Date();
+		String strDate = dateFormat.format(currentDate);
+		SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+		try {
+			currentDate = format.parse(strDate);
+		} catch (ParseException e1) {
+			e1.printStackTrace();
+		}
+		Log.e("expire Date", "" + expirationDate);
+		Log.e("currentDate", "" + currentDate);
+		boolean expired = currentDate.after(expirationDate);
+		boolean equalDates = currentDate.equals(expirationDate);
+		Log.e("expired", "" + expired);
+		Log.e("equalDates", "" + equalDates);
+		if (expired == true || equalDates == true) {
+			return true;
+		}
+
+		return false;
+	}
 }

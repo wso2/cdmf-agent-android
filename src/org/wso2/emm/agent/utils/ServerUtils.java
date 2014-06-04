@@ -86,6 +86,13 @@ public class ServerUtils {
 			apiUtilities.setRequestParams(requestParams);
 		}
 		APIController apiController = new APIController();
+		String clientKey=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_client_id));
+		String clientSecret=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_client_secret));
+		if(!clientKey.equals("") && !clientSecret.equals("")){
+			CommonUtilities.CLIENT_ID=clientKey;
+			CommonUtilities.CLIENT_SECRET=clientSecret;
+			apiController.setClientDetails(clientKey, clientSecret);
+		}
 		apiController.invokeAPI(apiUtilities, apiResultCallBack, requestCode, context.getApplicationContext());
 	}
 

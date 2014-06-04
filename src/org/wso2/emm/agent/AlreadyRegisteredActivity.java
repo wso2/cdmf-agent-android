@@ -103,6 +103,10 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		}
 		
 		
+Log.e("freshRegFlag","freshRegFlag-"+freshRegFlag);
+		
+		
+		
 		String regIden=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_regId));
 		if(!regIden.equals("")){
 			regId=regIden;
@@ -110,6 +114,19 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 
 		if (freshRegFlag) {
 			try {
+				SharedPreferences mainPref = AlreadyRegisteredActivity.this
+						.getSharedPreferences(
+								getResources().getString(
+										R.string.shared_pref_package),
+								Context.MODE_PRIVATE);
+				Editor editor = mainPref.edit();
+				Log.e("freshRegFlag","1");
+				editor.putString(
+						getResources().getString(
+								R.string.shared_pref_registered), "1");
+				editor.commit();
+				
+				
 				if (!devicePolicyManager.isAdminActive(demoDeviceAdmin)) {
 					Intent intent1 = new Intent(
 							DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
@@ -132,24 +149,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		btnUnregister = (Button) findViewById(R.id.btnUnreg);
 		btnUnregister.setTag(TAG_BTN_UNREGISTER);
 		btnUnregister.setOnClickListener(onClickListener_BUTTON_CLICKED);
-
-		try {
-			if (freshRegFlag) {
-				SharedPreferences mainPref = AlreadyRegisteredActivity.this
-						.getSharedPreferences(
-								getResources().getString(
-										R.string.shared_pref_package),
-								Context.MODE_PRIVATE);
-				Editor editor = mainPref.edit();
-				editor.putString(
-						getResources().getString(
-								R.string.shared_pref_registered), "1");
-				editor.commit();
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
 	}
 	

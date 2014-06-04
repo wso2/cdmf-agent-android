@@ -79,35 +79,37 @@ public class ProcessMessage  implements APIResultCallBack{
 	}
 	
 	public void getOperations(String replyData) {
-		Log.e("stillProcessing",stillProcessing+" ");
-		if(stillProcessing==false){
-    		String isActive = CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_device_active));
-    		if (isActive.equals("1")) {
-    			try {
-    				SharedPreferences mainPref =
-    						context.getSharedPreferences(context.getResources()
-    				                                                     .getString(R.string.shared_pref_package),
-    				                                                    Context.MODE_PRIVATE);
-    				String regId =
-    				               mainPref.getString(context.getResources()
-    				                                   .getString(R.string.shared_pref_regId), "");
-    				Map<String, String> requestParams = new HashMap<String, String>();
-    				if (replyData != null) {
-    					requestParams.put("data", replyPayload);
-    				}
-    				requestParams.put("regId", regId);
+		String isRegistered=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_registered));
+		if(isRegistered.equals("1")){
+    		if(stillProcessing==false){
+        		String isActive = CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_device_active));
+        		if (isActive.equals("1")) {
+        			try {
+        				SharedPreferences mainPref =
+        						context.getSharedPreferences(context.getResources()
+        				                                                     .getString(R.string.shared_pref_package),
+        				                                                    Context.MODE_PRIVATE);
+        				String regId =
+        				               mainPref.getString(context.getResources()
+        				                                   .getString(R.string.shared_pref_regId), "");
+        				Map<String, String> requestParams = new HashMap<String, String>();
+        				if (replyData != null) {
+        					requestParams.put("data", replyPayload);
+        				}
+        				requestParams.put("regId", regId);
+        
+        				ServerUtils.callSecuredAPI(context,
+        				   						CommonUtilities.NOTIFICATION_ENDPOINT,
+        				   						CommonUtilities.POST_METHOD, requestParams,
+        				   						ProcessMessage.this,
+        				   						CommonUtilities.NOTIFICATION_REQUEST_CODE);
+        				
+        			} catch (Exception e) {
+        				e.printStackTrace();
+        			}
+        		}
     
-    				ServerUtils.callSecuredAPI(context,
-    				   						CommonUtilities.NOTIFICATION_ENDPOINT,
-    				   						CommonUtilities.POST_METHOD, requestParams,
-    				   						ProcessMessage.this,
-    				   						CommonUtilities.NOTIFICATION_REQUEST_CODE);
-    				
-    			} catch (Exception e) {
-    				e.printStackTrace();
-    			}
     		}
-
 		}
 		
 	}

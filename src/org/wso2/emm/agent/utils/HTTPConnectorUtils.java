@@ -282,13 +282,13 @@ public class HTTPConnectorUtils {
 					String.valueOf(response.getStatusLine().getStatusCode()));
 			return response_params;
 		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
+			Map<String, String> reply = new HashMap<String, String>();
+			reply.put("status", CommonUtilities.INTERNAL_SERVER_ERROR);
+			return reply;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
+			Map<String, String> reply = new HashMap<String, String>();
+			reply.put("status", CommonUtilities.INTERNAL_SERVER_ERROR);
+			return reply;
 		}
 	}
 

@@ -1,5 +1,6 @@
 package org.wso2.emm.agent.proxy;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -7,14 +8,13 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpStatus;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,7 +23,6 @@ import java.util.Map;
  */
 public class AccessTokenHandler extends Activity {
     private static final String TAG = "AccessTokenHandler";
-    private CallBack callBack;
     private String username = null;
     private String password = null;
     private String clientID = null;
@@ -31,7 +30,6 @@ public class AccessTokenHandler extends Activity {
     private String tokenEndPoint = null;
 
     public AccessTokenHandler(String clientID, String clientSecret, String username, String password, String tokenEndPoint, CallBack callBack) {
-        this.callBack = callBack;
         this.username = username;
         this.password = password;
         this.clientID = clientID;
@@ -76,39 +74,52 @@ public class AccessTokenHandler extends Activity {
             return response;
         }
 
+        @SuppressLint("SimpleDateFormat")
         @Override
         protected void onPostExecute(String result) {
             String refreshToken = null;
             String accessToken = null;
+            int timeToExpireSecond=3000;
             try {
                 IdentityProxy identityProxy = IdentityProxy.getInstance();
 
                 if (responseCode != null && responseCode.equals("200")) {
                 	JSONObject response = new JSONObject(result);
-                	  
-                	refreshToken = response.getString("refresh_token");
-                    accessToken = response.getString("access_token");
+                	Log.e("onPostExecute acc",response.toString());
                     
-                    Token token = new Token();   	
-                    token.setDate();
-                    token.setRefreshToken(refreshToken);
-                    token.setAccessToken(accessToken);
+                    try{
+                    	accessToken = response.getString("access_token");
+                    	refreshToken = response.getString("refresh_token");
+                    	timeToExpireSecond = Integer.parseInt(response.getString("expires_in"));
+                    	Token token = new Token();   	
+                        token.setDate();
+                        token.setRefreshToken(refreshToken);
+                        token.setAccessToken(accessToken);
+                        token.setExpired(false);
+                        
+                        SharedPreferences mainPref = IdentityProxy.getInstance().getContext().getSharedPreferences("com.mdm",Context.MODE_PRIVATE);
+                        Editor editor = mainPref.edit();
+                        editor.putString("access_token", accessToken);
+                        editor.putString("refresh_token",refreshToken);
+                        DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+                        Date date = new Date();
+                        long expiresIN=date.getTime()+(timeToExpireSecond*1000);
+                        Date expireDate=new Date(expiresIN);                  
+                        String strDate = dateFormat.format(expireDate);
+                        token.setDate(strDate);
+                        editor.putString("date",strDate);
+                        editor.commit();
+                       
+                        Log.d(TAG, refreshToken);
+                        Log.d(TAG, accessToken);
+                        
+                        
+                        identityProxy.receiveAccessToken(responseCode, "success", token);
+                    } catch (JSONException e) {//admin user
+                    	
+                    }
                     
-                    SharedPreferences mainPref = IdentityProxy.getInstance().getContext().getSharedPreferences("com.mdm",Context.MODE_PRIVATE);
-                    Editor editor = mainPref.edit();
-                    editor.putString("refresh_token",refreshToken);
-                    editor.putString("access_token", accessToken);
-                    DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-                    String strDate = dateFormat.format(token.getDate());
-                    editor.putString("date",strDate);
-                    editor.commit();
-                   
-                    Log.d(TAG, refreshToken);
-                    Log.d(TAG, accessToken);
-                    Log.d(TAG, "Storing "+strDate);
                     
-                    
-                    identityProxy.receiveAccessToken(responseCode, "success", token);
 
                 } else if (responseCode != null) {
                 	if("500".equals(responseCode)){

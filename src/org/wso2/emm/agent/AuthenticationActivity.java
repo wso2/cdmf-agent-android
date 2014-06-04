@@ -489,8 +489,11 @@ public class AuthenticationActivity extends SherlockActivity implements
 										getResources()
 												.getString(
 														R.string.shared_pref_client_secret),
-										clienKey);
+														clientSecret);
 								editor.commit();
+								
+								CommonUtilities.CLIENT_ID=clienKey;
+								CommonUtilities.CLIENT_SECRET=clientSecret;
 								initializeIDPLib(clienKey, clientSecret);
 							} else if (responseStatus
 									.equalsIgnoreCase(CommonUtilities.UNAUTHORIZED_ACCESS)) {

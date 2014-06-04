@@ -1,50 +1,35 @@
 package org.wso2.emm.agent.proxy;
 
-import android.app.Activity;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.util.Log;
-
+import org.apache.commons.codec.binary.Base64;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.wso2.emm.agent.utils.CommonUtilities;
-
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
  * Getting new access token and refresh token after access token expiration
  */
-public class RefreshTokenHandler extends Activity {
-    private Context context;
-    private Token tokens = null;
+public class RefreshTokenHandler {
     private static final String TAG = "RefreshTokenHandler";
-    private String clientID = null;
-    private String clientSecret = null;
-    private Token token;
+    private static Token token;
 
-    public RefreshTokenHandler(Context context, String clientID, String clientSecret, Token token) {
-        this.context = context;
-        this.clientID = clientID;
-        this.clientSecret = clientSecret;
-        this.token = token;
-        
-        
-        
-        Log.e("refreshToken 99999999999",token.getRefreshToken());
-    	Log.e("accessToken 9999999999999",token.getAccessToken());
-        
-        
+    public RefreshTokenHandler(Token token) {
+        RefreshTokenHandler.token = token;
     }
 
     public void obtainNewAccessToken() throws InterruptedException, ExecutionException, TimeoutException {
-        new NetworkCallTask().execute().get(1000, TimeUnit.MILLISECONDS);
+        new NetworkCallTask().execute();
     }
 
     private class NetworkCallTask extends AsyncTask<String, Void, String> {
@@ -57,25 +42,27 @@ public class RefreshTokenHandler extends Activity {
 
 		@Override
 		protected String doInBackground(String... params) {
-			Log.e("shan","doInBackground");
 			String response = "";
 			
 			Map<String, String> request_params = new HashMap<String, String>();
 			request_params.put("grant_type", "refresh_token");
 			request_params.put("refresh_token", token.getRefreshToken());
+			request_params.put("scope", "PRODUCTION");
+			APIUtilities apiUtilities = new APIUtilities();
+            apiUtilities.setEndPoint(IdentityProxy.getInstance()
+                                     .getAccessTokenURL());
+            apiUtilities.setHttpMethod("POST");
+            apiUtilities.setRequestParams(request_params);
 			
-			
-			
-			Map<String, String> response_params =
-			                                      ServerUtilities.postData(context,
-			                                                               IdentityProxy.getInstance()
-			                                                                            .getAccessTokenURL(),
-			                                                               request_params,
-			                                                               CommonUtilities.CLIENT_ID,
-			                                                               CommonUtilities.CLIENT_SECRET);
-			
-			
+			Map<String, String> headers = new HashMap<String, String>();
+			Log.e("proxy",IdentityProxy.clientID + ":" + IdentityProxy.clientSecret);
+            String authorizationString = "Basic " + new String(Base64.encodeBase64((IdentityProxy.clientID + ":" + IdentityProxy.clientSecret).getBytes()));
+            headers.put("Authorization", authorizationString);
+            headers.put("Content-Type", "application/x-www-form-urlencoded");
+            
+            Map<String, String> response_params = ServerUtilitiesTemp.postData(apiUtilities,headers);
 			Log.e("11",token.getAccessToken());
+			Log.e("11",authorizationString);
 			
 			response = response_params.get("response");
 			responseCode = response_params.get("status");
@@ -83,16 +70,21 @@ public class RefreshTokenHandler extends Activity {
 			return response;
 		}
 
+        @SuppressLint("SimpleDateFormat")
         @Override
         protected void onPostExecute(String result) {
+        	
             String refreshToken = null;
             String accessToken = null;
+            int timeToExpireSecond=3000;
             try {
                 JSONObject response = new JSONObject(result);
+                Log.e("refresh Token Post",result.toString());
                 IdentityProxy identityProxy = IdentityProxy.getInstance();
                 if (responseCode != null && responseCode.equals("200")) {
                     refreshToken = response.getString("refresh_token");
                     accessToken = response.getString("access_token");
+                    timeToExpireSecond = Integer.parseInt(response.getString("expires_in"));
                     
                     token.setRefreshToken(refreshToken);
                     token.setAccessToken(accessToken);
@@ -100,10 +92,18 @@ public class RefreshTokenHandler extends Activity {
                     SharedPreferences mainPref = IdentityProxy.getInstance().getContext().getSharedPreferences("com.mdm",Context.MODE_PRIVATE);
                     Editor editor = mainPref.edit();
                     editor.putString("refresh_token",refreshToken);
+                    editor.putString("access_token",accessToken);
+                    
+                    
+                    DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");                    
+                    Date date = new Date();
+                    long expiresIN=date.getTime()+(timeToExpireSecond*1000);
+                    Date expireDate=new Date(expiresIN);                                      
+                    String strDate = dateFormat.format(expireDate);
+                    token.setDate(strDate);                
+                    editor.putString("date",strDate);               
                     editor.commit();
                     
-                    Log.d(TAG, refreshToken);
-                    Log.d(TAG, accessToken);
                     identityProxy.receiveNewAccessToken(responseCode, "success", token);
                     
                 } else if (responseCode != null) {

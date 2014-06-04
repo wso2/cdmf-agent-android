@@ -25,6 +25,8 @@ import org.wso2.emm.agent.api.PhoneState;
 import org.wso2.emm.agent.proxy.APIResultCallBack;
 import org.wso2.emm.agent.proxy.IdentityProxy;
 import org.wso2.emm.agent.proxy.ServerUtilitiesTemp;
+import org.wso2.emm.agent.proxy.Token;
+import org.wso2.emm.agent.proxy.TokenCallBack;
 import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.ServerUtils;
@@ -48,7 +50,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class SettingsActivity extends Activity implements APIResultCallBack {
+public class SettingsActivity extends Activity implements APIResultCallBack,TokenCallBack {
 	
 	private String TAG = SettingsActivity.class.getSimpleName();
 	
@@ -123,21 +125,7 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 		
 		try {
 			if (FROM_ACTIVITY == null) {
-				// Check the session.
-				if (IdentityProxy.getInstance().getToken(this.getApplicationContext()) != null) {
-					if (regId != null && !regId.equals("")) {
-						// Check registration.
-						isRegistered();
-
-						progressDialog = ProgressDialog.show(
-								SettingsActivity.this,
-								getResources().getString(
-										R.string.dialog_sender_id),
-								getResources().getString(
-										R.string.dialog_please_wait), true);
-					}
-
-				}
+				IdentityProxy.getInstance().getToken(this.getApplicationContext(),SettingsActivity.this,CommonUtilities.CLIENT_ID,CommonUtilities.CLIENT_SECRET);
 			}
 
 		} catch (TimeoutException e) {
@@ -370,6 +358,22 @@ public class SettingsActivity extends Activity implements APIResultCallBack {
 							getResources().getString(R.string.button_ok),
 							null);
 			alertDialog.show();
+		}
+	}
+
+	@Override
+	public void onReceiveTokenResult(Token token, String status) {
+		if (token != null) {
+			if (regId != null && !regId.equals("")) {
+				// Check registration.
+				isRegistered();
+
+				progressDialog =
+				                 ProgressDialog.show(SettingsActivity.this,
+				                                     getResources().getString(R.string.dialog_sender_id),
+				                                     getResources().getString(R.string.dialog_please_wait),
+				                                     true);
+			}
 		}
 	}
 

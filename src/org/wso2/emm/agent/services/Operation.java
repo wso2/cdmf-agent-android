@@ -453,7 +453,9 @@ public class Operation {
 				obj.put("battery", battery_obj);
 				obj.put("internal_memory", inmemory_obj);
 				obj.put("external_memory", exmemory_obj);
-				obj.put("location_obj", location_obj);
+				if(latitude!=0 && longitude!=0){
+					obj.put("location_obj", location_obj);
+				}
 				obj.put("operator", deviceInfo.getNetworkOperatorName());
 
 				Map<String, String> params = new HashMap<String, String>();
@@ -1775,8 +1777,8 @@ public class Operation {
 				type = (String) jobj.get("type");
 			}
 			
-			if (!jobj.isNull("os")) {
-				os = (String) jobj.get("os");
+			if (!jobj.isNull("platform_id")) {
+				os = (String) jobj.get("platform_id");
 			}
 			
 			Log.v("App URL : ", appUrl);
@@ -1794,6 +1796,7 @@ public class Operation {
 			if (type.equalsIgnoreCase("Enterprise")) {
 				if(os != null){
 					if(os.equalsIgnoreCase("android")){
+						Log.e("Enterprise","android");
 						appList.installApp(appUrl);
 					}
 				}else{

@@ -7,20 +7,12 @@
         android:icon="@drawable/abs__ic_menu_moreoverflow_holo_dark">
         <menu>
             <item
-                android:id="@+id/operation_setting"
-                android:title="@string/menu_item_operations">
-            </item>
-            <item
                 android:id="@+id/info_setting"
                 android:title="@string/menu_item_phone_info">
             </item>
             <item
                 android:id="@+id/pin_setting"
                 android:title="@string/menu_item_pin">
-            </item>
-            <item
-                android:id="@+id/ip_setting"
-                android:title="@string/menu_item_ip">
             </item>
         </menu>
     </item>

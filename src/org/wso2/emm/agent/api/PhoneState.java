@@ -25,19 +25,17 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.simple.JSONArray;
 
-
 import android.app.ActivityManager;
 import android.app.ActivityManager.MemoryInfo;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.TrafficStats;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.util.Log;
-import android.view.View;
 
 public class PhoneState {
 	Context context = null;
@@ -106,7 +104,7 @@ public class PhoneState {
 	*Returns the device battery information
 	*/
 	public float getBatteryLevel(){
-		Intent batteryIntent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+		Intent batteryIntent = context.getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 	    int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 	    int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 
@@ -241,4 +239,14 @@ public class PhoneState {
 	        amount = bd.doubleValue();
 	        return amount;
 	 }
+	 
+	public static boolean isNetworkAvailable(Context context) {
+		ConnectivityManager mConnMan = (ConnectivityManager) context
+				.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo info = mConnMan.getActiveNetworkInfo();
+		if (info == null) {
+			return false;
+		}
+		return info.isConnected();
+	}
 }

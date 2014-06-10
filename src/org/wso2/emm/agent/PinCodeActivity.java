@@ -16,9 +16,6 @@
 package org.wso2.emm.agent;
 
 
-import org.wso2.emm.agent.R;
-
-import android.os.Bundle;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -27,6 +24,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -43,7 +41,7 @@ public class PinCodeActivity extends Activity {
 	private EditText txtPin;
 	private EditText txtOldPin;
 	private Button btnPin;
-	private String EMAIL = null;
+	private String username = null;
 	private String REG_ID = "";
 	private final int TAG_BTN_SET_PIN = 0;
 	private String FROM_ACTIVITY = null;
@@ -57,8 +55,8 @@ public class PinCodeActivity extends Activity {
 
 		Bundle extras = getIntent().getExtras();
 		if (extras != null) {
-			if (extras.containsKey(getResources().getString(R.string.intent_extra_email))) {
-				EMAIL = extras.getString(getResources().getString(R.string.intent_extra_email));
+			if (extras.containsKey(getResources().getString(R.string.intent_extra_username))) {
+				username = extras.getString(getResources().getString(R.string.intent_extra_username));
 			}
 
 			if (extras.containsKey(getResources().getString(R.string.intent_extra_regid))) {
@@ -74,6 +72,7 @@ public class PinCodeActivity extends Activity {
 			}
 		}
 		
+		//initializeComponents();
 		lblPin = (TextView) findViewById(R.id.lblPin);
 		txtPin = (EditText) findViewById(R.id.txtPinCode);
 		txtOldPin = (EditText) findViewById(R.id.txtOldPinCode);
@@ -88,7 +87,7 @@ public class PinCodeActivity extends Activity {
 			lblPin.setVisibility(View.GONE);
 			txtOldPin.setVisibility(View.VISIBLE);
 			txtPin.setHint(getResources().getString(R.string.hint_new_pin));
-			txtPin.setEnabled(false);
+			txtPin.setEnabled(true);
 			
 			txtPin.addTextChangedListener(new TextWatcher() {
 				@Override
@@ -104,7 +103,6 @@ public class PinCodeActivity extends Activity {
 
 				@Override
 				public void afterTextChanged(Editable s) {
-					// TODO Auto-generated method stub
 					enableSubmitIfReady();
 				}
 			});
@@ -123,7 +121,6 @@ public class PinCodeActivity extends Activity {
 
 				@Override
 				public void afterTextChanged(Editable s) {
-					// TODO Auto-generated method stub
 					enableSubmitIfReady();
 				}
 			});
@@ -142,19 +139,32 @@ public class PinCodeActivity extends Activity {
 
 				@Override
 				public void afterTextChanged(Editable s) {
-					// TODO Auto-generated method stub
 					enableSubmitIfReady();
 				}
 			});
 		}
 	}
 
+	/**
+	 * Initializes UI components.
+	 * 
+	 */
+	private void initializeComponents() {
+		lblPin = (TextView) findViewById(R.id.lblPin);
+		txtPin = (EditText) findViewById(R.id.txtPinCode);
+		txtOldPin = (EditText) findViewById(R.id.txtOldPinCode);
+		btnPin = (Button) findViewById(R.id.btnSetPin);
+		btnPin.setTag(TAG_BTN_SET_PIN);
+		btnPin.setOnClickListener(onClickListener_BUTTON_CLICKED);
+		btnPin.setEnabled(false);
+		btnPin.setBackground(getResources().getDrawable(R.drawable.btn_grey));
+		btnPin.setTextColor(getResources().getColor(R.color.black));
+	}
+
 	OnClickListener onClickListener_BUTTON_CLICKED = new OnClickListener() {
 
 		@Override
 		public void onClick(View view) {
-			// TODO Auto-generated method stub
-
 			int iTag = (Integer) view.getTag();
 
 			switch (iTag) {
@@ -206,10 +216,10 @@ public class PinCodeActivity extends Activity {
     		intent.putExtra(getResources().getString(R.string.intent_extra_regid), REG_ID);
     		startActivity(intent);
 		}else{
-			Intent intent = new Intent(PinCodeActivity.this, MainActivity.class);
+			Intent intent = new Intent(PinCodeActivity.this, RegistrationActivity.class);
 			intent.putExtra(getResources().getString(R.string.intent_extra_regid), REG_ID);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			intent.putExtra(getResources().getString(R.string.intent_extra_email), EMAIL);
+			intent.putExtra(getResources().getString(R.string.intent_extra_username), username);
 			startActivity(intent);
 		}
 	}

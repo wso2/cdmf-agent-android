@@ -15,13 +15,22 @@
 */
 package org.wso2.emm.agent;
 
-import org.wso2.emm.agent.R;
-import org.wso2.emm.agent.api.DeviceInfo;
-import org.wso2.emm.agent.utils.CommonUtilities;
-import org.wso2.emm.agent.utils.ServerUtilities;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
-import android.os.AsyncTask;
-import android.os.Bundle;
+import org.wso2.emm.agent.api.DeviceInfo;
+import org.wso2.emm.agent.api.PhoneState;
+import org.wso2.emm.agent.proxy.APIResultCallBack;
+import org.wso2.emm.agent.proxy.IdentityProxy;
+import org.wso2.emm.agent.proxy.ServerUtilitiesTemp;
+import org.wso2.emm.agent.proxy.Token;
+import org.wso2.emm.agent.proxy.TokenCallBack;
+import org.wso2.emm.agent.utils.CommonDialogUtils;
+import org.wso2.emm.agent.utils.CommonUtilities;
+import org.wso2.emm.agent.utils.ServerUtils;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -29,24 +38,25 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.SharedPreferences.Editor;
+import android.os.AsyncTask;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class SettingsActivity extends Activity {
+public class SettingsActivity extends Activity implements APIResultCallBack,TokenCallBack {
+	
+	private String TAG = SettingsActivity.class.getSimpleName();
+	
 	TextView ip;
 	Button optionBtn;
 	private String FROM_ACTIVITY = null;
-	private String REG_ID = "";
 	Context context;
 	String senderID=null;
 	DeviceInfo info = null;
@@ -55,6 +65,12 @@ public class SettingsActivity extends Activity {
 	String error = "";
 	AsyncTask<Void, Void, String> mSenderIDTask;
 	ProgressDialog progressDialog;
+	String regId;
+	AlertDialog.Builder alertDialog;
+	
+	boolean alreadyRegisteredActivityFlag = false;
+	boolean authenticationActivityFlag = false;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -66,12 +82,9 @@ public class SettingsActivity extends Activity {
 			if(extras.containsKey(getResources().getString(R.string.intent_extra_from_activity))){
 				FROM_ACTIVITY = extras.getString(getResources().getString(R.string.intent_extra_from_activity));
 			}
-			
-			if(extras.containsKey(getResources().getString(R.string.intent_extra_regid))){
-				REG_ID = extras.getString(getResources().getString(R.string.intent_extra_regid));
-			}
 		}
 		
+		// Need to move to a library
 		if((info.getSdkVersion() >= android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) && !info.isRooted()){
         	accessFlag = true;
         }else{
@@ -94,19 +107,37 @@ public class SettingsActivity extends Activity {
 		ip = (TextView)findViewById(R.id.editText1);
 		SharedPreferences mainPref = context.getSharedPreferences(
 				getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
-		String ipSaved = mainPref.getString(getResources().getString(R.string.shared_pref_ip), "");				
-		String success = mainPref.getString(getResources().getString(R.string.shared_pref_registered), "");
-		
-		if(success.trim().equals(getResources().getString(R.string.shared_pref_reg_success))){
-			Intent intent = new Intent(SettingsActivity.this,AlreadyRegisteredActivity.class);
-			intent.putExtra(getResources().getString(R.string.intent_extra_regid), REG_ID);
-			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			startActivity(intent);
+		String ipSaved = mainPref.getString(getResources().getString(R.string.shared_pref_ip), "");	
+		regId = mainPref.getString(getResources().getString(R.string.shared_pref_regId), "");
+		String clientKey = mainPref.getString(getResources().getString(R.string.shared_pref_client_id), "");
+		String clientSecret = mainPref.getString(getResources().getString(R.string.shared_pref_client_secret), "");
+		if(ipSaved != null && ipSaved != ""){
+			CommonUtilities.setSERVER_URL(ipSaved);
 		}
-    	
+		if(!clientKey.equals("") && !clientSecret.equals("")){
+			CommonUtilities.CLIENT_ID=clientKey;
+			CommonUtilities.CLIENT_SECRET=clientSecret;
+		}
+		
+		
+		
+		
+		
+		try {
+			if (FROM_ACTIVITY == null) {
+				IdentityProxy.getInstance().getToken(this.getApplicationContext(),SettingsActivity.this,CommonUtilities.CLIENT_ID,CommonUtilities.CLIENT_SECRET);
+			}
+
+		} catch (TimeoutException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		if(ipSaved != null && ipSaved != ""){
 			ip.setText(ipSaved);
-			Intent intent = new Intent(SettingsActivity.this,EntryActivity.class);
+			CommonUtilities.setSERVER_URL(ipSaved);
+			Intent intent = new Intent(SettingsActivity.this,AuthenticationActivity.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(intent);	
 		}else{
@@ -129,7 +160,7 @@ public class SettingsActivity extends Activity {
 			
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
+				
 				AlertDialog.Builder builder = new AlertDialog.Builder(
 						SettingsActivity.this);
 				builder.setMessage(
@@ -141,18 +172,64 @@ public class SettingsActivity extends Activity {
 			}
 		});
 	}
+
+	/**
+	 * Checks whether device is registered or NOT.
+	 * 
+	 */
+	private void isRegistered() {
+		Log.e("isReg", "isReg");
+		Map<String, String> requestParams = new HashMap<String, String>();
+		requestParams.put("regid", regId);
+		Log.e("regID", regId);
+
+		// Check network connection availability before calling the API.
+		if (PhoneState.isNetworkAvailable(context)) {
+			// Call isRegistered API.
+			ServerUtils.callSecuredAPI(SettingsActivity.this,
+					CommonUtilities.IS_REGISTERED_ENDPOINT,
+					CommonUtilities.POST_METHOD, requestParams,
+					SettingsActivity.this,
+					CommonUtilities.IS_REGISTERED_REQUEST_CODE);
+		} else {
+			CommonDialogUtils.stopProgressDialog(progressDialog);
+			CommonDialogUtils
+					.showNetworkUnavailableMessage(SettingsActivity.this);
+		}
+
+	}
 	
 	DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
 		@Override
 		public void onClick(DialogInterface dialog, int which) {
 			switch (which) {
 			case DialogInterface.BUTTON_POSITIVE:
-				if(!ip.getText().toString().trim().equals("")){
-					CommonUtilities.setSERVER_URL(ip.getText().toString().trim());
-					getSenderID();
-					
-				}else{
-					Toast.makeText(context, getResources().getString(R.string.toast_message_enter_server_address), Toast.LENGTH_LONG).show();
+				if (!ip.getText().toString().trim().equals("")) {
+					CommonUtilities.setSERVER_URL(ip.getText().toString()
+							.trim());
+
+					SharedPreferences mainPref = context.getSharedPreferences(
+							getResources().getString(
+									R.string.shared_pref_package),
+							Context.MODE_PRIVATE);
+					Editor editor = mainPref.edit();
+					editor.putString(
+							getResources().getString(R.string.shared_pref_ip),
+							ip.getText().toString().trim());
+					editor.commit();
+
+					Intent intent = new Intent(SettingsActivity.this,
+							AuthenticationActivity.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					startActivity(intent);
+
+				} else {
+					Toast.makeText(
+							context,
+							getResources()
+									.getString(
+											R.string.toast_message_enter_server_address),
+							Toast.LENGTH_LONG).show();
 				}
 				break;
 
@@ -183,11 +260,6 @@ public class SettingsActivity extends Activity {
 	    	this.finish();
     		return true;
 	    }else if (keyCode == KeyEvent.KEYCODE_BACK && FROM_ACTIVITY != null && FROM_ACTIVITY.equals(AuthenticationActivity.class.getSimpleName())) {
-    		/*Intent intent = new Intent(SettingsActivity.this,AuthenticationActivity.class);
-    		intent.putExtra("from_activity_name", SettingsActivity.class.getSimpleName());
-    		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-    		intent.putExtra("regid", REG_ID);
-    		startActivity(intent);*/
 	    	int pid = android.os.Process.myPid(); 
 	    	android.os.Process.killProcess(pid); 
     		return true;
@@ -200,68 +272,6 @@ public class SettingsActivity extends Activity {
 	        return true;
 	    }
 	    return super.onKeyDown(keyCode, event);
-	}
-	
-	public void getSenderID(){
-		  mSenderIDTask = new AsyncTask<Void, Void, String>() {
-	            @Override
-	            protected String doInBackground(Void... params) {
-	            	String response = "";
-	            	try{
-	            		response =ServerUtilities.getSenderID(context);
-	            	}catch(Exception e){
-	            		e.printStackTrace();
-	            		//HandleNetworkError(e);
-	            		//Toast.makeText(getApplicationContext(), "No Connection", Toast.LENGTH_LONG).show();
-	            	}
-	                return response;
-	            }
-	            
-	            
-	            //declare other objects as per your need
-	            @Override
-	            protected void onPreExecute()
-	            {
-	            	progressDialog= ProgressDialog.show(SettingsActivity.this, getResources().getString(R.string.dialog_sender_id),getResources().getString(R.string.dialog_please_wait), true);
-	                progressDialog.setCancelable(true);
-	                progressDialog.setOnCancelListener(cancelListener);     
-	            };     
-
-	            OnCancelListener cancelListener=new OnCancelListener(){
-	                @Override
-	                public void onCancel(DialogInterface arg0){
-	                	showAlert(getResources().getString(R.string.error_connect_to_server), getResources().getString(R.string.error_heading_connection));
-	                }
-	            };
-	            
-	            @Override
-	            protected void onPostExecute(String result) {
-	            	if (progressDialog!=null && progressDialog.isShowing()){
-	            		progressDialog.dismiss();
-	                }
-	            	if(result!=null && !result.equals("")){
-	            		CommonUtilities.setSENDER_ID(result);
-	            	}
-	            	SharedPreferences mainPref = context.getSharedPreferences(
-	            			getResources().getString(R.string.shared_pref_package), Context.MODE_PRIVATE);
-	            	Editor editor = mainPref.edit();
-	            	editor.putString(getResources().getString(R.string.shared_pref_sender_id), senderID);
-					editor.putString(getResources().getString(R.string.shared_pref_ip), ip.getText().toString().trim());
-					editor.commit();
-					
-					CommonUtilities.setSERVER_URL(ip.getText().toString().trim());
-					Intent intent = new Intent(SettingsActivity.this,EntryActivity.class);
-					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-	    			startActivity(intent);	
-	    			
-	                mSenderIDTask = null;
-	                
-	            }
-
-	        };
-	        
-	        mSenderIDTask.execute(null, null, null);
-	        	
 	}
 	
 	public void showAlert(String message, String title){
@@ -278,13 +288,6 @@ public class SettingsActivity extends Activity {
                 }
             }
         });
-        /*builder1.setNegativeButton("No",
-                new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                dialog.cancel();
-            }
-        });*/
-
         AlertDialog alert = builder.create();
         alert.show();
 	}
@@ -294,6 +297,97 @@ public class SettingsActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.settings, menu);
 		return true;
+	}
+
+	public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
+		String responseStatus = CommonUtilities.EMPTY_STRING;
+		if (result != null) {
+			responseStatus = result.get(CommonUtilities.STATUS_KEY);
+
+			if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)
+					&& requestCode == CommonUtilities.IS_REGISTERED_REQUEST_CODE) {
+				Intent intent = null;
+				if (progressDialog != null) {
+					progressDialog.dismiss();
+				}
+				intent = new Intent(SettingsActivity.this,
+						AlreadyRegisteredActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(intent);
+
+			} else if (responseStatus
+					.equals(CommonUtilities.INTERNAL_SERVER_ERROR)) {
+				Log.e(TAG, "The value of status is null in onAPIAccessRecive()");
+
+				String isRegistered =
+				                      CommonUtilities.getPref(context,
+				                                              context.getResources()
+				                                                     .getString(R.string.shared_pref_registered));
+				if (isRegistered.equals("1")) {
+					Intent intent = null;
+					intent = new Intent(SettingsActivity.this, AlreadyRegisteredActivity.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					startActivity(intent);
+				} else {
+    				alertDialog = CommonDialogUtils
+    						.getAlertDialogWithOneButtonAndTitle(
+    								context,
+    								getResources().getString(
+    										R.string.title_head_connection_error),
+    								getResources().getString(
+    										R.string.error_internal_server),
+    								getResources().getString(R.string.button_ok),
+    								null);
+    				Log.e("null",alertDialog.getClass().getPackage().toString());
+    				alertDialog.show();
+				}
+				//ServerUtils.clearAppData(context);
+			} else {
+				Log.e(TAG, "The value of status is : " + responseStatus);
+				ServerUtils.clearAppData(context);
+				
+				alertDialog = CommonDialogUtils
+						.getAlertDialogWithOneButtonAndTitle(
+								context,
+								getResources().getString(
+										R.string.title_head_registration_error),
+								getResources().getString(
+										R.string.error_internal_server),
+								getResources().getString(R.string.button_ok),
+								null);
+				alertDialog.show();
+			}
+		} else {
+			Log.e(TAG, "The result is null in onReceiveAPIResult()");
+			ServerUtils.clearAppData(context);
+			
+			alertDialog = CommonDialogUtils
+					.getAlertDialogWithOneButtonAndTitle(
+							context,
+							getResources().getString(
+									R.string.title_head_registration_error),
+							getResources().getString(
+									R.string.error_for_all_unknown_registration_failures),
+							getResources().getString(R.string.button_ok),
+							null);
+			alertDialog.show();
+		}
+	}
+
+	@Override
+	public void onReceiveTokenResult(Token token, String status) {
+		if (token != null) {
+			if (regId != null && !regId.equals("")) {
+				// Check registration.
+				isRegistered();
+
+				progressDialog =
+				                 ProgressDialog.show(SettingsActivity.this,
+				                                     getResources().getString(R.string.dialog_sender_id),
+				                                     getResources().getString(R.string.dialog_please_wait),
+				                                     true);
+			}
+		}
 	}
 
 }

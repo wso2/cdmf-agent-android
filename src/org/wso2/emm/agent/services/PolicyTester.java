@@ -30,7 +30,6 @@ import org.wso2.emm.agent.api.PhoneState;
 import org.wso2.emm.agent.api.WiFiConfig;
 import org.wso2.emm.agent.models.PInfo;
 import org.wso2.emm.agent.utils.CommonUtilities;
-import org.wso2.emm.agent.utils.ServerUtilities;
 
 import android.annotation.TargetApi;
 import android.app.admin.DevicePolicyManager;
@@ -38,10 +37,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.media.AudioManager;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.util.Log;
 
@@ -139,7 +135,7 @@ public class PolicyTester {
 			params.put("status", "200");
 			params.put("data", finalArray.toString());
 			
-			ServerUtilities.pushData(params, context);
+			//ServerUtilities.pushData(params, context);
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

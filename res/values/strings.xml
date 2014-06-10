@@ -20,36 +20,37 @@
     <string name="options_clear">Clear</string>
     <string name="options_exit">Exit</string>
     <string name="app_name">WSO2 Agent</string>
+    <string name="empty_app_title"></string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello MDM</string>
     <string name="title_activity_display_device_info">DisplayDeviceInfo</string>
     <string name="url">http://192.168.6.6:8080/mdm/register</string>
     <string name="title_activity_register_successful">RegisterSuccessful</string>
     <string name="title_activity_entry">Entry</string>
-    <string name="title_activity_all_ready_registered">AllReadyRegistered</string>
     <string name="title_head_authentication_error">Authentication Failed</string>
+    <string name="title_head_registration_error">Registration Failed</string>
+    <string name="title_head_connection_error">Connection Failed</string>
+    <string name="title_head_notification_error">Notification failed</string>
     <string name="device_admin_enabled">Device Admin Enabled</string>
     <string name="device_admin_disabled">Device Admin Disabled</string>
     <string name="device_not_compatible_error">You are not allowed to enroll because your device is rooted and device OS version is older than 4.0.3</string>
     <string name="device_not_compatible_error_os">You are not allowed to enroll because your device is rooted</string>
     <string name="device_not_compatible_error_root">You are not allowed to enroll because your device OS version is older than 4.0.3</string>
-    <string name="title_activity_authentication">Authentication</string>
     <string name="title_activity_authentication_error">AuthenticationError</string>
     <string name="title_activity_notification">NotificationActivity</string>
     <string name="title_activity_notify">NotifyActivity</string>
-    <string name="title_activity_settings">SettingsActivity</string>
     <string name="title_activity_agent_settings">AgentSettingsActivity</string>
     <string name="title_activity_available_operations">AvailableOperationsActivity</string>
-    <string name="title_activity_pin_code">PinCodeActivity</string>
     <string name="menu_item_operations">Operations</string>
-    <string name="menu_item_phone_info">Phone Info</string>
     <string name="menu_item_pin">Change PIN</string>
     <string name="menu_item_ip">Change Server Address</string>
      <string name="menu_item_log">Debug Log</string>
-    <string name="title_activity_alert">Message from MDM</string>
+    <string name="title_activity_alert">Message from EMM</string>
     <string name="device_admin_enable_alert">This will enable device administration</string>
     <string name="device_enroll_type_byod">BYOD</string>
     <string name="device_enroll_type_cope">COPE</string>
+    <string name="title_init_msg_error">Initialization Failed. Please try again.</string>
+   	<string name="title_head_init_error">Initialization Failed</string>
 
     <!-- TEXT FIELD HINTS -->
     <string name="hint_new_pin">New PIN Code</string>
@@ -67,7 +68,7 @@
     <string name="intent_extra_main_activity">main_activity_name</string>
     <string name="intent_extra_message">message</string>
     <string name="intent_extra_fresh_reg_flag">freshRegFlag</string>
-    <string name="intent_extra_email">email</string>
+    <string name="intent_extra_username">username</string>
     <string name="intent_extra_notification">notification</string>
 
     <!-- SHARED PREF KEYS -->
@@ -84,16 +85,32 @@
     <string name="shared_pref_reg_fail">0</string>
     <string name="shared_pref_reg_type">deviceType</string>
     <string name="shared_pref_sender_id">senderID</string>
+    <string name="shared_pref_message_mode">mode</string>
+    <string name="shared_pref_interval">interval</string>
+    
+    <string name="shared_pref_device_active">0</string>
+    <string name="shared_pref_client_id">ClientID</string>
+    <string name="shared_pref_client_secret">ClientSecret</string>
+    
+    <!-- PARA KEYS -->
 
     <!-- ERROR MESSAGES -->
     <string name="error_connect_to_server">Could not connect to server please check your internet connection and try again</string>
     <string name="error_heading_connection">Connection Error</string>
-    <string name="error_registration_failed">Registration failed</string>
-    <string name="error_unregistration_failed">Unregistration failed</string>
+    <string name="error_registration_failed">Registration Failed</string>
+    <string name="error_unregistration_failed">Unregistration Failed</string>
     <string name="error_authorization_failed">Access Denied</string>
-    <string name="error_enrollment_failed">Enrollment failed</string>
-    <string name="error_enrollment_failed_detail">Enrollment failed, please contact administrator</string>
+    <string name="error_enrollment_failed">Enrollment Failed</string>
+    <string name="error_enrollment_failed_detail">Enrollment failed, please contact administrator.</string>
     <string name="error_auth_failed_detail">Authentication failed due to a connection failure please check your network connection and try again.</string>
+    <string name="error_authentication_failed">Incorrect login information. Please try again.</string>
+    <string name="error_network_unavailable">Network connectivity is unavailable. Please check your network connectivity.</string>
+    <string name="error_for_all_unknown_registration_failures">Cannot proceed the registration. Please contact administrator.</string>
+    <string name="error_for_all_unknown_authentication_failures">Cannot proceed the authentication. Please contact administrator.</string>
+    <string name="error_for_all_unknown_unregister_failures">Cannot unregister the device. Please contact administrator.</string>
+    <string name="error_for_all_unknown_notification_failures">Cannot execute the notification. Please contact administrator.</string>
+    <string name="error_internal_server">Server is unavailable. Please contact administrator.</string>
+    <string name="error_invalid_server_address">Invalid server Address. Please try again.</string>
 
     <!-- DIALOG TITLES AND MESSAGES -->
     <string name="dialog_authenticate">Authenticating</string>
@@ -108,14 +125,13 @@
     <string name="dialog_init_middle">Your device is a </string>
     <string name="dialog_init_end"> device, are you sure you want to proceed ?</string>
     <string name="dialog_init_end_general"> are you sure you want to proceed ?</string>
-    <string name="dialog_unregister">You are trying to unregister from MDM. Are you sure you want to proceed ?</string>
+    <string name="dialog_unregister">You are trying to unregister from EMM. Are you sure you want to proceed ?</string>
 
     <!-- REGISTRATION -->
     <string name="register_button_text">Register</string>
     <string name="register_text_view_text_unregister">Device un-registration successful, click to re-register to the MDM</string>
 
     <!-- AGENT SETTINGS ACTIVITY -->
-    <string name="menu_item_operations">Operations</string>
     <string name="menu_item_phone_info">Phone Info</string>
     <string name="menu_item_change_pin">Change PIN code</string>
     <string name="menu_item_change_ip">Change IP address</string>
@@ -150,5 +166,8 @@
     <string name="server_util_req_type_post">POST</string>
     <string name="server_util_req_type_get">GET</string>
     <string name="title_activity_log">LogActivity</string>
+    
+    <!--  Headings -->
+     <string name="registration_heading">Set your server address here to start registration, i.e : www.abc.com</string>
 
 </resources>

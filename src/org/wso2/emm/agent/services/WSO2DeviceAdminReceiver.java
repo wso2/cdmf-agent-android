@@ -20,15 +20,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONArray;
-import org.wso2.emm.agent.AlreadyRegisteredActivity;
-import org.wso2.emm.agent.AuthenticationErrorActivity;
 import org.wso2.emm.agent.R;
-import org.wso2.emm.agent.R.string;
-import org.wso2.emm.agent.utils.ServerUtilities;
+import org.wso2.emm.agent.proxy.APIResultCallBack;
+import org.wso2.emm.agent.utils.CommonUtilities;
+import org.wso2.emm.agent.utils.ServerUtils;
 
-import com.google.android.gcm.GCMRegistrar;
-
-import android.app.ProgressDialog;
 import android.app.admin.DeviceAdminReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -38,13 +34,15 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gcm.GCMRegistrar;
+
 /**
  * This is the component that is responsible for actual device administration.
  * It becomes the receiver when a policy is applied. It is important that we
  * subclass DeviceAdminReceiver class here and to implement its only required
  * method onEnabled().
  */
-public class WSO2DeviceAdminReceiver extends DeviceAdminReceiver {
+public class WSO2DeviceAdminReceiver extends DeviceAdminReceiver implements APIResultCallBack {
 	static final String TAG = "WSO2DeviceAdminReceiver";
 	AsyncTask<Void, Void, Void> mRegisterTask;
 	String regId="";
@@ -59,11 +57,16 @@ public class WSO2DeviceAdminReceiver extends DeviceAdminReceiver {
 		operation = new Operation(context);
 		SharedPreferences mainPref = context.getSharedPreferences("com.mdm",
 				Context.MODE_PRIVATE);
-
-		try {
+		Editor editor = mainPref.edit();
+		editor.putString(context.getResources().getString(R.string.shared_pref_device_active), "1");
+		editor.commit();
+		
+		ProcessMessage pm=new ProcessMessage(context);
+		pm.getOperations(null);
+		try {	
 			policy = mainPref.getString("policy", "");
 			if(policy!=null && !policy.equals("")){
-				operation.executePolicy();
+				//operation.executePolicy();
 			}
 		}catch(Exception ex){
 			
@@ -91,80 +94,18 @@ public class WSO2DeviceAdminReceiver extends DeviceAdminReceiver {
 		
 	}
 	
-	public void startUnRegistration(Context app_context){
-		final Context context = app_context;
-		mRegisterTask = new AsyncTask<Void, Void, Void>() {
+	public void startUnRegistration(Context app_context) {
+		String regId = CommonUtilities.getPref(app_context, app_context
+				.getResources().getString(R.string.shared_pref_regId));
 
-            @Override
-            protected Void doInBackground(Void... params) {
-            	 Map<String, String> paramss = new HashMap<String, String>();
-                 paramss.put("regid", regId);
-            	//ServerUtilities.sendToServer(context, "/UNRegister", paramss);
-                 unregState=ServerUtilities.unregister(regId, context);
-                return null;
-            }
-            
-            //ProgressDialog progressDialog;
-            //declare other objects as per your need
-            @Override
-            protected void onPreExecute()
-            {
-                //progressDialog= ProgressDialog.show(context, "Unregistering Device","Please wait", true);
-
-                //do initialization of required objects objects here                
-            };    
-
-
-            @Override
-            protected void onPostExecute(Void result) {
-	            	try {
-	            		SharedPreferences mainPref = context
-								.getSharedPreferences(
-										context
-										.getResources().getString(
-												R.string.shared_pref_package),
-										Context.MODE_PRIVATE);
-						Editor editor = mainPref.edit();
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_policy), "");
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_isagreed), "0");
-						editor.putString(
-								context
-								.getResources().getString(R.string.shared_pref_regId), "");
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_registered), "0");
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_ip), "");
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_sender_id), "");
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_eula), "");
-						
-						editor.commit();
-	        		} catch (Exception e) {
-	        			// TODO Auto-generated catch block
-	        			e.printStackTrace();
-	        		}
-                mRegisterTask = null;
-                //progressDialog.dismiss();
-            }
-
-        };
-        mRegisterTask.execute(null, null, null);
-
+		Map<String, String> requestParams = new HashMap<String, String>();
+		requestParams.put("regid", regId);
+		ServerUtils.clearAppData(app_context);
+		ServerUtils.callSecuredAPI(app_context,
+				CommonUtilities.UNREGISTER_ENDPOINT,
+				CommonUtilities.POST_METHOD, requestParams,
+				WSO2DeviceAdminReceiver.this,
+				CommonUtilities.UNREGISTER_REQUEST_CODE);
 	}
 
 	@Override
@@ -184,5 +125,13 @@ public class WSO2DeviceAdminReceiver extends DeviceAdminReceiver {
 		super.onPasswordSucceeded(context, intent);
 		Log.d(TAG, "onPasswordSucceeded");
 	}
+
+	@Override
+	public void onReceiveAPIResult(Map<String, String> arg0, int arg1) {
+		// We have already cleaned data from device.
+		
+	}
+	
+	
 
 }

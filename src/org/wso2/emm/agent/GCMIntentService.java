@@ -16,11 +16,6 @@
 package org.wso2.emm.agent;
 
 
-import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.api.ApplicationManager;
 import org.wso2.emm.agent.services.Config;
 import org.wso2.emm.agent.services.ProcessMessage;
@@ -33,8 +28,6 @@ import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.PowerManager;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.android.gcm.GCMBaseIntentService;
@@ -58,13 +51,20 @@ public class GCMIntentService extends GCMBaseIntentService {
    
 
     @Override
-    protected void onRegistered(Context context, String registrationId) {
-    	if(CommonUtilities.DEBUG_MODE_ENABLED){Log.i(TAG, "Device registered: regId = " + registrationId);}
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(getResources().getString(R.string.shared_pref_regId), registrationId);
-        editor.commit();
-    }
+	protected void onRegistered(Context context, String registrationId) {
+		if (CommonUtilities.DEBUG_MODE_ENABLED) {
+			Log.i(TAG, "Device registered: regId = " + registrationId);
+		}
+		SharedPreferences preferences = context.getSharedPreferences(
+				getResources().getString(R.string.shared_pref_package),
+				Context.MODE_PRIVATE);
+		//if (preferences.getString(getResources().getString(R.string.shared_pref_message_mode), "").trim().toUpperCase().contains("GCM")) {
+		SharedPreferences.Editor editor = preferences.edit();
+		editor.putString(getResources().getString(R.string.shared_pref_regId),
+				registrationId);
+		editor.commit();
+		//}
+	}
 
     @Override
     protected void onUnregistered(Context context, String registrationId) {
@@ -82,11 +82,19 @@ public class GCMIntentService extends GCMBaseIntentService {
     
 	@Override
     protected void onMessage(Context context, Intent intent) {
-		String code = intent.getStringExtra(getResources().getString(R.string.intent_extra_message)).trim();
-
+		Log.e("onmsg","onmsg");
+		
         Config.context = this;
-
-    	processMsg = new ProcessMessage(Config.context, CommonUtilities.MESSAGE_MODE_GCM, intent);
+        String mode=CommonUtilities.getPref(context, context.getResources().getString(R.string.shared_pref_message_mode));
+		if(mode.trim().toUpperCase().equals("GCM")){
+			Log.e("onmsg","GCM");
+			ProcessMessage msg=new ProcessMessage(context);
+			msg.getOperations(null);
+		}
+		else{
+			Log.e("onmsg","mode");
+		}
+    	//processMsg = new ProcessMessage(Config.context, CommonUtilities.MESSAGE_MODE_GCM, intent);
     }
 	    
 

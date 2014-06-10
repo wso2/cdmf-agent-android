@@ -24,8 +24,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.wso2.emm.agent.AlertActivity;
-import org.wso2.emm.agent.NotifyActivity;
-import org.wso2.emm.agent.R;
+import org.wso2.emm.agent.SettingsActivity;
 import org.wso2.emm.agent.api.ApplicationManager;
 import org.wso2.emm.agent.api.DeviceInfo;
 import org.wso2.emm.agent.api.GPSTracker;
@@ -36,14 +35,9 @@ import org.wso2.emm.agent.api.WiFiConfig;
 import org.wso2.emm.agent.models.PInfo;
 import org.wso2.emm.agent.utils.CommonUtilities;
 import org.wso2.emm.agent.utils.LoggerCustom;
-import org.wso2.emm.agent.utils.ServerUtilities;
-
-import com.google.android.gcm.GCMRegistrar;
+import org.wso2.emm.agent.utils.ServerUtils;
 
 import android.annotation.TargetApi;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -52,8 +46,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.telephony.SmsManager;
@@ -70,9 +62,9 @@ public class Operation {
 	TrackCallSMS conversations;
 	PhoneState deviceState;
 	String code = null;
-	String policy_code = null;
-	String token = null;
-	String policy_token = null;
+	String policy_code = "";
+	String token = "";
+	String policy_token = "";
 	int policy_count = 0;
 	String data = "";
 	GPSTracker gps;
@@ -85,6 +77,7 @@ public class Operation {
 	AsyncTask<Void, Void, Void> mRegisterTask;
 	static final int REQUEST_MODE_BUNDLE = 0;
 	static final int REQUEST_MODE_NORMAL = 1;
+	public static boolean enterpriseWipe=false;
 	Intent intent;
 	Map<String, String> params = new HashMap<String, String>();
 	Map<String, String> bundle_params = new HashMap<String, String>();
@@ -150,7 +143,7 @@ public class Operation {
 								.equals("0")
 						|| mainPref.getString("policy_applied", "").trim()
 								.equals("")) {*/
-					executePolicy();
+					//executePolicy();
 				//}
 				/*
 				 * JSONArray jArray = new JSONArray(data); for(int i = 0;
@@ -228,33 +221,102 @@ public class Operation {
 		}
 
 	}
+	
+	
+	public Operation(Context context, int mode, String json) {
+		this.context = context;
+		this.mode = mode;
+		this.params = params;
+		this.recepient = recepient;
+
+		if (params.get("data") != null) {
+			data = params.get("data");
+			Log.v("Data", data);
+		}
+
+		if (params.get("code").trim()
+				.equals(CommonUtilities.OPERATION_POLICY_MONITOR)) {
+			policy_token = params.get("token").trim();
+			policy_code = params.get("code").trim();
+			Log.v("Token", policy_token);
+		} else {
+			token = params.get("token").trim();
+			code = params.get("code").trim();
+			Log.v("Code", code);
+			Log.v("Token", token);
+		}
+
+		if (params.get("code").trim()
+				.equals(CommonUtilities.OPERATION_POLICY_BUNDLE)) {
+			try {
+				SharedPreferences mainPrefp = context.getSharedPreferences(
+						"com.mdm", Context.MODE_PRIVATE);
+				Editor editorp = mainPrefp.edit();
+				editorp.putString("policy", "");
+				editorp.commit();
+
+				SharedPreferences mainPref = context.getSharedPreferences(
+						"com.mdm", Context.MODE_PRIVATE);
+				Editor editor = mainPref.edit();
+				editor.putString("policy", data);
+				editor.commit();
+
+				executePolicy();
+
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		} else if (params.get("code").trim()
+				.equals(CommonUtilities.OPERATION_POLICY_MONITOR)) {
+			doTask(policy_code, data, REQUEST_MODE_NORMAL);
+		} else {
+			doTask(code, data, REQUEST_MODE_NORMAL);
+		}
+
+	}
+	
+	public JSONArray operate(String featureCode, JSONObject json) {
+		this.mode = mode;
+		data=json.toString();
+		String featureCodeOp = featureCode;
+		Log.e("featureCodeOp","featureCodeOp"+featureCodeOp);
+		String data = json.toString();
+		Log.e("datadatadatadata","data"+data);
+		return doTask(featureCodeOp, data, REQUEST_MODE_NORMAL);
+		
+		//
+	}	
 
 	public void executePolicy() {
 		String policy;
 		JSONArray jArray = null;
 		SharedPreferences mainPref = context.getSharedPreferences("com.mdm",
 				Context.MODE_PRIVATE);
-
+//			[{"code" : "500P", "data" : [{"messageId" : "178", "data" : [{"code" : "508A", "data" : {"function" : "Enable"}}, {"code" : "526A", "data" : {"password" : "1234"}}]}]}]
 		try {
 
 			policy = mainPref.getString("policy", "");
-			Log.e("INCOMING POLICY : ",policy);
-			jArray = new JSONArray(policy);
-			for (int i = 0; i < jArray.length(); i++) {
-				if(jArray.getJSONObject(i)!=null){
-					JSONObject policyObj = (JSONObject) jArray.getJSONObject(i);
-					if (policyObj.getString("data") != null
-							&& policyObj.getString("data") != "") {
-						doTask(policyObj.getString("code"),
-								policyObj.getString("data"), REQUEST_MODE_BUNDLE);
-					}
-				}
+			if(policy!=null && !policy.equals("")){
+    			Log.e("INCOMING POLICY : ",policy);
+    			jArray = new JSONArray(policy);
+    			for (int i = 0; i < jArray.length(); i++) {
+    				if(jArray.getJSONObject(i)!=null){
+    					JSONObject policyObj = (JSONObject) jArray.getJSONObject(i);
+    					if (policyObj.getString("data") != null
+    							&& policyObj.getString("data") != "") {
+    						doTask(policyObj.getString("code"),
+    								policyObj.getString("data"), REQUEST_MODE_BUNDLE);
+    					}
+    				}
+    			}
+    
+    			Editor editor = mainPref.edit();
+    			editor.putString("policy_applied", "1");
+    			editor.commit();
+    			this.data = policy;
 			}
-
-			Editor editor = mainPref.edit();
-			editor.putString("policy_applied", "1");
-			editor.commit();
-			this.data = policy;
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			Editor editor = mainPref.edit();
@@ -264,7 +326,7 @@ public class Operation {
 	}
 	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	public void revokePolicy() {
-		String policy;
+		
 		JSONArray jArray = null;
 		devicePolicyManager = (DevicePolicyManager) context
 				.getSystemService(Context.DEVICE_POLICY_SERVICE);
@@ -275,14 +337,15 @@ public class Operation {
 
 		try {
 
-			policy = mainPref.getString("policy", "");
-			
-			jArray = new JSONArray(policy);
+			String policy = mainPref.getString("policy", "");
+			Log.e("policy revoke() ",policy);
+//			[{"data":{"function":"Enable"},"code":"508A"},{"data":{"password":"12345"},"code":"526A"}]
+
+			jArray = new JSONArray(policy.trim());
 			for (int i = 0; i < jArray.length(); i++) {
 				if(jArray.getJSONObject(i)!=null){
 					JSONObject policyObj = (JSONObject) jArray.getJSONObject(i);
-					if (policyObj.getString("data") != null
-							&& policyObj.getString("data") != "") {
+					
 
 						if(policyObj.getString("code").trim().equals(CommonUtilities.OPERATION_WIFI)){
 							JSONObject jobj = new JSONObject(policyObj.getString("data"));
@@ -296,36 +359,39 @@ public class Operation {
 								devicePolicyManager.setCameraDisabled(cameraAdmin, false);
 							}
 						}else if(policyObj.getString("code").trim().equals(CommonUtilities.OPERATION_ENCRYPT_STORAGE)){
-							JSONObject jobj = new JSONObject(policyObj.getString("data"));
-							boolean encryptFunc=false;
-							if (!jobj.isNull("function")
-									&& jobj.get("function").toString()
-											.equalsIgnoreCase("encrypt")) {
-								encryptFunc = true;
-							} else if (!jobj.isNull("function")
-									&& jobj.get("function").toString()
-											.equalsIgnoreCase("decrypt")) {
-								encryptFunc = false;
-							} else if (!jobj.isNull("function")) {
-								encryptFunc = Boolean.parseBoolean(jobj.get("function")
-										.toString());
-							}
-							if(encryptFunc){
-								if (devicePolicyManager.getStorageEncryptionStatus() != devicePolicyManager.ENCRYPTION_STATUS_UNSUPPORTED) {
-									if (devicePolicyManager.getStorageEncryptionStatus() == devicePolicyManager.ENCRYPTION_STATUS_ACTIVE
-											|| devicePolicyManager.getStorageEncryptionStatus() == devicePolicyManager.ENCRYPTION_STATUS_ACTIVATING) {
-										if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-											devicePolicyManager.setStorageEncryption(cameraAdmin,
-													false);
-										}
-									}
-								}
+							if (policyObj.getString("data") != null
+									&& policyObj.getString("data") != "") {
+    							JSONObject jobj = new JSONObject(policyObj.getString("data"));
+    							boolean encryptFunc=false;
+    							if (!jobj.isNull("function")
+    									&& jobj.get("function").toString()
+    											.equalsIgnoreCase("encrypt")) {
+    								encryptFunc = true;
+    							} else if (!jobj.isNull("function")
+    									&& jobj.get("function").toString()
+    											.equalsIgnoreCase("decrypt")) {
+    								encryptFunc = false;
+    							} else if (!jobj.isNull("function")) {
+    								encryptFunc = Boolean.parseBoolean(jobj.get("function")
+    										.toString());
+    							}
+    							if(encryptFunc){
+    								if (devicePolicyManager.getStorageEncryptionStatus() != devicePolicyManager.ENCRYPTION_STATUS_UNSUPPORTED) {
+    									if (devicePolicyManager.getStorageEncryptionStatus() == devicePolicyManager.ENCRYPTION_STATUS_ACTIVE
+    											|| devicePolicyManager.getStorageEncryptionStatus() == devicePolicyManager.ENCRYPTION_STATUS_ACTIVATING) {
+    										if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+    											devicePolicyManager.setStorageEncryption(cameraAdmin,
+    													false);
+    										}
+    									}
+    								}
+    							}
 							}
 						}else if(policyObj.getString("code").trim().equals(CommonUtilities.OPERATION_PASSWORD_POLICY)){
 							devicePolicyManager.setPasswordQuality(cameraAdmin,
 									DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
 						}
-					}
+//							policyObj.getString("code").trim().equals(CommonUtilities.OPERATION_CHANGE_LOCK_CODE)
 				}
 			}
 
@@ -336,21 +402,25 @@ public class Operation {
 
 	@SuppressWarnings("static-access")
 	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-	public void doTask(String code_in, String data_in, int req_mode) {
+	public JSONArray doTask(String code_in, String data_in, int req_mode) {
+		
+		Log.e("doTask","code:"+code_in+"\n"+data_in);
+		String data_input=data_in;
 		String code_input = code_in;
-		String data_input = data_in;
 		String notification = "";
 		String ssid = "";
 		String password = "";
 
-		devicePolicyManager = (DevicePolicyManager) context
-				.getSystemService(Context.DEVICE_POLICY_SERVICE);
-		appList = new ApplicationManager(context);
+		devicePolicyManager = (DevicePolicyManager) context.getApplicationContext().getSystemService(Context.DEVICE_POLICY_SERVICE);
+		appList = new ApplicationManager(context.getApplicationContext());
 		deviceInfo = new DeviceInfo(context);
 		gps = new GPSTracker(context);
 		smsManager = SmsManager.getDefault();
 		conversations = new TrackCallSMS(context);
 		deviceState = new PhoneState(context);
+		
+		JSONArray resultArr= new JSONArray();
+		JSONObject result= new JSONObject();
 		if (code_input.equals(CommonUtilities.OPERATION_DEVICE_INFO)) {
 
 			PhoneState phoneState = new PhoneState(context);
@@ -365,6 +435,8 @@ public class Operation {
 				latitude = gps.getLatitude();
 				longitude = gps.getLongitude();
 				int batteryLevel = (int)Math.floor(phoneState.getBatteryLevel());
+
+//				int batteryLevel = 40;
 				battery_obj.put("level", batteryLevel);
 
 				inmemory_obj.put("total",
@@ -381,7 +453,9 @@ public class Operation {
 				obj.put("battery", battery_obj);
 				obj.put("internal_memory", inmemory_obj);
 				obj.put("external_memory", exmemory_obj);
-				obj.put("location_obj", location_obj);
+				if(latitude!=0 && longitude!=0){
+					obj.put("location_obj", location_obj);
+				}
 				obj.put("operator", deviceInfo.getNetworkOperatorName());
 
 				Map<String, String> params = new HashMap<String, String>();
@@ -389,11 +463,18 @@ public class Operation {
 				params.put("msgID", token);
 				params.put("status", "200");
 				params.put("data", obj.toString());
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				result.put("data", obj);
+				
 				Map<String, String> as = new HashMap<String, String>();
 				as.put("all", params.toString());
 
 				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-					ServerUtilities.pushData(params, context);
+//					ServerUtilities.pushData(params, context);
 				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 					smsManager
 							.sendTextMessage(
@@ -437,14 +518,23 @@ public class Operation {
 				params.put("msgID", token);
 				params.put("status", "200");
 				params.put("data", obj.toString());
+				
+				
+				//for local notification\
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				result.put("data", obj);
+				
 				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-					ServerUtilities.pushData(params, context);
+					//ServerUtilities.pushData(params, context);
 				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 					smsManager
 							.sendTextMessage(recepient, null, "Longitude : "
 									+ longitude + ",Latitude : " + latitude,
 									null, null);
 				}
+				
 			} catch (JSONException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -466,7 +556,7 @@ public class Operation {
 			for (int i = 0; i < max; i++) {
 				JSONObject jsonObj = new JSONObject();
 				try {
-					jsonObj.put("name", apps.get(i).appname);
+					jsonObj.put("name", Uri.encode(apps.get(i).appname));
 					jsonObj.put("package", apps.get(i).pname);
 					jsonObj.put("icon", apps.get(i).icon);
 					apz += apps.get(i).appname + " ,";
@@ -476,9 +566,18 @@ public class Operation {
 				}
 				jsonArray.put(jsonObj);
 			}
-
+			
 			JSONObject appsObj = new JSONObject();
 			try {
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				result.put("data", jsonArray);
+				
+				
+				
+				
 				appsObj.put("apps", jsonArray);
 
 				Map<String, String> params = new HashMap<String, String>();
@@ -487,11 +586,15 @@ public class Operation {
 						CommonUtilities.OPERATION_GET_APPLICATION_LIST);
 				params.put("msgID", token);
 				params.put("status", "200");
-				params.put("data", Uri.encode(jsonArray.toString()));
+				//params.put("data", Uri.encode(jsonArray.toString()));
 				Log.e("PASSING MSG ID : ",token);
 				Log.e("PASSING CODE : ",code_input);
+				
+				
+				
+				
 				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-					ServerUtilities.pushData(params, context);
+					//ServerUtilities.pushData(params, context);
 				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 					smsManager
 							.sendTextMessage(recepient, null, apz, null, null);
@@ -509,9 +612,15 @@ public class Operation {
 				params.put("code", code_input);
 				params.put("msgID", token);
 				params.put("status", "200");
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				
 				if (req_mode == REQUEST_MODE_NORMAL) {
 					if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-						ServerUtilities.pushData(params, context);
+						//ServerUtilities.pushData(params, context);
 					} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 						smsManager.sendTextMessage(recepient, null,
 								"Device Locked Successfully", null, null);
@@ -547,14 +656,24 @@ public class Operation {
 				params.put("code", code_input);
 				params.put("msgID", token);
 
+				
+				//for local notification
+				resultArr.put(result);
+				
+				
 				if (pin.trim().equals(pinSaved.trim())) {
 					params.put("status", "200");
+					result.put("status", "true");
 				} else {
 					params.put("status", "400");
+					result.put("status", "false");
 				}
+				
+				
+				result.put("code", code_input);
 
 				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-					ServerUtilities.pushData(params, context);
+					//ServerUtilities.pushData(params, context);
 				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 					if (pin.trim().equals(pinSaved.trim())) {
 						smsManager.sendTextMessage(recepient, null,
@@ -567,7 +686,6 @@ public class Operation {
 				if (pin.trim().equals(pinSaved.trim())) {
 					Toast.makeText(context, "Device is being wiped",
 							Toast.LENGTH_LONG).show();
-					startUnRegistration(context);
 					try {
 	    				Thread.sleep(4000);
 	    			} catch (InterruptedException e) {
@@ -594,10 +712,15 @@ public class Operation {
 				params.put("code", code_input);
 				params.put("msgID", token);
 				params.put("status", "200");
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
 
 				if (req_mode == REQUEST_MODE_NORMAL) {
 					if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-						ServerUtilities.pushData(params, context);
+						//ServerUtilities.pushData(params, context);
 					} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 						smsManager.sendTextMessage(recepient, null,
 								"Lock code cleared Successfully", null, null);
@@ -642,8 +765,14 @@ public class Operation {
 				params.put("code", code_input);
 				params.put("msgID", token);
 				params.put("status", "200");
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				
 				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-					ServerUtilities.pushData(params, context);
+					//ServerUtilities.pushData(params, context);
 				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 					smsManager.sendTextMessage(recepient, null,
 							"Notification Receieved Successfully", null, null);
@@ -678,12 +807,20 @@ public class Operation {
 			inparams.put("code", code_input);
 			inparams.put("msgID", token);
 			WiFiConfig config = new WiFiConfig(context);
+			
+			
 			try {
+				//for local notification
+				resultArr.put(result);
+				result.put("code", code_input);
+				
 				wifistatus = config.saveWEPConfig(ssid, password);
 				if (wifistatus) {
 					inparams.put("status", "200");
+					result.put("status", "true");
 				} else {
 					inparams.put("status", "400");
+					result.put("status", "false");
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -691,7 +828,7 @@ public class Operation {
 			} finally {
 				if (req_mode == REQUEST_MODE_NORMAL) {
 					if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-						ServerUtilities.pushData(inparams, context);
+						//ServerUtilities.pushData(inparams, context);
 					} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 						smsManager.sendTextMessage(recepient, null,
 								"WiFi Configured Successfully", null, null);
@@ -729,16 +866,25 @@ public class Operation {
 				params.put("code", code_input);
 				params.put("msgID", token);
 				params.put("status", "200");
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				
+				
 				String cammode = "Disabled";
 				if (camFunc) {
 					cammode = "Disabled";
 				} else {
 					cammode = "Enabled";
 				}
+				
+				
 
 				if (req_mode == REQUEST_MODE_NORMAL) {
 					if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-						ServerUtilities.pushData(params, context);
+						//ServerUtilities.pushData(params, context);
 					} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 						smsManager.sendTextMessage(recepient, null, "Camera "
 								+ cammode + " Successfully", null, null);
@@ -764,6 +910,11 @@ public class Operation {
 						.equals(CommonUtilities.OPERATION_INSTALL_APPLICATION_BUNDLE)) {
 
 			try {
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				
 				if (code_input
 						.equals(CommonUtilities.OPERATION_INSTALL_APPLICATION)) {
 					JSONObject jobj = new JSONObject(data_input);
@@ -798,8 +949,15 @@ public class Operation {
 				params.put("code", code_input);
 				params.put("msgID", token);
 				params.put("status", "200");
+				
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				
 				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-					ServerUtilities.pushData(params, context);
+					//ServerUtilities.pushData(params, context);
 				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 					smsManager.sendTextMessage(recepient, null,
 							"Application uninstalled Successfully", null, null);
@@ -859,14 +1017,20 @@ public class Operation {
 					}
 				}
 
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
 				if (devicePolicyManager.getStorageEncryptionStatus() != devicePolicyManager.ENCRYPTION_STATUS_UNSUPPORTED) {
 					params.put("status", "200");
+					result.put("status", "true");
 				} else {
 					params.put("status", "400");
+					result.put("status", "false");
 				}
 				if (req_mode == REQUEST_MODE_NORMAL) {
 					if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-						ServerUtilities.pushData(params, context);
+//						//ServerUtilities.pushData(params, context);
 					} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 						smsManager.sendTextMessage(recepient, null,
 								"Storage Encrypted Successfully", null, null);
@@ -889,10 +1053,15 @@ public class Operation {
 				params.put("code", code_input);
 				params.put("msgID", token);
 				params.put("status", "200");
-
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				
 				if (req_mode == REQUEST_MODE_NORMAL) {
 					if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-						ServerUtilities.pushData(params, context);
+//						//ServerUtilities.pushData(params, context);
 					} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 						smsManager.sendTextMessage(recepient, null,
 								"Device Muted Successfully", null, null);
@@ -918,8 +1087,15 @@ public class Operation {
 				params.put("msgID", token);
 				params.put("status", "200");
 				params.put("data", conversations.getCallDetails().toString());
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				result.put("data", new JSONObject(conversations.getCallDetails().toString()));
+				
 				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-					ServerUtilities.pushData(params, context);
+					//ServerUtilities.pushData(params, context);
 				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 					smsManager.sendTextMessage(recepient, null, conversations
 							.getCallDetails().toString(), null, null);
@@ -943,8 +1119,15 @@ public class Operation {
 				params.put("msgID", token);
 				params.put("status", "200");
 				params.put("data", smsObj.toString());
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				result.put("data", smsObj);
+				
 				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-					ServerUtilities.pushData(params, context);
+					//ServerUtilities.pushData(params, context);
 				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 					smsManager.sendTextMessage(recepient, null,
 							smsObj.toString(), null, null);
@@ -965,8 +1148,16 @@ public class Operation {
 				params.put("status", "200");
 				params.put("data", deviceState.takeDataUsageSnapShot()
 						.toString());
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				result.put("data", new JSONObject(deviceState.takeDataUsageSnapShot()
+				          						.toString()));
+				
 				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-					ServerUtilities.pushData(params, context);
+					//ServerUtilities.pushData(params, context);
 				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 					smsManager.sendTextMessage(recepient, null,
 							dataObj.toString(), null, null);
@@ -1008,10 +1199,16 @@ public class Operation {
 				params.put("msgID", token);
 				params.put("status", "200");
 				params.put("data", dataObj.toString());
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				result.put("data", dataObj);
 
 				if (req_mode == REQUEST_MODE_NORMAL) {
 					if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-						ServerUtilities.pushData(params, context);
+						//ServerUtilities.pushData(params, context);
 					} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 						smsManager.sendTextMessage(recepient, null,
 								dataObj.toString(), null, null);
@@ -1042,8 +1239,14 @@ public class Operation {
 				params.put("code", code_input);
 				params.put("msgID", token);
 				params.put("status", "200");
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				
 				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-					ServerUtilities.pushData(params, context);
+					//ServerUtilities.pushData(params, context);
 				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 					smsManager.sendTextMessage(recepient, null,
 							"WebClip created Successfully", null, null);
@@ -1064,7 +1267,13 @@ public class Operation {
 			Map<String, String> inparams = new HashMap<String, String>();
 
 			JSONParser jp = new JSONParser();
+			
+			//for local notification
+			resultArr.put(result);
+			
+			
 			try {
+				result.put("code", code_input);
 				JSONObject jobj = new JSONObject(data_input);
 				if (!jobj.isNull("maxFailedAttempts")
 						&& jobj.get("maxFailedAttempts") != null) {
@@ -1150,16 +1359,23 @@ public class Operation {
 				inparams.put("code", code_input);
 				inparams.put("msgID", token);
 				inparams.put("status", "200");
+				result.put("status", "true");
 
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				params.put("status", "400");
+				try {
+	                result.put("status", "false");
+                } catch (JSONException e1) {
+	                // TODO Auto-generated catch block
+	                e1.printStackTrace();
+                }
 				e.printStackTrace();
 			} finally {
 				try {
 					if (req_mode == REQUEST_MODE_NORMAL) {
 						if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-							ServerUtilities.pushData(inparams, context);
+							//ServerUtilities.pushData(inparams, context);
 						} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 							smsManager.sendTextMessage(recepient, null,
 									"Password Policies Successfully Set", null,
@@ -1181,9 +1397,14 @@ public class Operation {
 			String emailname="", emailtype="", ic_username="", ic_password="", ic_hostname="";
 			long timout;
 			Map<String, String> inparams = new HashMap<String, String>();
-
+			//for local notification
+			resultArr.put(result);
+			
+			
+			
 			JSONParser jp = new JSONParser();
 			try {
+				result.put("code", code_input);
 				JSONObject jobj = new JSONObject(data_input);
 				if (!jobj.isNull("type")
 						&& jobj.get("type") != null) {
@@ -1220,16 +1441,23 @@ public class Operation {
 				inparams.put("code", code_input);
 				inparams.put("msgID", token);
 				inparams.put("status", "200");
+				result.put("status", "true");
 
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				params.put("status", "400");
+				try {
+	                result.put("status", "false");
+                } catch (JSONException e1) {
+	                // TODO Auto-generated catch block
+	                e1.printStackTrace();
+                }
 				e.printStackTrace();
 			} finally {
 				try {
 					if (req_mode == REQUEST_MODE_NORMAL) {
 						if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-							ServerUtilities.pushData(inparams, context);
+							//ServerUtilities.pushData(inparams, context);
 						} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 							smsManager.sendTextMessage(recepient, null,
 									"Email Configured Successfully Set", null,
@@ -1261,8 +1489,13 @@ public class Operation {
 				params.put("code", code_input);
 				params.put("msgID", token);
 				params.put("status", "200");
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
 				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-					ServerUtilities.pushData(params, context);
+					//ServerUtilities.pushData(params, context);
 				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 					smsManager.sendTextMessage(recepient, null,
 							"Application installed Successfully", null, null);
@@ -1294,8 +1527,14 @@ public class Operation {
 				inparams.put("code", code_input);
 				inparams.put("msgID", token);
 				inparams.put("status", "200");
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				
 				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-					ServerUtilities.pushData(inparams, context);
+					//ServerUtilities.pushData(inparams, context);
 				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 					smsManager.sendTextMessage(recepient, null,
 							"Lock code changed Successfully", null, null);
@@ -1313,7 +1552,7 @@ public class Operation {
 				try {
 					if (req_mode == REQUEST_MODE_NORMAL) {
 						if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-							ServerUtilities.pushData(inparams, context);
+							//ServerUtilities.pushData(inparams, context);
 						} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 							smsManager.sendTextMessage(recepient, null,
 									"Lock code changed Successfully", null,
@@ -1338,8 +1577,15 @@ public class Operation {
 				params.put("msgID", policy_token);
 				params.put("status", "200");
 				params.put("data", bundle_params.toString());
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				result.put("data", new JSONObject(bundle_params.toString()));
+				
 				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-					ServerUtilities.pushData(params, context);
+					//ServerUtilities.pushData(params, context);
 				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 					smsManager.sendTextMessage(recepient, null,
 							"Bundle Executed Successfully", null, null);
@@ -1349,8 +1595,10 @@ public class Operation {
 			}
 		} else if (code_input.equals(CommonUtilities.OPERATION_POLICY_MONITOR)) {
 			JSONArray sendjArray;
+			JSONObject jobj=null;
 			try {
-				JSONObject jobj = new JSONObject(this.data);
+				if(this.data!=null && !this.data.trim().equals(""))
+					jobj = new JSONObject(this.data);
 				
 				sendjArray = jobj.getJSONArray("policies");
 
@@ -1366,6 +1614,8 @@ public class Operation {
 				Log.e("PASSING TYPE : ",String.valueOf(type));
 				PolicyTester tester = new PolicyTester(context, sendjArray,
 						type, policy_token);
+				//for local notification
+				resultArr=tester.finalArray;
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -1378,8 +1628,13 @@ public class Operation {
 				inparams.put("code", code_input);
 				inparams.put("msgID", token);
 				inparams.put("status", "200");
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
 				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-					ServerUtilities.pushData(inparams, context);
+					//ServerUtilities.pushData(inparams, context);
 				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 					smsManager.sendTextMessage(recepient, null,
 							"Lock code changed Successfully", null, null);
@@ -1389,7 +1644,37 @@ public class Operation {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}else if (code_input
+		}else if (code_input.equals(CommonUtilities.OPERATION_ENTERPRISE_WIPE_DATA)) {
+			try {
+				Map<String, String> inparams = new HashMap<String, String>();
+
+				
+				inparams.put("code", code_input);
+				inparams.put("msgID", token);
+				inparams.put("status", "200");
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
+					//ServerUtilities.pushData(inparams, context);
+				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
+//					smsManager.sendTextMessage(recepient, null,
+//							"Lock code changed Successfully", null, null);
+				}
+				enterpriseWipe=true;
+				ServerUtils.clearAppData(context);
+				Intent intent = new Intent(context, SettingsActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			    context.startActivity(intent);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		else if (code_input
 				.equals(CommonUtilities.OPERATION_BLACKLIST_APPS)) {
 			ArrayList<PInfo> apps = appList.getInstalledApps(false); /*
 																	 * false =
@@ -1408,8 +1693,11 @@ public class Operation {
 			try{
 
 					JSONObject appsObj = new JSONObject(data_input);
-					JSONObject appObj = (JSONObject) appsObj.get("data");
-					String identity = (String) appObj.get("identity");
+					if (!appsObj.isNull("data")) {
+						appsObj = (JSONObject) appsObj.get("data");
+					}
+//					JSONObject appObj = (JSONObject) appsObj.get("data");
+					String identity = (String) appsObj.get("identity");
 					
 					for (int j = 0; j < max; j++) {
 						JSONObject jsonObj = new JSONObject();
@@ -1445,8 +1733,15 @@ public class Operation {
 				params.put("msgID", token);
 				params.put("status", "200");
 				params.put("data", jsonArray.toString());
+				
+				//for local notification
+				resultArr.put(result);
+				result.put("status", "true");
+				result.put("code", code_input);
+				result.put("data", jsonArray);
+				
 				if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-					ServerUtilities.pushData(params, context);
+					//ServerUtilities.pushData(params, context);
 				} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 					smsManager
 							.sendTextMessage(recepient, null, apz, null, null);
@@ -1465,6 +1760,7 @@ public class Operation {
 			}
 
 		}
+		return resultArr;
 	}
 
 
@@ -1484,7 +1780,9 @@ public class Operation {
 				type = (String) jobj.get("type");
 			}
 			
-			if (!jobj.isNull("os")) {
+			if (!jobj.isNull("platform_id")) {
+				os = (String) jobj.get("platform_id");
+			} else if (!jobj.isNull("os")) {
 				os = (String) jobj.get("os");
 			}
 			
@@ -1494,7 +1792,7 @@ public class Operation {
 			params.put("msgID", token);
 			params.put("status", "200");
 			if (mode == CommonUtilities.MESSAGE_MODE_GCM) {
-				ServerUtilities.pushData(params, context);
+				//ServerUtilities.pushData(params, context);
 			} else if (mode == CommonUtilities.MESSAGE_MODE_SMS) {
 				smsManager.sendTextMessage(recepient, null,
 						"Application installed Successfully", null, null);
@@ -1503,6 +1801,7 @@ public class Operation {
 			if (type.equalsIgnoreCase("Enterprise")) {
 				if(os != null){
 					if(os.equalsIgnoreCase("android")){
+						Log.e("Enterprise","android");
 						appList.installApp(appUrl);
 					}
 				}else{
@@ -1553,120 +1852,6 @@ public class Operation {
 		Log.v("VOLUME AFTER: ",
 				"" + audioManager.getStreamVolume(AudioManager.STREAM_RING));
 
-	}
-	
-	public void startUnRegistration(Context app_context){
-		final Context context = app_context;
-		try{
-		mRegisterTask = new AsyncTask<Void, Void, Void>() {
-
-            @Override
-            protected Void doInBackground(Void... params) {
-            	 Map<String, String> paramss = new HashMap<String, String>();
-            	 SharedPreferences mainPref = context
-         				.getSharedPreferences(
-         						context
-         						.getResources().getString(
-         								R.string.shared_pref_package),
-         						Context.MODE_PRIVATE);
-            	 String regId="";
-            	 regId = mainPref.getString(context
-								.getResources().getString(R.string.shared_pref_regId), "");
-            	 if(regId == null || regId.equals("")){
-         			regId = GCMRegistrar.getRegistrationId(context);
-         		}
-                 paramss.put("regid", regId);
-            	//ServerUtilities.sendToServer(context, "/UNRegister", paramss);
-                 boolean unregState=ServerUtilities.unregister(regId, context);
-                return null;
-            }
-            
-            //ProgressDialog progressDialog;
-            //declare other objects as per your need
-            @Override
-            protected void onPreExecute()
-            {
-                //progressDialog= ProgressDialog.show(context, "Unregistering Device","Please wait", true);
-
-                //do initialization of required objects objects here                
-            };    
-
-
-            @Override
-            protected void onPostExecute(Void result) {
-	            	try {
-	            		SharedPreferences mainPref = context
-								.getSharedPreferences(
-										context
-										.getResources().getString(
-												R.string.shared_pref_package),
-										Context.MODE_PRIVATE);
-						Editor editor = mainPref.edit();
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_policy), "");
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_isagreed), "0");
-						editor.putString(
-								context
-								.getResources().getString(R.string.shared_pref_regId), "");
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_registered), "0");
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_ip), "");
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_sender_id), "");
-						editor.putString(
-								context
-								.getResources().getString(
-										R.string.shared_pref_eula), "");
-						
-						editor.commit();
-	        		} catch (Exception e) {
-	        			// TODO Auto-generated catch block
-	        			e.printStackTrace();
-	        		}
-                mRegisterTask = null;
-                //progressDialog.dismiss();
-            }
-
-        };
-        mRegisterTask.execute(null, null, null);
-		}catch(Exception ex){
-			ex.printStackTrace();
-		}
-	}
-
-	/**
-	 * Issues a notification to inform the user that server has sent a message.
-	 */
-	private static void generateNotification(Context context, String message) {
-		int icon = R.drawable.ic_stat_gcm;
-		long when = System.currentTimeMillis();
-		NotificationManager notificationManager = (NotificationManager) context
-				.getSystemService(Context.NOTIFICATION_SERVICE);
-		Notification notification = new Notification(icon, message, when);
-		String title = context.getString(R.string.app_name);
-		Intent notificationIntent = new Intent(context, NotifyActivity.class);
-		notificationIntent.putExtra("notification", message);
-		// set intent so it does not start a new activity
-		notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-				| Intent.FLAG_ACTIVITY_SINGLE_TOP);
-		PendingIntent intent = PendingIntent.getActivity(context, 0,
-				notificationIntent, 0);
-		notification.setLatestEventInfo(context, title, message, intent);
-		notification.flags |= Notification.FLAG_SHOW_LIGHTS;
-		notificationManager.notify(0, notification);
-		Toast.makeText(context, message, Toast.LENGTH_LONG).show();
 	}
 
 }

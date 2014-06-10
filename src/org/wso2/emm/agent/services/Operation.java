@@ -1693,8 +1693,11 @@ public class Operation {
 			try{
 
 					JSONObject appsObj = new JSONObject(data_input);
-					JSONObject appObj = (JSONObject) appsObj.get("data");
-					String identity = (String) appObj.get("identity");
+					if (!appsObj.isNull("data")) {
+						appsObj = (JSONObject) appsObj.get("data");
+					}
+//					JSONObject appObj = (JSONObject) appsObj.get("data");
+					String identity = (String) appsObj.get("identity");
 					
 					for (int j = 0; j < max; j++) {
 						JSONObject jsonObj = new JSONObject();

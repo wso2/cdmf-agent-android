@@ -83,12 +83,8 @@ public final class Token {
 		} catch (ParseException e1) {
 			e1.printStackTrace();
 		}
-		Log.e("expire Date", "" + expirationDate);
-		Log.e("currentDate", "" + currentDate);
 		boolean expired = currentDate.after(expirationDate);
 		boolean equalDates = currentDate.equals(expirationDate);
-		Log.e("expired", "" + expired);
-		Log.e("equalDates", "" + equalDates);
 		if (expired == true || equalDates == true) {
 			return true;
 		}

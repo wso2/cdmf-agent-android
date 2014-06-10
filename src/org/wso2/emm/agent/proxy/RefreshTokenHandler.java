@@ -61,8 +61,6 @@ public class RefreshTokenHandler {
             headers.put("Content-Type", "application/x-www-form-urlencoded");
             
             Map<String, String> response_params = ServerUtilitiesTemp.postData(apiUtilities,headers);
-			Log.e("11",token.getAccessToken());
-			Log.e("11",authorizationString);
 			
 			response = response_params.get("response");
 			responseCode = response_params.get("status");
@@ -77,10 +75,11 @@ public class RefreshTokenHandler {
             String refreshToken = null;
             String accessToken = null;
             int timeToExpireSecond=3000;
+            IdentityProxy identityProxy = IdentityProxy.getInstance();
             try {
                 JSONObject response = new JSONObject(result);
                 Log.e("refresh Token Post",result.toString());
-                IdentityProxy identityProxy = IdentityProxy.getInstance();
+                
                 if (responseCode != null && responseCode.equals("200")) {
                     refreshToken = response.getString("refresh_token");
                     accessToken = response.getString("access_token");
@@ -115,6 +114,7 @@ public class RefreshTokenHandler {
                     identityProxy.receiveNewAccessToken(responseCode, errorDescription, token);
                 }
             } catch (JSONException e) {
+            	identityProxy.receiveNewAccessToken(responseCode, "", token);
                 e.printStackTrace();
             }
         }

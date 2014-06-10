@@ -58,7 +58,6 @@ public class ProcessMessage  implements APIResultCallBack{
     	try {
     		
 			JSONObject jobj = new JSONObject(message);
-			Log.v("JSON OUTPUT : ", jobj.toString());
             params.put("code", (String)jobj.get("message"));
             if(jobj.has("data")){
             	params.put("data", ((JSONObject)jobj.get("data")).toString());
@@ -118,18 +117,17 @@ public class ProcessMessage  implements APIResultCallBack{
 	public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
 		String responseStatus = "";
 		String response = "";
-		Log.e("onReceiveAPIResult",requestCode +" ");
 		if (requestCode == CommonUtilities.NOTIFICATION_REQUEST_CODE) { 
-			Log.e("onReceiveAPIResult",responseStatus +"2");
 			if (result != null) {
 				responseStatus = result.get(CommonUtilities.STATUS_KEY);
-				Log.e("onReceiveAPIResult",responseStatus +" ");
 				if (responseStatus != null) {
 					if (responseStatus.equals(CommonUtilities.REQUEST_SUCCESSFUL)) {
 						response = result.get("response");
 						//processMsg = new ProcessMessage(context, CommonUtilities.MESSAGE_MODE_LOCAL, response);
 						if(response!=null && !response.equals("") && !response.equals("null")){
-				    		Log.e("responseresponse", " "+response);
+							if(CommonUtilities.DEBUG_MODE_ENABLED){
+								Log.e(TAG, "onReceiveAPIResult- "+response);
+							}
 				    		messageExecute(response);
 						}
 					} 
@@ -186,7 +184,6 @@ public class ProcessMessage  implements APIResultCallBack{
     						LoggerCustom l =new LoggerCustom(context);
     						l.writeStringAsFile(arrToPut, "wso2log.txt");
     						
-    						Log.e("aslkdmlamsd",arrToPut);
     						editor.putString("policy", arrToPut);
     						editor.commit();
     		        	}
@@ -239,7 +236,9 @@ public class ProcessMessage  implements APIResultCallBack{
     			PayloadParser ps=new PayloadParser();
     			
     			replyPayload=ps.generateReply(repArray,regId);
-    			Log.e("reply Payload",replyPayload);
+    			if(CommonUtilities.DEBUG_MODE_ENABLED){
+    				Log.e(TAG,"replyPlayload -"+replyPayload);
+    			}
     			stillProcessing=false;
     			getOperations(replyPayload);
 			}

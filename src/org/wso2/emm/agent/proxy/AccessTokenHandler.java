@@ -70,7 +70,6 @@ public class AccessTokenHandler extends Activity {
             Map<String, String> response_params = ServerUtilitiesTemp.postData(apiUtilities,headers);
             response = response_params.get("response");
             responseCode = response_params.get("status");
-            Log.d(TAG, response);
             return response;
         }
 
@@ -85,7 +84,6 @@ public class AccessTokenHandler extends Activity {
 
                 if (responseCode != null && responseCode.equals("200")) {
                 	JSONObject response = new JSONObject(result);
-                	Log.e("onPostExecute acc",response.toString());
                     
                     try{
                     	accessToken = response.getString("access_token");
@@ -109,10 +107,6 @@ public class AccessTokenHandler extends Activity {
                         token.setDate(strDate);
                         editor.putString("date",strDate);
                         editor.commit();
-                       
-                        Log.d(TAG, refreshToken);
-                        Log.d(TAG, accessToken);
-                        
                         
                         identityProxy.receiveAccessToken(responseCode, "success", token);
                     } catch (JSONException e) {//admin user

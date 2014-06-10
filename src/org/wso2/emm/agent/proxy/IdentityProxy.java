@@ -97,15 +97,12 @@ public class IdentityProxy implements CallBack {
 		IdentityProxy.clientID = clientID;
 		IdentityProxy.clientSecret = clientSecret;
 		if (token == null) {
-			Log.e("getToken", "null");
 			getStoredToken();
 		} else {
 			boolean isExpired = Token.isValid(token.getDate());
 			if (!isExpired) {// not expired
-				Log.e("getToken", "true");
 				IdentityProxy.getInstance().receiveNewAccessToken("200", "success", token);
 			} else {
-				Log.e("getToken", "false");
 				getStoredToken();
 			}
 		}

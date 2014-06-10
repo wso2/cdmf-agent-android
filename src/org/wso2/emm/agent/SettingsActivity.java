@@ -318,17 +318,30 @@ public class SettingsActivity extends Activity implements APIResultCallBack,Toke
 			} else if (responseStatus
 					.equals(CommonUtilities.INTERNAL_SERVER_ERROR)) {
 				Log.e(TAG, "The value of status is null in onAPIAccessRecive()");
-				alertDialog = CommonDialogUtils
-						.getAlertDialogWithOneButtonAndTitle(
-								context,
-								getResources().getString(
-										R.string.title_head_connection_error),
-								getResources().getString(
-										R.string.error_internal_server),
-								getResources().getString(R.string.button_ok),
-								null);
-				alertDialog.show();
-				ServerUtils.clearAppData(context);
+
+				String isRegistered =
+				                      CommonUtilities.getPref(context,
+				                                              context.getResources()
+				                                                     .getString(R.string.shared_pref_registered));
+				if (isRegistered.equals("1")) {
+					Intent intent = null;
+					intent = new Intent(SettingsActivity.this, AlreadyRegisteredActivity.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					startActivity(intent);
+				} else {
+    				alertDialog = CommonDialogUtils
+    						.getAlertDialogWithOneButtonAndTitle(
+    								context,
+    								getResources().getString(
+    										R.string.title_head_connection_error),
+    								getResources().getString(
+    										R.string.error_internal_server),
+    								getResources().getString(R.string.button_ok),
+    								null);
+    				Log.e("null",alertDialog.getClass().getPackage().toString());
+    				alertDialog.show();
+				}
+				//ServerUtils.clearAppData(context);
 			} else {
 				Log.e(TAG, "The value of status is : " + responseStatus);
 				ServerUtils.clearAppData(context);

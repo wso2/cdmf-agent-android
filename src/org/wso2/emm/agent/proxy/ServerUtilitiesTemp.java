@@ -97,8 +97,6 @@ public class ServerUtilitiesTemp {
     		byte[] postData = payload.getBytes();             
     	    try {
     	    	httpPostWithHeaders.setEntity(new ByteArrayEntity(postData));
-    	    	if(httpclient==null)
-    	    		Log.e("httpclient","httpclient");
     	        HttpResponse response = httpclient.execute(httpPostWithHeaders);
     	        String status = String.valueOf(response.getStatusLine().getStatusCode());
     	        Log.d(TAG,status);

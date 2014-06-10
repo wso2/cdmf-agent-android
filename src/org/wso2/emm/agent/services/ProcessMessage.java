@@ -181,8 +181,6 @@ public class ProcessMessage  implements APIResultCallBack{
     						Editor editor = mainPref.edit();
     						String arrToPut=innerArr.getJSONObject(0).getJSONArray("data").toString();
     						
-    						LoggerCustom l =new LoggerCustom(context);
-    						l.writeStringAsFile(arrToPut, "wso2log.txt");
     						
     						editor.putString("policy", arrToPut);
     						editor.commit();

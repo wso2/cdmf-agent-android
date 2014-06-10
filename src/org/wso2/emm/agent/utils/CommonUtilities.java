@@ -27,7 +27,7 @@ import android.content.SharedPreferences;
  * app.
  */
 public class CommonUtilities {
-	public static boolean DEBUG_MODE_ENABLED = false;
+	public static boolean DEBUG_MODE_ENABLED = true;
 	public static boolean LOCAL_NOTIFICATIONS_ENABLED = true;
 	public static boolean GCM_ENABLED = false;
 

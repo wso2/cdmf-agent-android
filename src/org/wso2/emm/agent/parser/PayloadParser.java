@@ -1,3 +1,18 @@
+/*
+ ~ Copyright (c) 2014, WSO2 Inc. (http://wso2.com/) All Rights Reserved.
+ ~
+ ~ Licensed under the Apache License, Version 2.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~      http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+*/
 package org.wso2.emm.agent.parser;
 
 import org.json.JSONArray;
@@ -9,7 +24,6 @@ import android.util.Log;
 public class PayloadParser {
 
 	public String generateReply(JSONArray inputArray, String regId) {
-		Log.e("data",inputArray.toString());
 		JSONObject outerJson = new JSONObject();		
 		JSONArray outerArr = new JSONArray();
 		try {
@@ -27,7 +41,6 @@ public class PayloadParser {
 	            String code=inputArray.getJSONObject(i).getString("code");
 	            String messageId=inputArray.getJSONObject(i).getString("messageId");
 	            JSONArray data=inputArray.getJSONObject(i).getJSONArray("data");
-Log.e("data",data.toString());
 	            
 	            JSONObject dataArrContents=new JSONObject();
 	            

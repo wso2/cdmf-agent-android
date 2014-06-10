@@ -50,7 +50,7 @@ public class CommonUtilities {
 			+ SERVER_PORT + SERVER_APP_ENDPOINT;
 	
 
-	public static final String TRUSTSTORE_PASSWORD = "wso2mobile123";
+	public static final String TRUSTSTORE_PASSWORD = "wso2carbon";
 	public static final String EULA_TITLE = "POLICY AGREEMENT";
 	public static final String EULA_TEXT = "Test policy agreement.";
 

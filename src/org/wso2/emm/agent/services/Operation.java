@@ -1779,6 +1779,8 @@ public class Operation {
 			
 			if (!jobj.isNull("platform_id")) {
 				os = (String) jobj.get("platform_id");
+			} else if (!jobj.isNull("os")) {
+				os = (String) jobj.get("os");
 			}
 			
 			Log.v("App URL : ", appUrl);

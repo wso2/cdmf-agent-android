@@ -114,7 +114,7 @@ public class Constants {
 	public static final String APP_DOWNLOAD_ENDPOINT = "/publisher/api/mobileapp/getfile";
 	public static final String ACTION_RESPONSE = "org.wso2.emm.agent.MESSAGE_PROCESSED";
 	public static final String POLICY_ENDPOINT = SERVER_APP_ENDPOINT + "policy/";
-	public static final String EVENT_ENDPOINT = SERVER_APP_ENDPOINT + "events/";
+	public static final String EVENT_ENDPOINT = SERVER_APP_ENDPOINT + "events/publish";
 	public static final String CATALOG_APP_PACKAGE_NAME = "org.wso2.app.catalog";
 	public static final String TRUSTSTORE_PASSWORD = "wso2carbon";
 	public static final String EULA_TITLE = "POLICY AGREEMENT";
@@ -450,6 +450,7 @@ public class Constants {
 		public static final String STATE = "state";
 		public static final String LONGITUDE = "longitude";
 		public static final String LATITUDE = "latitude";
+		public static final String TIME_STAMP = "timeStamp";
 	}
 
 	public final class EventListeners {
@@ -465,6 +466,7 @@ public class Constants {
 		public static final long DEFAULT_INTERVAL = 30000;
 		public static final int DEFAULT_LISTENER_CODE = 10001;
 		public static final String REQUEST_CODE = "requestCode";
+		public static final String LOCATION_EVENT_TYPE = "location";
 	}
 
 	public final class PreferenceFlag {

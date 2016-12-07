@@ -42,6 +42,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.emm.agent.AlertActivity;
+import org.wso2.emm.agent.AlreadyRegisteredActivity;
 import org.wso2.emm.agent.AndroidAgentException;
 import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.api.ApplicationManager;
@@ -57,6 +58,7 @@ import org.wso2.emm.agent.beans.Operation;
 import org.wso2.emm.agent.beans.WifiProfile;
 import org.wso2.emm.agent.events.beans.EventPayload;
 import org.wso2.emm.agent.events.listeners.WifiConfigCreationListener;
+import org.wso2.emm.agent.events.publisher.HttpDataPublisher;
 import org.wso2.emm.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.emm.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.emm.agent.services.DeviceInfoPayload;
@@ -69,6 +71,7 @@ import org.wso2.emm.agent.services.location.DeviceLocation;
 import org.wso2.emm.agent.utils.CommonUtils;
 import org.wso2.emm.agent.utils.Constants;
 import org.wso2.emm.agent.utils.Preference;
+import org.wso2.emm.agent.utils.UserPreference;
 
 import java.io.File;
 import java.io.IOException;
@@ -194,13 +197,38 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         DeviceInfoPayload deviceInfoPayload = new DeviceInfoPayload(context);
         deviceInfoPayload.build();
         String replyPayload = deviceInfoPayload.getDeviceInfoPayload();
-
+        // Check whether the location publishing is enabled, before publishing the location events to the server
+        if (UserPreference.isLoctionPublishingEnabled) {
+            // publish location notifications for every device info operation invoked
+            publishLocationInfo(deviceInfoPayload.getLocationPayload());
+        }
         operation.setOperationResponse(replyPayload);
         operation.setStatus(resources.getString(R.string.operation_value_completed));
         resultBuilder.build(operation);
-
         if(Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "getDeviceInfo executed.");
+        }
+    }
+
+    /**
+     * To publish the location event to the server
+     *
+     * @param locationPayload Payload with location details
+     */
+    private void publishLocationInfo(String locationPayload) {
+        if (locationPayload != null && !locationPayload.isEmpty()) {
+            EventPayload eventPayload = new EventPayload();
+            eventPayload.setPayload(locationPayload);
+            eventPayload.setType(Constants.EventListeners.LOCATION_EVENT_TYPE);
+            HttpDataPublisher httpDataPublisher = new HttpDataPublisher();
+            httpDataPublisher.publish(eventPayload);
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Location Event is published.");
+            }
+        } else {
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Location information is not found in the device.");
+            }
         }
     }
 

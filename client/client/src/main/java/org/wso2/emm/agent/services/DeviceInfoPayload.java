@@ -37,6 +37,7 @@ import org.wso2.emm.agent.utils.Constants;
 import org.wso2.emm.agent.utils.Preference;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -346,5 +347,24 @@ public class DeviceInfoPayload {
             Log.e(TAG, "Error occurred while building device info payload", e);
         }
         return null;
+    }
+
+    /**
+     * Returns the location payload.
+     *
+     * @return - Location info payload as a string
+     */
+    public String getLocationPayload() {
+        Location deviceLocation = locationService.getLastKnownLocation();
+        String locationString = null;
+        if (deviceLocation != null) {
+            double latitude = deviceLocation.getLatitude();
+            double longitude = deviceLocation.getLongitude();
+            if (latitude != 0 && longitude != 0) {
+                locationString = "{" + Constants.LocationInfo.LATITUDE + ":" + latitude + "," + Constants.LocationInfo.LONGITUDE +
+                        ":" + longitude + "," + Constants.LocationInfo.TIME_STAMP + ":" + new Date().getTime() + "}";
+            }
+        }
+        return locationString;
     }
 }

@@ -45,10 +45,11 @@ public class Constants {
 	public static final String API_SERVER_PORT = "80";
 	public static final String OWNERSHIP_BYOD = "BYOD";
 	public static final String OWNERSHIP_COPE = "COPE";
+	public static final String OWNERSHIP_COSU = "COSU";
 	// Set DEFAULT_OWNERSHIP to null if no overiding is needed. Other possible values are,
 	// OWNERSHIP_BYOD or OWNERSHIP_COPE. If you are using the mutual SSL authentication
 	// This value must be set to a value other than null.
-	public static final String DEFAULT_OWNERSHIP = null;
+	public static final String DEFAULT_OWNERSHIP = OWNERSHIP_COSU;
 	public static final String PENDING_APP_INSTALLATIONS = "PENDING_APP_INSTALLATIONS";
 	// This is set to override the server host name retrieving screen. If overriding is not
 	// needed, set this to null.

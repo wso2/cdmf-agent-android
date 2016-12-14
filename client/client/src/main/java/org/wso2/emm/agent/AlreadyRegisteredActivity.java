@@ -48,6 +48,7 @@ import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtils;
 import org.wso2.emm.agent.utils.Constants;
 import org.wso2.emm.agent.utils.Preference;
+import org.wso2.emm.agent.utils.UserPreference;
 
 import java.util.Map;
 
@@ -174,6 +175,24 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		}
 	};
 
+	/**
+	 * Dialog box click listener for publishing location details to the server as event
+	 */
+    DialogInterface.OnClickListener locationPublishingEnableDisableListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            boolean isEventListeningEnabled = UserPreference.isLoctionPublishingEnabled;
+            switch (which) {
+                case DialogInterface.BUTTON_POSITIVE:
+                    UserPreference.isLoctionPublishingEnabled = !isEventListeningEnabled;
+					dialog.dismiss();
+                    break;
+                case DialogInterface.BUTTON_NEGATIVE:
+					dialog.dismiss();
+                    break;
+            }
+        }
+    };
 
 	/**
 	 * Send unregistration request.
@@ -243,6 +262,9 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 				return true;
 			case R.id.ip_setting:
 				loadServerDetailsActivity();
+				return true;
+			case R.id.location_setting:
+				showEventListeningEnableDisableDialog();
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
@@ -439,6 +461,29 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
                       getResources().getString(R.string.yes),
                       getResources().getString(R.string.no),
                       dialogClickListener, dialogClickListener);
+		alertDialog.show();
+	}
+
+	/**
+	 * Display Location Event listening enable or disable confirmation dialog
+	 */
+	private void showEventListeningEnableDisableDialog() {
+		AlertDialog.Builder alertDialog;
+		if (!UserPreference.isLoctionPublishingEnabled) {
+			alertDialog = CommonDialogUtils.getAlertDialogWithTwoButtonAndTitle(context,
+							null,
+							getResources().getString(R.string.dialog__location_event_listening_enable),
+							getResources().getString(R.string.yes),
+							getResources().getString(R.string.no),
+					        locationPublishingEnableDisableListener, locationPublishingEnableDisableListener);
+		} else {
+			alertDialog = CommonDialogUtils.getAlertDialogWithTwoButtonAndTitle(context,
+					null,
+					getResources().getString(R.string.dialog_location_event_listening_disable),
+					getResources().getString(R.string.yes),
+					getResources().getString(R.string.no),
+					locationPublishingEnableDisableListener, locationPublishingEnableDisableListener);
+		}
 		alertDialog.show();
 	}
 

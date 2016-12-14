@@ -32,6 +32,9 @@
             <item
                 android:id="@+id/ip_setting"
                 android:title="@string/menu_item_ip"></item>
+            <item
+                android:id="@+id/location_setting"
+                android:title="@string/menu_item_location_event"></item>
         </menu>
     </item>
 

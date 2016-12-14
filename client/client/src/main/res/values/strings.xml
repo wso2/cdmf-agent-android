@@ -67,6 +67,7 @@
     <string name="menu_item_operations">Operations</string>
     <string name="menu_item_pin">Change PIN</string>
     <string name="menu_item_ip">Change Server Address</string>
+    <string name="menu_item_location_event">Enable/Disable Event Listening</string>
     <string name="menu_item_log">Debug Log</string>
     <string name="title_activity_alert">Message from EMM</string>
     <string name="device_admin_enable_alert">This will enable device administration</string>
@@ -266,6 +267,8 @@
     <string name="dialog_init_end"> device, are you sure you want to proceed ?</string>
     <string name="dialog_init_end_general"> are you sure you want to proceed ?</string>
     <string name="dialog_unregister">You are trying to unregister from EMM. Are you sure you want to proceed ?</string>
+    <string name="dialog__location_event_listening_enable">You are trying to enable location event listening. Are you sure you want to proceed?</string>
+    <string name="dialog_location_event_listening_disable">You are trying to disable location event listening. Are you sure you want to proceed?</string>
     <string name="dialog_system_app_required">Please install the WSO2 System App to continue enrollment as a COPE user.</string>
 
 

@@ -185,8 +185,10 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
             switch (which) {
                 case DialogInterface.BUTTON_POSITIVE:
                     UserPreference.isLoctionPublishingEnabled = !isEventListeningEnabled;
+					dialog.dismiss();
                     break;
                 case DialogInterface.BUTTON_NEGATIVE:
+					dialog.dismiss();
                     break;
             }
         }

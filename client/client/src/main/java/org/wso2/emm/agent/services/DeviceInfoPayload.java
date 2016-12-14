@@ -25,6 +25,9 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.wso2.emm.agent.AndroidAgentException;
 import org.wso2.emm.agent.api.DeviceInfo;
 import org.wso2.emm.agent.api.DeviceState;
@@ -361,8 +364,15 @@ public class DeviceInfoPayload {
             double latitude = deviceLocation.getLatitude();
             double longitude = deviceLocation.getLongitude();
             if (latitude != 0 && longitude != 0) {
-                locationString = "{" + Constants.LocationInfo.LATITUDE + ":" + latitude + "," + Constants.LocationInfo.LONGITUDE +
-                        ":" + longitude + "," + Constants.LocationInfo.TIME_STAMP + ":" + new Date().getTime() + "}";
+                JSONObject locationObject = new JSONObject();
+                try {
+                    locationObject.put(Constants.LocationInfo.LATITUDE, latitude);
+                    locationObject.put(Constants.LocationInfo.LONGITUDE, longitude);
+                    locationObject.put(Constants.LocationInfo.TIME_STAMP, new Date().getTime());
+                    locationString = locationObject.toString();
+                } catch (JSONException e) {
+                    Log.e(TAG, "Error occured while creating a location payload for location event publishing", e);
+                }
             }
         }
         return locationString;

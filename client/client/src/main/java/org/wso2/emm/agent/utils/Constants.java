@@ -111,6 +111,13 @@ public class Constants {
 	public static final String NOTIFICATION_ENDPOINT  = "/pending-operations";
 	public static final String GOOGLE_PLAY_APP_URI = "market://details?id=";
 	public static final String DYNAMIC_CLIENT_REGISTER_ENDPOINT = "/dynamic-client-web/register";
+	public final static String API_APPLICATION_CONTEXT =
+			"/api-application-registration";
+	public final static String API_APPLICATION_REGISTRATION_CONTEXT = API_APPLICATION_CONTEXT +
+			"/register";
+	public final static String API_APPLICATION_UNREGISTRATION_CONTEXT = API_APPLICATION_CONTEXT +
+			"/unregister";
+	public final static String API_APPLICATION_NAME_PREFIX = "cdmf_android_";
 	public static final String APP_LIST_ENDPOINT = "/api/appm/publisher/v1.1/apps/mobileapp?field-filter=all";
 	public static final String APP_DOWNLOAD_ENDPOINT = "/publisher/api/mobileapp/getfile";
 	public static final String ACTION_RESPONSE = "org.wso2.emm.agent.MESSAGE_PROCESSED";

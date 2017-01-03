@@ -48,7 +48,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.emm.agent.api.DeviceInfo;
-import org.wso2.emm.agent.beans.RegistrationProfile;
 import org.wso2.emm.agent.beans.ServerConfig;
 import org.wso2.emm.agent.proxy.IdentityProxy;
 import org.wso2.emm.agent.proxy.authenticators.AuthenticatorFactory;
@@ -63,6 +62,7 @@ import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtils;
 import org.wso2.emm.agent.utils.Constants;
 import org.wso2.emm.agent.utils.Preference;
+import org.wso2.emm.agent.beans.ApiRegistrationProfile;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -91,6 +91,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 	private DeviceInfo deviceInfo;
 	private static final String TAG = AuthenticationActivity.class.getSimpleName();
+	private static final String SUBSCRIBED_API = "device_management";
 	private ClientAuthenticator authenticator;
 
 	@Override
@@ -261,11 +262,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 						JSONObject payload = new JSONObject(clientCredentials);
 						clientId = payload.getString(Constants.CLIENT_ID);
 						clientSecret = payload.getString(Constants.CLIENT_SECRET);
-						clientName = payload.getString(Constants.CLIENT_NAME);
 
-						if (clientName != null && !clientName.isEmpty()) {
-							Preference.putString(context, Constants.CLIENT_NAME, clientName);
-						}
 						if (clientId != null && !clientId.isEmpty() &&
 						    clientSecret != null && !clientSecret.isEmpty()) {
 							initializeIDPLib(clientId, clientSecret);
@@ -980,18 +977,18 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		if (ipSaved != null && !ipSaved.isEmpty()) {
 			ServerConfig utils = new ServerConfig();
 			utils.setServerIP(ipSaved);
-
-			RegistrationProfile profile = new RegistrationProfile();
-			profile.setCallbackUrl(Constants.EMPTY_STRING);
-			profile.setClientName(deviceInfo.getDeviceId());
-			profile.setGrantType(Constants.GRANT_TYPE);
-			profile.setOwner(usernameVal);
-			profile.setTokenScope(Constants.TOKEN_SCOPE);
-			profile.setApplicationType(Constants.APPLICATION_TYPE);
-
+			String applicationName = Constants.API_APPLICATION_NAME_PREFIX +
+					deviceInfo.getDeviceId();
+			ApiRegistrationProfile apiRegistrationProfile = new ApiRegistrationProfile();
+			apiRegistrationProfile.setApplicationName(applicationName);
+			apiRegistrationProfile.setIsAllowedToAllDomains(false);
+			apiRegistrationProfile.setIsMappingAnExistingOAuthApp(false);
+			apiRegistrationProfile.setTags(new String[]{SUBSCRIBED_API});
 			DynamicClientManager dynamicClientManager = new DynamicClientManager();
 			try {
-				dynamicClientManager.getClientCredentials(profile, utils, context, AuthenticationActivity.this);
+				dynamicClientManager.getClientCredentials(usernameVal, passwordVal, utils, context,
+						AuthenticationActivity.this, apiRegistrationProfile);
+				Preference.putString(context, Constants.CLIENT_NAME, applicationName);
 			} catch (AndroidAgentException e) {
 				Log.e(TAG, "Client credentials generation failed" + e);
 				CommonDialogUtils.stopProgressDialog(progressDialog);

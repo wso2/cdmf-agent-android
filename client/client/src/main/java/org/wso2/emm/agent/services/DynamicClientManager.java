@@ -18,7 +18,6 @@
 package org.wso2.emm.agent.services;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.util.Log;
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
@@ -27,12 +26,11 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.JsonRequest;
-import com.android.volley.toolbox.StringRequest;
+
+import org.apache.commons.codec.binary.Base64;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.emm.agent.AndroidAgentException;
-import org.wso2.emm.agent.beans.RegistrationProfile;
 import org.wso2.emm.agent.beans.ServerConfig;
 import org.wso2.emm.agent.beans.UnregisterProfile;
 import org.wso2.emm.agent.proxy.IDPTokenManagerException;
@@ -40,16 +38,17 @@ import org.wso2.emm.agent.proxy.IdentityProxy;
 import org.wso2.emm.agent.proxy.beans.EndPointInfo;
 import org.wso2.emm.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.emm.agent.proxy.utils.ServerUtilities;
+import org.wso2.emm.agent.utils.CommonUtils;
 import org.wso2.emm.agent.utils.Constants;
+import org.wso2.emm.agent.beans.ApiRegistrationProfile;
+
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 /**
  * This class is used to register and unregister oauth application.
  */
-public class DynamicClientManager {
+public class DynamicClientManager implements APIResultCallBack {
 
     private static final String TAG = DynamicClientManager.class.getSimpleName();
     private static final String USER_ID = "userId";
@@ -59,25 +58,26 @@ public class DynamicClientManager {
     /**
      * This method is used to register an oauth application in the backend.
      *
-     * @param profile Payload of the register request.
+     * @param apiRegistrationProfile Payload of the register request.
      * @param utils Server configurations.
      *
      * @return returns consumer key and consumer secret if success. Else returns null
      *         if it fails to register.
      * @throws AndroidAgentException
      */
-    public void getClientCredentials(RegistrationProfile profile, ServerConfig utils, Context context,
-                                     APIResultCallBack apiResultCallback)
+    public void getClientCredentials(String username, String password, ServerConfig utils,
+                                     Context context, APIResultCallBack apiResultCallback,
+                                     ApiRegistrationProfile apiRegistrationProfile)
             throws AndroidAgentException {
         IdentityProxy.getInstance().setContext(context);
         EndPointInfo endPointInfo = new EndPointInfo();
         String endPoint = utils.getAPIServerURL(context) +
-                org.wso2.emm.agent.utils.Constants.DYNAMIC_CLIENT_REGISTER_ENDPOINT;
+                org.wso2.emm.agent.utils.Constants.API_APPLICATION_REGISTRATION_CONTEXT;
         endPointInfo.setHttpMethod(org.wso2.emm.agent.proxy.utils.Constants.HTTP_METHODS.POST);
         endPointInfo.setEndPoint(endPoint);
-        endPointInfo.setRequestParams(profile.toJSON());
-        endPointInfo.setRequestParamsMap(profile.toMap());
-        sendRequest(endPointInfo, apiResultCallback, Constants.DYNAMIC_CLIENT_REGISTER_REQUEST_CODE);
+        endPointInfo.setRequestParams(apiRegistrationProfile.toJSON());
+        sendRequest(endPointInfo, apiResultCallback, Constants.DYNAMIC_CLIENT_REGISTER_REQUEST_CODE,
+                username, password);
     }
 
     /**
@@ -95,15 +95,11 @@ public class DynamicClientManager {
             throws AndroidAgentException {
         StringBuilder endPoint = new StringBuilder();
         endPoint.append(utils.getAPIServerURL(context));
-        endPoint.append(Constants.DYNAMIC_CLIENT_REGISTER_ENDPOINT);
-        endPoint.append("?" + USER_ID + "=" + profile.getUserId());
-        endPoint.append("&" + CONSUMER_KEY + "=" + profile.getConsumerKey());
-        endPoint.append("&" + APPLICATION_NAME + "=" + profile.getApplicationName());
-
-        EndPointInfo endPointInfo = new EndPointInfo();
-        endPointInfo.setHttpMethod(org.wso2.emm.agent.proxy.utils.Constants.HTTP_METHODS.DELETE);
-        endPointInfo.setEndPoint(endPoint.toString());
-        sendRequest(endPointInfo, apiResultCallback, Constants.DYNAMIC_CLIENT_UNREGISTER_REQUEST_CODE);
+        endPoint.append(Constants.API_APPLICATION_UNREGISTRATION_CONTEXT);
+        endPoint.append("?" + APPLICATION_NAME + "=" + profile.getApplicationName());
+        CommonUtils.callSecuredAPI(context, endPoint.toString(),
+                org.wso2.emm.agent.proxy.utils.Constants.HTTP_METHODS.DELETE,
+                null, DynamicClientManager.this, Constants.UNREGISTER_REQUEST_CODE);
         return true;
     }
 
@@ -113,8 +109,9 @@ public class DynamicClientManager {
      * available for sending requests is secured with token. Therefor this can be used
      * to send requests without tokens.
      */
-    private void sendRequest(final EndPointInfo endPointInfo, final APIResultCallBack apiResultCallback,
-                                            final int requestCode) {
+    private void sendRequest(final EndPointInfo endPointInfo,
+                             final APIResultCallBack apiResultCallback, final int requestCode,
+                             final String username, final String password) {
         RequestQueue queue =  null;
         int requestMethod = 0;
         org.wso2.emm.agent.proxy.utils.Constants.HTTP_METHODS httpMethod = endPointInfo.getHttpMethod();
@@ -174,6 +171,12 @@ public class DynamicClientManager {
                     headers.put("Content-Type", "application/json");
                     headers.put("Accept", "application/json");
                     headers.put("User-Agent", Constants.USER_AGENT);
+                    if (username != null && password != null) {
+                        String basicAuthValue = basicAuthValue = "Basic " +
+                                new String(Base64.encodeBase64((username + ":" + password)
+                                        .getBytes()));
+                        headers.put("Authorization", basicAuthValue);
+                    }
                     return headers;
                 }
             };
@@ -184,4 +187,6 @@ public class DynamicClientManager {
         queue.add(request);
     }
 
+    @Override
+    public void onReceiveAPIResult(Map<String, String> result, int requestCode) {}
 }

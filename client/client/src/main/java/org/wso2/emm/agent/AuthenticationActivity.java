@@ -91,7 +91,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 	private DeviceInfo deviceInfo;
 	private static final String TAG = AuthenticationActivity.class.getSimpleName();
-	private static final String SUBSCRIBED_API = "device_management";
+	private static final String[] SUBSCRIBED_API = new String[]{"android"};
 	private ClientAuthenticator authenticator;
 
 	@Override
@@ -983,7 +983,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			apiRegistrationProfile.setApplicationName(applicationName);
 			apiRegistrationProfile.setIsAllowedToAllDomains(false);
 			apiRegistrationProfile.setIsMappingAnExistingOAuthApp(false);
-			apiRegistrationProfile.setTags(new String[]{SUBSCRIBED_API});
+			apiRegistrationProfile.setTags(SUBSCRIBED_API);
 			DynamicClientManager dynamicClientManager = new DynamicClientManager();
 			try {
 				dynamicClientManager.getClientCredentials(usernameVal, passwordVal, utils, context,

@@ -53,6 +53,7 @@ public class AccessTokenHandler {
     private static final String TAG = "AccessTokenHandler";
     private static final String USERNAME_LABEL = "username";
     private static final String PASSWORD_LABEL = "password";
+    private static final String SCOPE_LABEL = "scope";
     private static final String TENANT_DOMAIN_LABEL = "tenantDomain";
     private static final String COLON = ":";
     private static final String SCOPES = "default appm:read device:android:enroll device:android:event:manage " +
@@ -125,6 +126,7 @@ public class AccessTokenHandler {
                 requestParams.put(Constants.GRANT_TYPE, Constants.GRANT_TYPE_PASSWORD);
                 requestParams.put(USERNAME_LABEL, info.getUsername());
                 requestParams.put(PASSWORD_LABEL, info.getPassword());
+                requestParams.put(SCOPE_LABEL, Constants.SCOPES);
                 if (info.getTenantDomain() != null) {
                     requestParams.put(TENANT_DOMAIN_LABEL, info.getTenantDomain());
                 }

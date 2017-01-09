@@ -69,7 +69,7 @@ public class Constants {
 	public final static String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
 	public final static String REDIRECT_URL = "redirect_uri";
 	public final static String SCOPE = "scope";
-	public final static String SCOPES = "perm:android:enroll";
+	public final static String SCOPES = "default appm:read perm:android:enroll";
 	public final static String OPENID = "openid";
 	public static final String DATE_LABEL = "date";
 	public final static String SERVER_RESPONSE_BODY = "response";

@@ -25,6 +25,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.text.Editable;
@@ -122,6 +123,12 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		if(Constants.HIDE_LOGIN_UI) {
 			loginLayout.setVisibility(View.GONE);
 		}
+// TODO: Uncomment
+//		if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
+//			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//				startLockTask();
+//			}
+//		}
 
 		etUsername.addTextChangedListener(new TextWatcher() {
 			@Override

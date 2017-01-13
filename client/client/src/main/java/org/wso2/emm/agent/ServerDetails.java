@@ -87,9 +87,16 @@ public class ServerDetails extends Activity {
 			boolean isDeviceActive = Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE);
 
 			if (isDeviceActive) {
-				Intent intent = new Intent(ServerDetails.this, AlreadyRegisteredActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-				startActivity(intent);
+				if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
+					Intent intent = new Intent(ServerDetails.this, AlreadyRegisteredActivity.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					startActivity(intent);
+				}else{
+					Intent intent = new Intent(ServerDetails.this, AlreadyRegisteredActivity.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					startActivity(intent);
+				}
+
 			}
 
 			evServerIP.addTextChangedListener(new TextWatcher() {

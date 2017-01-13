@@ -49,11 +49,11 @@ public class Constants {
 	// Set DEFAULT_OWNERSHIP to null if no overiding is needed. Other possible values are,
 	// OWNERSHIP_BYOD or OWNERSHIP_COPE. If you are using the mutual SSL authentication
 	// This value must be set to a value other than null.
-	public static final String DEFAULT_OWNERSHIP = null;
+	public static final String DEFAULT_OWNERSHIP = OWNERSHIP_COSU;
 	public static final String PENDING_APP_INSTALLATIONS = "PENDING_APP_INSTALLATIONS";
 	// This is set to override the server host name retrieving screen. If overriding is not
 	// needed, set this to null.
-	public static final String DEFAULT_HOST = null;
+	public static final String DEFAULT_HOST = "http://192.168.8.100:8280";
 	public static final String APP_MANAGER_HOST = null;
 	public static final String SYSTEM_SERVICE_PACKAGE = "org.wso2.emm.system.service";
 	public static final String AGENT_PACKAGE = "org.wso2.emm.agent";
@@ -67,6 +67,13 @@ public class Constants {
 	public static final boolean HIDE_UNREGISTER_BUTTON = false;
 	public static final boolean SKIP_WORK_PROFILE_CREATION = false;
 	public static final boolean HIDE_ERROR_DIALOG = false;
+
+	//COSU Configurations
+	public static final String[] ANDROID_COSU_PERMISSIONS = {"android.permission.READ_PHONE_STATE",
+	"android.permission.READ_EXTERNAL_STORAGE", "android.permission.ACCESS_COARSE_LOCATION",
+	"android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.ACCESS_FINE_LOCATION",
+	"android.permission.ACCESS_FINE_LOCATION", "android.permission.WRITE_SETTINGS",
+	};
 
 	/**
 	 * Log publishers

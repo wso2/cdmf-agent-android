@@ -22,6 +22,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -37,6 +38,7 @@ import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
 
 import org.wso2.emm.agent.utils.CommonDialogUtils;
+import org.wso2.emm.agent.utils.Constants;
 import org.wso2.emm.agent.utils.Preference;
 
 /**
@@ -89,6 +91,13 @@ public class PinCodeActivity extends Activity {
 		btnPin.setEnabled(false);
 		btnPin.setBackground(getResources().getDrawable(R.drawable.btn_grey));
 		btnPin.setTextColor(getResources().getColor(R.color.black));
+
+		// TODO: Uncomment
+//		if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
+//			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//				startLockTask();
+//			}
+//		}
 
 		if (AlreadyRegisteredActivity.class.getSimpleName().equals(fromActivity)) {
 			txtPin.setVisibility(View.GONE);

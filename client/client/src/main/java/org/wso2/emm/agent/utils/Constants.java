@@ -119,7 +119,7 @@ public class Constants {
 			"/unregister";
 	public final static String API_APPLICATION_NAME_PREFIX = "cdmf_android_";
 	public static final String APP_LIST_ENDPOINT = "/api/appm/publisher/v1.1/apps/mobileapp?field-filter=all";
-	public static final String APP_DOWNLOAD_ENDPOINT = "/publisher/api/mobileapp/getfile";
+	public static final String APP_DOWNLOAD_ENDPOINT = "/store/api/mobileapp/getfile";
 	public static final String ACTION_RESPONSE = "org.wso2.emm.agent.MESSAGE_PROCESSED";
 	public static final String POLICY_ENDPOINT = SERVER_APP_ENDPOINT + "policy/";
 	public static final String EVENT_ENDPOINT = SERVER_APP_ENDPOINT + "events/publish";

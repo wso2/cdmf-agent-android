@@ -71,7 +71,6 @@ import org.wso2.emm.agent.services.location.DeviceLocation;
 import org.wso2.emm.agent.utils.CommonUtils;
 import org.wso2.emm.agent.utils.Constants;
 import org.wso2.emm.agent.utils.Preference;
-import org.wso2.emm.agent.utils.UserPreference;
 
 import java.io.File;
 import java.io.IOException;
@@ -198,7 +197,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         deviceInfoPayload.build();
         String replyPayload = deviceInfoPayload.getDeviceInfoPayload();
         // Check whether the location publishing is enabled, before publishing the location events to the server
-        if (UserPreference.isLoctionPublishingEnabled) {
+        if (Preference.getBoolean(context, Constants.PreferenceFlag.IS_LOCATION_EVENT_PUBLICATION_ENABLED)) {
             // publish location notifications for every device info operation invoked
             publishLocationInfo(deviceInfoPayload.getLocationPayload());
         }

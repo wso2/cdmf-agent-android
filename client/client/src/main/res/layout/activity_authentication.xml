@@ -102,6 +102,16 @@
                 android:layout_marginTop="30dp"
                 android:background="@drawable/btn_orange"
                 android:text="@string/txt_register" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center"
+                android:visibility="gone"
+                android:id="@+id/textViewWipeData"
+                android:text="@string/wipe_the_device"/>
+
         </LinearLayout>
 
         <LinearLayout

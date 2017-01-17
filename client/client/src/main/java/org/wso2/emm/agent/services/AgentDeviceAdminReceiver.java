@@ -63,9 +63,7 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
     public void onEnabled(final Context context, Intent intent) {
         super.onEnabled(context, intent);
 
-        if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
-
-        } else {
+        if (Constants.DEFAULT_OWNERSHIP != Constants.OWNERSHIP_COSU) {
             Resources resources = context.getResources();
             Preference.putBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE, true);
             String notifier = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
@@ -191,6 +189,15 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
 
             // Disallowing Safe Boot
             setUserRestriction(devicePolicyManager, cdmDeviceAdmin, DISALLOW_SAFE_BOOT, true);
+
+            //Setting permissions
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                for(String permission: Constants.ANDROID_COSU_PERMISSIONS){
+                    devicePolicyManager.setPermissionGrantState(cdmDeviceAdmin,
+                            context.getApplicationContext().getPackageName(), permission,
+                            DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
+                }
+            }
 
             Intent launch = new Intent(context, ServerDetails.class);
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

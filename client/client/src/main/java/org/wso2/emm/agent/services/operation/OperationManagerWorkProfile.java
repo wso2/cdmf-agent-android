@@ -157,6 +157,14 @@ public class OperationManagerWorkProfile extends OperationManager {
     }
 
     @Override
+    public void setSystemUpdatePolicy(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
+    }
+
+    @Override
     public void encryptStorage(Operation operation) throws AndroidAgentException {
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         operation.setOperationResponse("Device already encrypted.");

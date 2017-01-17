@@ -49,16 +49,17 @@ public class Constants {
 	// Set DEFAULT_OWNERSHIP to null if no overiding is needed. Other possible values are,
 	// OWNERSHIP_BYOD or OWNERSHIP_COPE. If you are using the mutual SSL authentication
 	// This value must be set to a value other than null.
-	public static final String DEFAULT_OWNERSHIP = OWNERSHIP_COSU;
+	public static final String DEFAULT_OWNERSHIP = null;
 	public static final String PENDING_APP_INSTALLATIONS = "PENDING_APP_INSTALLATIONS";
 	// This is set to override the server host name retrieving screen. If overriding is not
 	// needed, set this to null.
-	public static final String DEFAULT_HOST = "http://192.168.8.100:8280";
+	public static final String DEFAULT_HOST = null;
 	public static final String APP_MANAGER_HOST = null;
 	public static final String SYSTEM_SERVICE_PACKAGE = "org.wso2.emm.system.service";
 	public static final String AGENT_PACKAGE = "org.wso2.emm.agent";
 	public static final int FIRMWARE_UPGRADE_RETRY_COUNT = 5;
 	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
+
 
 
 	// This is used to skip the license
@@ -70,10 +71,12 @@ public class Constants {
 
 	//COSU Configurations
 	public static final String[] ANDROID_COSU_PERMISSIONS = {"android.permission.READ_PHONE_STATE",
-	"android.permission.READ_EXTERNAL_STORAGE", "android.permission.ACCESS_COARSE_LOCATION",
-	"android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.ACCESS_FINE_LOCATION",
-	"android.permission.ACCESS_FINE_LOCATION", "android.permission.WRITE_SETTINGS",
-	};
+			"android.permission.READ_EXTERNAL_STORAGE", "android.permission.ACCESS_COARSE_LOCATION",
+			"android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.ACCESS_FINE_LOCATION",
+			"android.permission.ACCESS_FINE_LOCATION", "android.permission.WRITE_SETTINGS",
+			"android.permission.WRITE_SECURE_SETTINGS"};
+	public static final boolean DISPLAY_WIPE_DEVICE_BUTTON = true;
+	public static final boolean COSU_SECRET_EXIT = true;
 
 	/**
 	 * Log publishers
@@ -359,6 +362,7 @@ public class Constants {
 		public static final String GET_FIRMWARE_BUILD_DATE = "FIRMWARE_BUILD_DATE";
 		public static final String LOGCAT = "LOGCAT";
 		public static final String FIRMWARE_UPGRADE_AUTOMATIC_RETRY = "FIRMWARE_UPGRADE_AUTOMATIC_RETRY";
+		public static final String SYSTEM_UPDATE_POLICY = "SYSTEM_UPDATE_POLICY";
 	}
 
 	/**
@@ -497,6 +501,7 @@ public class Constants {
 		public static final String APPLIED_POLICY = "appliedPolicy";
 		public static final String IS_AGREED = "isAgreed";
 		public static final String NOTIFIER_TYPE = "notifierType";
+		public static final String CURRENT_INSTALLING_APP = "installingApplication";
 	}
 
 	public final class AppRestriction {
@@ -511,5 +516,17 @@ public class Constants {
 		public static final String PACKAGE_NAME = "packageName";
 		public static final String APP_LIST = "appList";
 	}
+
+	public final class SystemUpdatePolicyType {
+		private SystemUpdatePolicyType() {
+			throw new AssertionError();
+		}
+		public static final String AUTOMATIC = "automatic";
+		public static final String WINDOWED = "windowed";
+		public static final String POSTPONE = "postpone";
+	}
+
+	public static final String START_TIME = "startTime";
+	public static final String END_TIME = "endTime";
 
 }

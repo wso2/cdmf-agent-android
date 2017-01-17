@@ -413,4 +413,6 @@
     <!-- Android For Work User Restrictions -->
     <string name="allow_parent_profile_app_linking">ALLOW_PARENT_PROFILE_APP_LINKING</string>
     <string name="wso2">WSO2</string>
+    <string name="wipe_the_device">Wipe the device</string>
+    <string name="wipe_confirmation">Do you want to wipe the device?</string>
 </resources>

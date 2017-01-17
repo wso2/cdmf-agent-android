@@ -51,7 +51,10 @@ public class OperationManagerFactory {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private OperationManager getLollipopUpwardsOperationManager() {
-        if (manager.isProfileOwnerApp(Constants.PACKAGE_NAME)) {
+        if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
+          return new OperationManagerCOSU(context);
+        }
+        else if (manager.isProfileOwnerApp(Constants.PACKAGE_NAME)) {
             return new OperationManagerWorkProfile(context);
         }
         else if (manager.isDeviceOwnerApp(Constants.SERVICE_PACKAGE_NAME)) {

@@ -18,13 +18,17 @@
 
 package org.wso2.emm.agent.api;
 
+import android.annotation.TargetApi;
 import android.app.DownloadManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.IntentSender;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -32,6 +36,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.Browser;
 import android.util.Base64;
@@ -64,10 +69,12 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -87,6 +94,7 @@ public class ApplicationManager {
     private static final int BUFFER_OFFSET = 0;
     private static final int DOWNLOAD_PERCENTAGE_TOTAL = 100;
     private static final int DOWNLOADER_INCREMENT = 10;
+    private static final String ACTION_INSTALL_COMPLETE = "INSTALL_COMPLETED";
     private static final String APP_STATE_DOWNLOAD_STARTED = "DOWNLOAD_STARTED";
     private static final String APP_STATE_DOWNLOAD_COMPLETED = "DOWNLOAD_COMPLETED";
     private static final String APP_STATE_DOWNLOAD_FAILED = "DOWNLOAD_FAILED";
@@ -292,10 +300,62 @@ public class ApplicationManager {
      * @param fileUri - File URI should be passed in as a String.
      */
     public void startInstallerIntent(Uri fileUri) {
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(fileUri, resources.getString(R.string.application_mgr_mime));
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
+        if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
+            installPackage(fileUri);
+        }else{
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(fileUri, resources.getString(R.string.application_mgr_mime));
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        }
+    }
+
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public boolean installPackage(Uri fileUri) {
+
+        InputStream in;
+        OutputStream out;
+        String packageName = Preference.getString(context, Constants.PreferenceFlag.CURRENT_INSTALLING_APP);
+        try {
+            File application = new File(fileUri.getPath());
+            in = new FileInputStream(application);
+            PackageInstaller packageInstaller = context.getPackageManager().getPackageInstaller();
+            PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(
+                    PackageInstaller.SessionParams.MODE_FULL_INSTALL);
+            params.setAppPackageName(packageName);
+            // set params
+            int sessionId = packageInstaller.createSession(params);
+            PackageInstaller.Session session = packageInstaller.openSession(sessionId);
+            out = session.openWrite("COSU", 0, -1);
+            byte[] buffer = new byte[65536];
+            int c;
+            while ((c = in.read(buffer)) != -1) {
+                out.write(buffer, 0, c);
+            }
+            session.fsync(out);
+            in.close();
+            out.close();
+
+            session.commit(createIntentSender(context, sessionId, packageName));
+            return true;
+        } catch (IOException e) {
+            Log.e(TAG, "Error occurred while installing application '" + packageName + "'", e);
+        } catch (Exception e) {
+            Log.e(TAG, "Error occurred while installing application '" + packageName + "'", e);
+        }
+        return false;
+    }
+
+    private static IntentSender createIntentSender(Context context, int sessionId, String packageName) {
+        Intent intent = new Intent(ACTION_INSTALL_COMPLETE);
+        intent.putExtra("packageName", packageName);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                context,
+                sessionId,
+                intent,
+                0);
+        return pendingIntent.getIntentSender();
     }
 
     /**
@@ -404,20 +464,6 @@ public class ApplicationManager {
         if (url.contains(Constants.APP_DOWNLOAD_ENDPOINT) && Constants.APP_MANAGER_HOST != null) {
             url = url.substring(url.lastIndexOf("/"), url.length());
             this.appUrl = Constants.APP_MANAGER_HOST + Constants.APP_DOWNLOAD_ENDPOINT + url;
-        } else if (url.contains(Constants.APP_DOWNLOAD_ENDPOINT)) {
-            url = url.substring(url.lastIndexOf("/"), url.length());
-            String ipSaved = Constants.DEFAULT_HOST;
-            String prefIP = Preference.getString(context, Constants.PreferenceFlag.IP);
-            if (prefIP != null) {
-                ipSaved = prefIP;
-            }
-            ServerConfig utils = new ServerConfig();
-            if (ipSaved != null && !ipSaved.isEmpty()) {
-                utils.setServerIP(ipSaved);
-                this.appUrl = utils.getAPIServerURL(context) + Constants.APP_DOWNLOAD_ENDPOINT + url;
-            } else {
-                Log.e(TAG, "There is no valid IP to contact the server");
-            }
         } else {
             this.appUrl = url;
         }
@@ -425,7 +471,10 @@ public class ApplicationManager {
         Preference.putString(context, context.getResources().getString(
                 R.string.app_install_status), context.getResources().getString(
                 R.string.app_status_value_download_started));
-        if (isDownloadManagerAvailable(context) && !url.contains(Constants.HTTPS_PROTOCOL)) {
+
+        if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
+            downloadApp(this.appUrl);
+        }else if (isDownloadManagerAvailable(context) && !url.contains(Constants.HTTPS_PROTOCOL)) {
             IntentFilter filter = new IntentFilter(
                     DownloadManager.ACTION_DOWNLOAD_COMPLETE);
             context.registerReceiver(downloadReceiver, filter);

@@ -107,7 +107,12 @@ public interface VersionBasedOperations {
      */
     void executeShellCommand(Operation operation) throws AndroidAgentException;
 
-    //Specific methods for AndroidForWork
+    /**
+     * Setting system update policy.
+     *
+     * @param operation - Operation object.
+     */
+    void setSystemUpdatePolicy(Operation operation) throws AndroidAgentException;
 
     /**
      * Hide apps by package name

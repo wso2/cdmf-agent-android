@@ -52,17 +52,13 @@ public class AgentReceptionActivity extends Activity {
         manager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
         boolean isDeviceActive = Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE);
 
-        if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
-            Intent launch = new Intent(context, KioskActivity.class);
-            context.startActivity(launch);
-            finish();
-        }
-
         if (CommonUtils.isNetworkAvailable(context)) {
             if (isDeviceActive || Constants.SKIP_WORK_PROFILE_CREATION) {
                 skipToEnrollment();
             }
-            if (androidForWorkCompatibility.getCode()) {
+            if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
+                skipToEnrollment();
+            }else if (androidForWorkCompatibility.getCode()) {
                 manageAndroidForWorkReceiption();
             } else {
                 skipToEnrollment();

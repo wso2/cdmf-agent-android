@@ -267,6 +267,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 			CommonDialogUtils.stopProgressDialog(progressDialog);
 			if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
 				loadKioskActivity();
+				finish();
 			}else{
 				loadAlreadyRegisteredActivity();
 			}

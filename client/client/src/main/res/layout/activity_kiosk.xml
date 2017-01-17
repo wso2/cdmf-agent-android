@@ -9,7 +9,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:keepScreenOn="true"
-    tools:context="org.wso2.emm.agent.KioskEnrollmentActivity">
+    tools:context="org.wso2.emm.agent.KioskActivity">
 
     <Button
         android:text="Exit"
@@ -61,5 +61,14 @@
         android:layout_marginTop="50dp"
         android:visibility="invisible"
         android:id="@+id/textViewLaunch" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/kioskBackground"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:id="@+id/textViewWipeData"
+        android:text="@string/wipe_the_device"/>
 
 </RelativeLayout>

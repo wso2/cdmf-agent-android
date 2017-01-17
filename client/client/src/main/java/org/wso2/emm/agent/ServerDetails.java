@@ -88,9 +88,10 @@ public class ServerDetails extends Activity {
 
 			if (isDeviceActive) {
 				if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
-					Intent intent = new Intent(ServerDetails.this, AlreadyRegisteredActivity.class);
+					Intent intent = new Intent(ServerDetails.this, KioskActivity.class);
 					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					startActivity(intent);
+					finish();
 				}else{
 					Intent intent = new Intent(ServerDetails.this, AlreadyRegisteredActivity.class);
 					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

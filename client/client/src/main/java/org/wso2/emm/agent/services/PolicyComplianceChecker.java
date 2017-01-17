@@ -130,6 +130,7 @@ public class PolicyComplianceChecker {
             case Constants.Operation.ENABLE_ADMIN:
             case Constants.Operation.SET_SCREEN_CAPTURE_DISABLED:
             case Constants.Operation.SET_STATUS_BAR_DISABLED:
+            case Constants.Operation.SYSTEM_UPDATE_POLICY:
                 if(applicationManager.isPackageInstalled(Constants.SERVICE_PACKAGE_NAME)) {
                     CommonUtils.callSystemApp(context, operation.getCode(),
                             Boolean.toString(operation.isEnabled()), null);

@@ -92,12 +92,12 @@ public class PinCodeActivity extends Activity {
 		btnPin.setBackground(getResources().getDrawable(R.drawable.btn_grey));
 		btnPin.setTextColor(getResources().getColor(R.color.black));
 
-		// TODO: Uncomment
-//		if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
-//			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//				startLockTask();
-//			}
-//		}
+
+		if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+				startLockTask();
+			}
+		}
 
 		if (AlreadyRegisteredActivity.class.getSimpleName().equals(fromActivity)) {
 			txtPin.setVisibility(View.GONE);

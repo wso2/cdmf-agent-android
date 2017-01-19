@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
  ~ Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  ~
  ~ WSO2 Inc. licenses this file to you under the Apache License,
@@ -413,4 +412,7 @@
     <string name="split_delimiter">,</string>
     <!-- Android For Work User Restrictions -->
     <string name="allow_parent_profile_app_linking">ALLOW_PARENT_PROFILE_APP_LINKING</string>
+    <string name="wso2">WSO2</string>
+    <string name="wipe_the_device">Wipe the device</string>
+    <string name="wipe_confirmation">Do you want to wipe the device?</string>
 </resources>

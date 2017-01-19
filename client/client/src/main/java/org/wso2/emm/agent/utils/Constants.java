@@ -61,12 +61,22 @@ public class Constants {
 	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 
 
+
 	// This is used to skip the license
 	public static final boolean SKIP_LICENSE = false;
 	public static final boolean HIDE_LOGIN_UI = false;
 	public static final boolean HIDE_UNREGISTER_BUTTON = false;
 	public static final boolean SKIP_WORK_PROFILE_CREATION = false;
 	public static final boolean HIDE_ERROR_DIALOG = false;
+
+	//COSU Configurations
+	public static final String[] ANDROID_COSU_PERMISSIONS = {"android.permission.READ_PHONE_STATE",
+			"android.permission.READ_EXTERNAL_STORAGE", "android.permission.ACCESS_COARSE_LOCATION",
+			"android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.ACCESS_FINE_LOCATION",
+			"android.permission.ACCESS_FINE_LOCATION", "android.permission.WRITE_SETTINGS",
+			"android.permission.WRITE_SECURE_SETTINGS"};
+	public static final boolean DISPLAY_WIPE_DEVICE_BUTTON = true;
+	public static final boolean COSU_SECRET_EXIT = true;
 
 	/**
 	 * Log publishers
@@ -352,6 +362,7 @@ public class Constants {
 		public static final String GET_FIRMWARE_BUILD_DATE = "FIRMWARE_BUILD_DATE";
 		public static final String LOGCAT = "LOGCAT";
 		public static final String FIRMWARE_UPGRADE_AUTOMATIC_RETRY = "FIRMWARE_UPGRADE_AUTOMATIC_RETRY";
+		public static final String SYSTEM_UPDATE_POLICY = "SYSTEM_UPDATE_POLICY";
 	}
 
 	/**
@@ -490,6 +501,8 @@ public class Constants {
 		public static final String APPLIED_POLICY = "appliedPolicy";
 		public static final String IS_AGREED = "isAgreed";
 		public static final String NOTIFIER_TYPE = "notifierType";
+		public static final String CURRENT_INSTALLING_APP = "installingApplication";
+		public static final String IS_LOCATION_EVENT_PUBLICATION_ENABLED = "isLocationPublicationEnabled";
 	}
 
 	public final class AppRestriction {
@@ -504,5 +517,17 @@ public class Constants {
 		public static final String PACKAGE_NAME = "packageName";
 		public static final String APP_LIST = "appList";
 	}
+
+	public final class SystemUpdatePolicyType {
+		private SystemUpdatePolicyType() {
+			throw new AssertionError();
+		}
+		public static final String AUTOMATIC = "automatic";
+		public static final String WINDOWED = "windowed";
+		public static final String POSTPONE = "postpone";
+	}
+
+	public static final String START_TIME = "startTime";
+	public static final String END_TIME = "endTime";
 
 }

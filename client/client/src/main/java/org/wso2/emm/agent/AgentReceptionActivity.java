@@ -51,11 +51,14 @@ public class AgentReceptionActivity extends Activity {
         Response androidForWorkCompatibility = state.evaluateAndroidForWorkCompatibility();
         manager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
         boolean isDeviceActive = Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE);
+
         if (CommonUtils.isNetworkAvailable(context)) {
             if (isDeviceActive || Constants.SKIP_WORK_PROFILE_CREATION) {
                 skipToEnrollment();
             }
-            if (androidForWorkCompatibility.getCode()) {
+            if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
+                skipToEnrollment();
+            }else if (androidForWorkCompatibility.getCode()) {
                 manageAndroidForWorkReceiption();
             } else {
                 skipToEnrollment();

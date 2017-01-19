@@ -20,11 +20,13 @@ package org.wso2.emm.agent;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.text.Editable;
@@ -38,6 +40,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockActivity;
@@ -85,6 +88,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	private String username;
 	private String usernameVal;
 	private String passwordVal;
+	private TextView textViewWipeData;
 	private ProgressDialog progressDialog;
 	private LinearLayout loginLayout;
 
@@ -121,6 +125,35 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 		if(Constants.HIDE_LOGIN_UI) {
 			loginLayout.setVisibility(View.GONE);
+		}
+
+		if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+				startLockTask();
+			}
+		}
+
+		textViewWipeData = (TextView) this.findViewById(R.id.textViewWipeData);
+		if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU && Constants.DISPLAY_WIPE_DEVICE_BUTTON){
+			textViewWipeData.setVisibility(View.VISIBLE);
+			textViewWipeData.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					new AlertDialog.Builder(AuthenticationActivity.this)
+							.setTitle(getString(R.string.app_name))
+							.setMessage(R.string.wipe_confirmation)
+							.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int whichButton) {
+									DevicePolicyManager devicePolicyManager = (DevicePolicyManager)
+											getApplicationContext().getSystemService(Context.DEVICE_POLICY_SERVICE);
+									devicePolicyManager.
+											wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE |
+													DevicePolicyManager.WIPE_RESET_PROTECTION_DATA);
+								}})
+							.setNegativeButton(android.R.string.no, null)
+							.show();
+				}
+			});
 		}
 
 		etUsername.addTextChangedListener(new TextWatcher() {

@@ -48,7 +48,6 @@ import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtils;
 import org.wso2.emm.agent.utils.Constants;
 import org.wso2.emm.agent.utils.Preference;
-import org.wso2.emm.agent.utils.UserPreference;
 
 import java.util.Map;
 
@@ -181,13 +180,15 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
     DialogInterface.OnClickListener locationPublishingEnableDisableListener = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
-            boolean isEventListeningEnabled = UserPreference.isLoctionPublishingEnabled;
-            switch (which) {
-                case DialogInterface.BUTTON_POSITIVE:
-                    UserPreference.isLoctionPublishingEnabled = !isEventListeningEnabled;
+			boolean isEventListeningEnabled = Preference.getBoolean(context,
+					Constants.PreferenceFlag.IS_LOCATION_EVENT_PUBLICATION_ENABLED);
+			switch (which) {
+				case DialogInterface.BUTTON_POSITIVE:
+					Preference.putBoolean(context, Constants.PreferenceFlag.IS_LOCATION_EVENT_PUBLICATION_ENABLED,
+							!isEventListeningEnabled);
 					dialog.dismiss();
-                    break;
-                case DialogInterface.BUTTON_NEGATIVE:
+					break;
+				case DialogInterface.BUTTON_NEGATIVE:
 					dialog.dismiss();
                     break;
             }
@@ -469,7 +470,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	 */
 	private void showEventListeningEnableDisableDialog() {
 		AlertDialog.Builder alertDialog;
-		if (!UserPreference.isLoctionPublishingEnabled) {
+		if (!Preference.getBoolean(context, Constants.PreferenceFlag.IS_LOCATION_EVENT_PUBLICATION_ENABLED)) {
 			alertDialog = CommonDialogUtils.getAlertDialogWithTwoButtonAndTitle(context,
 							null,
 							getResources().getString(R.string.dialog__location_event_listening_enable),

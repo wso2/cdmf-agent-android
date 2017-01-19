@@ -183,6 +183,14 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intent);
 	}
+
+	private void loadKioskActivity(){
+		Intent intent =
+				new Intent(RegistrationActivity.this, KioskActivity.class);
+		intent.putExtra(getResources().getString(R.string.intent_extra_fresh_reg_flag), true);
+		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		startActivity(intent);
+	}
 	
 	/**
 	 * Display connectivity error.
@@ -243,7 +251,11 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 						registerGCM();
 					} else {
 						CommonDialogUtils.stopProgressDialog(progressDialog);
-						loadAlreadyRegisteredActivity();
+						if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
+							loadKioskActivity();
+						}else{
+							loadAlreadyRegisteredActivity();
+						}
 					}
 				} else {
 					displayInternalServerError();
@@ -253,14 +265,23 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 			}
 		} else if (Constants.POLICY_REQUEST_CODE == requestCode) {
 			CommonDialogUtils.stopProgressDialog(progressDialog);
-			loadAlreadyRegisteredActivity();
+			if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
+				loadKioskActivity();
+				finish();
+			}else{
+				loadAlreadyRegisteredActivity();
+			}
 		} else if (requestCode == Constants.GCM_REGISTRATION_ID_SEND_CODE && result != null) {
 			String status = result.get(Constants.STATUS_KEY);
 			if (!(Constants.Status.SUCCESSFUL.equals(status) || Constants.Status.ACCEPT.equals(status))) {
 				displayConnectionError();
 			} else {
 				CommonDialogUtils.stopProgressDialog(progressDialog);
-				loadAlreadyRegisteredActivity();
+				if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
+					loadKioskActivity();
+				}else{
+					loadAlreadyRegisteredActivity();
+				}
 			}
 		} else {
 			CommonDialogUtils.stopProgressDialog(progressDialog);

@@ -345,8 +345,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			if (tenantDomain != null && !tenantDomain.toString().trim().isEmpty()) {
 				username =
 						etUsername.getText().toString().trim() +
-						context.getResources().getString(R.string.intent_extra_at) +
-						tenantDomain.toString().trim();
+						context.getResources().getString(R.string.intent_extra_at) + tenantDomain.toString().trim();
 
 			} else {
 				username = etUsername.getText().toString().trim();

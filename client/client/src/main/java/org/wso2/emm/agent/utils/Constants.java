@@ -20,54 +20,56 @@ package org.wso2.emm.agent.utils;
 
 import android.util.Log;
 
+import org.wso2.emm.agent.BuildConfig;
+
 /**
  * This class holds all the constants used throughout the application.
  */
 public class Constants {
 
-	public static final boolean DEBUG_MODE_ENABLED = true;
-	public static final boolean LOCAL_NOTIFICATIONS_ENABLED = true;
-	public static final boolean GCM_ENABLED = false;
-	public static final boolean SYSTEM_APP_ENABLED = false;
-	public static final boolean AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED = false;
-	public static final boolean ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE = false;
-	public static final String SYSTEM_APP_SERVICE_START_ACTION = "org.wso2.emm.system.service.START_SERVICE";
-	public static final String SYSTEM_APP_BROADCAST_ACTION = "org.wso2.emm.system.service.MESSAGE_PROCESSED";
-	public static final String GCM_PROJECT_NUMBER = "GOOGLE-API-PROJECT-NUMBER";
-	public static final String GCM_REG_ID = "gcm_reg_id";
-	public static final String REG_ID = "regId";
-	public static final String NOTIFIER_LOCAL = "LOCAL";
-	public static final String NOTIFIER_GCM = "GCM";
-	public static final String SERVER_PORT = "80";
-	public static final String SERVER_PROTOCOL = "http://";
-	public static final String HTTPS_PROTOCOL = "https://";
-	public static final String API_VERSION = "1.0.0/";
-	public static final String API_SERVER_PORT = "80";
-	public static final String OWNERSHIP_BYOD = "BYOD";
-	public static final String OWNERSHIP_COPE = "COPE";
-	public static final String OWNERSHIP_COSU = "COSU";
+	public static final boolean DEBUG_MODE_ENABLED = BuildConfig.DEBUG_MODE_ENABLED;
+	public static final boolean SYSTEM_APP_ENABLED = BuildConfig.SYSTEM_APP_ENABLED;
+	public static final boolean AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED =
+			BuildConfig.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED;
+	public static final boolean ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE =
+			BuildConfig.ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE;
+
+
+
 	// Set DEFAULT_OWNERSHIP to null if no overiding is needed. Other possible values are,
 	// OWNERSHIP_BYOD or OWNERSHIP_COPE. If you are using the mutual SSL authentication
 	// This value must be set to a value other than null.
-	public static final String DEFAULT_OWNERSHIP = null;
-	public static final String PENDING_APP_INSTALLATIONS = "PENDING_APP_INSTALLATIONS";
+	public static final String DEFAULT_OWNERSHIP = BuildConfig.DEFAULT_OWNERSHIP;
 	// This is set to override the server host name retrieving screen. If overriding is not
 	// needed, set this to null.
-	public static final String DEFAULT_HOST = null;
-	public static final String APP_MANAGER_HOST = null;
-	public static final String SYSTEM_SERVICE_PACKAGE = "org.wso2.emm.system.service";
-	public static final String AGENT_PACKAGE = "org.wso2.emm.agent";
-	public static final int FIRMWARE_UPGRADE_RETRY_COUNT = 5;
+	public static final String DEFAULT_HOST = BuildConfig.DEFAULT_HOST;
+	public static final String APP_MANAGER_HOST = BuildConfig.APP_MANAGER_HOST;
+	public static final String SYSTEM_SERVICE_PACKAGE = BuildConfig.SYSTEM_SERVICE_PACKAGE;
+	public static final String AGENT_PACKAGE = BuildConfig.AGENT_PACKAGE;
+	public static final String CATALOG_APP_PACKAGE_NAME = BuildConfig.CATALOG_APP_PACKAGE_NAME;
+	public static final int FIRMWARE_UPGRADE_RETRY_COUNT = BuildConfig.FIRMWARE_UPGRADE_RETRY_COUNT;
 	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
+	public static final String SYSTEM_APP_SERVICE_START_ACTION = "org.wso2.emm.system.service.START_SERVICE";
+	public static final String SYSTEM_APP_BROADCAST_ACTION = "org.wso2.emm.system.service.MESSAGE_PROCESSED";
+	public static final String HTTPS_PROTOCOL = "https://";
+	public static final String OWNERSHIP_BYOD = "BYOD";
+	public static final String OWNERSHIP_COPE = "COPE";
+	public static final String OWNERSHIP_COSU = "COSU";
+	public static final String PENDING_APP_INSTALLATIONS = "PENDING_APP_INSTALLATIONS";
+	public static final String NOTIFIER_LOCAL = "LOCAL";
+	public static final String NOTIFIER_FCM = "GCM";
+	public static final String FCM_REG_ID = "gcm_reg_id";
+	public static final String SERVER_PROTOCOL = "http://";
+	public static final String API_SERVER_PORT = "80";
 
 
 
 	// This is used to skip the license
-	public static final boolean SKIP_LICENSE = false;
-	public static final boolean HIDE_LOGIN_UI = false;
-	public static final boolean HIDE_UNREGISTER_BUTTON = false;
-	public static final boolean SKIP_WORK_PROFILE_CREATION = false;
-	public static final boolean HIDE_ERROR_DIALOG = false;
+	public static final boolean SKIP_LICENSE = BuildConfig.SKIP_LICENSE;
+	public static final boolean HIDE_LOGIN_UI = BuildConfig.HIDE_LOGIN_UI;
+	public static final boolean HIDE_UNREGISTER_BUTTON = BuildConfig.HIDE_UNREGISTER_BUTTON;
+	public static final boolean SKIP_WORK_PROFILE_CREATION = BuildConfig.SKIP_WORK_PROFILE_CREATION;
+	public static final boolean HIDE_ERROR_DIALOG = BuildConfig.HIDE_ERROR_DIALOG;
 
 	//COSU Configurations
 	public static final String[] ANDROID_COSU_PERMISSIONS = {"android.permission.READ_PHONE_STATE",
@@ -75,8 +77,8 @@ public class Constants {
 			"android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.ACCESS_FINE_LOCATION",
 			"android.permission.ACCESS_FINE_LOCATION", "android.permission.WRITE_SETTINGS",
 			"android.permission.WRITE_SECURE_SETTINGS"};
-	public static final boolean DISPLAY_WIPE_DEVICE_BUTTON = true;
-	public static final boolean COSU_SECRET_EXIT = true;
+	public static final boolean DISPLAY_WIPE_DEVICE_BUTTON = BuildConfig.DISPLAY_WIPE_DEVICE_BUTTON;
+	public static final boolean COSU_SECRET_EXIT = BuildConfig.COSU_SECRET_EXIT;
 
 	/**
 	 * Log publishers
@@ -87,9 +89,9 @@ public class Constants {
 		}
 		public static final String DAS_PUBLISHER = "DAS_PULISHER";
 		public static final String SPLUNK_PUBLISHER = "SPLUNK_PUBLISHER";
-		public static final String LOG_PUBLISHER_IN_USE = "<SET_PUBLISHER>";
-		public static final String LOG_LEVEL = "*:W";
-		public static final int NUMBER_OF_LOG_LINES = 500;
+		public static final String LOG_PUBLISHER_IN_USE = BuildConfig.LOG_PUBLISHER_IN_USE;
+		public static final String LOG_LEVEL = BuildConfig.LOG_LEVEL;
+		public static final int NUMBER_OF_LOG_LINES = BuildConfig.NUMBER_OF_LOG_LINES;
 	}
 
 	/**
@@ -99,16 +101,15 @@ public class Constants {
 		private SplunkConfigs(){
 			throw new AssertionError();
 		}
-		public static final String API_KEY = "<SPLUNK_API_KEY>";
+		public static final String API_KEY = BuildConfig.SPLUNK_API_KEY;
 		public static final String TYPE_HTTP = "HTTP";
 		public static final String TYPE_MINT = "MINT";
-		public static final String DATA_COLLECTOR_TYPE = TYPE_MINT;
-		public static final String HEC_TOKEN = "<SPLUNK_HEC_TOKEN>";
-		public static final String HEC_MINT_ENDPOINT_URL = "<SPLUNK_HEC_MINT_ENDPOINT_URL>";
+		public static final String DATA_COLLECTOR_TYPE = BuildConfig.SPLUNK_DATA_COLLECTOR_TYPE;
+		public static final String HEC_TOKEN = BuildConfig.HEC_TOKEN;
+		public static final String HEC_MINT_ENDPOINT_URL = BuildConfig.HEC_MINT_ENDPOINT_URL;
 	}
 
 	public static final String SERVER_APP_ENDPOINT = "/api/device-mgt/android/v1.0/";
-	public static final String SERVER_AUTHENTICATION_ENDPOINT = "register/authenticate/device";
 	public static final String LICENSE_ENDPOINT = SERVER_APP_ENDPOINT + "configuration/license";
 	public static final String REGISTER_ENDPOINT = SERVER_APP_ENDPOINT + "devices/";
 	public static final String CONFIGURATION_ENDPOINT = SERVER_APP_ENDPOINT + "configuration/";
@@ -120,7 +121,6 @@ public class Constants {
 	public static final String DEVICES_ENDPOINT = SERVER_APP_ENDPOINT + "devices/";
 	public static final String NOTIFICATION_ENDPOINT  = "/pending-operations";
 	public static final String GOOGLE_PLAY_APP_URI = "market://details?id=";
-	public static final String DYNAMIC_CLIENT_REGISTER_ENDPOINT = "/dynamic-client-web/register";
 	public final static String API_APPLICATION_CONTEXT =
 			"/api-application-registration";
 	public final static String API_APPLICATION_REGISTRATION_CONTEXT = API_APPLICATION_CONTEXT +
@@ -131,48 +131,27 @@ public class Constants {
 	public static final String APP_LIST_ENDPOINT = "/api/appm/publisher/v1.1/apps/mobileapp?field-filter=all";
 	public static final String APP_DOWNLOAD_ENDPOINT = "/store/api/mobileapp/getfile";
 	public static final String ACTION_RESPONSE = "org.wso2.emm.agent.MESSAGE_PROCESSED";
-	public static final String POLICY_ENDPOINT = SERVER_APP_ENDPOINT + "policy/";
 	public static final String EVENT_ENDPOINT = SERVER_APP_ENDPOINT + "events/publish";
-	public static final String CATALOG_APP_PACKAGE_NAME = "org.wso2.app.catalog";
-	public static final String TRUSTSTORE_PASSWORD = "wso2carbon";
-	public static final String EULA_TITLE = "POLICY AGREEMENT";
-	public static final String EULA_TEXT = "Test policy agreement.";
+	public static final String EULA_TITLE = BuildConfig.EULA_TITLE;
 
 	public static final String EMPTY_STRING = "";
-	public static final String NULL_STRING = "null";
 	public static final String STATUS_KEY = "status";
 	public static final String USERNAME = "username";
-	public static final String PASSWORD = "password";
 	public static final String STATUS = "status";
 	public static final String RESPONSE = "response";
-	public static final String PAYLOAD = "payLoad";
 	public static final String OPERATION_CODE = "operation";
 	public static final String TYPE = "type";
-	public static final String ID = "id";
-	public static final String TYPE_COMMAND = "COMMAND";
-	public static final String TYPE_CONFIG = "CONFIG";
-	public static final String TYPE_PROFILE = "PROFILE";
-	public static final String ENABLED= "enabled";
-	public static final String LOCAL = "LOCAL";
-	public static final String LOG_FILE = "wso2log.txt";
-	public static final String MESSAGE_TYPE_GCM = "gcm";
 	public static final String DEVICE_TYPE = "deviceType";
 	public static final String CLIENT_ID = "client_id";
 	public static final String CLIENT_SECRET = "client_secret";
 	public static final String CLIENT_NAME = "client_name";
-	public static final String GRANT_TYPE = "password refresh_token";
-	public static final String TOKEN_SCOPE = "production";
-	public static final String APPLICATION_TYPE = "device";
 	public static final String USER_AGENT = "Mozilla/5.0 ( compatible ), Android";
-	public static final String PACKAGE_NAME = "org.wso2.emm.agent";
 	public static final String ADMIN_MESSAGE = "message";
 	public static final String IS_LOCKED = "lock";
 	public static final String LOCK_MESSAGE = "lockMessage";
 	public static final String OPERATION_ID = "operationId";
 	public static final String IS_HARD_LOCK_ENABLED = "isHardLockEnabled";
 	public static final String USERNAME_PATTERN = "[user]";
-
-	public static final String SERVICE_PACKAGE_NAME = "org.wso2.emm.system.service";
 	public static final String EMM_DB = "emm_db";
 
 	/**
@@ -210,29 +189,9 @@ public class Constants {
 	public static final int SCEP_REQUEST_CODE = 300;
 
 	/**
-	 * Google API project id registered to use GCM.
-	 */
-
-	public static final String SENDER_ID = "";
-
-	/**
 	 * Tag used on log messages.
 	 */
 	public static final String TAG = "WSO2EMM";
-
-	/**
-	 * Intent used to display a message in the screen.
-	 */
-	public static final String DISPLAY_MESSAGE_ACTION =
-			"com.google.android.gcm.demo.app.DISPLAY_MESSAGE";
-
-	/**
-	 * Intent's extra that contains the message to be displayed.
-	 */
-	public static final String EXTRA_MESSAGE = "message";
-	public static final int MESSAGE_MODE_GCM = 1;
-	public static final int MESSAGE_MODE_SMS = 2;
-	public static final int MESSAGE_MODE_LOCAL = 3;
 
 	/**
 	 * Status codes
@@ -476,14 +435,15 @@ public class Constants {
 		private EventListeners(){
 			throw new AssertionError();
 		}
-		public static final boolean EVENT_LISTENING_ENABLED = false;
-		public static final boolean APPLICATION_STATE_LISTENER = false;
+		public static final boolean EVENT_LISTENING_ENABLED = BuildConfig.EVENT_LISTENING_ENABLED;
+		public static final boolean APPLICATION_STATE_LISTENER =
+				BuildConfig.APPLICATION_STATE_LISTENER;
 		public static final String APPLICATION_STATE = "APPLICATION_STATE";
-		public static final boolean RUNTIME_STATE_LISTENER = false;
+		public static final boolean RUNTIME_STATE_LISTENER = BuildConfig.RUNTIME_STATE_LISTENER;
 		public static final String RUNTIME_STATE = "RUNTIME_STATE";
-		public static final long DEFAULT_START_TIME = 1000;
-		public static final long DEFAULT_INTERVAL = 30000;
-		public static final int DEFAULT_LISTENER_CODE = 10001;
+		public static final long DEFAULT_START_TIME = BuildConfig.DEFAULT_START_TIME;
+		public static final long DEFAULT_INTERVAL = BuildConfig.DEFAULT_INTERVAL;
+		public static final int DEFAULT_LISTENER_CODE = BuildConfig.DEFAULT_LISTENER_CODE;
 		public static final String REQUEST_CODE = "requestCode";
 		public static final String LOCATION_EVENT_TYPE = "location";
 	}

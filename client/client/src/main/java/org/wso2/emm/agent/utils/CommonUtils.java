@@ -229,7 +229,7 @@ public class CommonUtils {
 			throw new AndroidAgentException("Error occurred while revoking policy", e);
 		} finally {
 			Resources resources = context.getResources();
-			SharedPreferences mainPref = context.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+			SharedPreferences mainPref = context.getSharedPreferences(Constants.AGENT_PACKAGE, Context.MODE_PRIVATE);
 			Editor editor = mainPref.edit();
 			editor.putBoolean(Constants.PreferenceFlag.IS_AGREED, false);
 			editor.putString(Constants.PreferenceFlag.REG_ID, null);
@@ -369,7 +369,7 @@ public class CommonUtils {
 	 * @param context - Application context.
 	 */
 	public static void clearClientCredentials(Context context) {
-		SharedPreferences mainPref = context.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+		SharedPreferences mainPref = context.getSharedPreferences(Constants.AGENT_PACKAGE, Context.MODE_PRIVATE);
 		Editor editor = mainPref.edit();
 		editor.putString(Constants.CLIENT_ID, null);
 		editor.putString(Constants.CLIENT_SECRET, null);
@@ -391,7 +391,7 @@ public class CommonUtils {
 				intent = explicitIntent;
 			}
 			intent.putExtra(Constants.OPERATION_CODE, operation);
-			intent.setPackage(Constants.PACKAGE_NAME);
+			intent.setPackage(Constants.AGENT_PACKAGE);
 
 			if (appUri != null) {
 				intent.putExtra("appUri", appUri);

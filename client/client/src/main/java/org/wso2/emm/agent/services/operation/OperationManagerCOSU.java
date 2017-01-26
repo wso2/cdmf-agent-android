@@ -615,7 +615,7 @@ public class OperationManagerCOSU extends OperationManager {
 
     @Override
     public void passOperationToSystemApp(Operation operation) throws AndroidAgentException {
-        if(getApplicationManager().isPackageInstalled(Constants.SERVICE_PACKAGE_NAME)) {
+        if(getApplicationManager().isPackageInstalled(Constants.SYSTEM_SERVICE_PACKAGE)) {
             CommonUtils.callSystemApp(getContext(),operation.getCode(),
                     Boolean.toString(operation.isEnabled()), null);
         } else {

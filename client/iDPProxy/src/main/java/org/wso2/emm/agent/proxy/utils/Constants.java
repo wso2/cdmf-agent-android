@@ -18,6 +18,8 @@
 
 package org.wso2.emm.agent.proxy.utils;
 
+import org.wso2.emm.agent.proxy.BuildConfig;
+
 /**
  * This class holds all the constants used throughout the application.
  */
@@ -57,12 +59,8 @@ public class Constants {
 	public static final String TRUSTSTORE_LOCATION = null;
 	public static final String KEYSTORE_LOCATION = null;
 	public static final boolean DEBUG_ENABLED = false;
-	public final static int ACCESS_TOKEN_AGE = 3000;
 	public final static String GRANT_TYPE = "grant_type";
 	public final static String GRANT_TYPE_PASSWORD = "password";
-	public final static String GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code";
-	public final static String GRANT_TYPE_REFRESH_TOKEN = "refresh_token";
-	public final static String AUTHORIZATION_CODE = "code";
 	public final static String AUTHORIZATION_MODE = "Basic ";
 	public final static String AUTHORIZATION_HEADER = "Authorization";
 	public final static String CONTENT_TYPE_HEADER = "Content-Type";
@@ -84,6 +82,7 @@ public class Constants {
 	public static final String ERROR_LABEL = "error";
 	public static final String ERROR_DESCRIPTION_LABEL = "error_description";
 	public final static String APPLICATION_PACKAGE = "org.wso2.emm.agent";
+
 	public final static String ID_TOKEN = "id_token";
 	public final static String CLIENT_ID = "client_id";
 	public final static String CLIENT_SECRET = "client_secret";

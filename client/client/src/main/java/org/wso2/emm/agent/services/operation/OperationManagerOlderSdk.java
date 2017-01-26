@@ -23,7 +23,6 @@ import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -561,7 +560,7 @@ public class OperationManagerOlderSdk extends OperationManager {
 
     @Override
     public void passOperationToSystemApp(Operation operation) throws AndroidAgentException {
-        if(getApplicationManager().isPackageInstalled(Constants.SERVICE_PACKAGE_NAME)) {
+        if(getApplicationManager().isPackageInstalled(Constants.SYSTEM_SERVICE_PACKAGE)) {
             CommonUtils.callSystemApp(getContext(),operation.getCode(),
                     Boolean.toString(operation.isEnabled()), null);
         } else {

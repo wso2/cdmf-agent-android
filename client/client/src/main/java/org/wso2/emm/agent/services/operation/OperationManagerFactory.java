@@ -54,10 +54,10 @@ public class OperationManagerFactory {
         if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
           return new OperationManagerCOSU(context);
         }
-        else if (manager.isProfileOwnerApp(Constants.PACKAGE_NAME)) {
+        else if (manager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
             return new OperationManagerWorkProfile(context);
         }
-        else if (manager.isDeviceOwnerApp(Constants.SERVICE_PACKAGE_NAME)) {
+        else if (manager.isDeviceOwnerApp(Constants.SYSTEM_SERVICE_PACKAGE)) {
                 return new OperationManagerDeviceOwner(context);
         }
         else {

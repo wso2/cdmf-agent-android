@@ -48,6 +48,7 @@ public class Constants {
 	public static final String AGENT_PACKAGE = BuildConfig.AGENT_PACKAGE;
 	public static final String CATALOG_APP_PACKAGE_NAME = BuildConfig.CATALOG_APP_PACKAGE_NAME;
 	public static final int FIRMWARE_UPGRADE_RETRY_COUNT = BuildConfig.FIRMWARE_UPGRADE_RETRY_COUNT;
+	public static final float SERVER_API_VERSION = BuildConfig.SERVER_API_VERSION;
 	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 	public static final String SYSTEM_APP_SERVICE_START_ACTION = "org.wso2.emm.system.service.START_SERVICE";
 	public static final String SYSTEM_APP_BROADCAST_ACTION = "org.wso2.emm.system.service.MESSAGE_PROCESSED";
@@ -109,11 +110,13 @@ public class Constants {
 		public static final String HEC_MINT_ENDPOINT_URL = BuildConfig.HEC_MINT_ENDPOINT_URL;
 	}
 
-	public static final String SERVER_APP_ENDPOINT = "/api/device-mgt/android/v1.0/";
+	public static final String SERVER_APP_ENDPOINT = "/api/device-mgt/android/v" + SERVER_API_VERSION +
+													 "/";
 	public static final String LICENSE_ENDPOINT = SERVER_APP_ENDPOINT + "configuration/license";
 	public static final String REGISTER_ENDPOINT = SERVER_APP_ENDPOINT + "devices/";
 	public static final String CONFIGURATION_ENDPOINT = SERVER_APP_ENDPOINT + "configuration/";
-	public static final String SCEP_ENDPOINT = "/api/scep-mgt/v1.0/certificates/signcsr";
+	public static final String SCEP_ENDPOINT = "/api/scep-mgt/v" + SERVER_API_VERSION +
+												"/certificates/signcsr";
 	public static final String OAUTH_ENDPOINT = "/token";
 	public static final String DEVICE_ENDPOINT = SERVER_APP_ENDPOINT + "devices/";
 	public static final String IS_REGISTERED_ENDPOINT = "/status";

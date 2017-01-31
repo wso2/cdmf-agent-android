@@ -42,7 +42,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.emm.agent.AlertActivity;
-import org.wso2.emm.agent.AlreadyRegisteredActivity;
 import org.wso2.emm.agent.AndroidAgentException;
 import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.api.ApplicationManager;
@@ -810,7 +809,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
 
     public void enableHardLock(String message, Operation operation) {
         String payload = "false";
-        if (getApplicationManager().isPackageInstalled(Constants.SERVICE_PACKAGE_NAME)) {
+        if (getApplicationManager().isPackageInstalled(Constants.SYSTEM_SERVICE_PACKAGE)) {
             operation.setStatus(resources.getString(R.string.operation_value_completed));
             CommonUtils.callSystemApp(getContext(), Constants.Operation.DEVICE_LOCK, payload, message);
         } else {
@@ -827,7 +826,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @param operation - Operabtion object.
      */
     public void unlockDevice(org.wso2.emm.agent.beans.Operation operation) {
-        if (getApplicationManager().isPackageInstalled(Constants.SERVICE_PACKAGE_NAME)) {
+        if (getApplicationManager().isPackageInstalled(Constants.SYSTEM_SERVICE_PACKAGE)) {
             boolean isLocked = Preference.getBoolean(context, Constants.IS_LOCKED);
             if (isLocked) {
                 Preference.putBoolean(context, Constants.IS_LOCKED, false);
@@ -999,7 +998,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
 
     @Override
     public void passOperationToSystemApp(Operation operation) throws AndroidAgentException {
-        if (getApplicationManager().isPackageInstalled(Constants.SERVICE_PACKAGE_NAME)) {
+        if (getApplicationManager().isPackageInstalled(Constants.SYSTEM_SERVICE_PACKAGE)) {
             CommonUtils.callSystemApp(getContext(), operation.getCode(),
                     Boolean.toString(operation.isEnabled()), null);
         } else {

@@ -18,16 +18,10 @@
 package org.wso2.emm.agent.services;
 
 import android.app.admin.DevicePolicyManager;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.pm.ApplicationInfo;
 import android.content.res.Resources;
-import android.util.Log;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.emm.agent.AndroidAgentException;
@@ -131,7 +125,7 @@ public class PolicyComplianceChecker {
             case Constants.Operation.SET_SCREEN_CAPTURE_DISABLED:
             case Constants.Operation.SET_STATUS_BAR_DISABLED:
             case Constants.Operation.SYSTEM_UPDATE_POLICY:
-                if(applicationManager.isPackageInstalled(Constants.SERVICE_PACKAGE_NAME)) {
+                if(applicationManager.isPackageInstalled(Constants.SYSTEM_SERVICE_PACKAGE)) {
                     CommonUtils.callSystemApp(context, operation.getCode(),
                             Boolean.toString(operation.isEnabled()), null);
                 }

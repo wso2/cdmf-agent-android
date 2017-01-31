@@ -79,7 +79,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 
 		// If the notification type is gcm, before registering the device, make sure that particular device has google
 		// play services installed
-		if (Constants.NOTIFIER_GCM.equals(Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE))) {
+		if (Constants.NOTIFIER_FCM.equals(Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE))) {
 			if (FCMRegistrationUtil.isPlayServicesInstalled(this.getApplicationContext())) {
 				registerDevice();
 			} else {
@@ -247,7 +247,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 				responseStatus = result.get(Constants.STATUS);
 				Preference.putString(context, Constants.PreferenceFlag.REG_ID, info.getDeviceId());
 				if (Constants.Status.SUCCESSFUL.equals(responseStatus) || Constants.Status.CREATED.equals(responseStatus)) {
-					if (Constants.NOTIFIER_GCM.equals(Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE))) {
+					if (Constants.NOTIFIER_FCM.equals(Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE))) {
 						registerGCM();
 					} else {
 						CommonDialogUtils.stopProgressDialog(progressDialog);
@@ -297,7 +297,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 	private void registerGCM() {
 		String token =  FirebaseInstanceId.getInstance().getToken();
 		if(token != null) {
-			Preference.putString(context, Constants.GCM_REG_ID, token);
+			Preference.putString(context, Constants.FCM_REG_ID, token);
 			try {
 				sendRegistrationId();
 			} catch (AndroidAgentException e) {

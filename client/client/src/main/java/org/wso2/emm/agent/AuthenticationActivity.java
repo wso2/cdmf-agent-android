@@ -372,12 +372,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			info.setClientID(clientKey);
 			info.setClientSecret(clientSecret);
 			info.setUsername(username);
-//			try {
-//				info.setPassword(URLEncoder.encode(passwordVal, "UTF-8"));
-//			} catch (UnsupportedEncodingException e) {
-//				String msg = "error occurred while encoding password.";
-//				Log.e(TAG, msg, e);
-//			}
+
 			info.setPassword(passwordVal);
 			info.setTokenEndPoint(serverURL);
 			if (tenantDomain != null && !tenantDomain.toString().trim().isEmpty()) {
@@ -638,7 +633,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 									String type = param.getString(context.getString(R.string.shared_pref_config_value)).trim();
 									if(type.equals(String.valueOf(Constants.NOTIFIER_CHECK))) {
 										Preference.putString(context, Constants.PreferenceFlag.NOTIFIER_TYPE,
-										                     Constants.NOTIFIER_GCM);
+										                     Constants.NOTIFIER_FCM);
 									}else{
 										Preference.putString(context, Constants.PreferenceFlag.NOTIFIER_TYPE,
 										                     Constants.NOTIFIER_LOCAL);

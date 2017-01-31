@@ -5,7 +5,6 @@ import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -13,7 +12,6 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.wso2.emm.agent.AlreadyRegisteredActivity;
 import org.wso2.emm.agent.AndroidAgentException;
 import org.wso2.emm.agent.EnableDeviceAdminActivity;
 import org.wso2.emm.agent.R;
@@ -88,7 +86,7 @@ public class EnrollmentService extends IntentService implements APIResultCallBac
                 Preference.putString(context, Constants.PreferenceFlag.REG_ID, info.getDeviceId());
                 if (Constants.Status.SUCCESSFUL.equals(responseStatus) || Constants.Status.CREATED.equals(responseStatus)) {
                     Log.i(TAG, "EMM auto enrollment, registration successful.");
-                    if (Constants.NOTIFIER_GCM.equals(Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE))) {
+                    if (Constants.NOTIFIER_FCM.equals(Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE))) {
                         registerGCM();
                     } else {
                         finishEnrollment();
@@ -223,7 +221,7 @@ public class EnrollmentService extends IntentService implements APIResultCallBac
                                     String type = param.getString(context.getString(R.string.shared_pref_config_value)).trim();
                                     if(type.equals(String.valueOf(Constants.NOTIFIER_CHECK))) {
                                         Preference.putString(context, Constants.PreferenceFlag.NOTIFIER_TYPE,
-                                                             Constants.NOTIFIER_GCM);
+                                                             Constants.NOTIFIER_FCM);
                                     }else{
                                         Preference.putString(context, Constants.PreferenceFlag.NOTIFIER_TYPE,
                                                              Constants.NOTIFIER_LOCAL);
@@ -332,7 +330,7 @@ public class EnrollmentService extends IntentService implements APIResultCallBac
         Log.i(TAG, "EMM auto enrollment, GCM registration initiated.");
         String token =  FirebaseInstanceId.getInstance().getToken();
         if(token != null) {
-            Preference.putString(context, Constants.GCM_REG_ID, token);
+            Preference.putString(context, Constants.FCM_REG_ID, token);
             try {
                 sendRegistrationId();
             } catch (AndroidAgentException e) {

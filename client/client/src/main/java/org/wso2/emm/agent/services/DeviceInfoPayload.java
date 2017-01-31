@@ -60,7 +60,7 @@ public class DeviceInfoPayload {
         this.context = context.getApplicationContext();
         deviceInfo = new DeviceInfo(context);
         mapper = new ObjectMapper();
-        registrationId = Preference.getString(context, Constants.GCM_REG_ID);
+        registrationId = Preference.getString(context, Constants.FCM_REG_ID);
         phoneState = new DeviceState(context);
         locationService = LocationServiceImpl.getInstance(context);
     }

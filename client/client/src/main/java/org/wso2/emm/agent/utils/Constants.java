@@ -38,22 +38,22 @@ public class Constants {
 	public static final String REG_ID = "regId";
 	public static final String NOTIFIER_LOCAL = "LOCAL";
 	public static final String NOTIFIER_GCM = "GCM";
-	public static final String SERVER_PORT = "80";
-	public static final String SERVER_PROTOCOL = "http://";
+	public static final String SERVER_PORT = "443";
+	public static final String SERVER_PROTOCOL = "https://";
 	public static final String HTTPS_PROTOCOL = "https://";
 	public static final String API_VERSION = "1.0.0/";
-	public static final String API_SERVER_PORT = "80";
+	public static final String API_SERVER_PORT = "443";
 	public static final String OWNERSHIP_BYOD = "BYOD";
 	public static final String OWNERSHIP_COPE = "COPE";
 	public static final String OWNERSHIP_COSU = "COSU";
 	// Set DEFAULT_OWNERSHIP to null if no overiding is needed. Other possible values are,
 	// OWNERSHIP_BYOD or OWNERSHIP_COPE. If you are using the mutual SSL authentication
 	// This value must be set to a value other than null.
-	public static final String DEFAULT_OWNERSHIP = null;
+	public static final String DEFAULT_OWNERSHIP = "BYOD";
 	public static final String PENDING_APP_INSTALLATIONS = "PENDING_APP_INSTALLATIONS";
 	// This is set to override the server host name retrieving screen. If overriding is not
 	// needed, set this to null.
-	public static final String DEFAULT_HOST = null;
+	public static final String DEFAULT_HOST = "https://gateway.api.clouddev.wso2.com";
 	public static final String APP_MANAGER_HOST = null;
 	public static final String SYSTEM_SERVICE_PACKAGE = "org.wso2.emm.system.service";
 	public static final String AGENT_PACKAGE = "org.wso2.emm.agent";
@@ -66,7 +66,7 @@ public class Constants {
 	public static final boolean SKIP_LICENSE = false;
 	public static final boolean HIDE_LOGIN_UI = false;
 	public static final boolean HIDE_UNREGISTER_BUTTON = false;
-	public static final boolean SKIP_WORK_PROFILE_CREATION = false;
+	public static final boolean SKIP_WORK_PROFILE_CREATION = true;
 	public static final boolean HIDE_ERROR_DIALOG = false;
 
 	//COSU Configurations

@@ -83,6 +83,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	private EditText etDomain;
 	private EditText etPassword;
 	private RadioButton radioBYOD;
+	private RadioButton radioCOPE;
 	private String deviceType;
 	private Context context;
 	private String username;
@@ -112,6 +113,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		etUsername = (EditText) findViewById(R.id.etUsername);
 		etPassword = (EditText) findViewById(R.id.etPassword);
 		radioBYOD = (RadioButton) findViewById(R.id.radioBYOD);
+		radioCOPE = (RadioButton) findViewById(R.id.radioCOPE);
 		loginLayout = (LinearLayout) findViewById(R.id.errorLayout);
 		etDomain.setFocusable(true);
 		etDomain.requestFocus();
@@ -200,6 +202,18 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 		//This is an override to ownership type.
 		if(Constants.DEFAULT_OWNERSHIP != null){
+			//uncomment if this is needed
+//			if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_BYOD) {
+//				radioCOPE.setEnabled(false);
+//			} else if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COPE) {
+//				radioBYOD.setEnabled(false);
+//			} else if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
+//				radioBYOD.setVisibility(View.GONE);
+//				radioCOPE.setVisibility(View.GONE);
+//			}
+			// disabling radio buttons if default ownership is overridden by constants file
+			radioBYOD.setVisibility(View.GONE);
+			radioCOPE.setVisibility(View.GONE);
 			deviceType = Constants.DEFAULT_OWNERSHIP;
 			Preference.putString(context, Constants.DEVICE_TYPE, deviceType);
 		}
@@ -358,12 +372,13 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			info.setClientID(clientKey);
 			info.setClientSecret(clientSecret);
 			info.setUsername(username);
-			try {
-				info.setPassword(URLEncoder.encode(passwordVal, "UTF-8"));
-			} catch (UnsupportedEncodingException e) {
-				String msg = "error occurred while encoding password.";
-				Log.e(TAG, msg, e);
-			}
+//			try {
+//				info.setPassword(URLEncoder.encode(passwordVal, "UTF-8"));
+//			} catch (UnsupportedEncodingException e) {
+//				String msg = "error occurred while encoding password.";
+//				Log.e(TAG, msg, e);
+//			}
+			info.setPassword(passwordVal);
 			info.setTokenEndPoint(serverURL);
 			if (tenantDomain != null && !tenantDomain.toString().trim().isEmpty()) {
 				info.setTenantDomain(tenantDomain.toString().trim());

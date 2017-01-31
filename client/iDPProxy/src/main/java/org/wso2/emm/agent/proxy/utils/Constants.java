@@ -51,12 +51,12 @@ public class Constants {
 		public static final int DEFAULT_TIME_OUT = 30000;
 	}
 
-	public static final String SERVER_PROTOCOL = "http://";
+	public static final String SERVER_PROTOCOL = "https://";
 	public static final String TRUSTSTORE_PASSWORD = "wso2carbon";
 	public static final String KEYSTORE_PASSWORD = "wso2carbon";
 	public static final String TRUSTSTORE_LOCATION = null;
 	public static final String KEYSTORE_LOCATION = null;
-	public static final boolean DEBUG_ENABLED = false;
+	public static final boolean DEBUG_ENABLED = true;
 	public final static int ACCESS_TOKEN_AGE = 3000;
 	public final static String GRANT_TYPE = "grant_type";
 	public final static String GRANT_TYPE_PASSWORD = "password";
@@ -69,9 +69,11 @@ public class Constants {
 	public final static String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
 	public final static String REDIRECT_URL = "redirect_uri";
 	public final static String SCOPE = "scope";
+//	public final static String SCOPES = "default";
 	public final static String SCOPES = "default appm:read" +
 			" perm:android:enroll perm:android:disenroll" +
 			" perm:android:view-configuration perm:android:manage-configuration";
+
 	public final static String OPENID = "openid";
 	public static final String DATE_LABEL = "date";
 	public final static String SERVER_RESPONSE_BODY = "response";

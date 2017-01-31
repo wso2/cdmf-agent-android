@@ -20,10 +20,8 @@ package org.wso2.emm.agent.services;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
 import android.content.res.Resources;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.emm.agent.AndroidAgentException;
@@ -68,7 +66,7 @@ public class PolicyRevokeHandler {
     public void revokeExistingPolicy(org.wso2.emm.agent.beans.Operation operation)
             throws AndroidAgentException {
 
-        if(applicationManager.isPackageInstalled(Constants.SERVICE_PACKAGE_NAME)) {
+        if(applicationManager.isPackageInstalled(Constants.SYSTEM_SERVICE_PACKAGE)) {
             switch (operation.getCode()) {
                 case Constants.Operation.CAMERA:
                     revokeCameraPolicy(operation);

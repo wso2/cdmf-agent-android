@@ -345,8 +345,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			if (tenantDomain != null && !tenantDomain.toString().trim().isEmpty()) {
 				username =
 						etUsername.getText().toString().trim() +
-						context.getResources().getString(R.string.intent_extra_at) +
-						tenantDomain.toString().trim();
+						context.getResources().getString(R.string.intent_extra_at) + tenantDomain.toString().trim();
 
 			} else {
 				username = etUsername.getText().toString().trim();
@@ -619,7 +618,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 									String type = param.getString(context.getString(R.string.shared_pref_config_value)).trim();
 									if(type.equals(String.valueOf(Constants.NOTIFIER_CHECK))) {
 										Preference.putString(context, Constants.PreferenceFlag.NOTIFIER_TYPE,
-										                     Constants.NOTIFIER_GCM);
+										                     Constants.NOTIFIER_FCM);
 									}else{
 										Preference.putString(context, Constants.PreferenceFlag.NOTIFIER_TYPE,
 										                     Constants.NOTIFIER_LOCAL);

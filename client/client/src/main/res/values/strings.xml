@@ -358,7 +358,7 @@
     <string name="title_activity_log">LogActivity</string>
 
     <!-- Headings -->
-    <string name="registration_heading">Set your server address here to continue, i.e : www.abc.com. If your server runs on a different port than the default ports (80 or 443), server address should be in following format. i.e : www.abc.com:9763</string>
+    <string name="registration_heading">Set your server address here to continue, i.e : www.abc.com. If your server runs on a different port than the default ports (80 or 443), server address should be in following format. i.e : www.abc.com:8280</string>
     <string name="enable_work_profile_heading">Your device supports Android For Work. Set-up the work-profile first and let the Agent Control the Work Profile.</string>
 
     <!-- Validation Errors -->

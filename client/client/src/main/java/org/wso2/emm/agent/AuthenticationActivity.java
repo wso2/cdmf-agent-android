@@ -588,7 +588,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		String responseStatus;
 		if (result != null) {
 			responseStatus = result.get(Constants.STATUS);
-			if (Constants.Status.CREATED.equals(responseStatus)) {
+			if (Constants.Status.CREATED.equals(responseStatus) || Constants.Status.SUCCESSFUL.equals(responseStatus)) {
 				String dynamicClientResponse = result.get(Constants.RESPONSE);
 				if (dynamicClientResponse != null) {
 					Preference.putString(context, getResources().getString(R.string.shared_pref_client_credentials),
@@ -949,14 +949,20 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	 */		
 	private void showEnrollementFailedErrorMessage() {
 		CommonDialogUtils.stopProgressDialog(progressDialog);
-		CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
-                      getResources().getString(
-                              R.string.error_enrollment_failed),
-                      getResources().getString(
-                              R.string.error_enrollment_failed_detail),
-                      getResources().getString(
-                              R.string.button_ok),
-                      senderIdFailedClickListener);
+		this.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
+						getResources().getString(
+								R.string.error_enrollment_failed),
+						getResources().getString(
+								R.string.error_enrollment_failed_detail),
+						getResources().getString(
+								R.string.button_ok),
+						senderIdFailedClickListener);
+			}
+		});
+
 	}
 
 	/**
@@ -964,14 +970,20 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	 */
 	private void showInternalServerErrorMessage() {
 		CommonDialogUtils.stopProgressDialog(progressDialog);
-		CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
-                      getResources().getString(
-                              R.string.title_head_connection_error),
-                      getResources().getString(
-                              R.string.error_internal_server),
-                      getResources().getString(
-                              R.string.button_ok),
-                      null);
+		this.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
+						getResources().getString(
+								R.string.title_head_connection_error),
+						getResources().getString(
+								R.string.error_internal_server),
+						getResources().getString(
+								R.string.button_ok),
+						null);
+			}
+		});
+
 	}
 	
 	/**
@@ -979,11 +991,16 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	 */
 	private void showAuthenticationError(){
 		CommonDialogUtils.stopProgressDialog(progressDialog);
-		CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
-              getResources().getString(R.string.title_head_authentication_error),
-              getResources().getString(R.string.error_authentication_failed),
-              getResources().getString(R.string.button_ok),
-              null);
+		this.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
+						getResources().getString(R.string.title_head_authentication_error),
+						getResources().getString(R.string.error_authentication_failed),
+						getResources().getString(R.string.button_ok),
+						null);
+			}
+		});
 	}
 
 	/**
@@ -991,14 +1008,19 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	 */
 	private void showAuthCommonErrorMessage() {
 		CommonDialogUtils.stopProgressDialog(progressDialog);
-		CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
-                      getResources().getString(
-                              R.string.title_head_authentication_error),
-                      getResources().getString(
-                              R.string.error_for_all_unknown_authentication_failures),
-                      getResources().getString(
-                              R.string.button_ok),
-                      null);
+		this.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
+						getResources().getString(
+								R.string.title_head_authentication_error),
+						getResources().getString(
+								R.string.error_for_all_unknown_authentication_failures),
+						getResources().getString(
+								R.string.button_ok),
+						null);
+			}
+		});
 
 	}
 

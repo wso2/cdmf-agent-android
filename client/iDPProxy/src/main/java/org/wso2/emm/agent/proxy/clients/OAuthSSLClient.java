@@ -77,6 +77,7 @@ public class OAuthSSLClient implements CommunicationClient {
                         HttpsURLConnection httpsURLConnection = (HttpsURLConnection) super.createConnection(url);
                         httpsURLConnection.setSSLSocketFactory(socketFactory);
                         httpsURLConnection.setHostnameVerifier(getHostnameVerifier());
+
                         return httpsURLConnection;
                     }
                 };
@@ -115,8 +116,10 @@ public class OAuthSSLClient implements CommunicationClient {
         return new HostnameVerifier() {
             @Override
             public boolean verify(String hostname, SSLSession session) {
-                HostnameVerifier hv = HttpsURLConnection.getDefaultHostnameVerifier();
-                return hv.verify(hostname, session);
+//                HostnameVerifier hv = HttpsURLConnection.getDefaultHostnameVerifier();
+//                return hv.verify(hostname, session);
+                Log.i(TAG, "Approving certificate for " + hostname);
+                return true;
             }
         };
     }

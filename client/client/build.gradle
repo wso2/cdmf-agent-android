@@ -59,7 +59,7 @@ android {
             buildConfigField "boolean", "ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE", "false"
             // Protocol used to communicate with the server. Valid values are http:// or https://
             buildConfigField "String", "SERVER_PROTOCOL", "\"https://\""
-            buildConfigField "String", "API_SERVER_PORT", "\"443\""
+            buildConfigField "String", "API_SERVER_PORT", "\"8243\""
             //API version that supported by the server
             buildConfigField "float", "SERVER_API_VERSION", "1.0f"
             // Set DEFAULT_OWNERSHIP to null if no overiding is needed. Other possible values are,
@@ -68,7 +68,7 @@ android {
             buildConfigField "String", "DEFAULT_OWNERSHIP", "\"BYOD\""
             //DEFAULT_HOST - Hardcode the server host to avoid having the user type it during
             //enrollment. If the user must type the hostname/IP during enrollment, leave it as null.
-            buildConfigField "String", "DEFAULT_HOST", "\"https://gateway.api.clouddev.wso2.com\""
+            buildConfigField "String", "DEFAULT_HOST", "\"https://gateway.api.cloudstaging.wso2.com\""
             // APP_MANAGER_HOST: If the App store host is different from the DEFAULT_HOST
             // change this value.
             buildConfigField "String", "APP_MANAGER_HOST", "null"

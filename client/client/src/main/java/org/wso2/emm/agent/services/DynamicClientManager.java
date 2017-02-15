@@ -145,6 +145,9 @@ public class DynamicClientManager implements APIResultCallBack {
                                                           @Override
                                                           public void onErrorResponse(VolleyError error) {
                                                               Log.d(TAG, error.toString());
+                                                              Map<String, String> responseParams = new HashMap<>();
+                                                              responseParams.put(org.wso2.emm.agent.proxy.utils.Constants.SERVER_RESPONSE_STATUS, "500");
+                                                              apiResultCallback.onReceiveAPIResult(responseParams, requestCode);
                                                           }
                                                       })
 

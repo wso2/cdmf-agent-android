@@ -99,6 +99,7 @@ public class DeviceInfoPayload {
     private void getInfo() throws AndroidAgentException {
 
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+
         Location deviceLocation = locationService.getLastKnownLocation();
         if (device == null) {
             device = new Device();
@@ -223,6 +224,12 @@ public class DeviceInfoPayload {
         property = new Device.Property();
         property.setName(Constants.Device.NETWORK_OPERATOR);
         property.setValue(String.valueOf(deviceInfo.getNetworkOperatorName()));
+        deviceInfoProperties.add(property);
+
+        property = new Device.Property();
+        property.setName(Constants.Device.PHONE_NUMBER);
+        String mPhoneNumber = telephonyManager.getLine1Number();
+        property.setValue(mPhoneNumber);
         deviceInfoProperties.add(property);
 
         DeviceNetworkStatus deviceNetworkStatus = DeviceNetworkStatus.getInstance(context);

@@ -117,7 +117,7 @@ public class Constants {
 	public static final String CONFIGURATION_ENDPOINT = SERVER_APP_ENDPOINT + "configuration/";
 	public static final String SCEP_ENDPOINT = "/api/scep-mgt/v" + SERVER_API_VERSION +
 												"/certificates/signcsr";
-	public static final String OAUTH_ENDPOINT = "/token";
+	public static final String OAUTH_ENDPOINT = "/oauth2/token";
 	public static final String DEVICE_ENDPOINT = SERVER_APP_ENDPOINT + "devices/";
 	public static final String IS_REGISTERED_ENDPOINT = "/status";
 	public static final String UNREGISTER_ENDPOINT =  REGISTER_ENDPOINT;

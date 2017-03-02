@@ -261,9 +261,9 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 			case R.id.pin_setting:
 				loadPinCodeActivity();
 				return true;
-			case R.id.ip_setting:
-				loadServerDetailsActivity();
-				return true;
+//			case R.id.ip_setting:
+//				loadServerDetailsActivity();
+//				return true;
 			case R.id.location_setting:
 				showEventListeningEnableDisableDialog();
 				return true;

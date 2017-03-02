@@ -74,7 +74,7 @@
     <string name="device_enroll_type_cope">COPE</string>
     <string name="title_init_msg_error">Initialization Failed. Please try again.</string>
     <string name="title_head_init_error">Initialization Failed</string>
-    <string name="title_head_confirm_pin">Re-type the PIN to Confirm</string>
+    <string name="title_head_confirm_pin">Retype the PIN to Confirm</string>
     <string name="app_url">url</string>
     <string name="app_type">type</string>
     <string name="app_schedule">schedule</string>
@@ -265,6 +265,7 @@
     <string name="dialog_init_device_type">Device type</string>
     <string name="dialog_init_end"> device, are you sure you want to proceed ?</string>
     <string name="dialog_init_end_general"> are you sure you want to proceed ?</string>
+    <string name="dialog_enrollment_confirm_cloud">Are you sure you want to enroll your device with WSO2 Device Cloud?</string>
     <string name="dialog_unregister">You are trying to unregister from EMM. Are you sure you want to proceed ?</string>
     <string name="dialog__location_event_listening_enable">You are trying to enable location event listening. Are you sure you want to proceed?</string>
     <string name="dialog_location_event_listening_disable">You are trying to disable location event listening. Are you sure you want to proceed?</string>
@@ -335,7 +336,7 @@
     <string name="txt_unregister">Unregister</string>
     <string name="txt_enroll">Please click to enroll the device</string>
     <string name="txt_lblpin">Please enter a PIN code to make your device safe from critical operations</string>
-    <string name="button_unregister_text">Device successfully registered, click to unregister from the EMM</string>
+    <string name="button_unregister_text">"You have successfully enrolled your device! If you want to unregister, tap Unregister."</string>
     <string name="txt_managed_profile_enable">Managed Profile is Enabled</string>
     <!-- APPLICATION MANAGER -->
     <string name="application_mgr_download_location">/Download/</string>

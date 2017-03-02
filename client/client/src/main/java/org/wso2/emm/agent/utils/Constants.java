@@ -61,7 +61,7 @@ public class Constants {
 	public static final String NOTIFIER_FCM = "GCM";
 	public static final String FCM_REG_ID = "gcm_reg_id";
 	public static final String SERVER_PROTOCOL = "https://";
-	public static final String API_SERVER_PORT = "8243";
+	public static final String API_SERVER_PORT = "443";
 
 
 

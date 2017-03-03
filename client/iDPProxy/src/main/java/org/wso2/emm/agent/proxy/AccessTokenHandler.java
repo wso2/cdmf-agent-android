@@ -126,7 +126,8 @@ public class AccessTokenHandler {
                 if (info.getTenantDomain() != null) {
                     requestParams.put(TENANT_DOMAIN_LABEL, info.getTenantDomain());
                 }
-                requestParams.put(Constants.SCOPE, Constants.SCOPES);
+
+                requestParams.put(Constants.SCOPE, info.getScopes() + " " + Constants.SCOPES);
                 return requestParams;
             }
 

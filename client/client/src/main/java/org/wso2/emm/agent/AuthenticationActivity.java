@@ -347,6 +347,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	private void initializeIDPLib(String clientKey, String clientSecret) {
 		String serverIP = Constants.DEFAULT_HOST;
 		String prefIP = Preference.getString(AuthenticationActivity.this, Constants.PreferenceFlag.IP);
+
 		if (prefIP != null) {
 			serverIP = prefIP;
 		}
@@ -375,6 +376,11 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 			info.setPassword(passwordVal);
 			info.setTokenEndPoint(serverURL);
+
+			//adding device-specific scope
+			String deviceScope = "deivce_" + deviceInfo.getDeviceId();
+			info.setScopes(deviceScope);
+
 			if (tenantDomain != null && !tenantDomain.toString().trim().isEmpty()) {
 				info.setTenantDomain(tenantDomain.toString().trim());
 			}

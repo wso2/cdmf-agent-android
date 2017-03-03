@@ -28,6 +28,7 @@ public class CredentialInfo {
     private String clientSecret = null;
     private String tokenEndPoint = null;
     private String tenantDomain = null;
+    private String scopes = null;
 
     public String getUsername() {
         return username;
@@ -77,4 +78,11 @@ public class CredentialInfo {
         this.tenantDomain = tenantDomain;
     }
 
+    public String getScopes() {
+        return scopes;
+    }
+
+    public void setScopes(String scopes) {
+        this.scopes = scopes;
+    }
 }

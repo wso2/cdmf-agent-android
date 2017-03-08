@@ -186,7 +186,7 @@ public class DynamicClientManager implements APIResultCallBack {
                 }
             };
             request.setRetryPolicy(new DefaultRetryPolicy(
-                    org.wso2.emm.agent.proxy.utils.Constants.HttpClient.DEFAULT_TIME_OUT,
+                    org.wso2.iot.agent.proxy.utils.Constants.HttpClient.DEFAULT_TIME_OUT,
                     MAX_RETRIES,
                     DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         } catch (JSONException e) {

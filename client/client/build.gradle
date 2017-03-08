@@ -318,7 +318,8 @@ task checkAPIVersion (dependsOn: build) {
 
 
 dependencies {
-    compile project(':iDPProxy')
+    releaseCompile project(path: ':iDPProxy', configuration: 'release')
+    debugCompile project(path: ':iDPProxy', configuration: 'debug')
     compile('com.googlecode.json-simple:json-simple:1.1.1') {
         exclude module: 'junit'
     }

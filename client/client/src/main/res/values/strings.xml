@@ -188,7 +188,7 @@
     <string name="policy_violation_apps_number">. </string>
 
     <!-- SHARED PREF KEYS -->
-    <string name="shared_pref_package">org.wso2.emm.agent</string>
+    <string name="shared_pref_package">org.wso2.iot.agent</string>
     <string name="shared_pref_policy">policy</string>
     <string name="shared_pref_configuration">configuration</string>
     <string name="shared_pref_notifier">notifierType</string>

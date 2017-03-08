@@ -48,7 +48,7 @@ public class Constants {
 		public static final String OAUTH_HTTP_CLIENT = "OAUTH_HTTP_CLIENT";
 		public static final String MUTUAL_HTTP_CLIENT = "MUTUAL_HTTP_CLIENT";
 		public static final String HTTP_CLIENT_IN_USE = OAUTH_HTTP_CLIENT;
-		public static final int DEFAULT_TIME_OUT = 30000;
+		public static final int DEFAULT_TIME_OUT = 60000;
 	}
 
 	public static final String SERVER_PROTOCOL = "https://";
@@ -94,7 +94,7 @@ public class Constants {
 	public static final String ACCESS_FAILURE = "400";
 	public static final String REQUEST_SUCCESSFUL = "200";
 	public static final int HTTP = 8280;
-	public static final int HTTPS = 8243;
+	public static final int HTTPS = 443;
 	public static final String BKS = "BKS";
 
 

@@ -26,9 +26,10 @@
             <item
                 android:id="@+id/info_setting"
                 android:title="@string/menu_item_phone_info"></item>
-            <item
-                android:id="@+id/ip_setting"
-                android:title="@string/menu_item_ip"></item>
+            <!-- commenting the item because of the cloud deployment -->
+            <!--<item-->
+                <!--android:id="@+id/ip_setting"-->
+                <!--android:title="@string/menu_item_ip"></item>-->
             <item
                 android:id="@+id/location_setting"
                 android:title="@string/menu_item_location_event"></item>

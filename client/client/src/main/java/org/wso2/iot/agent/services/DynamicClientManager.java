@@ -20,6 +20,7 @@ package org.wso2.iot.agent.services;
 import android.content.Context;
 import android.util.Log;
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -54,6 +55,7 @@ public class DynamicClientManager implements APIResultCallBack {
     private static final String USER_ID = "userId";
     private static final String CONSUMER_KEY = "consumerKey";
     private static final String APPLICATION_NAME = "applicationName";
+    private static final int MAX_RETRIES = 3;
 
     /**
      * This method is used to register an oauth application in the backend.
@@ -183,6 +185,10 @@ public class DynamicClientManager implements APIResultCallBack {
                     return headers;
                 }
             };
+            request.setRetryPolicy(new DefaultRetryPolicy(
+                    org.wso2.emm.agent.proxy.utils.Constants.HttpClient.DEFAULT_TIME_OUT,
+                    MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         } catch (JSONException e) {
             Log.e(TAG, "Failed to parse request JSON", e);
         }

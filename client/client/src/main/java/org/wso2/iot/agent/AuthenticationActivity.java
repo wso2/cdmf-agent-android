@@ -345,6 +345,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	private void initializeIDPLib(String clientKey, String clientSecret) {
 		String serverIP = Constants.DEFAULT_HOST;
 		String prefIP = Preference.getString(AuthenticationActivity.this, Constants.PreferenceFlag.IP);
+
 		if (prefIP != null) {
 			serverIP = prefIP;
 		}
@@ -373,6 +374,11 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 			info.setPassword(passwordVal);
 			info.setTokenEndPoint(serverURL);
+
+			//adding device-specific scope
+			String deviceScope = "deivce_" + deviceInfo.getDeviceId();
+			info.setScopes(deviceScope);
+
 			if (tenantDomain != null && !tenantDomain.toString().trim().isEmpty()) {
 				info.setTenantDomain(tenantDomain.toString().trim());
 			}
@@ -586,7 +592,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		String responseStatus;
 		if (result != null) {
 			responseStatus = result.get(Constants.STATUS);
-			if (Constants.Status.CREATED.equals(responseStatus) || Constants.Status.SUCCESSFUL.equals(responseStatus)) {
+			if (Constants.Status.CREATED.equals(responseStatus)) {
 				String dynamicClientResponse = result.get(Constants.RESPONSE);
 				if (dynamicClientResponse != null) {
 					Preference.putString(context, getResources().getString(R.string.shared_pref_client_credentials),
@@ -737,11 +743,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	
 	private void showAuthenticationDialog(){
 		StringBuilder messageBuilder = new StringBuilder();
-		messageBuilder.append(getResources().getString(R.string.dialog_init_middle));
-		messageBuilder.append(getResources().getString(R.string.intent_extra_space));
-		messageBuilder.append(deviceType);
-		messageBuilder.append(getResources().getString(R.string.intent_extra_space));
-		messageBuilder.append(getResources().getString(R.string.dialog_init_end));
+		messageBuilder.append(getResources().getString(R.string.dialog_enrollment_confirm_cloud));
 		AlertDialog.Builder alertDialog =
 				CommonDialogUtils.getAlertDialogWithTwoButtonAndTitle(context,
 				                                                      getResources().getString(R.string.dialog_init_device_type),
@@ -901,13 +903,13 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-			case R.id.ip_setting:
-				Preference.putString(context, Constants.PreferenceFlag.IP, null);
-				Intent intentIP = new Intent(AuthenticationActivity.this, ServerDetails.class);
-				intentIP.putExtra(getResources().getString(R.string.intent_extra_from_activity),
-				                  AuthenticationActivity.class.getSimpleName());
-				startActivity(intentIP);
-				return true;
+//			case R.id.ip_setting:
+//				Preference.putString(context, Constants.PreferenceFlag.IP, null);
+//				Intent intentIP = new Intent(AuthenticationActivity.this, ServerDetails.class);
+//				intentIP.putExtra(getResources().getString(R.string.intent_extra_from_activity),
+//				                  AuthenticationActivity.class.getSimpleName());
+//				startActivity(intentIP);
+//				return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}
@@ -933,9 +935,9 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 				@Override
 				public void onClick(DialogInterface dialog,
 				                    int which) {
-					etUsername.setText(Constants.EMPTY_STRING);
-					etPassword.setText(Constants.EMPTY_STRING);
-					etDomain.setText(Constants.EMPTY_STRING);
+//					etUsername.setText(Constants.EMPTY_STRING);
+//					etPassword.setText(Constants.EMPTY_STRING);
+//					etDomain.setText(Constants.EMPTY_STRING);
 					btnRegister.setEnabled(false);
 					btnRegister.setBackground(getResources().getDrawable(R.drawable.btn_grey));
 					btnRegister.setTextColor(getResources().getColor(R.color.black));

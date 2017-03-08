@@ -61,7 +61,6 @@ public class ServerConfig {
 			APIServerURL = getProtocolFromPreferences(context) + getHostFromPreferences(context) + COLON +
 			               getPortFromPreferences(context);
 		}
-		Log.e("APIServerURL", APIServerURL);
 		return APIServerURL;
 	}
 

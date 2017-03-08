@@ -21,7 +21,6 @@ public class Preference {
 	 * @param value   - The actual value to be saved.
 	 */
 	public static void putString(Context context, String key, String value) {
-		Log.e(key, value);
 		SharedPreferences mainPref =
 				context.getSharedPreferences(context.getResources()
 				                                    .getString(R.string.shared_pref_package),

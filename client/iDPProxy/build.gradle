@@ -19,6 +19,7 @@ apply plugin: 'com.android.library'
 android {
     compileSdkVersion 22
     buildToolsVersion "22.0.1"
+    publishNonDefault true
 
     defaultConfig {
         minSdkVersion 16
@@ -29,6 +30,38 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            // DEBUG_MODE_ENABLED: Make the agent print the debug logs.
+            // Make this false in production.
+            buildConfigField "boolean", "DEBUG_MODE_ENABLED", "false"
+            // AUTHENTICATOR_IN_USE: Type of authenticator to be used when authenticating with
+            // server. Allowed values by default are OAUTH_AUTHENTICATOR or MUTUAL_SSL_AUTHENTICATOR
+            buildConfigField "String", "AUTHENTICATOR_IN_USE", "\"OAUTH_AUTHENTICATOR\""
+            // HTTP_CLIENT_IN_USE: Http client to be used for communication. Allowed values are,
+            // MUTUAL_HTTP_CLIENT or OAUTH_HTTP_CLIENT
+            buildConfigField "String", "HTTP_CLIENT_IN_USE", "\"OAUTH_HTTP_CLIENT\""
+            // DEFAULT_TIME_OUT: Default connection time out when connecting to the backend
+            buildConfigField "int", "DEFAULT_TIME_OUT", "30000"
+            // SERVER_PROTOCOL: Protocol used to communicate with the server.
+            // Valid values are http:// or https://
+            buildConfigField "String", "SERVER_PROTOCOL", "\"http://\""
+            buildConfigField "int", "API_HTTP_SERVER_PORT", "80"
+            buildConfigField "int", "API_HTTPS_SERVER_PORT", "443"
+            // TRUSTSTORE_PASSWORD: Password of the trust store to be used in SSL. BKS truststore
+            // holds all the public certificates of the servers that the agent should trust.
+            buildConfigField "String", "TRUSTSTORE_PASSWORD", "\"wso2carbon\""
+            // KEYSTORE_PASSWORD: Password of the key store to be used in SSL. BKS keystore
+            // holds the client's own certificate and key pair if needed.
+            // This is needed in situations such as mutual SSL authentication.
+            buildConfigField "String", "KEYSTORE_PASSWORD", "\"wso2carbon\""
+            // TRUSTSTORE_LOCATION: If the truststore BKS must be picked from a file path at runtime
+            // instead of storing it in the complile time, change this value.
+            buildConfigField "String", "TRUSTSTORE_LOCATION", "null"
+            // KEYSTORE_LOCATION: If the keystore BKS must be picked from a file path at runtime
+            // instead of storing it in the complile time, change this value.
+            buildConfigField "String", "KEYSTORE_LOCATION", "null"
+            // APPLICATION_PACKAGE: If a modification of the agent's package name is done, this must
+            // be altered.
+            buildConfigField "String", "APPLICATION_PACKAGE", "\"org.wso2.iot.agent\""
         }
 
         debug {
@@ -46,6 +79,8 @@ android {
             // SERVER_PROTOCOL: Protocol used to communicate with the server.
             // Valid values are http:// or https://
             buildConfigField "String", "SERVER_PROTOCOL", "\"http://\""
+            buildConfigField "int", "API_HTTP_SERVER_PORT", "8280"
+            buildConfigField "int", "API_HTTPS_SERVER_PORT", "8243"
             // TRUSTSTORE_PASSWORD: Password of the trust store to be used in SSL. BKS truststore
             // holds all the public certificates of the servers that the agent should trust.
             buildConfigField "String", "TRUSTSTORE_PASSWORD", "\"wso2carbon\""
@@ -61,7 +96,7 @@ android {
             buildConfigField "String", "KEYSTORE_LOCATION", "null"
             // APPLICATION_PACKAGE: If a modification of the agent's package name is done, this must
             // be altered.
-            buildConfigField "String", "APPLICATION_PACKAGE", "\"org.wso2.emm.agent\""
+            buildConfigField "String", "APPLICATION_PACKAGE", "\"org.wso2.iot.agent\""
 
         }
     }

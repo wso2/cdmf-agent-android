@@ -251,7 +251,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 						!CommonUtils.isSystemAppInstalled(context)) {
 					showNoSystemAppDialog();
 				} else {
-					showAuthenticationDialog();
+					getClientCredentials();
 				}
 
 			} else {
@@ -938,9 +938,9 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 //					etUsername.setText(Constants.EMPTY_STRING);
 //					etPassword.setText(Constants.EMPTY_STRING);
 //					etDomain.setText(Constants.EMPTY_STRING);
-					btnRegister.setEnabled(false);
-					btnRegister.setBackground(getResources().getDrawable(R.drawable.btn_grey));
-					btnRegister.setTextColor(getResources().getColor(R.color.black));
+					btnRegister.setBackground(getResources().getDrawable(R.drawable.btn_orange));
+					btnRegister.setTextColor(getResources().getColor(R.color.white));
+					btnRegister.setEnabled(true);
 				}
 			};
 

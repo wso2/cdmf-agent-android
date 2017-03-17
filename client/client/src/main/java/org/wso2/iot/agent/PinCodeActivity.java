@@ -47,6 +47,7 @@ import org.wso2.iot.agent.utils.Preference;
 public class PinCodeActivity extends Activity {
 	private TextView txtPin;
 	private EditText evPin;
+	private EditText evReTypePin;
 	private EditText evOldPin;
 	private Button btnPin;
 	private String username;
@@ -55,8 +56,6 @@ public class PinCodeActivity extends Activity {
 	private static final int PIN_MIN_LENGTH = 4;
 	private String fromActivity;
 	private Context context;
-	private AlertDialog.Builder alertDialog;
-	private EditText evInput;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +83,7 @@ public class PinCodeActivity extends Activity {
 
 		txtPin = (TextView) findViewById(R.id.lblPin);
 		evPin = (EditText) findViewById(R.id.txtPinCode);
+		evReTypePin = (EditText) findViewById(R.id.txtRetypePinCode);
 		evOldPin = (EditText) findViewById(R.id.txtOldPinCode);
 		btnPin = (Button) findViewById(R.id.btnSetPin);
 		btnPin.setTag(TAG_BTN_SET_PIN);
@@ -104,8 +104,26 @@ public class PinCodeActivity extends Activity {
 			evOldPin.setVisibility(View.VISIBLE);
 			evPin.setHint(getResources().getString(R.string.hint_new_pin));
 			evPin.setEnabled(true);
+			evReTypePin.setHint(getResources().getString(R.string.hint_retype_pin));
+			evReTypePin.setEnabled(true);
 
 			evPin.addTextChangedListener(new TextWatcher() {
+				@Override
+				public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+				}
+
+				@Override
+				public void onTextChanged(CharSequence s, int start, int before, int count) {
+					enableNewPINSubmitIfReady();
+				}
+
+				@Override
+				public void afterTextChanged(Editable s) {
+					enableSubmitIfReady();
+				}
+			});
+
+			evReTypePin.addTextChangedListener(new TextWatcher() {
 				@Override
 				public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 				}
@@ -152,6 +170,22 @@ public class PinCodeActivity extends Activity {
 					enableSubmitIfReady();
 				}
 			});
+
+			evReTypePin.addTextChangedListener(new TextWatcher() {
+				@Override
+				public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+				}
+
+				@Override
+				public void onTextChanged(CharSequence s, int start, int before, int count) {
+					enableSubmitIfReady();
+				}
+
+				@Override
+				public void afterTextChanged(Editable s) {
+					enableSubmitIfReady();
+				}
+			});
 		}
 	}
 
@@ -164,64 +198,12 @@ public class PinCodeActivity extends Activity {
 			switch (viewTag) {
 
 				case TAG_BTN_SET_PIN:
-					setPINCode();
-					break;
-				default:
-					break;
-			}
-
-		}
-	};
-	
-	private void setPINCode(){
-		evInput = new EditText(PinCodeActivity.this);
-		alertDialog =
-				CommonDialogUtils
-						.getAlertDialogWithTwoButtonAndEditView(PinCodeActivity.this,
-                        getResources().getString(R.string.title_head_confirm_pin),
-                        getResources().getString(R.string.button_ok),
-                        getResources().getString(R.string.button_cancel),
-                        dialogClickListener,
-                        dialogClickListener,
-                        evInput);
-
-		final AlertDialog dialog = alertDialog.create();
-		dialog.show();
-		// Overriding default positive button behavior to keep the
-		// dialog open, if PINS don't match.
-		dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-		      .setOnClickListener(new View.OnClickListener() {
-			      @Override
-			      public void onClick(View v) {
-				      if (evPin.getText().toString()
-				               .equals(evInput.getText().toString())) {
-					      savePin();
-					      dialog.dismiss();
-				      } else {
-					      evInput.setError(getResources().getString(
-							      R.string.validation_pin_confirm));
-				      }
-			      }
-		      });
-		evInput.setInputType(InputType.TYPE_CLASS_NUMBER);
-		evInput.setTransformationMethod(new PasswordTransformationMethod());
-	}
-
-	private DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-		@Override
-		public void onClick(DialogInterface dialog, int which) {
-			switch (which) {
-				case DialogInterface.BUTTON_POSITIVE:
 					savePin();
 					break;
-
-				case DialogInterface.BUTTON_NEGATIVE:
-					dialog.dismiss();
-					break;
-
 				default:
 					break;
 			}
+
 		}
 	};
 
@@ -251,7 +233,8 @@ public class PinCodeActivity extends Activity {
 
 		boolean isReady = false;
 
-		if (evPin.getText().toString().length() >= PIN_MIN_LENGTH) {
+		if (evPin.getText().toString().length() >= PIN_MIN_LENGTH
+				&& evPin.getText().toString().equals(evReTypePin.getText().toString())) {
 			isReady = true;
 		}
 
@@ -269,19 +252,19 @@ public class PinCodeActivity extends Activity {
 	private void enableNewPINSubmitIfReady() {
 
 		boolean isReady = false;
-		String pin =
-				Preference.getString(context,
-				                     getResources().getString(R.string.shared_pref_pin));
+		String pin = Preference.getString(context, getResources().getString(R.string.shared_pref_pin));
 
 		if (evOldPin.getText().toString().trim().length() >= PIN_MIN_LENGTH &&
 		    evOldPin.getText().toString().trim().equals(pin.trim())) {
 			evPin.setEnabled(true);
+			evReTypePin.setEnabled(true);
 		} else {
 			evPin.setEnabled(false);
+			evReTypePin.setEnabled(false);
 		}
 
-		if (evPin.getText().toString().trim().length() >= PIN_MIN_LENGTH &&
-		    evOldPin.getText().toString().trim().length() >= PIN_MIN_LENGTH) {
+		if (evPin.getText().toString().trim().length() >= PIN_MIN_LENGTH
+				&& evPin.getText().toString().equals(evReTypePin.getText().toString())) {
 			if (evOldPin.getText().toString().trim().equals(pin.trim())) {
 				isReady = true;
 			} else {

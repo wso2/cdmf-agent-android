@@ -419,4 +419,5 @@
 
     <string name="title_activity_splash">WSO2 Device Management Agent</string>
     <string name="copyright">©2017 WSO2</string>
+    <string name="hint_retype_pin">Retype PIN Code</string>
 </resources>

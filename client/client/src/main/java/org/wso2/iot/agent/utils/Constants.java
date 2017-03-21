@@ -58,7 +58,7 @@ public class Constants {
 	public static final String NOTIFIER_LOCAL = "LOCAL";
 	public static final String NOTIFIER_FCM = "FCM";
 	public static final String FCM_REG_ID = "fcm_reg_id";
-	public static final String SERVER_PROTOCOL = "https://";
+	public static final String SERVER_PROTOCOL = BuildConfig.SERVER_PROTOCOL;
 	public static final String API_SERVER_PORT = BuildConfig.API_SERVER_PORT;
 
 

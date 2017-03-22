@@ -22,6 +22,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Log;
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -143,7 +144,10 @@ public class AccessTokenHandler {
                 return headers;
             }
         };
-
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                Constants.HttpClient.DEFAULT_TOKEN_TIME_OUT,
+                DefaultRetryPolicy.DEFAULT_TOKEN_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         queue.add(request);
     }
 

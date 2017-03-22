@@ -20,6 +20,7 @@ package org.wso2.emm.agent.services;
 import android.content.Context;
 import android.util.Log;
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -183,7 +184,10 @@ public class DynamicClientManager implements APIResultCallBack {
         } catch (JSONException e) {
             Log.e(TAG, "Failed to parse request JSON", e);
         }
-
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                org.wso2.emm.agent.proxy.utils.Constants.HttpClient.DEFAULT_TIME_OUT,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         queue.add(request);
     }
 

@@ -72,7 +72,7 @@ public class IdentityProxy implements CallBack {
     @Override
     public void receiveAccessToken(String status, String message, Token token) {
         if (Constants.DEBUG_ENABLED && token != null) {
-            Log.d(TAG, "receiveAccessToken");
+            Log.d(TAG, "Receive Access Token: " + token.getAccessToken());
         }
         IdentityProxy.token = token;
         apiAccessCallBack.onAPIAccessReceive(status);
@@ -81,7 +81,7 @@ public class IdentityProxy implements CallBack {
     @Override
     public void receiveNewAccessToken(String status, String message, Token token) {
         if (Constants.DEBUG_ENABLED && token != null) {
-            Log.d(TAG, "receiveNewAccessToken");
+            Log.d(TAG, "Received New Access Token: " + token.getAccessToken());
         }
         IdentityProxy.token = token;
         tokenCallBack.onReceiveTokenResult(token, status);

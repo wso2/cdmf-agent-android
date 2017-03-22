@@ -192,7 +192,10 @@ public class DynamicClientManager implements APIResultCallBack {
         } catch (JSONException e) {
             Log.e(TAG, "Failed to parse request JSON", e);
         }
-
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                org.wso2.iot.agent.proxy.utils.Constants.HttpClient.DEFAULT_TIME_OUT,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         queue.add(request);
     }
 

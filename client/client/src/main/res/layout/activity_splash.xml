@@ -11,7 +11,9 @@
         android:src="@drawable/splash_bg"
         android:scaleType="centerCrop"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentTop="true" />
 
     <TextView
         android:text="@string/copyright"
@@ -23,17 +25,5 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true" />
-
-    <TextView
-        android:text="@string/title_activity_splash"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textView"
-        android:gravity="center"
-        android:paddingTop="@dimen/top_bar_height"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"
-        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large" />
 
 </RelativeLayout>

@@ -56,7 +56,7 @@ public class Constants {
 		public static final int DEFAULT_TOKEN_RETRY_COUNT = 0;
 	}
 
-	public static final String SERVER_PROTOCOL = "https://";
+	public static final String SERVER_PROTOCOL = BuildConfig.SERVER_PROTOCOL;
 	public static final String TRUSTSTORE_PASSWORD = "wso2carbon";
 	public static final String KEYSTORE_PASSWORD = "wso2carbon";
 	public static final String TRUSTSTORE_LOCATION = null;

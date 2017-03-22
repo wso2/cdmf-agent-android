@@ -79,7 +79,6 @@ android {
             // name is done, this must be altered.
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
 
-
             // System service specific configurations.
             // SYSTEM_APP_ENABLED: This is to set if the system app will also be installed.
             // If this is set org.wso2.emm.system.service must also be available in the device.
@@ -88,7 +87,6 @@ android {
             // defined here so that the agent knows the package name of the system service to
             // contact.
             buildConfigField "String", "SYSTEM_SERVICE_PACKAGE", "\"org.wso2.emm.system.service\""
-
 
             // HIDE_UNREGISTER_BUTTON: Hide the unregister button after enrollment so that  the
             // unenrollment can only be done remotely.
@@ -160,7 +158,6 @@ android {
             buildConfigField "boolean", "COSU_SECRET_EXIT", "true"
 
             buildConfigField "String", "EULA_TITLE", "\"POLICY AGREEMENT\""
-
 
             //Minimum Server API version that supported by the agent app
             buildConfigField "float", "MIN_SERVER_API_VERSION", "1.0f"
@@ -200,7 +197,6 @@ android {
             // name is done, this must be altered.
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
 
-
             // System service specific configurations.
             // SYSTEM_APP_ENABLED: This is to set if the system app will also be installed.
             // If this is set org.wso2.emm.system.service must also be available in the device.
@@ -209,7 +205,6 @@ android {
             // defined here so that the agent knows the package name of the system service to
             // contact.
             buildConfigField "String", "SYSTEM_SERVICE_PACKAGE", "\"org.wso2.emm.system.service\""
-
 
             // HIDE_UNREGISTER_BUTTON: Hide the unregister button after enrollment so that  the
             // unenrollment can only be done remotely.
@@ -282,7 +277,6 @@ android {
 
             buildConfigField "String", "EULA_TITLE", "\"POLICY AGREEMENT\""
 
-
             //Minimum Server API version that supported by the agent app
             buildConfigField "float", "MIN_SERVER_API_VERSION", "1.0f"
             //Maximum Server API version that supported by the agent app
@@ -301,15 +295,15 @@ android {
     }
 }
 
-task checkAPIVersion (dependsOn: build) {
-    android.buildTypes.all{ buildType ->
-        if(buildType.buildConfigFields["SERVER_API_VERSION"] != null){
+task checkAPIVersion(dependsOn: build) {
+    android.buildTypes.all { buildType ->
+        if (buildType.buildConfigFields["SERVER_API_VERSION"] != null) {
             def minServerAPIVersion = buildType.buildConfigFields["MIN_SERVER_API_VERSION"].value.toFloat()
             def maxServerAPIVersion = buildType.buildConfigFields["MAX_SERVER_API_VERSION"].value.toFloat()
             def serverAPIVersion = buildType.buildConfigFields["SERVER_API_VERSION"].value.toFloat()
-            if(minServerAPIVersion > serverAPIVersion ||
-                    maxServerAPIVersion < serverAPIVersion){
-                throw new GradleException("Server API version should be between " +  minServerAPIVersion +
+            if (minServerAPIVersion > serverAPIVersion ||
+                    maxServerAPIVersion < serverAPIVersion) {
+                throw new GradleException("Server API version should be between " + minServerAPIVersion +
                         " and " + maxServerAPIVersion);
             }
         }

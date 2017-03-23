@@ -416,4 +416,8 @@
     <string name="wso2">WSO2</string>
     <string name="wipe_the_device">Wipe the device</string>
     <string name="wipe_confirmation">Do you want to wipe the device?</string>
+
+    <string name="title_activity_splash">WSO2 Device Management Agent</string>
+    <string name="copyright">©2017 WSO2</string>
+    <string name="hint_retype_pin">Retype PIN Code</string>
 </resources>

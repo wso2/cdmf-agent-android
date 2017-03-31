@@ -18,6 +18,7 @@
 package org.wso2.iot.agent.proxy;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
@@ -40,6 +41,8 @@ import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.proxy.interfaces.TokenCallBack;
 import org.wso2.iot.agent.proxy.utils.Constants;
 import org.wso2.iot.agent.proxy.utils.ServerUtilities;
+
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -246,7 +249,7 @@ public class APIController implements TokenCallBack {
 				headers.put("Accept", "text/plain");
 				headers.put("User-Agent", "Mozilla/5.0 ( compatible ), Android");
 				if(!isSecured) {
-					String accessToken = token.getAccessToken();
+					String accessToken = getToken().getAccessToken();
 					headers.put("Authorization", "Bearer " + accessToken);
 				}
 				ServerUtilities.addHeaders(headers);
@@ -310,7 +313,7 @@ public class APIController implements TokenCallBack {
                     headers.put("Accept", "*/*");
                     headers.put("User-Agent", "Mozilla/5.0 ( compatible ), Android");
                     if(!isSecured) {
-                        String accessToken = token.getAccessToken();
+                        String accessToken = getToken().getAccessToken();
                         headers.put("Authorization", "Bearer " + accessToken);
                     }
 	                ServerUtilities.addHeaders(headers);
@@ -379,7 +382,7 @@ public class APIController implements TokenCallBack {
 					headers.put("Accept", "*/*");
 					headers.put("User-Agent", "Mozilla/5.0 ( compatible ), Android");
 					if(!isSecured) {
-						String accessToken = token.getAccessToken();
+						String accessToken = getToken().getAccessToken();
 						headers.put("Authorization", "Bearer " + accessToken);
 					}
 					ServerUtilities.addHeaders(headers);
@@ -395,6 +398,22 @@ public class APIController implements TokenCallBack {
 				DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
 				DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 		queue.add(request);
+	}
+
+	private Token getToken(){
+		if (token == null){
+			SharedPreferences mainPref = IdentityProxy.getInstance()
+					.getContext()
+					.getSharedPreferences(Constants.APPLICATION_PACKAGE, Context.MODE_PRIVATE);
+			String refreshToken = mainPref.getString(Constants.REFRESH_TOKEN, null);
+			String accessToken = mainPref.getString(Constants.ACCESS_TOKEN, null);
+			long expiresOn = mainPref.getLong(Constants.EXPIRE_TIME, 0);
+			token = new Token();
+			token.setExpiresOn(new Date(expiresOn));
+			token.setRefreshToken(refreshToken);
+			token.setAccessToken(accessToken);
+		}
+		return token;
 	}
 
 }

@@ -17,8 +17,6 @@
  */
 package org.wso2.iot.agent.proxy.beans;
 
-import org.wso2.iot.agent.proxy.utils.ServerUtilities;
-
 import java.util.Date;
 
 /**
@@ -29,18 +27,10 @@ public final class Token {
 	private String refreshToken = null;
 	private String idToken = null;
 	private String accessToken = null;
-	private Date receivedDate = null;
+	private Date expiresOn;
 
 	@SuppressWarnings("unused")
 	private boolean expired = false;
-
-	public Date getDate() {
-		return receivedDate;
-	}
-
-	public void setDate(String date) {
-		receivedDate = ServerUtilities.convertDate(date);
-	}
 
 	public String getAccessToken() {
 		return accessToken;
@@ -70,4 +60,11 @@ public final class Token {
 		this.expired = expired;
 	}
 
+	public Date getExpiresOn() {
+		return expiresOn;
+	}
+
+	public void setExpiresOn(Date expiresOn) {
+		this.expiresOn = expiresOn;
+	}
 }

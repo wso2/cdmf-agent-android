@@ -17,16 +17,12 @@
  */
 package org.wso2.iot.agent.proxy.utils;
 
-import android.util.Log;
 import com.android.volley.RequestQueue;
 import org.wso2.iot.agent.proxy.IDPTokenManagerException;
 import org.wso2.iot.agent.proxy.clients.CommunicationClient;
 import org.wso2.iot.agent.proxy.clients.CommunicationClientFactory;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+
 import java.util.Date;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -35,8 +31,7 @@ import java.util.Map;
  */
 public class ServerUtilities {
 	private final static String TAG = "ServerUtilities";
-	private static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss",
-	                                                                  Locale.getDefault());
+
 	private static CommunicationClient communicationClient;
 	private static RequestQueue requestQueue;
 
@@ -46,32 +41,9 @@ public class ServerUtilities {
 	 * @param expirationDate - Token expiration date.
 	 * @return - Token status.
 	 */
-	public static boolean isValid(Date expirationDate) {
+	public static boolean isExpired(Date expirationDate) {
 		Date currentDate = new Date();
-		String formattedDate = dateFormat.format(currentDate);
-		currentDate = convertDate(formattedDate);
-
-		boolean isExpired = currentDate.after(expirationDate);
-		boolean isEqual = currentDate.equals(expirationDate);
-		return isExpired || isEqual;
-
-	}
-
-	/**
-	 * Convert the date to the standard format.
-	 *
-	 * @param date - Date as a string.
-	 * @return - Formatted date.
-	 */
-	public static Date convertDate(String date) {
-		Date receivedDate = null;
-		try {
-			receivedDate = dateFormat.parse(date);
-		} catch (ParseException e) {
-			Log.e(TAG, "Invalid date format." + e);
-		}
-
-		return receivedDate;
+		return currentDate.after(expirationDate);
 	}
 
 	public static void addHeaders(Map<String, String> headers) {

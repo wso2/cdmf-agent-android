@@ -53,8 +53,6 @@ public class RefreshTokenHandler {
 	private static final String TAG = "RefreshTokenHandler";
 	private static final String SCOPE_LABEL = "scope";
 	private static final String PRODUCTION_LABEL = "PRODUCTION";
-	private static final DateFormat dateFormat =
-			new SimpleDateFormat("MM/dd/yyyy HH:mm:ss", Locale.getDefault());
 	private static final String COLON = ":";
 	private Token token;
 
@@ -84,6 +82,13 @@ public class RefreshTokenHandler {
 			                                          @Override
 			                                          public void onErrorResponse(VolleyError error) {
 				                                          Log.d(TAG, error.toString());
+														  SharedPreferences mainPref = IdentityProxy.getInstance().getContext().
+																  getSharedPreferences(Constants.APPLICATION_PACKAGE, Context.MODE_PRIVATE);
+														  Editor editor = mainPref.edit();
+														  editor.putString(Constants.ACCESS_TOKEN, null);
+														  editor.putString(Constants.REFRESH_TOKEN, null);
+														  editor.putLong(Constants.EXPIRE_TIME, 0);
+														  editor.commit();
 			                                          }
 		                                          })
 
@@ -141,29 +146,22 @@ public class RefreshTokenHandler {
 		try {
 			if (Constants.REQUEST_SUCCESSFUL.equals(responseCode)) {
 				JSONObject response = new JSONObject(result);
-				refreshToken = response.getString(Constants.REFRESH_TOKEN);
 				accessToken = response.getString(Constants.ACCESS_TOKEN);
-				timeToExpireSecond =
-						Integer.parseInt(response.getString(Constants.EXPIRE_LABEL));
-
+				refreshToken = response.getString(Constants.REFRESH_TOKEN);
+				timeToExpireSecond = Integer.parseInt(response.getString(Constants.EXPIRE_LABEL));
+				Token token = new Token();
+				long expiresOn = new Date().getTime() + (timeToExpireSecond * 1000);
+				token.setExpiresOn(new Date(expiresOn));
 				token.setRefreshToken(refreshToken);
 				token.setAccessToken(accessToken);
+				token.setExpired(false);
 
-				SharedPreferences mainPref =
-						IdentityProxy.getInstance()
-								.getContext()
-								.getSharedPreferences(Constants.APPLICATION_PACKAGE,
-								                      Context.MODE_PRIVATE);
+				SharedPreferences mainPref = IdentityProxy.getInstance().getContext().
+						getSharedPreferences(Constants.APPLICATION_PACKAGE, Context.MODE_PRIVATE);
 				Editor editor = mainPref.edit();
-				editor.putString(Constants.REFRESH_TOKEN, refreshToken);
 				editor.putString(Constants.ACCESS_TOKEN, accessToken);
-
-				Date date = new Date();
-				long expiresIN = date.getTime() + (timeToExpireSecond * 1000);
-				Date expireDate = new Date(expiresIN);
-				String strDate = dateFormat.format(expireDate);
-				token.setDate(strDate);
-				editor.putString(Constants.DATE_LABEL, strDate);
+				editor.putString(Constants.REFRESH_TOKEN, refreshToken);
+				editor.putLong(Constants.EXPIRE_TIME, expiresOn);
 				editor.commit();
 
 				identityProxy

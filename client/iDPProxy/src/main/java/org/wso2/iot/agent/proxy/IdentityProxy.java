@@ -18,6 +18,7 @@
 package org.wso2.iot.agent.proxy;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Log;
@@ -28,6 +29,8 @@ import org.wso2.iot.agent.proxy.interfaces.CallBack;
 import org.wso2.iot.agent.proxy.interfaces.TokenCallBack;
 import org.wso2.iot.agent.proxy.utils.Constants;
 import org.wso2.iot.agent.proxy.utils.ServerUtilities;
+
+import java.util.Date;
 
 /**
  * This class handles identity proxy library initialization and token validation.
@@ -132,10 +135,10 @@ public class IdentityProxy implements CallBack {
             }
             validateStoredToken();
         } else {
-            boolean isExpired = ServerUtilities.isValid(token.getDate());
+            boolean isExpired = ServerUtilities.isExpired(token.getExpiresOn());
             if (Constants.DEBUG_ENABLED) {
                 Log.d(TAG, "token is expired "+ isExpired);
-                Log.d(TAG, "token expiry "+ token.getDate().toString());
+                Log.d(TAG, "token expiry "+ token.getExpiresOn().toString());
             }
             if (!isExpired) {
                 synchronized(this){
@@ -154,21 +157,21 @@ public class IdentityProxy implements CallBack {
         }
         SharedPreferences mainPref = context.getSharedPreferences(Constants.APPLICATION_PACKAGE,
                 Context.MODE_PRIVATE);
-        String refreshToken = mainPref.getString(Constants.REFRESH_TOKEN, null).toString();
-        String accessToken = mainPref.getString(Constants.ACCESS_TOKEN, null).toString();
-        String date = mainPref.getString(Constants.DATE_LABEL, null).toString();
-        String endPoint = mainPref.getString(Constants.TOKEN_ENDPOINT, null).toString();
+        String refreshToken = mainPref.getString(Constants.REFRESH_TOKEN, null);
+        String accessToken = mainPref.getString(Constants.ACCESS_TOKEN, null);
+        long expiresOn = mainPref.getLong(Constants.EXPIRE_TIME, 0);
+        String endPoint = mainPref.getString(Constants.TOKEN_ENDPOINT, null);
         setAccessTokenURL(endPoint);
 
-        if (!refreshToken.isEmpty()) {
+        if (refreshToken != null) {
             if (Constants.DEBUG_ENABLED) {
                 Log.d(TAG, "refreshToken is not empty.");
             }
             token = new Token();
-            token.setDate(date);
+            token.setExpiresOn(new Date(expiresOn));
             token.setRefreshToken(refreshToken);
             token.setAccessToken(accessToken);
-            boolean isExpired = ServerUtilities.isValid(token.getDate());
+            boolean isExpired = ServerUtilities.isExpired(token.getExpiresOn());
             if (!isExpired) {
                 if (Constants.DEBUG_ENABLED) {
                     Log.d(TAG, "stored token is not expired.");

@@ -75,7 +75,7 @@ android {
             // MUTUAL_HTTP_CLIENT or OAUTH_HTTP_CLIENT
             buildConfigField "String", "HTTP_CLIENT_IN_USE", "\"OAUTH_HTTP_CLIENT\""
             // DEFAULT_TIME_OUT: Default connection time out when connecting to the backend
-            buildConfigField "int", "DEFAULT_TIME_OUT", "30000"
+            buildConfigField "int", "DEFAULT_TIME_OUT", "60000"
             // SERVER_PROTOCOL: Protocol used to communicate with the server.
             // Valid values are http:// or https://
             buildConfigField "String", "SERVER_PROTOCOL", "\"https://\""

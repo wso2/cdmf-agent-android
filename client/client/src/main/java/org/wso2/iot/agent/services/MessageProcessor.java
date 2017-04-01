@@ -22,10 +22,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wso2.iot.agent.AgentReceptionActivity;
 import org.wso2.iot.agent.AndroidAgentException;
+import org.wso2.iot.agent.AuthenticationActivity;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceInfo;
@@ -41,6 +45,9 @@ import org.wso2.iot.agent.utils.Preference;
 import org.wso2.iot.agent.utils.CommonUtils;
 
 import android.content.Context;
+import android.content.Intent;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -325,9 +332,35 @@ public class MessageProcessor implements APIResultCallBack {
 						}
 						performOperation(response);
 					}
+				} else if (Constants.Status.UNAUTHORIZED.equals(responseStatus)) {
+					Log.d(TAG, "Token invalid! Requesting credentials to obtain new token pair");
+					LocalNotification.stopPolling(context);
+					Preference.putBoolean(context, Constants.TOKEN_EXPIRED, true);
+					displayRequestCredentialsNotification();
 				}
 			}
 		}
+	}
+
+	private void displayRequestCredentialsNotification(){
+		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
+		mBuilder.setSmallIcon(R.drawable.notification);
+		mBuilder.setContentTitle(context.getResources().getString(R.string.title_need_to_sign_in));
+		mBuilder.setContentText(context.getResources().getString(R.string.msg_need_to_sign_in));
+		mBuilder.setOngoing(true);
+		mBuilder.setOnlyAlertOnce(true);
+
+		Intent resultIntent = new Intent(context, AuthenticationActivity.class);
+		TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+		stackBuilder.addParentStack(AuthenticationActivity.class);
+
+		// Adds the Intent that starts the Activity to the top of the stack
+		stackBuilder.addNextIntent(resultIntent);
+		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+		mBuilder.setContentIntent(resultPendingIntent);
+
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		mNotificationManager.notify(Constants.TOKEN_EXPIRED, Constants.SIGN_IN_NOTIFICATION_ID, mBuilder.build());
 	}
 
 }

@@ -19,6 +19,7 @@ package org.wso2.iot.agent.proxy;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.preference.Preference;
 import android.util.Log;
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
@@ -212,7 +213,12 @@ public class APIController implements TokenCallBack {
 		                                          new Response.ErrorListener() {
 			                                          @Override
 			                                          public void onErrorResponse(VolleyError error) {
-				                                          Log.e(TAG, error.toString());
+														  Log.e(TAG, error.toString());
+														  if (AuthFailureError.class.isInstance(error)){
+															  Map<String, String> responseParams = new HashMap<>();
+															  responseParams.put(Constants.SERVER_RESPONSE_STATUS, String.valueOf(401));
+															  callBack.onReceiveAPIResult(responseParams, IdentityProxy.getInstance().getRequestCode());
+														  }
 			                                          }
 		                                          })
 
@@ -287,6 +293,11 @@ public class APIController implements TokenCallBack {
                                                           @Override
                                                           public void onErrorResponse(VolleyError error) {
                                                               Log.e(TAG, error.toString());
+															  if (AuthFailureError.class.isInstance(error)){
+																  Map<String, String> responseParams = new HashMap<>();
+																  responseParams.put(Constants.SERVER_RESPONSE_STATUS, String.valueOf(401));
+																  callBack.onReceiveAPIResult(responseParams, IdentityProxy.getInstance().getRequestCode());
+															  }
                                                           }
                                                       })
 
@@ -356,6 +367,11 @@ public class APIController implements TokenCallBack {
 				                                @Override
 				                                public void onErrorResponse(VolleyError error) {
 					                                Log.e(TAG, error.toString());
+													if (AuthFailureError.class.isInstance(error)){
+														Map<String, String> responseParams = new HashMap<>();
+														responseParams.put(Constants.SERVER_RESPONSE_STATUS, String.valueOf(401));
+														callBack.onReceiveAPIResult(responseParams, IdentityProxy.getInstance().getRequestCode());
+													}
 				                                }
 			                                })
 

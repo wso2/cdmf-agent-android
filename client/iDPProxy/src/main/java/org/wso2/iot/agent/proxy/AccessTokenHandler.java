@@ -56,8 +56,6 @@ public class AccessTokenHandler {
     private static final String PASSWORD_LABEL = "password";
     private static final String TENANT_DOMAIN_LABEL = "tenantDomain";
     private static final String COLON = ":";
-    private static final DateFormat dateFormat =
-            new SimpleDateFormat("MM/dd/yyyy HH:mm:ss", Locale.getDefault());
     private CredentialInfo info;
 
     public AccessTokenHandler(CredentialInfo info, CallBack callBack) {

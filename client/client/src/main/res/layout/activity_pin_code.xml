@@ -60,12 +60,22 @@
             android:padding="10dip"/>
 
         <TextView
+            android:text="@string/lbl_pin_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/errorLayout"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:id="@+id/textViewTitle"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large"
+            android:textColor="@color/abs__background_holo_dark" />
+
+        <TextView
             android:id="@+id/lblPin"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/errorLayout"
+            android:layout_below="@+id/textViewTitle"
             android:layout_margin="10dp"
-            android:gravity="center"
             android:text="@string/txt_lblpin"
             android:textColor="#372c24"
             android:textSize="16sp" />

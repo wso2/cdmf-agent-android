@@ -67,7 +67,7 @@ android {
         debug {
             // DEBUG_MODE_ENABLED: Make the agent print the debug logs.
             // Make this false in production.
-            buildConfigField "boolean", "DEBUG_MODE_ENABLED", "false"
+            buildConfigField "boolean", "DEBUG_MODE_ENABLED", "true"
             // AUTHENTICATOR_IN_USE: Type of authenticator to be used when authenticating with
             // server. Allowed values by default are OAUTH_AUTHENTICATOR or MUTUAL_SSL_AUTHENTICATOR
             buildConfigField "String", "AUTHENTICATOR_IN_USE", "\"OAUTH_AUTHENTICATOR\""

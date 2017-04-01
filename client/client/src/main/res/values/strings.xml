@@ -40,7 +40,7 @@
     <string name="app_name">WSO2 Agent</string>
     <string name="empty_app_title"></string>
     <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello EMM</string>
+    <string name="hello_world">Hello IoT Server</string>
     <string name="title_activity_display_device_info">DisplayDeviceInfo</string>
     <string name="url">http://192.168.6.6:8080/mdm/register</string>
     <string name="title_activity_register_successful">RegisterSuccessful</string>
@@ -68,7 +68,7 @@
     <string name="menu_item_ip">Change Server Address</string>
     <string name="menu_item_location_event">Enable/Disable Event Listening</string>
     <string name="menu_item_log">Debug Log</string>
-    <string name="title_activity_alert">Message from EMM</string>
+    <string name="title_activity_alert">Message from IoT Server</string>
     <string name="device_admin_enable_alert">This will enable device administration</string>
     <string name="device_enroll_type_byod">BYOD</string>
     <string name="device_enroll_type_cope">COPE</string>
@@ -90,13 +90,13 @@
 
     <!-- TOAST MESSAGES -->
     <string name="toast_message_pin_change_success">PIN Code changed successfully</string>
-    <string name="toast_message_pin_change_failed">Old pincode you entered is wrong, please try again</string>
+    <string name="toast_message_pin_change_failed">Old pin code you entered is wrong, please try again</string>
     <string name="toast_message_enter_server_address">Please enter Server Address, i.e : www.abc.com</string>
     <string name="toast_error_username">Please enter username</string>
     <string name="toast_error_password">Please enter password</string>
     <string name="toast_message_wipe">Device is being wiped</string>
     <string name="toast_message_reboot">Device is being rebooted</string>
-    <string name="toast_message_vpn">VPN profile recieved from the device administrator</string>
+    <string name="toast_message_vpn">VPN profile received from the device administrator</string>
     <string name="toast_message_wipe_failed">Device wipe failed due to wrong PIN</string>
     <string name="toast_message_reboot_failed">Device reboot failed due to insufficient privileges</string>
     <string name="toast_message_disenroll">Device disenrolled</string>
@@ -229,11 +229,11 @@
     <string name="error_unregistration_failed">Unregistration Failed</string>
     <string name="error_authorization_failed">Access Denied</string>
     <string name="error_enrollment_failed">Enrollment Failed</string>
-    <string name="error_enrollment_success">Device is enrolled to EMM</string>
+    <string name="error_enrollment_success">Device is enrolled to IoT Server</string>
     <string name="error_enrollment_failed_detail">Enrollment failed, please contact administrator.</string>
     <string name="error_auth_failed_detail">Authentication failed due to a connection failure please check your network connection and try again.</string>
     <string name="error_authentication_failed">Incorrect login information. Please try again.</string>
-    <string name="error_network_unavailable">Network connectivity is unavailable. Please check your network connectivity.</string>
+    <string name="error_network_unavailable">Network connectivity is unavailable. Please check your network connectivity and make sure you are not in power saving mode.</string>
     <string name="error_for_all_unknown_registration_failures">Cannot proceed the registration. Please contact administrator.</string>
     <string name="error_for_gcm_unavailability">Google Play Services is unavailable. This program requires google play services to function. Please contact administrator.</string>
     <string name="error_for_all_unknown_authentication_failures">Cannot proceed the authentication. Please contact administrator.</string>
@@ -244,7 +244,7 @@
     <string name="error_invalid_server_address">Invalid server Address. Please try again.</string>
     <string name="error_encrypt_policy">\nYour device should be encrypted according to the policy, please enable device encryption through device settings\n</string>
     <string name="error_app_install_policy">\nFollowing apps must be installed on your device, please install them. \n</string>
-    <string name="error_app_uninstall_policy">\nFollowing apps are blacklisted by your EMM Admin, please remove them. \n</string>
+    <string name="error_app_uninstall_policy">\nFollowing apps are blacklisted by your IoT Admin, please remove them. \n</string>
     <string name="error_wifi_policy">\nYou are not using company WIFI account, please change your WIFI configuration \n</string>
     <string name="error_work_profile_policy">\nYour work-profile configurations are not adhering to the policy, please undo if any customizations have been done. \n</string>
 
@@ -266,7 +266,7 @@
     <string name="dialog_init_end"> device, are you sure you want to proceed ?</string>
     <string name="dialog_init_end_general"> are you sure you want to proceed ?</string>
     <string name="dialog_enrollment_confirm_cloud">Are you sure you want to enroll your device with WSO2 Device Cloud?</string>
-    <string name="dialog_unregister">You are trying to unregister from EMM. Are you sure you want to proceed ?</string>
+    <string name="dialog_unregister">You are trying to unregister from IoT. Are you sure you want to proceed ?</string>
     <string name="dialog__location_event_listening_enable">You are trying to enable location event listening. Are you sure you want to proceed?</string>
     <string name="dialog_location_event_listening_disable">You are trying to disable location event listening. Are you sure you want to proceed?</string>
     <string name="dialog_system_app_required">Please install the WSO2 System App to continue enrollment as a COPE user.</string>
@@ -274,7 +274,7 @@
 
     <!-- REGISTRATION -->
     <string name="register_button_text">Register</string>
-    <string name="register_text_view_text_unregister">Device un-registration successful, click to re-register to the EMM</string>
+    <string name="register_text_view_text_unregister">Device un-registration successful, click to re-register to the IoT</string>
 
     <!-- AGENT SETTINGS ACTIVITY -->
     <string name="menu_item_phone_info">Phone Info</string>
@@ -322,7 +322,7 @@
     <string name="txt_byod">  BYOD (This device is my own device)</string>
     <string name="txt_cope">  COPE (This device is corporate owned)</string>
     <string name="txt_incompatible">Registration failed, check your internet connection and click to retry</string>
-    <string name="network_not_available_message">EMM enrollment failed, check your internet connection and re-launch the agent to continue</string>
+    <string name="network_not_available_message">IoT Device enrollment failed, check your internet connection and re-launch the agent to continue</string>
     <string name="txt_retry">Retry Registration</string>
     <string name="txt_old_pin">Old PIN Code</string>
     <string name="txt_enter_pin">Enter PIN Code</string>
@@ -335,8 +335,9 @@
     <string name="txt_register_success">Device successfully registered, click to un-register from the EMM</string>
     <string name="txt_unregister">Unregister</string>
     <string name="txt_enroll">Please click to enroll the device</string>
-    <string name="txt_lblpin">Please enter a PIN code to make your device safe from critical operations</string>
-    <string name="button_unregister_text">"You have successfully enrolled your device! If you want to unregister, tap Unregister."</string>
+    <string name="txt_lblpin">This PIN code will be used to authorize critical remote operations (ex: remote device wipe) performed against the device by administrators.</string>
+    <string name="hint_retype_pin">Retype PIN Code</string>
+    <string name="lbl_pin_title">Please enter PIN code</string><string name="button_unregister_text">"You have successfully enrolled your device! If you want to unregister, tap Unregister."</string>
     <string name="txt_managed_profile_enable">Managed Profile is Enabled</string>
     <!-- APPLICATION MANAGER -->
     <string name="application_mgr_download_location">/Download/</string>
@@ -418,6 +419,8 @@
     <string name="wipe_confirmation">Do you want to wipe the device?</string>
 
     <string name="title_activity_splash">WSO2 Device Management Agent</string>
+    <string name="authentication_successful">Successfully Authenticated!</string>
+    <string name="title_need_to_sign_in">Authentication failure</string>
+    <string name="msg_need_to_sign_in">Please sign in again by providing password.</string>
     <string name="copyright">©2017 WSO2</string>
-    <string name="hint_retype_pin">Retype PIN Code</string>
 </resources>

@@ -22,6 +22,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Log;
+import android.widget.Toast;
+
 import org.wso2.iot.agent.proxy.beans.CredentialInfo;
 import org.wso2.iot.agent.proxy.beans.Token;
 import org.wso2.iot.agent.proxy.interfaces.APIAccessCallBack;

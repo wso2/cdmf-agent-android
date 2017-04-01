@@ -175,7 +175,7 @@ public class AccessTokenHandler {
                     refreshToken = response.getString(Constants.REFRESH_TOKEN);
                     timeToExpireSecond = Integer.parseInt(response.getString(Constants.EXPIRE_LABEL));
                     Token token = new Token();
-                    long expiresOn = new Date().getTime() + (timeToExpireSecond * 1000);
+                    long expiresOn = new Date().getTime() + (timeToExpireSecond * 1000) - Constants.HttpClient.DEFAULT_TOKEN_TIME_OUT;
                     token.setExpiresOn(new Date(expiresOn));
                     token.setRefreshToken(refreshToken);
                     token.setAccessToken(accessToken);

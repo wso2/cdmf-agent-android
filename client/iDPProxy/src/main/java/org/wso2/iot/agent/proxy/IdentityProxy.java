@@ -86,7 +86,7 @@ public class IdentityProxy implements CallBack {
     @Override
     public void receiveNewAccessToken(String status, String message, Token token) {
         if (Constants.DEBUG_ENABLED && token != null) {
-            Log.d(TAG, "Received New Access Token: " + token.getAccessToken());
+            Log.d(TAG, "Using Access Token: " + token.getAccessToken());
         }
         IdentityProxy.token = token;
         tokenCallBack.onReceiveTokenResult(token, status);

@@ -82,13 +82,6 @@ public class RefreshTokenHandler {
 			                                          @Override
 			                                          public void onErrorResponse(VolleyError error) {
 				                                          Log.d(TAG, error.toString());
-														  SharedPreferences mainPref = IdentityProxy.getInstance().getContext().
-																  getSharedPreferences(Constants.APPLICATION_PACKAGE, Context.MODE_PRIVATE);
-														  Editor editor = mainPref.edit();
-														  editor.putString(Constants.ACCESS_TOKEN, null);
-														  editor.putString(Constants.REFRESH_TOKEN, null);
-														  editor.putLong(Constants.EXPIRE_TIME, 0);
-														  editor.commit();
 			                                          }
 		                                          })
 
@@ -150,7 +143,7 @@ public class RefreshTokenHandler {
 				refreshToken = response.getString(Constants.REFRESH_TOKEN);
 				timeToExpireSecond = Integer.parseInt(response.getString(Constants.EXPIRE_LABEL));
 				Token token = new Token();
-				long expiresOn = new Date().getTime() + (timeToExpireSecond * 1000);
+				long expiresOn = new Date().getTime() + (timeToExpireSecond * 1000) - Constants.HttpClient.DEFAULT_TOKEN_TIME_OUT * 5;
 				token.setExpiresOn(new Date(expiresOn));
 				token.setRefreshToken(refreshToken);
 				token.setAccessToken(accessToken);

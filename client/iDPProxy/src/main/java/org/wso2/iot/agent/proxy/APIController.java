@@ -293,12 +293,12 @@ public class APIController implements TokenCallBack {
                                                           @Override
                                                           public void onErrorResponse(VolleyError error) {
                                                               Log.e(TAG, error.toString());
-															  if (AuthFailureError.class.isInstance(error)){
+															  if (AuthFailureError.class.isInstance(error) && getToken().getAccessToken() == null) {
 																  Map<String, String> responseParams = new HashMap<>();
 																  responseParams.put(Constants.SERVER_RESPONSE_STATUS, String.valueOf(401));
 																  callBack.onReceiveAPIResult(responseParams, IdentityProxy.getInstance().getRequestCode());
 															  }
-                                                          }
+														  }
                                                       })
 
             {

@@ -383,6 +383,7 @@ public class Constants {
 		public static final String PACKAGE = "PACKAGE";
 		public static final String PID = "PID";
 		public static final String SHARED_DIRTY = "SHARED_DIRTY";
+		public static final String PHONE_NUMBER = "PHONE_NUMBER";
 	}
 
 	// sqlite database related tables

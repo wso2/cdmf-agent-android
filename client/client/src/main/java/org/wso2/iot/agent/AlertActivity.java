@@ -67,7 +67,8 @@ public class AlertActivity extends SherlockActivity {
 	private String serverPort;
 	private String sharedSecret;
 	private String dnsServer;
-	private static final int DEFAULT_VOLUME = 0;
+	private int ringerMode;
+	private int ringerVolume;
 	private static final int DEFAULT_FLAG = 0;
 	private static final int VPN_REQUEST_CODE = 0;
 	private static final String DEVICE_OPERATION_RING = "ring";
@@ -151,8 +152,8 @@ public class AlertActivity extends SherlockActivity {
 		if (defaultRingtone != null && defaultRingtone.isPlaying()) {
 			defaultRingtone.stop();
 		}
-		audio.setStreamVolume(AudioManager.STREAM_RING, DEFAULT_VOLUME, DEFAULT_FLAG);
-		audio.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+		audio.setStreamVolume(AudioManager.STREAM_RING, ringerVolume, DEFAULT_FLAG);
+		audio.setRingerMode(ringerMode);
 	}
 
 	/**
@@ -219,6 +220,8 @@ public class AlertActivity extends SherlockActivity {
 	@TargetApi(21)
 	private void startRing() {
 		if (audio != null) {
+			ringerMode = audio.getRingerMode();
+			ringerVolume = audio.getStreamVolume(AudioManager.STREAM_RING);
 			audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
 			audio.setStreamVolume(AudioManager.STREAM_RING, audio.getStreamMaxVolume(AudioManager.STREAM_RING),
 			                      AudioManager.FLAG_PLAY_SOUND);

@@ -28,6 +28,7 @@ import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
+import org.wso2.iot.agent.BuildConfig;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.events.EventRegistry;
@@ -52,6 +53,11 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(final Context context, Intent intent) {
+		String action = intent.getAction();
+		if (Intent.ACTION_PACKAGE_REPLACED.equals(action)
+				&& !BuildConfig.AGENT_PACKAGE.equals(intent.getData().getSchemeSpecificPart())) {
+			return;
+		}
 		setRecurringAlarm(context.getApplicationContext());
 		if(!EventRegistry.eventListeningStarted) {
 			EventRegistry registerEvent = new EventRegistry(context.getApplicationContext());

@@ -78,7 +78,7 @@ public class Constants {
 			" perm:android:view-configuration perm:android:manage-configuration";
 
 	public final static String OPENID = "openid";
-	public static final String DATE_LABEL = "date";
+	public static final String EXPIRE_TIME = "expires_on";
 	public final static String SERVER_RESPONSE_BODY = "response";
 	public final static String SERVER_RESPONSE_STATUS = "status";
 	public static final String SUCCESS_RESPONSE = "success";
@@ -88,7 +88,7 @@ public class Constants {
 	public final static String EXPIRE_LABEL = "expires_in";
 	public static final String ERROR_LABEL = "error";
 	public static final String ERROR_DESCRIPTION_LABEL = "error_description";
-	public final static String APPLICATION_PACKAGE = "org.wso2.emm.agent";
+	public final static String APPLICATION_PACKAGE = BuildConfig.APPLICATION_PACKAGE;
 
 	public final static String ID_TOKEN = "id_token";
 	public final static String CLIENT_ID = "client_id";

@@ -56,8 +56,6 @@ public class AccessTokenHandler {
     private static final String PASSWORD_LABEL = "password";
     private static final String TENANT_DOMAIN_LABEL = "tenantDomain";
     private static final String COLON = ":";
-    private static final DateFormat dateFormat =
-            new SimpleDateFormat("MM/dd/yyyy HH:mm:ss", Locale.getDefault());
     private CredentialInfo info;
 
     public AccessTokenHandler(CredentialInfo info, CallBack callBack) {
@@ -177,9 +175,8 @@ public class AccessTokenHandler {
                     refreshToken = response.getString(Constants.REFRESH_TOKEN);
                     timeToExpireSecond = Integer.parseInt(response.getString(Constants.EXPIRE_LABEL));
                     Token token = new Token();
-                    Date date = new Date();
-                    String currentDate = dateFormat.format(date);
-                    token.setDate(currentDate);
+                    long expiresOn = new Date().getTime() + (timeToExpireSecond * 1000) - Constants.HttpClient.DEFAULT_TOKEN_TIME_OUT * 5;
+                    token.setExpiresOn(new Date(expiresOn));
                     token.setRefreshToken(refreshToken);
                     token.setAccessToken(accessToken);
                     token.setExpired(false);
@@ -190,11 +187,7 @@ public class AccessTokenHandler {
                     editor.putString(Constants.ACCESS_TOKEN, accessToken);
                     editor.putString(Constants.REFRESH_TOKEN, refreshToken);
                     editor.putString(USERNAME_LABEL, info.getUsername());
-                    long expiresIn = date.getTime() + (timeToExpireSecond * 1000);
-                    Date expireDate = new Date(expiresIn);
-                    String strDate = dateFormat.format(expireDate);
-                    token.setDate(strDate);
-                    editor.putString(Constants.DATE_LABEL, strDate);
+                    editor.putLong(Constants.EXPIRE_TIME, expiresOn);
                     editor.commit();
 
                     identityProxy.receiveAccessToken(responseCode, Constants.SUCCESS_RESPONSE, token);

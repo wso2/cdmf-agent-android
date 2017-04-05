@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.view.View;
 
 import org.wso2.iot.agent.utils.Constants;
+import org.wso2.iot.agent.utils.Preference;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -21,7 +22,7 @@ public class SplashActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED || isInstantiated) {
-            startReceptionActivity();
+            startActivity();
         } else {
             isInstantiated = true;
             setContentView(R.layout.activity_splash);
@@ -34,14 +35,19 @@ public class SplashActivity extends Activity {
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    startReceptionActivity();
+                    startActivity();
                 }
             }, AUTO_HIDE_DELAY_MILLIS);
         }
     }
 
-    private void startReceptionActivity() {
-        Intent intent = new Intent(getApplicationContext(), AgentReceptionActivity.class);
+    private void startActivity() {
+        Intent intent;
+        if (Preference.hasPreferenceKey(this, Constants.TOKEN_EXPIRED)) {
+            intent = new Intent(getApplicationContext(), AuthenticationActivity.class);
+        } else {
+            intent = new Intent(getApplicationContext(), AgentReceptionActivity.class);
+        }
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
         finish();

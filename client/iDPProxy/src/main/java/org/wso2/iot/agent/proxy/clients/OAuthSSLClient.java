@@ -19,20 +19,24 @@
 package org.wso2.iot.agent.proxy.clients;
 
 import android.util.Log;
+
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.Volley;
+
 import org.wso2.iot.agent.proxy.IDPTokenManagerException;
 import org.wso2.iot.agent.proxy.IdentityProxy;
 import org.wso2.iot.agent.proxy.R;
 import org.wso2.iot.agent.proxy.utils.Constants;
 import org.wso2.iot.agent.proxy.utils.StreamHandlerUtil;
+
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -74,11 +78,23 @@ public class OAuthSSLClient implements CommunicationClient {
                 HurlStack hurlStack = new HurlStack() {
                     @Override
                     protected HttpURLConnection createConnection(URL url) throws IOException {
-                        HttpsURLConnection httpsURLConnection = (HttpsURLConnection) super.createConnection(url);
-                        httpsURLConnection.setSSLSocketFactory(socketFactory);
-                        httpsURLConnection.setHostnameVerifier(getHostnameVerifier());
-
-                        return httpsURLConnection;
+                        if (Constants.DEBUG_ENABLED) {
+                            Log.d(TAG, "url: " + url);
+                        }
+                        if ("https".equalsIgnoreCase(url.getProtocol())) {
+                            if (Constants.DEBUG_ENABLED) {
+                                Log.d(TAG, "Creating https URL connection");
+                            }
+                            HttpsURLConnection httpsURLConnection = (HttpsURLConnection) super.createConnection(url);
+                            httpsURLConnection.setSSLSocketFactory(socketFactory);
+                            httpsURLConnection.setHostnameVerifier(getHostnameVerifier());
+                            return httpsURLConnection;
+                        } else {
+                            if (Constants.DEBUG_ENABLED) {
+                                Log.d(TAG, "Creating http URL connection");
+                            }
+                            return super.createConnection(url);
+                        }
                     }
                 };
                 client = Volley.newRequestQueue(IdentityProxy.getInstance().getContext(), hurlStack);

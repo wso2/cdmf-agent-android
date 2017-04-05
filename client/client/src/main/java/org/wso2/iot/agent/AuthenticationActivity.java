@@ -19,6 +19,7 @@ package org.wso2.iot.agent;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
@@ -61,6 +62,7 @@ import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.proxy.interfaces.AuthenticationCallback;
 import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
 import org.wso2.iot.agent.services.DynamicClientManager;
+import org.wso2.iot.agent.services.LocalNotification;
 import org.wso2.iot.agent.utils.CommonDialogUtils;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
@@ -70,7 +72,7 @@ import org.wso2.iot.agent.beans.ApiRegistrationProfile;
 import java.util.Map;
 
 /**
- * Activity that captures username, password and device ownership details 
+ * Activity that captures username, password and device ownership details
  * and handles authentication.
  */
 public class AuthenticationActivity extends SherlockActivity implements APIAccessCallBack,
@@ -90,7 +92,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	private TextView textViewWipeData;
 	private ProgressDialog progressDialog;
 	private LinearLayout loginLayout;
-
+	private boolean isReLogin = false;
 
 	private DeviceInfo deviceInfo;
 	private static final String TAG = AuthenticationActivity.class.getSimpleName();
@@ -122,6 +124,23 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		// change button color background till user enters a valid input
 		btnRegister.setBackground(getResources().getDrawable(R.drawable.btn_grey));
 		btnRegister.setTextColor(getResources().getColor(R.color.black));
+
+		if (Preference.hasPreferenceKey(context, Constants.TOKEN_EXPIRED)) {
+			etDomain.setEnabled(false);
+			etDomain.setTextColor(getResources().getColor(R.color.black));
+			etUsername.setEnabled(false);
+			etUsername.setTextColor(getResources().getColor(R.color.black));
+			btnRegister.setText(R.string.common_signin_button_text);
+			radioBYOD.setVisibility(View.GONE);
+			radioCOPE.setVisibility(View.GONE);
+			etPassword.setFocusable(true);
+			etPassword.requestFocus();
+			String tenantedUserName = Preference.getString(context, Constants.USERNAME);
+			int tenantSeparator = tenantedUserName.lastIndexOf('@');
+			etUsername.setText(tenantedUserName.substring(0, tenantSeparator));
+			etDomain.setText(tenantedUserName.substring(tenantSeparator + 1, tenantedUserName.length()));
+			isReLogin = true;
+		}
 
 		if(Constants.HIDE_LOGIN_UI) {
 			loginLayout.setVisibility(View.GONE);
@@ -391,18 +410,28 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	public void onAPIAccessReceive(String status) {
         if (status != null) {
 			if (status.trim().equals(Constants.Status.SUCCESSFUL)) {
-
-				Preference.putString(context, Constants.USERNAME, username);
-
-				// Check network connection availability before calling the API.
 				CommonDialogUtils.stopProgressDialog(progressDialog);
-				if (CommonUtils.isNetworkAvailable(context)) {
-					getLicense();
+				if (isReLogin) {
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							Toast.makeText(context, R.string.authentication_successful, Toast.LENGTH_LONG).show();
+						}
+					});
+					LocalNotification.startPolling(context);
+					Preference.removePreference(context, Constants.TOKEN_EXPIRED);
+					NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+					mNotificationManager.cancel(Constants.TOKEN_EXPIRED, Constants.SIGN_IN_NOTIFICATION_ID);
+					finish();
 				} else {
-					CommonDialogUtils.stopProgressDialog(progressDialog);
-					CommonDialogUtils.showNetworkUnavailableMessage(AuthenticationActivity.this);
+					Preference.putString(context, Constants.USERNAME, username);
+					// Check network connection availability before calling the API.
+					if (CommonUtils.isNetworkAvailable(context)) {
+						getLicense();
+					} else {
+						CommonDialogUtils.showNetworkUnavailableMessage(AuthenticationActivity.this);
+					}
 				}
-
 			} else if (status.trim().equals(Constants.Status.AUTHENTICATION_FAILED)) {
 				showAuthenticationError();
 				// clearing client credentials from shared memory
@@ -740,19 +769,6 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			showEnrollementFailedErrorMessage();
 		}
 	}
-	
-	private void showAuthenticationDialog(){
-		StringBuilder messageBuilder = new StringBuilder();
-		messageBuilder.append(getResources().getString(R.string.dialog_enrollment_confirm_cloud));
-		AlertDialog.Builder alertDialog =
-				CommonDialogUtils.getAlertDialogWithTwoButtonAndTitle(context,
-				                                                      getResources().getString(R.string.dialog_init_device_type),
-				                                                      messageBuilder.toString(),
-				                                                      getResources().getString(R.string.yes),
-				                                                      getResources().getString(R.string.no),
-				                                                      dialogClickListener, dialogClickListener);
-		alertDialog.show();
-	}
 
 	private void showNoSystemAppDialog(){
 		AlertDialog.Builder alertDialog =
@@ -946,7 +962,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 	/**
 	 * Shows enrollment failed error.
-	 */		
+	 */
 	private void showEnrollementFailedErrorMessage() {
 		CommonDialogUtils.stopProgressDialog(progressDialog);
 		this.runOnUiThread(new Runnable() {

@@ -16,15 +16,15 @@
  ~ under the License.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.wso2.emm.agent"
-    android:sharedUserId="org.wso2.emm.agent">
+    package="org.wso2.iot.agent"
+    android:sharedUserId="org.wso2.iot.agent">
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
     <uses-permission android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="org.wso2.emm.agent.permission.C2D_MESSAGE" />
+    <uses-permission android:name="org.wso2.iot.agent.permission.C2D_MESSAGE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -44,13 +44,13 @@
 
     <permission android:name="android.permission.READ_LOGS" />
     <permission
-        android:name="org.wso2.emm.agent.permission.ACCESS"
+        android:name="org.wso2.iot.agent.permission.ACCESS"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="org.wso2.emm.agent.permission.ACCESS" />
+    <uses-permission android:name="org.wso2.iot.agent.permission.ACCESS" />
 
     <permission
-        android:name="org.wso2.emm.agent.permission.C2D_MESSAGE"
+        android:name="org.wso2.iot.agent.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
 
     <uses-permission
@@ -84,6 +84,7 @@
             android:exported="true"
             android:permission="android.permission.BIND_DEVICE_ADMIN">
             <intent-filter>
+
                 <!-- This action is required -->
                 <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
                 <action android:name="android.app.action.PROFILE_PROVISIONING_COMPLETE" />
@@ -102,7 +103,9 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
 
+                <data android:scheme="package" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
@@ -144,18 +147,18 @@
             android:name=".services.ApplicationManagementService"
             android:enabled="true"
             android:exported="true"
-            android:permission="org.wso2.emm.agent.permission.ACCESS">
+            android:permission="org.wso2.iot.agent.permission.ACCESS">
             <intent-filter>
-                <action android:name="org.wso2.emm.agent.START_SERVICE" />
+                <action android:name="org.wso2.iot.agent.START_SERVICE" />
             </intent-filter>
         </service>
         <service
             android:name=".services.EnrollmentService"
             android:enabled="true"
             android:exported="true"
-            android:permission="org.wso2.emm.agent.permission.ACCESS">
+            android:permission="org.wso2.iot.agent.permission.ACCESS">
             <intent-filter>
-                <action android:name="org.wso2.emm.agent.enrollment.START_SERVICE" />
+                <action android:name="org.wso2.iot.agent.enrollment.START_SERVICE" />
             </intent-filter>
         </service>
         <service android:name=".FCMMessagingService">
@@ -215,11 +218,6 @@
         <activity
             android:name=".AgentReceptionActivity"
             android:label="WSO2 Agent">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".AppLockActivity"
@@ -230,16 +228,26 @@
         <service
             android:name=".services.AppLockService"
             android:exported="false"
-            android:permission="org.wso2.emm.agent.permission.ACCESS" />
+            android:permission="org.wso2.iot.agent.permission.ACCESS" />
         <service android:name=".InstanceIDListenerService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
 
-        <activity android:name=".KioskActivity"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+        <activity
+            android:name=".KioskActivity"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+        <activity
+            android:name=".SplashActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_splash"
+            android:theme="@style/FullscreenTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
     </application>
 

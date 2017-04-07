@@ -90,7 +90,7 @@
             android:layout_marginTop="10dp"
             android:ems="10"
             android:hint="@string/txt_old_pin"
-            android:inputType="numberDecimal"
+            android:inputType="numberPassword"
             android:textColor="@android:color/black"
             android:visibility="gone"/>
 

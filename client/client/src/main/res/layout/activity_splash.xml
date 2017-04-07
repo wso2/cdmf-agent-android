@@ -36,7 +36,7 @@
         android:layout_centerHorizontal="true" />
 
     <TextView
-        android:text="@string/title_activity_splash"
+        android:text="@string/app_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/imageView2"

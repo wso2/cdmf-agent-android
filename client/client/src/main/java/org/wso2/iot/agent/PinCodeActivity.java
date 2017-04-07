@@ -92,7 +92,6 @@ public class PinCodeActivity extends Activity {
 		btnPin.setBackground(getResources().getDrawable(R.drawable.btn_grey));
 		btnPin.setTextColor(getResources().getColor(R.color.black));
 
-
 		if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 				startLockTask();
@@ -102,91 +101,42 @@ public class PinCodeActivity extends Activity {
 		if (AlreadyRegisteredActivity.class.getSimpleName().equals(fromActivity)) {
 			txtPin.setVisibility(View.GONE);
 			evOldPin.setVisibility(View.VISIBLE);
+			evOldPin.requestFocus();
 			evPin.setHint(getResources().getString(R.string.hint_new_pin));
-			evPin.setEnabled(true);
 			evReTypePin.setHint(getResources().getString(R.string.hint_retype_pin));
-			evReTypePin.setEnabled(true);
-
-			evPin.addTextChangedListener(new TextWatcher() {
-				@Override
-				public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-				}
-
-				@Override
-				public void onTextChanged(CharSequence s, int start, int before, int count) {
-					enableNewPINSubmitIfReady();
-				}
-
-				@Override
-				public void afterTextChanged(Editable s) {
-					enableSubmitIfReady();
-				}
-			});
-
-			evReTypePin.addTextChangedListener(new TextWatcher() {
-				@Override
-				public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-				}
-
-				@Override
-				public void onTextChanged(CharSequence s, int start, int before, int count) {
-					enableNewPINSubmitIfReady();
-				}
-
-				@Override
-				public void afterTextChanged(Editable s) {
-					enableSubmitIfReady();
-				}
-			});
-
-			evOldPin.addTextChangedListener(new TextWatcher() {
-				@Override
-				public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-				}
-
-				@Override
-				public void onTextChanged(CharSequence s, int start, int before, int count) {
-					enableNewPINSubmitIfReady();
-				}
-
-				@Override
-				public void afterTextChanged(Editable s) {
-					enableSubmitIfReady();
-				}
-			});
-		} else {
-			evPin.addTextChangedListener(new TextWatcher() {
-				@Override
-				public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-				}
-
-				@Override
-				public void onTextChanged(CharSequence s, int start, int before, int count) {
-					enableSubmitIfReady();
-				}
-
-				@Override
-				public void afterTextChanged(Editable s) {
-					enableSubmitIfReady();
-				}
-			});
-
-			evReTypePin.addTextChangedListener(new TextWatcher() {
-				@Override
-				public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-				}
-
-				@Override
-				public void onTextChanged(CharSequence s, int start, int before, int count) {
-					enableSubmitIfReady();
-				}
-
-				@Override
-				public void afterTextChanged(Editable s) {
-					enableSubmitIfReady();
-				}
-			});
 		}
+
+		evPin.addTextChangedListener(new TextWatcher() {
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+			}
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				enableSubmitIfReady();
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+				enableSubmitIfReady();
+			}
+		});
+
+		evReTypePin.addTextChangedListener(new TextWatcher() {
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+			}
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				enableSubmitIfReady();
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+				enableSubmitIfReady();
+			}
+		});
 	}
 
 	private OnClickListener onClickListenerButtonClicked = new OnClickListener() {
@@ -208,10 +158,16 @@ public class PinCodeActivity extends Activity {
 	};
 
 	private void savePin() {
-		Preference.putString(context, getResources().getString(R.string.shared_pref_pin),
-		                     evPin.getText().toString().trim());
-
 		if (AlreadyRegisteredActivity.class.getSimpleName().equals(fromActivity)) {
+			String pin = Preference.getString(context, getResources().getString(R.string.shared_pref_pin));
+			if (!evOldPin.getText().toString().trim().equals(pin.trim())) {
+				Toast.makeText(getApplicationContext(),
+						getResources().getString(R.string.toast_message_pin_change_failed),
+						Toast.LENGTH_SHORT).show();
+				evOldPin.requestFocus();
+				evOldPin.setText("");
+				return;
+			}
 			Toast.makeText(getApplicationContext(),
 			               getResources().getString(R.string.toast_message_pin_change_success),
 			               Toast.LENGTH_SHORT).show();
@@ -227,6 +183,9 @@ public class PinCodeActivity extends Activity {
 			intent.putExtra(getResources().getString(R.string.intent_extra_username), username);
 			startActivity(intent);
 		}
+		Preference.putString(context, getResources().getString(R.string.shared_pref_pin),
+				evPin.getText().toString().trim());
+		finish();
 	}
 
 	private void enableSubmitIfReady() {
@@ -249,43 +208,6 @@ public class PinCodeActivity extends Activity {
 		}
 	}
 
-	private void enableNewPINSubmitIfReady() {
-
-		boolean isReady = false;
-		String pin = Preference.getString(context, getResources().getString(R.string.shared_pref_pin));
-
-		if (evOldPin.getText().toString().trim().length() >= PIN_MIN_LENGTH &&
-		    evOldPin.getText().toString().trim().equals(pin.trim())) {
-			evPin.setEnabled(true);
-			evReTypePin.setEnabled(true);
-		} else {
-			evPin.setEnabled(false);
-			evReTypePin.setEnabled(false);
-		}
-
-		if (evPin.getText().toString().trim().length() >= PIN_MIN_LENGTH
-				&& evPin.getText().toString().equals(evReTypePin.getText().toString())) {
-			if (evOldPin.getText().toString().trim().equals(pin.trim())) {
-				isReady = true;
-			} else {
-				isReady = false;
-				Toast.makeText(getApplicationContext(),
-				               getResources().getString(R.string.toast_message_pin_change_failed),
-				               Toast.LENGTH_SHORT).show();
-			}
-		}
-
-		if (isReady) {
-			btnPin.setBackground(getResources().getDrawable(R.drawable.btn_orange));
-			btnPin.setTextColor(getResources().getColor(R.color.white));
-			btnPin.setEnabled(true);
-		} else {
-			btnPin.setBackground(getResources().getDrawable(R.drawable.btn_grey));
-			btnPin.setTextColor(getResources().getColor(R.color.black));
-			btnPin.setEnabled(false);
-		}
-	}
-
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK &&
@@ -295,13 +217,14 @@ public class PinCodeActivity extends Activity {
 			                PinCodeActivity.class.getSimpleName());
 			intent.putExtra(getResources().getString(R.string.intent_extra_regid), registrationId);
 			startActivity(intent);
+			finish();
 			return true;
 		} else if (keyCode == KeyEvent.KEYCODE_BACK) {
 			Intent i = new Intent();
 			i.setAction(Intent.ACTION_MAIN);
 			i.addCategory(Intent.CATEGORY_HOME);
-			this.startActivity(i);
-			this.finish();
+			startActivity(i);
+			finish();
 			return true;
 		}
 		return super.onKeyDown(keyCode, event);

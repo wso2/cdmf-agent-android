@@ -155,7 +155,11 @@ public class Constants {
 	public static final String USERNAME_PATTERN = "[user]";
 	public static final String EMM_DB = "emm_db";
 	public static final String TOKEN_EXPIRED = "token_expired";
+	public static final String PERMISSION_MISSING = "permission_missing";
+	public static final String LOCATION_DISABLED = "location_disabled";
 	public static final int SIGN_IN_NOTIFICATION_ID = 0;
+	public static final int PERMISSION_MISSING_NOTIFICATION_ID = 1;
+	public static final int LOCATION_DISABLED_NOTIFICATION_ID = 2;
 
 	/**
 	 * Device certificates.

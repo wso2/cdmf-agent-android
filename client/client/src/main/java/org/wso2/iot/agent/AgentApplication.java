@@ -50,7 +50,7 @@ public class AgentApplication extends Application {
                     alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
                             relaunchDelay, pendingIntent);
                 } else {
-                    Intent intent=new Intent();
+                    Intent intent = new Intent();
                     intent.setAction("org.ws2.iot.agent.APPLICATION_CRASHED");
                     sendBroadcast(intent);
                 }

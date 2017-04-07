@@ -21,8 +21,8 @@ package org.wso2.iot.agent.services.location;
 import android.content.Context;
 import android.location.Location;
 import org.wso2.iot.agent.beans.Address;
-import org.wso2.iot.agent.services.location.impl.LocationServiceImpl;
 import org.wso2.iot.agent.services.location.impl.OpenStreetMapService;
+import org.wso2.iot.agent.utils.CommonUtils;
 
 /**
  * This is a wrapper class which wraps both location service and
@@ -30,11 +30,11 @@ import org.wso2.iot.agent.services.location.impl.OpenStreetMapService;
  */
 public class DeviceLocation {
 
-    private LocationService locationService;
+    private Context context;
     private ReverseGeoCodingService reverseGeoCodingService;
 
     public DeviceLocation(Context context) {
-        locationService = LocationServiceImpl.getInstance(context);
+        this.context = context;
         reverseGeoCodingService = OpenStreetMapService.getInstance();
     }
 
@@ -44,7 +44,7 @@ public class DeviceLocation {
      * @return Returns the location details including latitude and longitude.
      */
     public Location getCurrentLocation() {
-        return locationService.getLocation();
+        return CommonUtils.getLocation(context);
     }
 
     /**
@@ -52,6 +52,6 @@ public class DeviceLocation {
      * @return Returns the address.
      */
     public Address getCurrentAddress() {
-        return reverseGeoCodingService.getReverseGeoCodes(locationService.getLocation());
+        return reverseGeoCodingService.getReverseGeoCodes(CommonUtils.getLocation(context));
     }
 }

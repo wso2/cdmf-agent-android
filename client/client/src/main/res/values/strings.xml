@@ -37,7 +37,7 @@
     <string name="string_content">Image</string>
     <string name="options_clear">Clear</string>
     <string name="options_exit">Exit</string>
-    <string name="app_name">WSO2 Agent</string>
+    <string name="app_name">WSO2 Device Management Agent</string>
     <string name="empty_app_title"></string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello IoT Server</string>
@@ -418,9 +418,12 @@
     <string name="wipe_the_device">Wipe the device</string>
     <string name="wipe_confirmation">Do you want to wipe the device?</string>
 
-    <string name="title_activity_splash">WSO2 Device Management Agent</string>
     <string name="authentication_successful">Successfully Authenticated!</string>
     <string name="title_need_to_sign_in">Authentication failure</string>
     <string name="msg_need_to_sign_in">Please sign in again by providing password.</string>
+    <string name="title_need_permissions">Permissions Missing</string>
+    <string name="msg_need_permissions">Please allow necessary permissions.</string>
+    <string name="title_need_location">Location disabled</string>
+    <string name="msg_need_location">Please enable location to work agent properly.</string>
     <string name="copyright">©2017 WSO2</string>
 </resources>

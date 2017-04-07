@@ -336,31 +336,16 @@ public class MessageProcessor implements APIResultCallBack {
 					Log.d(TAG, "Token invalid! Requesting credentials to obtain new token pair");
 					LocalNotification.stopPolling(context);
 					Preference.putBoolean(context, Constants.TOKEN_EXPIRED, true);
-					displayRequestCredentialsNotification();
+					CommonUtils.displayNotification(context,
+							R.drawable.notification,
+							context.getResources().getString(R.string.title_need_to_sign_in),
+							context.getResources().getString(R.string.msg_need_to_sign_in),
+							AuthenticationActivity.class,
+							Constants.TOKEN_EXPIRED,
+							Constants.SIGN_IN_NOTIFICATION_ID);
 				}
 			}
 		}
-	}
-
-	private void displayRequestCredentialsNotification(){
-		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
-		mBuilder.setSmallIcon(R.drawable.notification);
-		mBuilder.setContentTitle(context.getResources().getString(R.string.title_need_to_sign_in));
-		mBuilder.setContentText(context.getResources().getString(R.string.msg_need_to_sign_in));
-		mBuilder.setOngoing(true);
-		mBuilder.setOnlyAlertOnce(true);
-
-		Intent resultIntent = new Intent(context, AuthenticationActivity.class);
-		TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-		stackBuilder.addParentStack(AuthenticationActivity.class);
-
-		// Adds the Intent that starts the Activity to the top of the stack
-		stackBuilder.addNextIntent(resultIntent);
-		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-		mBuilder.setContentIntent(resultPendingIntent);
-
-		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-		mNotificationManager.notify(Constants.TOKEN_EXPIRED, Constants.SIGN_IN_NOTIFICATION_ID, mBuilder.build());
 	}
 
 }

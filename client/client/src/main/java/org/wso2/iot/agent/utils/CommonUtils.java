@@ -17,19 +17,28 @@
  */
 package org.wso2.iot.agent.utils;
 
+import android.app.ActivityManager;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
+import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.IBinder;
+import android.provider.Settings;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Base64;
 import android.util.Log;
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -37,11 +46,14 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.gson.Gson;
+
 import org.bouncycastle.jce.PKCS10CertificationRequest;
 import org.bouncycastle.jce.provider.asymmetric.ec.KeyPairGenerator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wso2.iot.agent.AgentReceptionActivity;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.api.ApplicationManager;
@@ -60,6 +72,7 @@ import org.wso2.iot.agent.services.PolicyOperationsMapper;
 import org.wso2.iot.agent.services.PolicyRevokeHandler;
 import org.wso2.iot.agent.services.ResultPayload;
 import org.wso2.iot.agent.services.SystemServiceResponseReceiver;
+import org.wso2.iot.agent.services.location.LocationService;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -612,6 +625,68 @@ public class CommonUtils {
 				return String.valueOf(org.wso2.iot.agent.proxy.utils.Constants.HTTPS);
 			}
 		}
+	}
+
+	public static boolean isServiceRunning(Context context, Class<?> serviceClass) {
+		ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+			if (serviceClass.getName().equals(service.service.getClassName())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static Location getLocation(Context context) {
+		Location location = new Gson().fromJson(Preference.getString(context, context.getResources().getString(
+				R.string.shared_pref_location)), Location.class);
+		if (location == null) {
+			Log.w(TAG, "Location not found");
+			if (!isServiceRunning(context, LocationService.class)) {
+				Intent serviceIntent = new Intent(context, LocationService.class);
+				context.startService(serviceIntent);
+			} else {
+				try {
+					int locationSetting = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
+					if (locationSetting == 0) {
+						displayNotification(context,
+								R.drawable.notification,
+								context.getResources().getString(R.string.title_need_location),
+								context.getResources().getString(R.string.msg_need_location),
+								AgentReceptionActivity.class,
+								Constants.LOCATION_DISABLED,
+								Constants.LOCATION_DISABLED_NOTIFICATION_ID);
+					}
+				} catch (Settings.SettingNotFoundException e) {
+					Log.w(TAG, "Location setting is not available on this device");
+				}
+			}
+
+		} else if (Constants.DEBUG_MODE_ENABLED) {
+			Log.d(TAG, "Location> Lat:" + location.getLatitude() + " Lon:" + location.getLongitude() + " Provider:" + location.getProvider());
+		}
+		return location;
+	}
+
+	public static void displayNotification(Context context, int icon, String title, String message, Class<?> sourceActivityClass, String tag, int id){
+		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
+		mBuilder.setSmallIcon(icon);
+		mBuilder.setContentTitle(title);
+		mBuilder.setContentText(message);
+		mBuilder.setOngoing(true);
+		mBuilder.setOnlyAlertOnce(true);
+
+		Intent resultIntent = new Intent(context, sourceActivityClass);
+		TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+		stackBuilder.addParentStack(sourceActivityClass);
+
+		// Adds the Intent that starts the Activity to the top of the stack
+		stackBuilder.addNextIntent(resultIntent);
+		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+		mBuilder.setContentIntent(resultPendingIntent);
+
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		mNotificationManager.notify(tag, id, mBuilder.build());
 	}
 
 }

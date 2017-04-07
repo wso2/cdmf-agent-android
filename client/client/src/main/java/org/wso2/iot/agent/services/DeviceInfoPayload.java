@@ -35,7 +35,7 @@ import org.wso2.iot.agent.api.RuntimeInfo;
 import org.wso2.iot.agent.beans.Device;
 import org.wso2.iot.agent.beans.Power;
 import org.wso2.iot.agent.services.location.LocationService;
-import org.wso2.iot.agent.services.location.impl.LocationServiceImpl;
+import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
@@ -54,7 +54,6 @@ public class DeviceInfoPayload {
     private ObjectMapper mapper;
     private DeviceState phoneState;
     private String registrationId;
-    private LocationService locationService;
 
     public DeviceInfoPayload(Context context) {
         this.context = context.getApplicationContext();
@@ -62,7 +61,6 @@ public class DeviceInfoPayload {
         mapper = new ObjectMapper();
         registrationId = Preference.getString(context, Constants.FCM_REG_ID);
         phoneState = new DeviceState(context);
-        locationService = LocationServiceImpl.getInstance(context);
     }
 
     /**
@@ -100,7 +98,7 @@ public class DeviceInfoPayload {
 
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
 
-        Location deviceLocation = locationService.getLastKnownLocation();
+        Location deviceLocation = CommonUtils.getLocation(context);
         if (device == null) {
             device = new Device();
         }
@@ -365,7 +363,7 @@ public class DeviceInfoPayload {
      * @return - Location info payload as a string
      */
     public String getLocationPayload() {
-        Location deviceLocation = locationService.getLastKnownLocation();
+        Location deviceLocation = CommonUtils.getLocation(context);
         String locationString = null;
         if (deviceLocation != null) {
             double latitude = deviceLocation.getLatitude();

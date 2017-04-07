@@ -32,7 +32,9 @@ import org.wso2.iot.agent.BuildConfig;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.events.EventRegistry;
+import org.wso2.iot.agent.services.location.LocationService;
 import org.wso2.iot.agent.services.operation.OperationProcessor;
+import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
@@ -58,10 +60,17 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 				&& !BuildConfig.AGENT_PACKAGE.equals(intent.getData().getSchemeSpecificPart())) {
 			return;
 		}
+		if (Constants.DEBUG_MODE_ENABLED) {
+			Log.d(TAG, "Action received: " + action);
+		}
 		setRecurringAlarm(context.getApplicationContext());
 		if(!EventRegistry.eventListeningStarted) {
 			EventRegistry registerEvent = new EventRegistry(context.getApplicationContext());
 			registerEvent.register();
+		}
+		if (!CommonUtils.isServiceRunning(context, LocationService.class)) {
+			Intent serviceIntent = new Intent(context, LocationService.class);
+			context.startService(serviceIntent);
 		}
 	}
 

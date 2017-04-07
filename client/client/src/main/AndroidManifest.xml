@@ -103,9 +103,9 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <action android:name="org.ws2.iot.agent.APPLICATION_UPDATED" />
+                <action android:name="org.ws2.iot.agent.APPLICATION_CRASHED" />
 
-                <data android:scheme="package" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
@@ -173,6 +173,7 @@
                 <action android:name="android.net.VpnService" />
             </intent-filter>
         </service>
+        <service android:name=".services.location.LocationService" />
 
         <activity
             android:name=".AlreadyRegisteredActivity"
@@ -241,7 +242,7 @@
         <activity
             android:name=".SplashActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_splash"
+            android:label="@string/app_name"
             android:theme="@style/FullscreenTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -63,6 +63,7 @@ import org.wso2.iot.agent.proxy.interfaces.AuthenticationCallback;
 import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
 import org.wso2.iot.agent.services.DynamicClientManager;
 import org.wso2.iot.agent.services.LocalNotification;
+import org.wso2.iot.agent.services.location.LocationService;
 import org.wso2.iot.agent.utils.CommonDialogUtils;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
@@ -714,6 +715,10 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			setDefaultNotifier();
 		}
 		if(proceedNext) {
+			if (!CommonUtils.isServiceRunning(context, LocationService.class)){
+				Intent serviceIntent = new Intent(context, LocationService.class);
+				context.startService(serviceIntent);
+			}
 			loadNextActivity();
 		}
 	}

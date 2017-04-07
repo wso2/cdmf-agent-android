@@ -17,16 +17,22 @@
  */
 package org.wso2.iot.agent;
 
+import android.*;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -34,6 +40,8 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -49,6 +57,8 @@ import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -124,6 +134,48 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		unregisterLayout = (RelativeLayout) findViewById(R.id.unregisterLayout);
 		if (Constants.HIDE_UNREGISTER_BUTTON) {
 			unregisterLayout.setVisibility(View.GONE);
+		}
+
+		if (Build.VERSION.SDK_INT >= 23) {
+			List<String> missingPermissions = new ArrayList<>();
+
+			if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+				missingPermissions.add(android.Manifest.permission.READ_PHONE_STATE);
+			}
+			if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+				missingPermissions.add(android.Manifest.permission.ACCESS_COARSE_LOCATION);
+			}
+			if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+				missingPermissions.add(android.Manifest.permission.ACCESS_FINE_LOCATION);
+			}
+			if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+				missingPermissions.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+			}
+
+			if (!missingPermissions.isEmpty()) {
+				ActivityCompat.requestPermissions(AlreadyRegisteredActivity.this,
+						missingPermissions.toArray(new String[missingPermissions.size()]),
+						110);
+			}
+		}
+
+		try {
+			int locationSetting = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
+			if (locationSetting == 0) {
+				Intent enableLocationIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+				startActivity(enableLocationIntent);
+				Toast.makeText(context, R.string.msg_need_location, Toast.LENGTH_LONG).show();
+			}
+		} catch (Settings.SettingNotFoundException e) {
+			Log.w(TAG, "Location setting is not available on this device");
+		}
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+		if (requestCode == 110) {
+			NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+			mNotificationManager.cancel(Constants.TOKEN_EXPIRED, Constants.SIGN_IN_NOTIFICATION_ID);
 		}
 	}
 
@@ -248,6 +300,10 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 			} else {
 				getSupportMenuInflater().inflate(R.menu.sherlock_menu_cope, menu);
 			}
+			if (Constants.DEFAULT_HOST != null) {
+				menu.findItem(R.id.ip_setting).setVisible(false);
+				invalidateOptionsMenu();
+			}
 		}
 		return true;
 	}
@@ -261,9 +317,9 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 			case R.id.pin_setting:
 				loadPinCodeActivity();
 				return true;
-//			case R.id.ip_setting:
-//				loadServerDetailsActivity();
-//				return true;
+			case R.id.ip_setting:
+				loadServerDetailsActivity();
+				return true;
 			case R.id.location_setting:
 				showEventListeningEnableDisableDialog();
 				return true;
@@ -297,6 +353,16 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 
 		if (Constants.DEBUG_MODE_ENABLED) {
 			Log.d(TAG, "Calling onResume");
+		}
+
+		try {
+			int locationSetting = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
+			if (locationSetting != 0) {
+				NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+				mNotificationManager.cancel(Constants.LOCATION_DISABLED, Constants.LOCATION_DISABLED_NOTIFICATION_ID);
+			}
+		} catch (Settings.SettingNotFoundException e) {
+			Log.w(TAG, "Location setting is not available on this device");
 		}
 
 		boolean isRegistered = Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED);

@@ -22,6 +22,7 @@ import org.wso2.iot.agent.proxy.authenticators.AuthenticatorFactory;
 import org.wso2.iot.agent.proxy.authenticators.ClientAuthenticator;
 import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.proxy.interfaces.AuthenticationCallback;
+import org.wso2.iot.agent.services.location.LocationService;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
@@ -123,6 +124,10 @@ public class EnrollmentService extends IntentService implements APIResultCallBac
         Preference.putBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE, true);
         if (!isDeviceAdminActive()) {
             startDeviceAdminPrompt();
+        }
+        if (!CommonUtils.isServiceRunning(context, LocationService.class)){
+            Intent serviceIntent = new Intent(context, LocationService.class);
+            context.startService(serviceIntent);
         }
         startEvents();
         startPolling();

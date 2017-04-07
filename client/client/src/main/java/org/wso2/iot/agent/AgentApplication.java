@@ -37,25 +37,23 @@ public class AgentApplication extends Application {
     private int relaunchDelay = 5000;
 
     public AgentApplication() {
-
         // setup handler for uncaught exception
         Thread.UncaughtExceptionHandler _unCaughtExceptionHandler = new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread thread, Throwable ex) {
-                PendingIntent pendingIntent;
                 if (Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED) {
-                    pendingIntent = PendingIntent.getService(getApplicationContext(),
+                    PendingIntent pendingIntent = PendingIntent.getService(getApplicationContext(),
                             requestCode, new Intent(getApplicationContext(), EnrollmentService.class),
                             PendingIntent.FLAG_ONE_SHOT);
+                    AlarmManager alarmManager;
+                    alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                    alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                            relaunchDelay, pendingIntent);
                 } else {
-                    pendingIntent = PendingIntent.getActivity(getApplicationContext(),
-                            requestCode, new Intent(getApplicationContext(), AgentReceptionActivity.class),
-                            PendingIntent.FLAG_ONE_SHOT);
+                    Intent intent=new Intent();
+                    intent.setAction("org.ws2.iot.agent.APPLICATION_CRASHED");
+                    sendBroadcast(intent);
                 }
-                AlarmManager alarmManager;
-                alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-                alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                        relaunchDelay, pendingIntent);
 
                 Log.e("AgentApplication", "UncaughtExceptionHandler got an exception", ex);
                 System.exit(2);

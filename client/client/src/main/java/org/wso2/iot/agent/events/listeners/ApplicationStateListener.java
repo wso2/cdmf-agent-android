@@ -103,6 +103,11 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
             } catch (AndroidAgentException e) {
                 Log.e(TAG, "Could not convert to JSON");
             }
+            if (Intent.ACTION_PACKAGE_REPLACED.equals(intent.getAction()) && Constants.AGENT_PACKAGE.equals(packageName)){
+                Intent broadcastIntent = new Intent();
+                broadcastIntent.setAction("org.ws2.iot.agent.APPLICATION_UPDATED");
+                context.sendBroadcast(broadcastIntent);
+            }
         }
     }
 }

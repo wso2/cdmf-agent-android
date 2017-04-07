@@ -17,7 +17,6 @@
  */
 package org.wso2.iot.agent;
 
-import android.*;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
@@ -45,6 +44,7 @@ import android.widget.Toast;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+
 import org.wso2.iot.agent.api.DeviceInfo;
 import org.wso2.iot.agent.beans.ServerConfig;
 import org.wso2.iot.agent.events.EventRegistry;

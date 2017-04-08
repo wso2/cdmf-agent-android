@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:917891897426:android:cb1a80b8fbeae4c0",
         "android_client_info": {
-          "package_name": "org.wso2.emm.agent"
+          "package_name": "org.wso2.iot.agent"
         }
       },
       "oauth_client": [

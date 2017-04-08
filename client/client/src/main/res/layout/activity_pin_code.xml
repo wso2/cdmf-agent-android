@@ -49,7 +49,7 @@
             android:layout_centerHorizontal="true"
             android:layout_margin="10dp"
             android:background="@drawable/repeat_bg"
-            android:orientation="vertical"></LinearLayout>
+            android:orientation="vertical"/>
 
         <LinearLayout
             android:id="@+id/errorLayout"
@@ -57,15 +57,25 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/layout_topbar"
             android:orientation="vertical"
-            android:padding="10dip"></LinearLayout>
+            android:padding="10dip"/>
+
+        <TextView
+            android:text="@string/lbl_pin_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/errorLayout"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:id="@+id/textViewTitle"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large"
+            android:textColor="@color/abs__background_holo_dark" />
 
         <TextView
             android:id="@+id/lblPin"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/errorLayout"
+            android:layout_below="@+id/textViewTitle"
             android:layout_margin="10dp"
-            android:gravity="center"
             android:text="@string/txt_lblpin"
             android:textColor="#372c24"
             android:textSize="16sp" />
@@ -80,9 +90,9 @@
             android:layout_marginTop="10dp"
             android:ems="10"
             android:hint="@string/txt_old_pin"
-            android:inputType="numberDecimal"
+            android:inputType="numberPassword"
             android:textColor="@android:color/black"
-            android:visibility="gone"></EditText>
+            android:visibility="gone"/>
 
         <EditText
             android:id="@+id/txtPinCode"
@@ -95,14 +105,27 @@
             android:textColor="@android:color/black"
             android:ems="10"
             android:hint="@string/txt_enter_pin"
-            android:inputType="numberPassword"></EditText>
+            android:inputType="numberPassword"/>
+
+        <EditText
+            android:id="@+id/txtRetypePinCode"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/txtPinCode"
+            android:layout_centerHorizontal="true"
+            android:layout_marginLeft="22dp"
+            android:layout_marginTop="10dp"
+            android:textColor="@android:color/black"
+            android:ems="10"
+            android:hint="@string/hint_retype_pin"
+            android:inputType="numberPassword"/>
 
         <Button
             android:id="@+id/btnSetPin"
             style="@style/ButtonText"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/txtPinCode"
+            android:layout_below="@+id/txtRetypePinCode"
             android:layout_centerHorizontal="true"
             android:layout_margin="10dp"
             android:background="@drawable/btn_orange"

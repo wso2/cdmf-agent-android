@@ -324,16 +324,17 @@ public class MessageProcessor implements APIResultCallBack {
 
 			if (result != null) {
 				responseStatus = result.get(Constants.STATUS_KEY);
+				response = result.get(Constants.RESPONSE);
 				if (Constants.Status.SUCCESSFUL.equals(responseStatus) || Constants.Status.CREATED.equals(responseStatus)) {
-					response = result.get(Constants.RESPONSE);
 					if (response != null && !response.isEmpty()) {
 						if (Constants.DEBUG_MODE_ENABLED) {
 							Log.d(TAG, "Pending Operations List: " + response);
 						}
 						performOperation(response);
 					}
-				} else if (Constants.Status.UNAUTHORIZED.equals(responseStatus)) {
-					Log.d(TAG, "Token invalid! Requesting credentials to obtain new token pair");
+				} else if (Constants.Status.AUTHENTICATION_FAILED.equals(responseStatus) &&
+						org.wso2.iot.agent.proxy.utils.Constants.REFRESH_TOKEN_EXPIRED.equals(response)) {
+					Log.d(TAG, "Requesting credentials to obtain new token pair.");
 					LocalNotification.stopPolling(context);
 					Preference.putBoolean(context, Constants.TOKEN_EXPIRED, true);
 					CommonUtils.displayNotification(context,

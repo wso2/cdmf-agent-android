@@ -101,7 +101,7 @@ public class Constants {
 	public static final int HTTP = BuildConfig.API_HTTP_SERVER_PORT;
 	public static final int HTTPS = BuildConfig.API_HTTPS_SERVER_PORT;
 	public static final String BKS = "BKS";
-
+	public static final String REFRESH_TOKEN_EXPIRED = "Refresh token is expired.";
 
 	public static final int ADD_HEADER_CALLBACK = 5001;
 }

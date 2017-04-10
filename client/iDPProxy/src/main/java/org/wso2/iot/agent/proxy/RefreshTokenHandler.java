@@ -81,10 +81,14 @@ public class RefreshTokenHandler {
 		                                          new Response.ErrorListener() {
 			                                          @Override
 			                                          public void onErrorResponse(VolleyError error) {
-				                                          Log.d(TAG, error.toString());
+				                                          Log.d(TAG, error.getMessage());
+														  if (error.networkResponse != null) {
+															  Log.w(TAG, error.toString() + " Status code: " + error.networkResponse.statusCode);
+															  processTokenResponse(String.valueOf(error.networkResponse.statusCode),
+																	  new String(error.networkResponse.data));
+														  }
 			                                          }
 		                                          })
-
 		{
 			@Override
 			protected Response<String> parseNetworkResponse(NetworkResponse response) {
@@ -119,7 +123,7 @@ public class RefreshTokenHandler {
 		};
 		request.setRetryPolicy(new DefaultRetryPolicy(
 				Constants.HttpClient.DEFAULT_TOKEN_TIME_OUT,
-				DefaultRetryPolicy.DEFAULT_TOKEN_MAX_RETRIES,
+				Constants.HttpClient.DEFAULT_TOKEN_RETRY_COUNT,
 				DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 		queue.add(request);
 	}

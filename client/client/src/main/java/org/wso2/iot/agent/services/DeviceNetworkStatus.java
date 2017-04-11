@@ -27,11 +27,14 @@ import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Looper;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.util.Log;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -70,15 +73,21 @@ public class DeviceNetworkStatus extends PhoneStateListener {
         this.context = context;
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         receiverWifi = new WifiReceiver();
-
-        // Register broadcast receiver
-        // Broacast receiver will automatically call when number of wifi connections changed
-        context.registerReceiver(receiverWifi, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        // start scanning wifi
-        startWifiScan();
-
-        info = getNetworkInfo(context);
         mapper = new ObjectMapper();
+        class LooperThread extends Thread {
+            public void run() {
+                if (Looper.myLooper() == null) {
+                    Looper.prepare();
+                }
+                // Register broadcast receiver
+                // Broadcast receiver will automatically call when number of wifi connections changed
+                context.registerReceiver(receiverWifi, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+                // start scanning wifi
+                startWifiScan();
+                info = getNetworkInfo(context);
+            }
+        }
+        new LooperThread().run();
     }
 
     public static DeviceNetworkStatus getInstance(Context context) {

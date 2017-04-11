@@ -81,7 +81,7 @@ public class RefreshTokenHandler {
 		                                          new Response.ErrorListener() {
 			                                          @Override
 			                                          public void onErrorResponse(VolleyError error) {
-				                                          Log.d(TAG, error.getMessage());
+				                                          Log.d(TAG, error.toString());
 														  if (error.networkResponse != null) {
 															  Log.w(TAG, error.toString() + " Status code: " + error.networkResponse.statusCode);
 															  processTokenResponse(String.valueOf(error.networkResponse.statusCode),

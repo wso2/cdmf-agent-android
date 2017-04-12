@@ -173,8 +173,12 @@
                 <action android:name="android.net.VpnService" />
             </intent-filter>
         </service>
-        <service android:name=".services.location.LocationService" />
-
+        <service
+            android:name=".services.location.LocationService"
+            android:enabled="true" />
+        <service
+            android:name=".services.NetworkInfoService"
+            android:enabled="true" />
         <activity
             android:name=".AlreadyRegisteredActivity"
             android:screenOrientation="portrait"
@@ -218,8 +222,7 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".AgentReceptionActivity"
-            android:label="WSO2 Agent">
-        </activity>
+            android:label="WSO2 Agent" />
         <activity
             android:name=".AppLockActivity"
             android:label="@string/title_activity_alert"

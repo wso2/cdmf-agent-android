@@ -18,11 +18,12 @@
 package org.wso2.iot.agent.services;
 
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.os.Build;
-import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -34,7 +35,6 @@ import org.wso2.iot.agent.api.DeviceState;
 import org.wso2.iot.agent.api.RuntimeInfo;
 import org.wso2.iot.agent.beans.Device;
 import org.wso2.iot.agent.beans.Power;
-import org.wso2.iot.agent.services.location.LocationService;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
@@ -97,6 +97,11 @@ public class DeviceInfoPayload {
     private void getInfo() throws AndroidAgentException {
 
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+
+        if (!CommonUtils.isServiceRunning(context, NetworkInfoService.class) ){
+            Intent serviceIntent = new Intent(context, NetworkInfoService.class);
+            context.startService(serviceIntent);
+        }
 
         Location deviceLocation = CommonUtils.getLocation(context);
         if (device == null) {
@@ -230,12 +235,7 @@ public class DeviceInfoPayload {
         property.setValue(mPhoneNumber);
         deviceInfoProperties.add(property);
 
-        DeviceNetworkStatus deviceNetworkStatus = DeviceNetworkStatus.getInstance(context);
-        if (deviceNetworkStatus.isConnectedMobile()) {
-            telephonyManager.listen(deviceNetworkStatus, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
-        }
-
-        String network = deviceNetworkStatus.getNetworkStatus();
+        String network = NetworkInfoService.getNetworkStatus();
         if(network != null) {
             property = new Device.Property();
             property.setName(Constants.Device.NETWORK_INFO);
@@ -246,7 +246,7 @@ public class DeviceInfoPayload {
         // adding wifi scan results..
         property = new Device.Property();
         property.setName(Constants.Device.WIFI_SCAN_RESULT);
-        property.setValue(deviceNetworkStatus.getWifiScanResult());
+        property.setValue(NetworkInfoService.getWifiScanResult());
         properties.add(property);
 
         RuntimeInfo runtimeInfo = new RuntimeInfo(context);

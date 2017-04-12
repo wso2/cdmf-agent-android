@@ -149,7 +149,7 @@ public class AccessTokenHandler {
         };
         request.setRetryPolicy(new DefaultRetryPolicy(
                 Constants.HttpClient.DEFAULT_TOKEN_TIME_OUT,
-                DefaultRetryPolicy.DEFAULT_TOKEN_MAX_RETRIES,
+                Constants.HttpClient.DEFAULT_TOKEN_RETRY_COUNT,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         queue.add(request);
     }

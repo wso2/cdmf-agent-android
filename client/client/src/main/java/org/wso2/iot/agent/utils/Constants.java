@@ -358,7 +358,7 @@ public class Constants {
 		public static final String MEMORY_INFO_EXTERNAL_AVAILABLE = "EXTERNAL_AVAILABLE_MEMORY";
 		public static final String NETWORK_OPERATOR = "OPERATOR";
 		public static final String INFO = "DEVICE_INFO";
-		public static final String GCM_TOKEN = "GCM_TOKEN";
+		public static final String FCM_TOKEN = "FCM_TOKEN";
 		public static final String WIFI_SSID = "WIFI_SSID";
 		public static final String WIFI_SIGNAL_STRENGTH = "WIFI_SIGNAL_STRENGTH";
 		public static final String NETWORK_INFO = "NETWORK_INFO";

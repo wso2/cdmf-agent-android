@@ -179,7 +179,7 @@ public class DeviceInfoPayload {
 
         if (registrationId != null) {
             property = new Device.Property();
-            property.setName(Constants.Device.GCM_TOKEN);
+            property.setName(Constants.Device.FCM_TOKEN);
             property.setValue(registrationId);
             properties.add(property);
         }

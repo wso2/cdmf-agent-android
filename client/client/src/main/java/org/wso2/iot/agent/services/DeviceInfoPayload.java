@@ -235,19 +235,22 @@ public class DeviceInfoPayload {
         property.setValue(mPhoneNumber);
         deviceInfoProperties.add(property);
 
-        String network = NetworkInfoService.getNetworkStatus();
-        if(network != null) {
+        try {
+            String network = NetworkInfoService.getNetworkStatus();
+            if (network != null) {
+                property = new Device.Property();
+                property.setName(Constants.Device.NETWORK_INFO);
+                property.setValue(network);
+                properties.add(property);
+            }
+            // adding wifi scan results..
             property = new Device.Property();
-            property.setName(Constants.Device.NETWORK_INFO);
-            property.setValue(network);
+            property.setName(Constants.Device.WIFI_SCAN_RESULT);
+            property.setValue(NetworkInfoService.getWifiScanResult());
             properties.add(property);
+        } catch (AndroidAgentException e) {
+            Log.e(TAG, "Error retrieving network status. " + e.getMessage());
         }
-
-        // adding wifi scan results..
-        property = new Device.Property();
-        property.setName(Constants.Device.WIFI_SCAN_RESULT);
-        property.setValue(NetworkInfoService.getWifiScanResult());
-        properties.add(property);
 
         RuntimeInfo runtimeInfo = new RuntimeInfo(context);
         String cpuInfoPayload;

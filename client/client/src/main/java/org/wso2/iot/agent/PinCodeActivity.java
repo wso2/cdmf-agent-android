@@ -144,16 +144,13 @@ public class PinCodeActivity extends Activity {
 		@Override
 		public void onClick(View view) {
 			int viewTag = (Integer) view.getTag();
-
 			switch (viewTag) {
-
 				case TAG_BTN_SET_PIN:
 					savePin();
 					break;
 				default:
 					break;
 			}
-
 		}
 	};
 

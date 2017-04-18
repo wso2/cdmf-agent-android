@@ -422,6 +422,7 @@ public class Constants {
 		public static final String STREET1 = "road";
 		public static final String STREET2 = "suburb";
 		public static final String STATE = "state";
+		public static final String LOCATION = "location";
 	}
 
 	public final class LocationInfo {

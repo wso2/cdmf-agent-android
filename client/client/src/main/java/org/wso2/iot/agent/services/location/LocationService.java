@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -30,7 +30,6 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Looper;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
@@ -67,29 +66,26 @@ public class LocationService extends Service implements LocationListener {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+        if (Constants.DEBUG_MODE_ENABLED) {
+            Log.d(TAG, "Starting service with ID: " + startId);
+        }
         return START_STICKY;
     }
 
     @Override
     public void onCreate() {
+        if (Constants.DEBUG_MODE_ENABLED) {
+            Log.d(TAG, "Creating service");
+        }
         context = getApplicationContext();
         if (locationManager == null) {
             locationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
         }
-        class LooperThread extends Thread {
-            public void run() {
-                if (Looper.myLooper() == null) {
-                    Looper.prepare();
-                }
-                LocationService.this.setLocation();
-            }
-        }
-        new LooperThread().run();
+        setLocation();
     }
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         if (locationManager != null && isUpdateRequested) {
             if (Build.VERSION.SDK_INT >= 23
                     && ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -127,23 +123,28 @@ public class LocationService extends Service implements LocationListener {
                     if (isUpdateRequested) {
                         locationManager.removeUpdates(this);
                     }
-                    if (Constants.DEBUG_MODE_ENABLED){
+                    if (Constants.DEBUG_MODE_ENABLED) {
                         Log.d(TAG, "Requesting locations from provider: " + provider);
                     }
                     locationManager.requestLocationUpdates(provider, MIN_TIME_BW_UPDATES,
                             MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                     isUpdateRequested = true;
-                    location = locationManager.getLastKnownLocation(provider);
+                    location = locationManager.getLastLocation();
                     if (location != null) {
-                        Preference.putString(context, context.getResources().getString(R.string.shared_pref_location),
+                        Preference.putString(context, Constants.Location.LOCATION,
                                 new Gson().toJson(location));
+                    } else {
+                        Log.w(TAG, "No last known location found");
                     }
                 } else {
                     Log.w(TAG, "No suitable location providers found");
                 }
             } catch (RuntimeException e) {
-                Log.e(TAG, "No network/GPS Switched off.", e);
+                Log.e(TAG, "No network or GPS Switched off.", e);
             }
+        } else {
+            Log.e(TAG, "Location manager is not available.");
+            stopSelf();
         }
     }
 
@@ -155,9 +156,8 @@ public class LocationService extends Service implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
         if (location != null) {
-            Preference.putString(context, context.getResources().getString(R.string.shared_pref_location),
-                                 new Gson().toJson(location));
-            if (Constants.DEBUG_MODE_ENABLED){
+            Preference.putString(context, Constants.Location.LOCATION, new Gson().toJson(location));
+            if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "Location changed> lat:" + location.getLatitude() + " lon:" + location.getLongitude() + " provider:" + location.getProvider());
             }
         }
@@ -166,14 +166,14 @@ public class LocationService extends Service implements LocationListener {
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-        if (Constants.DEBUG_MODE_ENABLED){
+        if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Status changed to: " + status + " Provider: " + provider);
         }
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-        if (Constants.DEBUG_MODE_ENABLED){
+        if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Provider enabled: " + provider);
         }
         setLocation();
@@ -181,7 +181,7 @@ public class LocationService extends Service implements LocationListener {
 
     @Override
     public void onProviderDisabled(String provider) {
-        if (Constants.DEBUG_MODE_ENABLED){
+        if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Provider disabled: " + provider);
         }
         if (this.provider != null && this.provider.equals(provider)) {
@@ -189,7 +189,7 @@ public class LocationService extends Service implements LocationListener {
         }
     }
 
-    private void displayPermissionMissingNotification(){
+    private void displayPermissionMissingNotification() {
         CommonUtils.displayNotification(context,
                 R.drawable.notification,
                 context.getResources().getString(R.string.title_need_permissions),

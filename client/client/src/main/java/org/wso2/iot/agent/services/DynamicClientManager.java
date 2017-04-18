@@ -22,6 +22,7 @@ import android.util.Log;
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
+import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -148,7 +149,25 @@ public class DynamicClientManager implements APIResultCallBack {
                                                           public void onErrorResponse(VolleyError error) {
                                                               Log.d(TAG, error.toString());
                                                               Map<String, String> responseParams = new HashMap<>();
-                                                              responseParams.put(org.wso2.iot.agent.proxy.utils.Constants.SERVER_RESPONSE_STATUS, "500");
+                                                              String statusCode = "500";
+                                                              if (error.networkResponse != null) {
+                                                                  statusCode = String.valueOf(error.networkResponse.statusCode);
+                                                              }
+                                                              responseParams.put(
+                                                                      org.wso2.iot.agent.proxy.utils.Constants.SERVER_RESPONSE_STATUS,
+                                                                      statusCode
+                                                              );
+                                                              if (com.android.volley.ParseError.class.isInstance(error)) {
+                                                                  responseParams.put(
+                                                                          org.wso2.iot.agent.proxy.utils.Constants.SERVER_RESPONSE_BODY,
+                                                                          "Invalid tenant domain"
+                                                                  );
+                                                              } else if (error.getMessage() != null) {
+                                                                  responseParams.put(
+                                                                          org.wso2.iot.agent.proxy.utils.Constants.SERVER_RESPONSE_BODY,
+                                                                          error.getMessage()
+                                                                  );
+                                                              }
                                                               apiResultCallback.onReceiveAPIResult(responseParams, requestCode);
                                                           }
                                                       })

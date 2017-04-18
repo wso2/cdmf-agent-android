@@ -23,12 +23,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
-import org.wso2.iot.agent.BuildConfig;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.events.EventRegistry;
@@ -44,24 +45,23 @@ import java.util.Locale;
  * Broadcast receiver for device boot action used to start agent local
  * notification service at device startup.
  */
-public class DeviceStartupIntentReceiver extends BroadcastReceiver {
-	private static final int DEFAULT_TIME_MILLISECONDS = 0;
+public class AgentStartupReceiver extends BroadcastReceiver {
+	private static final int DEFAULT_TIME_MILLISECONDS = 5000;
 	private static final int DEFAULT_REQUEST_CODE = 0;
 	public static final int DEFAULT_INDEX = 0;
 	public static final int DEFAULT_ID = -1;
 	public static final int DEFAULT_INTERVAL = 30000;
-	private Resources resources;
-    private static final String TAG = "DeviceStartupIntent";
+	private static final String TAG = AgentStartupReceiver.class.getSimpleName();
 
 	@Override
 	public void onReceive(final Context context, Intent intent) {
 		String action = intent.getAction();
-		if (Intent.ACTION_PACKAGE_REPLACED.equals(action)
-				&& !BuildConfig.AGENT_PACKAGE.equals(intent.getData().getSchemeSpecificPart())) {
-			return;
-		}
 		if (Constants.DEBUG_MODE_ENABLED) {
 			Log.d(TAG, "Action received: " + action);
+		}
+		if (ConnectivityManager.CONNECTIVITY_ACTION.equals(action)
+				&& !isNetworkConnected(context, intent)) {
+			return;
 		}
 		setRecurringAlarm(context.getApplicationContext());
 		if(!EventRegistry.eventListeningStarted) {
@@ -74,12 +74,27 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 		}
 	}
 
+	private boolean isNetworkConnected(Context context, Intent intent){
+		if (intent.getExtras() != null) {
+			final ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+			final NetworkInfo ni = connectivityManager.getActiveNetworkInfo();
+
+			if (ni != null && ni.isConnectedOrConnecting()) {
+				Log.i(TAG, "Network " + ni.getTypeName() + " connected");
+				return true;
+			} else if (intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, Boolean.FALSE)) {
+				Log.i(TAG, "There's no network connectivity");
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Initiates device notifier on device startup.
 	 * @param context - Application context.
 	 */
 	private void setRecurringAlarm(Context context) {
-		this.resources = context.getApplicationContext().getResources();
+		Resources resources = context.getApplicationContext().getResources();
 		String mode = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
 		boolean isLocked = Preference.getBoolean(context, Constants.IS_LOCKED);
 		String lockMessage = Preference.getString(context, Constants.LOCK_MESSAGE);

@@ -30,7 +30,6 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.IBinder;
-import android.os.Looper;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
@@ -108,14 +107,16 @@ public class NetworkInfoService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        super.onStartCommand(intent, flags, startId);
-        return START_STICKY;
+        if (Constants.DEBUG_MODE_ENABLED) {
+            Log.d(TAG, "Starting service with ID: " + startId);
+        }
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
     public void onCreate() {
         thisInstance = this;
-        if (Constants.DEBUG_MODE_ENABLED){
+        if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Creating service");
         }
         wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
@@ -128,25 +129,15 @@ public class NetworkInfoService extends Service {
         startWifiScan();
         info = getNetworkInfo();
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        class LooperThread extends Thread {
-            public void run() {
-                if (Looper.myLooper() == null) {
-                    Looper.prepare();
-                }
-                telephonyManager.listen(deviceNetworkStatusListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
-                Looper.loop();
-            }
-        }
-        new LooperThread().run();
+        telephonyManager.listen(deviceNetworkStatusListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
     }
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         telephonyManager.listen(deviceNetworkStatusListener, PhoneStateListener.LISTEN_NONE);
         unregisterReceiver(receiverWifi);
         thisInstance = null;
-        if (Constants.DEBUG_MODE_ENABLED){
+        if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Service destroyed.");
         }
     }
@@ -169,7 +160,7 @@ public class NetworkInfoService extends Service {
         }
         info = thisInstance.getNetworkInfo();
         String payload = null;
-        if(info != null) {
+        if (info != null) {
             List<Device.Property> properties = new ArrayList<>();
             Device.Property property = new Device.Property();
             property.setName(Constants.Device.CONNECTION_TYPE);

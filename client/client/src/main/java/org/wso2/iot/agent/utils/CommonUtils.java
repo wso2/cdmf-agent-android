@@ -638,8 +638,11 @@ public class CommonUtils {
 	}
 
 	public static Location getLocation(Context context) {
-		Location location = new Gson().fromJson(Preference.getString(context, context.getResources().getString(
-				R.string.shared_pref_location)), Location.class);
+		if (!isServiceRunning(context, LocationService.class)) {
+			Intent serviceIntent = new Intent(context, LocationService.class);
+			context.startService(serviceIntent);
+		}
+		Location location = new Gson().fromJson(Preference.getString(context, Constants.Location.LOCATION), Location.class);
 		if (location == null) {
 			Log.w(TAG, "Location not found");
 			if (!isServiceRunning(context, LocationService.class)) {

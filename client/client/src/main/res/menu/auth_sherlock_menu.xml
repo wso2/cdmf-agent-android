@@ -23,9 +23,9 @@
         android:showAsAction="ifRoom"
         android:title="@string/action_settings">
         <menu>
-            <!--<item-->
-                <!--android:id="@+id/ip_setting"-->
-                <!--android:title="@string/menu_item_ip"></item>-->
+            <item
+                android:id="@+id/ip_setting"
+                android:title="@string/menu_item_ip"/>
         </menu>
     </item>
 

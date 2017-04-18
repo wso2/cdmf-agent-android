@@ -55,7 +55,7 @@ public class ServerConfig {
 	}
 
 	public String getAPIServerURL(Context context) {
-		if (Constants.DEFAULT_HOST != null && getHostFromPreferences(context).contains(Constants.DEFAULT_HOST)) {
+		if (Constants.DEFAULT_HOST != null) {
 			APIServerURL = Constants.DEFAULT_HOST;
 		} else {
 			APIServerURL = getProtocolFromPreferences(context) + getHostFromPreferences(context) + COLON +

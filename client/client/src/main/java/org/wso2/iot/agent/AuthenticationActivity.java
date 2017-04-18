@@ -629,13 +629,17 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 					                     dynamicClientResponse);
 					startAuthentication();
 				}
-			} else {
-				CommonDialogUtils.stopProgressDialog(progressDialog);
-				showEnrollementFailedErrorMessage();
+			} else if (Constants.Status.UNAUTHORIZED.equals(responseStatus)) {
+				showAuthenticationError();
+			} else if (!Constants.Status.SUCCESSFUL.equals(responseStatus)){
+				if (result.containsKey(Constants.RESPONSE)) {
+					showEnrollmentFailedErrorMessage("Code: " + responseStatus + "\nError: " + result.get(Constants.RESPONSE));
+				} else {
+					showEnrollmentFailedErrorMessage("Code: " + responseStatus);
+				}
 			}
 		} else {
-			CommonDialogUtils.stopProgressDialog(progressDialog);
-			showEnrollementFailedErrorMessage();
+			showEnrollmentFailedErrorMessage(null);
 		}
 	}
 
@@ -700,7 +704,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			} else if (Constants.Status.UNAUTHORIZED.equals(responseStatus)) {
 				String response = result.get(Constants.RESPONSE);
 				Log.e(TAG, "Unauthorized :" + response);
-				showEnrollementFailedErrorMessage();
+				showAuthenticationError();
 				proceedNext = false;
 			} else if (Constants.Status.INTERNAL_SERVER_ERROR.equals(responseStatus)) {
 				Log.e(TAG, "Empty configuration response.");
@@ -762,16 +766,15 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			} else if (Constants.Status.UNAUTHORIZED.equals(responseStatus)) {
 				String response = result.get(Constants.RESPONSE);
 				Log.e(TAG, "Unauthorized :" + response);
-				showEnrollementFailedErrorMessage();
-			}
-			else {
+				showAuthenticationError();
+			} else {
 				CommonUtils.clearClientCredentials(context);
-				showEnrollementFailedErrorMessage();
+				showEnrollmentFailedErrorMessage(responseStatus);
 			}
 
 		} else {
 			CommonUtils.clearClientCredentials(context);
-			showEnrollementFailedErrorMessage();
+			showEnrollmentFailedErrorMessage(null);
 		}
 	}
 
@@ -918,19 +921,23 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getSupportMenuInflater().inflate(R.menu.auth_sherlock_menu, menu);
+		if (Constants.DEFAULT_HOST != null || isReLogin) {
+			menu.findItem(R.id.ip_setting).setVisible(false);
+			invalidateOptionsMenu();
+		}
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-//			case R.id.ip_setting:
-//				Preference.putString(context, Constants.PreferenceFlag.IP, null);
-//				Intent intentIP = new Intent(AuthenticationActivity.this, ServerDetails.class);
-//				intentIP.putExtra(getResources().getString(R.string.intent_extra_from_activity),
-//				                  AuthenticationActivity.class.getSimpleName());
-//				startActivity(intentIP);
-//				return true;
+			case R.id.ip_setting:
+				Preference.putString(context, Constants.PreferenceFlag.IP, null);
+				Intent intentIP = new Intent(AuthenticationActivity.this, ServerDetails.class);
+				intentIP.putExtra(getResources().getString(R.string.intent_extra_from_activity),
+				                  AuthenticationActivity.class.getSimpleName());
+				startActivity(intentIP);
+				return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}
@@ -968,16 +975,23 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	/**
 	 * Shows enrollment failed error.
 	 */
-	private void showEnrollementFailedErrorMessage() {
+	private void showEnrollmentFailedErrorMessage(String message) {
 		CommonDialogUtils.stopProgressDialog(progressDialog);
+		final String messageDescription;
+		String descriptionText = getResources().getString(
+				R.string.error_enrollment_failed_detail);
+		if (message != null) {
+			messageDescription = descriptionText + " " + message;
+		} else {
+			messageDescription = descriptionText;
+		}
 		this.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
 				CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
 						getResources().getString(
 								R.string.error_enrollment_failed),
-						getResources().getString(
-								R.string.error_enrollment_failed_detail),
+						messageDescription,
 						getResources().getString(
 								R.string.button_ok),
 						senderIdFailedClickListener);
@@ -1075,14 +1089,14 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 						AuthenticationActivity.this, apiRegistrationProfile);
 				Preference.putString(context, Constants.CLIENT_NAME, applicationName);
 			} catch (AndroidAgentException e) {
-				Log.e(TAG, "Client credentials generation failed" + e);
-				CommonDialogUtils.stopProgressDialog(progressDialog);
-				showEnrollementFailedErrorMessage();
+				String message = "Client credentials generation failed";
+				Log.e(TAG, message, e);
+				showEnrollmentFailedErrorMessage(message);
 			}
 		} else {
-			Log.e(TAG, "There is no valid IP to contact the server");
-			CommonDialogUtils.stopProgressDialog(progressDialog);
-			showEnrollementFailedErrorMessage();
+			String message = "There is no valid IP to contact the server";
+			Log.e(TAG, message);
+			showEnrollmentFailedErrorMessage(message);
 		}
 	}
 

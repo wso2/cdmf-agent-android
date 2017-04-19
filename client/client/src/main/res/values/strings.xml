@@ -248,6 +248,8 @@
 
     <!-- DIALOG TITLES AND MESSAGES -->
     <string name="dialog_authenticate">Authenticating</string>
+    <string name="dialog_registering">Registering with %1$s</string>
+    <string name="dialog_tenant_resolving">Resolving Organizations</string>
     <string name="dialog_title_system_app_required">SystemApp required</string>
     <string name="dialog_gps_settings">GPS Settings</string>
     <string name="dialog_gps_message">GPS is not enabled. Do you want to go to settings menu to enable GPS?</string>
@@ -268,6 +270,8 @@
     <string name="dialog__location_event_listening_enable">You are trying to enable location event listening. Are you sure you want to proceed?</string>
     <string name="dialog_location_event_listening_disable">You are trying to disable location event listening. Are you sure you want to proceed?</string>
     <string name="dialog_system_app_required">Please install the WSO2 System App to continue enrollment as a COPE user.</string>
+    <string name="dialog_tenants_not_available">You don\'t have any associated organizations. Please contact your administrator</string>
+    <string name="dialog_select_tenant">Select an organization you liked to register with</string>
 
 
     <!-- REGISTRATION -->

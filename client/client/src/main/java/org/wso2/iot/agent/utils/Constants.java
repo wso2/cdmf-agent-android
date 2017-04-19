@@ -34,7 +34,7 @@ public class Constants {
 
 
 
-	// Set DEFAULT_OWNERSHIP to null if no overiding is needed. Other possible values are,
+	// Set DEFAULT_OWNERSHIP to null if no overriding is needed. Other possible values are,
 	// OWNERSHIP_BYOD or OWNERSHIP_COPE. If you are using the mutual SSL authentication
 	// This value must be set to a value other than null.
 	public static final String DEFAULT_OWNERSHIP = BuildConfig.DEFAULT_OWNERSHIP;
@@ -42,6 +42,7 @@ public class Constants {
 	// needed, set this to null.
 	public static final String DEFAULT_HOST = BuildConfig.DEFAULT_HOST;
 	public static final String APP_MANAGER_HOST = BuildConfig.APP_MANAGER_HOST;
+	public static final String CLOUD_MANAGER = BuildConfig.CLOUD_MANAGER;
 	public static final String SYSTEM_SERVICE_PACKAGE = BuildConfig.SYSTEM_SERVICE_PACKAGE;
 	public static final String AGENT_PACKAGE = BuildConfig.AGENT_PACKAGE;
 	public static final String CATALOG_APP_PACKAGE_NAME = BuildConfig.CATALOG_APP_PACKAGE_NAME;

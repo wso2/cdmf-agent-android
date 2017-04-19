@@ -52,7 +52,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.api.DeviceInfo;
+import org.wso2.iot.agent.api.TenantResolverCallback;
+import org.wso2.iot.agent.api.TenantResolverHandler;
 import org.wso2.iot.agent.beans.ServerConfig;
+import org.wso2.iot.agent.beans.Tenant;
 import org.wso2.iot.agent.proxy.IdentityProxy;
 import org.wso2.iot.agent.proxy.authenticators.AuthenticatorFactory;
 import org.wso2.iot.agent.proxy.authenticators.ClientAuthenticator;
@@ -70,6 +73,8 @@ import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 import org.wso2.iot.agent.beans.ApiRegistrationProfile;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -94,11 +99,13 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	private ProgressDialog progressDialog;
 	private LinearLayout loginLayout;
 	private boolean isReLogin = false;
+	private boolean isCloudLogin = false;
 
 	private DeviceInfo deviceInfo;
 	private static final String TAG = AuthenticationActivity.class.getSimpleName();
 	private static final String[] SUBSCRIBED_API = new String[]{"android"};
 	private ClientAuthenticator authenticator;
+	private Tenant currentTenant;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -141,6 +148,9 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			etUsername.setText(tenantedUserName.substring(0, tenantSeparator));
 			etDomain.setText(tenantedUserName.substring(tenantSeparator + 1, tenantedUserName.length()));
 			isReLogin = true;
+		} else if (Constants.CLOUD_MANAGER != null) {
+			isCloudLogin = true;
+			etDomain.setVisibility(View.GONE);
 		}
 
 		if(Constants.HIDE_LOGIN_UI) {
@@ -249,17 +259,11 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 		@Override
 		public void onClick(View view) {
-
 			if (etUsername.getText() != null && !etUsername.getText().toString().trim().isEmpty() &&
 			    etPassword.getText() != null && !etPassword.getText().toString().trim().isEmpty()) {
 
 				passwordVal = etPassword.getText().toString().trim();
 				usernameVal = etUsername.getText().toString().trim();
-				if (etDomain.getText() != null && !etDomain.getText().toString().trim().isEmpty()) {
-					usernameVal +=
-							getResources().getString(R.string.intent_extra_at) +
-							etDomain.getText().toString().trim();
-				}
 
 				if (radioBYOD.isChecked()) {
 					deviceType = Constants.OWNERSHIP_BYOD;
@@ -267,13 +271,11 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 					deviceType = Constants.OWNERSHIP_COPE;
 				}
 
-				if (Constants.OWNERSHIP_COPE.equals(deviceType) &&
-						!CommonUtils.isSystemAppInstalled(context)) {
-					showNoSystemAppDialog();
+				if (isCloudLogin) {
+					obtainTenantDomain(usernameVal, passwordVal);
 				} else {
-					getClientCredentials();
+					proceedToAuthentication();
 				}
-
 			} else {
 				if (etUsername.getText() != null && !etUsername.getText().toString().trim().isEmpty()) {
 					Toast.makeText(context,
@@ -307,6 +309,83 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			}
 		}
 	};
+
+	private void proceedToAuthentication() {
+		if (etDomain.getText() != null && !etDomain.getText().toString().trim().isEmpty()) {
+			usernameVal +=
+					getResources().getString(R.string.intent_extra_at) +
+							etDomain.getText().toString().trim();
+		}
+		if (Constants.OWNERSHIP_COPE.equals(deviceType) &&
+				!CommonUtils.isSystemAppInstalled(context)) {
+			showNoSystemAppDialog();
+		} else {
+			getClientCredentials();
+		}
+	}
+
+	private void obtainTenantDomain(String username, String password) {
+		// Check network connection availability before calling the API.
+		currentTenant = null;
+		if (CommonUtils.isNetworkAvailable(context)) {
+			progressDialog = ProgressDialog.show(context,
+					getResources().getString(R.string.dialog_authenticate),
+					getResources().getString(R.string.dialog_message_please_wait), true);
+			IdentityProxy.getInstance().setContext(this.getApplicationContext());
+			TenantResolverHandler tenantResolverHandler = new TenantResolverHandler(new TenantResolverCallback() {
+				@Override
+				public void onTenantResolved(final List<Tenant> tenants) {
+					if (tenants.isEmpty()) {
+						showEnrollmentFailedErrorMessage(getResources().getString(R.string.dialog_tenants_not_available));
+					} else if (tenants.size() == 1) {
+						currentTenant = tenants.get(0);
+						CommonDialogUtils.stopProgressDialog(progressDialog);
+						etDomain.setText(currentTenant.getTenantDomain());
+						proceedToAuthentication();
+					} else {
+						CommonDialogUtils.stopProgressDialog(progressDialog);
+						List<String> tenantNames = new ArrayList<>();
+						for (Tenant t : tenants) {
+							tenantNames.add(t.getDisplayName());
+						}
+						CommonDialogUtils.getAlertDialogWithSingleChoices(context,
+								getResources().getString(R.string.dialog_select_tenant),
+								tenantNames.toArray(new String[0]),
+								new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog, int which) {
+										currentTenant = tenants.get(which);
+										etDomain.setText(currentTenant.getTenantDomain());
+										proceedToAuthentication();
+										dialog.dismiss();
+									}
+								}).show();
+					}
+				}
+
+				@Override
+				public void onAuthenticationSuccess() {
+					CommonDialogUtils.stopProgressDialog(progressDialog);
+					progressDialog = ProgressDialog.show(context,
+							getResources().getString(R.string.dialog_tenant_resolving),
+							getResources().getString(R.string.dialog_message_please_wait), true);
+				}
+
+				@Override
+				public void onAuthenticationFail() {
+					showAuthenticationError();
+				}
+
+				@Override
+				public void onFailure(AndroidAgentException exception) {
+					showEnrollmentFailedErrorMessage(exception.getMessage());
+				}
+			});
+			tenantResolverHandler.resolveTenantDomain(username, password);
+		} else {
+			CommonDialogUtils.showNetworkUnavailableMessage(context);
+		}
+	}
 
 	/**
 	 * Start authentication process.
@@ -1020,7 +1099,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		});
 
 	}
-	
+
 	/**
 	 * Shows credentials error message for authentication.
 	 */
@@ -1067,11 +1146,21 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	 */
 	private void getClientCredentials() {
 		String ipSaved = Constants.DEFAULT_HOST;
-		String prefIP = Preference.getString(context.getApplicationContext(), Constants.PreferenceFlag.IP);
+		String prefIP = Preference.getString(context.getApplicationContext(),
+				Constants.PreferenceFlag.IP);
 		if (prefIP != null) {
 			ipSaved = prefIP;
 		}
-		progressDialog = ProgressDialog.show(context, getResources().getString(R.string.dialog_authenticate), getResources().
+		String authenticationTitle;
+		if (currentTenant != null) {
+			authenticationTitle = String.format(
+					getResources().getString(R.string.dialog_registering),
+					currentTenant.getDisplayName()
+			);
+		} else {
+			authenticationTitle = getResources().getString(R.string.dialog_authenticate);
+		}
+		progressDialog = ProgressDialog.show(context, authenticationTitle, getResources().
 				getString(R.string.dialog_message_please_wait), true);
 		if (ipSaved != null && !ipSaved.isEmpty()) {
 			ServerConfig utils = new ServerConfig();

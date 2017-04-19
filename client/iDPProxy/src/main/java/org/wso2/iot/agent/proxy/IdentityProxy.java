@@ -106,7 +106,10 @@ public class IdentityProxy implements CallBack {
         IdentityProxy.clientID = info.getClientID();
         IdentityProxy.clientSecret = info.getClientSecret();
         this.apiAccessCallBack = apiAccessCallBack;
-        this.context = context;
+        //To avoid having multiple contexts from different threads
+        if (this.context == null) {
+            this.context = context;
+        }
         SharedPreferences mainPref = context.getSharedPreferences(Constants.APPLICATION_PACKAGE
                 , Context.MODE_PRIVATE);
         Editor editor = mainPref.edit();

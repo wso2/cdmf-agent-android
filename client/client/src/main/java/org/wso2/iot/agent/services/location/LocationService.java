@@ -41,6 +41,8 @@ import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
+import java.util.List;
+
 /**
  * This class holds the function implementations of the location service.
  */
@@ -130,6 +132,18 @@ public class LocationService extends Service implements LocationListener {
                             MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                     isUpdateRequested = true;
                     location = locationManager.getLastLocation();
+                    if (location == null) {
+                        //We are trying for all enabled providers
+                        List<String> providers = locationManager.getProviders(true);
+                        for (String p: providers) {
+                            location = locationManager.getLastKnownLocation(p);
+                            if (location != null) {
+                                break;
+                            } else if (Constants.DEBUG_MODE_ENABLED) {
+                                Log.d(TAG, "No last known location for provider " + p);
+                            }
+                        }
+                    }
                     if (location != null) {
                         Preference.putString(context, Constants.Location.LOCATION,
                                 new Gson().toJson(location));

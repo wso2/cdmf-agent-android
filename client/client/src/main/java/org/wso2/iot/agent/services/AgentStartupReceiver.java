@@ -46,11 +46,8 @@ import java.util.Locale;
  * notification service at device startup.
  */
 public class AgentStartupReceiver extends BroadcastReceiver {
-	private static final int DEFAULT_TIME_MILLISECONDS = 5000;
-	private static final int DEFAULT_REQUEST_CODE = 0;
-	public static final int DEFAULT_INDEX = 0;
+	public static final int DEFAULT_INT_VALUE = 0;
 	public static final int DEFAULT_ID = -1;
-	public static final int DEFAULT_INTERVAL = 30000;
 	private static final String TAG = AgentStartupReceiver.class.getSimpleName();
 
 	@Override
@@ -80,7 +77,9 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 			final NetworkInfo ni = connectivityManager.getActiveNetworkInfo();
 
 			if (ni != null && ni.isConnectedOrConnecting()) {
-				Log.i(TAG, "Network " + ni.getTypeName() + " connected");
+				if (Constants.DEBUG_MODE_ENABLED) {
+					Log.d(TAG, "Network " + ni.getTypeName() + " connected");
+				}
 				return true;
 			} else if (intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, Boolean.FALSE)) {
 				Log.i(TAG, "There's no network connectivity");
@@ -122,8 +121,8 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 		}
 
 		int interval = Preference.getInt(context, context.getResources().getString(R.string.shared_pref_frequency));
-		if(interval == DEFAULT_INDEX){
-			interval = DEFAULT_INTERVAL;
+		if(interval == DEFAULT_INT_VALUE){
+			interval = Constants.DEFAULT_INTERVAL;
 		}
 
 		if(mode == null) {
@@ -132,19 +131,18 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 
 		if (Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED) && Constants.NOTIFIER_LOCAL.equals(
 				mode.trim().toUpperCase(Locale.ENGLISH))) {
-			long startTime =  DEFAULT_TIME_MILLISECONDS;
 
 			Intent alarmIntent = new Intent(context, AlarmReceiver.class);
 			PendingIntent recurringAlarmIntent =
 					PendingIntent.getBroadcast(context,
-					                           DEFAULT_REQUEST_CODE,
+					                           Constants.DEFAULT_REQUEST_CODE,
 					                           alarmIntent,
 					                           PendingIntent.FLAG_CANCEL_CURRENT);
 			AlarmManager alarmManager =
 					(AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, startTime,
+			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Constants.DEFAULT_START_INTERVAL,
 			                          interval, recurringAlarmIntent);
-			Log.d(TAG, "Setting up alarm manager for polling every " + interval + " milliseconds.");
+			Log.i(TAG, "Setting up alarm manager for polling every " + interval + " milliseconds.");
 		}
 	}
 

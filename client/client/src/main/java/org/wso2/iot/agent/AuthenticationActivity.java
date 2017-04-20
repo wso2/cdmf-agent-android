@@ -931,10 +931,10 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 					@Override
 					public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
 						if (keyCode == KeyEvent.KEYCODE_SEARCH &&
-						    event.getRepeatCount() == Constants.DEFAILT_REPEAT_COUNT) {
+						    event.getRepeatCount() == Constants.DEFAULT_REPEAT_COUNT) {
 							return true;
 						} else if (keyCode == KeyEvent.KEYCODE_BACK &&
-						           event.getRepeatCount() == Constants.DEFAILT_REPEAT_COUNT) {
+						           event.getRepeatCount() == Constants.DEFAULT_REPEAT_COUNT) {
 							return true;
 						}
 						return false;

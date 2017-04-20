@@ -230,10 +230,11 @@ public class Constants {
 
 	public static final String MIME_TYPE = "text/html";
 	public static final String ENCODING_METHOD = "utf-8";
-	public static final int DEFAILT_REPEAT_COUNT = 0;
+	public static final int DEFAULT_REPEAT_COUNT = 0;
 	public static int DEFAULT_INTERVAL = 30000;
+	public static int DEFAULT_START_INTERVAL = 10000;
 	public static final int NOTIFIER_CHECK = 2;
-
+	public static final int DEFAULT_REQUEST_CODE = 0;
 
 	/**
 	 * Operation IDs
@@ -473,6 +474,8 @@ public class Constants {
 		public static final String NOTIFIER_TYPE = "notifierType";
 		public static final String CURRENT_INSTALLING_APP = "installingApplication";
 		public static final String IS_LOCATION_EVENT_PUBLICATION_ENABLED = "isLocationPublicationEnabled";
+		public static final String LOCAL_NOTIFIER_INVOKED_PREF_KEY = "localNotificationInvoked";
+		public static final String DEVICE_ID_PREFERENCE_KEY = "deviceId";
 	}
 
 	public final class AppRestriction {

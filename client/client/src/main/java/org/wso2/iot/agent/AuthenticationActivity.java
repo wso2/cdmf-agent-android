@@ -32,6 +32,7 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.util.Linkify;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -54,6 +55,7 @@ import org.json.JSONObject;
 import org.wso2.iot.agent.api.DeviceInfo;
 import org.wso2.iot.agent.api.TenantResolverCallback;
 import org.wso2.iot.agent.api.TenantResolverHandler;
+import org.wso2.iot.agent.beans.ApiRegistrationProfile;
 import org.wso2.iot.agent.beans.ServerConfig;
 import org.wso2.iot.agent.beans.Tenant;
 import org.wso2.iot.agent.proxy.IdentityProxy;
@@ -71,11 +73,12 @@ import org.wso2.iot.agent.utils.CommonDialogUtils;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
-import org.wso2.iot.agent.beans.ApiRegistrationProfile;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Activity that captures username, password and device ownership details
@@ -84,7 +87,7 @@ import java.util.Map;
 public class AuthenticationActivity extends SherlockActivity implements APIAccessCallBack,
                                                                         APIResultCallBack,
                                                                         AuthenticationCallback{
-	private Button btnRegister;
+	private Button btnSignIn;
 	private EditText etUsername;
 	private EditText etDomain;
 	private EditText etPassword;
@@ -125,20 +128,22 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		loginLayout = (LinearLayout) findViewById(R.id.errorLayout);
 		etDomain.setFocusable(true);
 		etDomain.requestFocus();
-		btnRegister = (Button) findViewById(R.id.btnRegister);
-		btnRegister.setOnClickListener(onClickAuthenticate);
-		btnRegister.setEnabled(false);
+		btnSignIn = (Button) findViewById(R.id.btnSignIn);
+		btnSignIn.setOnClickListener(onClickAuthenticate);
+		btnSignIn.setEnabled(false);
 
 		// change button color background till user enters a valid input
-		btnRegister.setBackground(getResources().getDrawable(R.drawable.btn_grey));
-		btnRegister.setTextColor(getResources().getColor(R.color.black));
+		btnSignIn.setBackground(getResources().getDrawable(R.drawable.btn_grey));
+		btnSignIn.setTextColor(getResources().getColor(R.color.black));
+
+		TextView textViewSignIn = (TextView) findViewById(R.id.textViewSignIn);
 
 		if (Preference.hasPreferenceKey(context, Constants.TOKEN_EXPIRED)) {
 			etDomain.setEnabled(false);
 			etDomain.setTextColor(getResources().getColor(R.color.black));
 			etUsername.setEnabled(false);
 			etUsername.setTextColor(getResources().getColor(R.color.black));
-			btnRegister.setText(R.string.common_signin_button_text);
+			btnSignIn.setText(R.string.common_signin_button_text);
 			radioBYOD.setVisibility(View.GONE);
 			radioCOPE.setVisibility(View.GONE);
 			etPassword.setFocusable(true);
@@ -148,9 +153,25 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			etUsername.setText(tenantedUserName.substring(0, tenantSeparator));
 			etDomain.setText(tenantedUserName.substring(tenantSeparator + 1, tenantedUserName.length()));
 			isReLogin = true;
+			textViewSignIn.setText(R.string.msg_need_to_sign_in);
 		} else if (Constants.CLOUD_MANAGER != null) {
 			isCloudLogin = true;
 			etDomain.setVisibility(View.GONE);
+			textViewSignIn.setText(R.string.txt_sign_in_cloud);
+		}
+
+		TextView textViewSignUp = (TextView) findViewById(R.id.textViewSignUp);
+		if (!isReLogin && Constants.SIGN_UP_URL != null) {
+			Linkify.TransformFilter transformFilter = new Linkify.TransformFilter() {
+				@Override
+				public String transformUrl(Matcher match, String url) {
+					return Constants.SIGN_UP_URL;
+				}
+			};
+			Pattern pattern = Pattern.compile(getResources().getString(R.string.txt_sign_up_linkify));
+			Linkify.addLinks(textViewSignUp, pattern, null, null, transformFilter);
+		} else {
+			textViewSignUp.setVisibility(View.GONE);
 		}
 
 		if(Constants.HIDE_LOGIN_UI) {
@@ -951,6 +972,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		intent.putExtra(Constants.USERNAME, usernameVal);
 		startActivity(intent);
+		finish();
 	}
 
 	private void loadRegistrationActivity() {
@@ -958,6 +980,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		intent.putExtra(Constants.USERNAME, usernameVal);
 		startActivity(intent);
+		finish();
 	}
 
 	private void cancelEntry() {
@@ -970,7 +993,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		                  AuthenticationActivity.class.getSimpleName());
 		intentIP.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intentIP);
-
+		finish();
 	}
 
 	/**
@@ -987,13 +1010,13 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		}
 
 		if (isReady) {
-			btnRegister.setBackground(getResources().getDrawable(R.drawable.btn_orange));
-			btnRegister.setTextColor(getResources().getColor(R.color.white));
-			btnRegister.setEnabled(true);
+			btnSignIn.setBackground(getResources().getDrawable(R.drawable.btn_orange));
+			btnSignIn.setTextColor(getResources().getColor(R.color.white));
+			btnSignIn.setEnabled(true);
 		} else {
-			btnRegister.setBackground(getResources().getDrawable(R.drawable.btn_grey));
-			btnRegister.setTextColor(getResources().getColor(R.color.black));
-			btnRegister.setEnabled(false);
+			btnSignIn.setBackground(getResources().getDrawable(R.drawable.btn_grey));
+			btnSignIn.setTextColor(getResources().getColor(R.color.black));
+			btnSignIn.setEnabled(false);
 		}
 	}
 
@@ -1016,6 +1039,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 				intentIP.putExtra(getResources().getString(R.string.intent_extra_from_activity),
 				                  AuthenticationActivity.class.getSimpleName());
 				startActivity(intentIP);
+				finish();
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
@@ -1029,6 +1053,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			i.setAction(Intent.ACTION_MAIN);
 			i.addCategory(Intent.CATEGORY_HOME);
 			this.startActivity(i);
+			finish();
 			return true;
 		} else if (keyCode == KeyEvent.KEYCODE_HOME) {
 			this.finish();
@@ -1045,9 +1070,9 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 //					etUsername.setText(Constants.EMPTY_STRING);
 //					etPassword.setText(Constants.EMPTY_STRING);
 //					etDomain.setText(Constants.EMPTY_STRING);
-					btnRegister.setBackground(getResources().getDrawable(R.drawable.btn_orange));
-					btnRegister.setTextColor(getResources().getColor(R.color.white));
-					btnRegister.setEnabled(true);
+					btnSignIn.setBackground(getResources().getDrawable(R.drawable.btn_orange));
+					btnSignIn.setTextColor(getResources().getColor(R.color.white));
+					btnSignIn.setEnabled(true);
 				}
 			};
 

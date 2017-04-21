@@ -33,8 +33,8 @@ android {
         targetSdkVersion 23
         multiDexEnabled true
 
-        versionCode 326
-        versionName "3.1.13"
+        versionCode 327
+        versionName "3.1.14"
     }
     buildTypes {
         release {
@@ -69,6 +69,8 @@ android {
             // CLOUD_MANAGER: If the App is pointed to cloud use cloud management host to resolve
             // tenants of user. Otherwise set this to null
             buildConfigField "String", "CLOUD_MANAGER", "\"https://cloudmgt.cloud.wso2.com/cloudmgt\""
+            // SIGN_UP_URL: Set self registration link to sign up
+            buildConfigField "String", "SIGN_UP_URL", "\"http://wso2.com/iot/cloud/\""
             // AGENT_PACKAGE: If a modification of the agent's package name is done, this must be
             // altered
             buildConfigField "String", "AGENT_PACKAGE", "\"org.wso2.iot.agent\""
@@ -182,6 +184,8 @@ android {
             // CLOUD_MANAGER: If the App is pointed to cloud use cloud management host to resolve
             // tenants of user. Otherwise set this to null
             buildConfigField "String", "CLOUD_MANAGER", "\"https://cloudmgt.cloudstaging.wso2.com/cloudmgt\""
+            // SIGN_UP_URL: Set self registration link to sign up
+            buildConfigField "String", "SIGN_UP_URL", "\"http://wso2.com/iot/cloud/\""
             // AGENT_PACKAGE: If a modification of the agent's package name is done, this must be
             // altered
             buildConfigField "String", "AGENT_PACKAGE", "\"org.wso2.iot.agent\""
@@ -295,6 +299,8 @@ android {
             // CLOUD_MANAGER: If the App is pointed to cloud use cloud management host to resolve
             // tenants of user. Otherwise set this to null
             buildConfigField "String", "CLOUD_MANAGER", "null"
+            // SIGN_UP_URL: Set self registration link to sign up
+            buildConfigField "String", "SIGN_UP_URL", "null"
             // AGENT_PACKAGE: If a modification of the agent's package name is done, this must be
             // altered
             buildConfigField "String", "AGENT_PACKAGE", "\"org.wso2.iot.agent\""

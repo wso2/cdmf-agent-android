@@ -341,7 +341,8 @@
     <string name="txt_enroll">Please click to enroll the device</string>
     <string name="txt_sign_in">Please sign in to register your device with WSO2 IoT Server.</string>
     <string name="txt_sign_in_cloud">Please sign in to register your device with WSO2 Device Cloud.</string>
-    <string name="txt_sign_up">If you don\'t have account with WSO2 Device Cloud, sign up for free to try out.</string>
+    <string name="txt_sign_up">If you don\'t have an account with WSO2 Device Cloud, sign up for free to try out.</string>
+    <string name="txt_sign_up_linkify">sign up</string>
     <string name="txt_lblpin">This PIN code will be used to authorize critical remote operations (ex: remote device wipe) performed against the device by administrators.</string>
     <string name="hint_retype_pin">Retype PIN Code</string>
     <string name="lbl_pin_title">Please enter PIN code</string>

@@ -125,18 +125,6 @@
                 android:text="@string/txt_sign_up"
                 android:textColor="@android:color/black" />
 
-            <Button
-                android:id="@+id/btnSignUp"
-                style="@style/ButtonText"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                android:layout_marginTop="30dp"
-                android:background="@drawable/btn_orange"
-                android:text="@string/button_sign_up" />
-
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

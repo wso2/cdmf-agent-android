@@ -33,6 +33,7 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.util.Linkify;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -77,6 +78,8 @@ import org.wso2.iot.agent.beans.ApiRegistrationProfile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Activity that captures username, password and device ownership details
@@ -158,18 +161,17 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			textViewSignIn.setText(R.string.txt_sign_in_cloud);
 		}
 
-		Button btnSignUp = (Button) findViewById(R.id.btnSignUp);
+		TextView textViewSignUp = (TextView) findViewById(R.id.textViewSignUp);
 		if (!isReLogin && Constants.SIGN_UP_URL != null) {
-			btnSignUp.setOnClickListener(new OnClickListener() {
+			Linkify.TransformFilter transformFilter = new Linkify.TransformFilter() {
 				@Override
-				public void onClick(View v) {
-					Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.SIGN_UP_URL));
-					startActivity(browserIntent);
+				public String transformUrl(Matcher match, String url) {
+					return Constants.SIGN_UP_URL;
 				}
-			});
+			};
+			Pattern pattern = Pattern.compile(getResources().getString(R.string.txt_sign_up_linkify));
+			Linkify.addLinks(textViewSignUp, pattern, null, null, transformFilter);
 		} else {
-			btnSignUp.setVisibility(View.GONE);
-			TextView textViewSignUp = (TextView) findViewById(R.id.textViewSignUp);
 			textViewSignUp.setVisibility(View.GONE);
 		}
 

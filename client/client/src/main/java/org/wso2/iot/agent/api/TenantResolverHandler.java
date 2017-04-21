@@ -87,13 +87,14 @@ public class TenantResolverHandler {
                     public void onResponse(String response) {
                         if (Constants.DEBUG_MODE_ENABLED) {
                             Log.d(TAG, "Login Response: " + response);
-                            if (response != null && response.trim().equals("true")) {
-                                callback.onAuthenticationSuccess();
-                                requestTenantDetails();
-                            } else {
-                                callback.onAuthenticationFail();
-                            }
                         }
+                        if (response != null && response.trim().equals("true")) {
+                            callback.onAuthenticationSuccess();
+                            requestTenantDetails();
+                        } else {
+                            callback.onAuthenticationFail();
+                        }
+
                     }
                 },
                 new Response.ErrorListener() {
@@ -157,10 +158,11 @@ public class TenantResolverHandler {
                     public void onResponse(String response) {
                         if (Constants.DEBUG_MODE_ENABLED) {
                             Log.d(TAG, "Tenant details Response: " + response);
-                            Gson gson = new Gson();
-                            List<Tenant> tenants = gson.fromJson(response, new TypeToken<List<Tenant>>(){}.getType());
-                            callback.onTenantResolved(tenants);
                         }
+                        Gson gson = new Gson();
+                        List<Tenant> tenants = gson.fromJson(response,
+                                new TypeToken<List<Tenant>>() {}.getType());
+                        callback.onTenantResolved(tenants);
                     }
                 },
                 new Response.ErrorListener() {

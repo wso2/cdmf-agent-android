@@ -91,13 +91,12 @@ public class ServerDetails extends Activity {
 					Intent intent = new Intent(ServerDetails.this, KioskActivity.class);
 					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					startActivity(intent);
-					finish();
 				}else{
 					Intent intent = new Intent(ServerDetails.this, AlreadyRegisteredActivity.class);
 					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					startActivity(intent);
 				}
-
+				finish();
 			}
 
 			evServerIP.addTextChangedListener(new TextWatcher() {
@@ -119,7 +118,17 @@ public class ServerDetails extends Activity {
 			btnStartRegistration.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					loadStartRegistrationDialog();
+					if (!evServerIP.getText().toString().trim().isEmpty()) {
+						String host = evServerIP.getText().toString().trim();
+						CommonUtils.saveHostDeatils(context, host);
+
+						startAuthenticationActivity();
+					} else {
+						Toast.makeText(context.getApplicationContext(),
+								getResources().getString(
+										R.string.toast_message_enter_server_address),
+								Toast.LENGTH_LONG).show();
+					}
 				}
 			});
 		}
@@ -148,49 +157,6 @@ public class ServerDetails extends Activity {
 		}
 	}
 
-	private void loadStartRegistrationDialog(){
-		AlertDialog.Builder alertBuilder = new AlertDialog.Builder(ServerDetails.this);
-		StringBuilder messageBuilder = new StringBuilder();
-		messageBuilder.append(getResources().getString(R.string.dialog_init_confirmation));
-		messageBuilder.append(context.getResources().getString(R.string.intent_extra_space));
-		messageBuilder.append(evServerIP.getText().toString());
-		messageBuilder.append(context.getResources().getString(R.string.intent_extra_space));
-		messageBuilder.append(getResources().getString(R.string.dialog_init_end_general));
-		alertBuilder.setMessage(messageBuilder.toString())
-		            .setPositiveButton(getResources().getString(R.string.yes),
-		                               dialogClickListener)
-		            .setNegativeButton(getResources().getString(R.string.no),
-		                               dialogClickListener).show();
-	}
-
-	private DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-		@Override
-		public void onClick(DialogInterface dialog, int which) {
-			switch (which) {
-				case DialogInterface.BUTTON_POSITIVE:
-					if (!evServerIP.getText().toString().trim().isEmpty()) {
-						String host = evServerIP.getText().toString().trim();
-						CommonUtils.saveHostDeatils(context, host);
-
-						startAuthenticationActivity();
-					} else {
-						Toast.makeText(context.getApplicationContext(),
-								getResources().getString(
-										R.string.toast_message_enter_server_address),
-								Toast.LENGTH_LONG).show();
-					}
-					break;
-
-				case DialogInterface.BUTTON_NEGATIVE:
-					dialog.dismiss();
-					break;
-
-				default:
-					break;
-			}
-		}
-	};
-
 	/**
 	 * This method is called to open AuthenticationActivity.
 	 */
@@ -199,6 +165,7 @@ public class ServerDetails extends Activity {
 			Intent intent = new Intent(ServerDetails.this, AuthenticationActivity.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(intent);
+			finish();
 		}
 	}
 

@@ -49,7 +49,7 @@
             android:layout_centerHorizontal="true"
             android:layout_margin="10dp"
             android:background="@drawable/repeat_bg"
-            android:orientation="vertical"></LinearLayout>
+            android:orientation="vertical" />
 
         <LinearLayout
             android:id="@+id/errorLayout"
@@ -57,7 +57,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/layout_topbar"
             android:orientation="vertical"
-            android:padding="10dip"></LinearLayout>
+            android:padding="10dip" />
 
         <TextView
             android:id="@+id/tvSeverAddress"
@@ -79,10 +79,13 @@
             android:layout_below="@+id/tvSeverAddress"
             android:layout_centerHorizontal="true"
             android:layout_marginLeft="22dp"
-            android:singleLine="true"
             android:textColor="@android:color/black"
             android:ems="10"
-            android:inputType="text"></EditText>
+            android:cursorVisible="true"
+            android:hint="@string/txt_server_address"
+            android:inputType="text"
+            android:maxLines="1"
+            android:textCursorDrawable="@null" />
 
         <Button
             android:id="@+id/btnStartRegistration"

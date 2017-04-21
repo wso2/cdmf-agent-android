@@ -32,6 +32,16 @@
             android:orientation="vertical"
             android:padding="10dip">
 
+            <TextView
+                android:id="@+id/textViewSignIn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:gravity="center"
+                android:text="@string/txt_sign_in"
+                android:textColor="@android:color/black"
+                android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium" />
+
             <EditText
                 android:id="@+id/etDomain"
                 android:layout_width="fill_parent"
@@ -39,8 +49,10 @@
                 android:layout_margin="5dp"
                 android:hint="@string/txt_organization"
                 android:inputType="text"
-                android:singleLine="true"
-                android:textColor="@android:color/black" />
+                android:cursorVisible="true"
+                android:maxLines="1"
+                android:textColor="@android:color/black"
+                android:textCursorDrawable="@null" />
 
             <EditText
                 android:id="@+id/etUsername"
@@ -49,8 +61,10 @@
                 android:layout_margin="5dp"
                 android:hint="@string/txt_username"
                 android:inputType="textEmailAddress"
-                android:singleLine="true"
-                android:textColor="@android:color/black" />
+                android:cursorVisible="true"
+                android:maxLines="1"
+                android:textColor="@android:color/black"
+                android:textCursorDrawable="@null" />
 
             <EditText
                 android:id="@+id/etPassword"
@@ -60,10 +74,9 @@
                 android:ems="10"
                 android:hint="@string/txt_password"
                 android:inputType="textPassword"
-                android:textColor="@android:color/black">
-
-                <requestFocus />
-            </EditText>
+                android:cursorVisible="true"
+                android:textColor="@android:color/black"
+                android:textCursorDrawable="@null" />
 
             <RadioGroup
                 android:id="@+id/radioGroupType"
@@ -92,7 +105,7 @@
             </RadioGroup>
 
             <Button
-                android:id="@+id/btnRegister"
+                android:id="@+id/btnSignIn"
                 style="@style/ButtonText"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
@@ -101,7 +114,28 @@
                 android:layout_marginRight="10dp"
                 android:layout_marginTop="30dp"
                 android:background="@drawable/btn_orange"
-                android:text="@string/txt_register" />
+                android:text="@string/btn_sign_in" />
+
+            <TextView
+                android:id="@+id/textViewSignUp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center"
+                android:text="@string/txt_sign_up"
+                android:textColor="@android:color/black" />
+
+            <Button
+                android:id="@+id/btnSignUp"
+                style="@style/ButtonText"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="30dp"
+                android:background="@drawable/btn_orange"
+                android:text="@string/button_sign_up" />
 
             <TextView
                 android:layout_width="match_parent"

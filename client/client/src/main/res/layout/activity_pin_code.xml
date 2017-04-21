@@ -92,7 +92,9 @@
             android:hint="@string/txt_old_pin"
             android:inputType="numberPassword"
             android:textColor="@android:color/black"
-            android:visibility="gone"/>
+            android:cursorVisible="true"
+            android:textCursorDrawable="@null"
+            android:visibility="gone" />
 
         <EditText
             android:id="@+id/txtPinCode"
@@ -105,7 +107,9 @@
             android:textColor="@android:color/black"
             android:ems="10"
             android:hint="@string/txt_enter_pin"
-            android:inputType="numberPassword"/>
+            android:cursorVisible="true"
+            android:inputType="numberPassword"
+            android:textCursorDrawable="@null" />
 
         <EditText
             android:id="@+id/txtRetypePinCode"
@@ -118,7 +122,9 @@
             android:textColor="@android:color/black"
             android:ems="10"
             android:hint="@string/hint_retype_pin"
-            android:inputType="numberPassword"/>
+            android:cursorVisible="true"
+            android:inputType="numberPassword"
+            android:textCursorDrawable="@null" />
 
         <Button
             android:id="@+id/btnSetPin"

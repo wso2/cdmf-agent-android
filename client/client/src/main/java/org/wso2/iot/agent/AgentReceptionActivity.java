@@ -104,6 +104,7 @@ public class AgentReceptionActivity extends Activity {
     private void startManagedProfileManager() {
         Intent ManagedProfileManager = new Intent(getApplicationContext(), WorkProfileManager.class);
         startActivity(ManagedProfileManager);
+        finish();
     }
 
     /**
@@ -113,6 +114,7 @@ public class AgentReceptionActivity extends Activity {
         Intent intent = new Intent(context, ServerDetails.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
+        finish();
     }
 
     /**

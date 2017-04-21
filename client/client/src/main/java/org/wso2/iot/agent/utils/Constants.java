@@ -43,6 +43,7 @@ public class Constants {
 	public static final String DEFAULT_HOST = BuildConfig.DEFAULT_HOST;
 	public static final String APP_MANAGER_HOST = BuildConfig.APP_MANAGER_HOST;
 	public static final String CLOUD_MANAGER = BuildConfig.CLOUD_MANAGER;
+	public static final String SIGN_UP_URL = BuildConfig.SIGN_UP_URL;
 	public static final String SYSTEM_SERVICE_PACKAGE = BuildConfig.SYSTEM_SERVICE_PACKAGE;
 	public static final String AGENT_PACKAGE = BuildConfig.AGENT_PACKAGE;
 	public static final String CATALOG_APP_PACKAGE_NAME = BuildConfig.CATALOG_APP_PACKAGE_NAME;

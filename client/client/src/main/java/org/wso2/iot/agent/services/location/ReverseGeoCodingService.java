@@ -27,10 +27,14 @@ import org.wso2.iot.agent.beans.Address;
 public interface ReverseGeoCodingService {
 
     /**
-     * This method is used to get the address details of a given location.
-     * @param location latitude and longitude.
+     * This method is used to fetch the address details of a given location.
+     * @param location latitude and longitude
+     */
+    void fetchReverseGeoCodes(Location location);
+
+    /**
+     * This method is used to get the address details of previously fetched location.
      * @return Returns an address object.
      */
-    Address getReverseGeoCodes(Location location);
-
+    Address getReverseGeoCodes();
 }

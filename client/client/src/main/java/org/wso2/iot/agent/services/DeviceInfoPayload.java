@@ -17,6 +17,7 @@
  */
 package org.wso2.iot.agent.services;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -74,7 +75,7 @@ public class DeviceInfoPayload {
         Device.EnrolmentInfo info = new Device.EnrolmentInfo();
         //setting up basic details of the device
         info.setOwner(owner);
-        info.setOwnership(type.equals(Constants.OWNERSHIP_BYOD) ? Device.EnrolmentInfo.OwnerShip.BYOD
+        info.setOwnership(Constants.OWNERSHIP_BYOD.equals(type) ? Device.EnrolmentInfo.OwnerShip.BYOD
                                                                 : Device.EnrolmentInfo.OwnerShip.COPE);
         device.setEnrolmentInfo(info);
         getInfo();
@@ -94,6 +95,7 @@ public class DeviceInfoPayload {
      * Fetch all device runtime information.
      * @throws AndroidAgentException
      */
+    @SuppressLint("HardwareIds")
     private void getInfo() throws AndroidAgentException {
 
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
@@ -379,7 +381,7 @@ public class DeviceInfoPayload {
                     locationObject.put(Constants.LocationInfo.TIME_STAMP, new Date().getTime());
                     locationString = locationObject.toString();
                 } catch (JSONException e) {
-                    Log.e(TAG, "Error occured while creating a location payload for location event publishing", e);
+                    Log.e(TAG, "Error occurred while creating a location payload for location event publishing", e);
                 }
             }
         }

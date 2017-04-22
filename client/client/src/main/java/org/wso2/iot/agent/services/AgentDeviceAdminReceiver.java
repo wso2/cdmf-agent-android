@@ -60,8 +60,7 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
     public void onEnabled(final Context context, Intent intent) {
         super.onEnabled(context, intent);
 
-        if (Constants.DEFAULT_OWNERSHIP != Constants.OWNERSHIP_COSU) {
-            Resources resources = context.getResources();
+        if (!Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
             Preference.putBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE, true);
             String notifier = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
             if (Constants.NOTIFIER_LOCAL.equals(notifier)) {
@@ -77,22 +76,17 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
     public void onDisabled(Context context, Intent intent) {
         super.onDisabled(context, intent);
 
-        if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
-
-        } else {
+        if (!Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
             Toast.makeText(context, R.string.device_admin_disabled,
                     Toast.LENGTH_LONG).show();
             regId = Preference
                     .getString(context, Constants.PreferenceFlag.REG_ID);
-
             if (regId != null && !regId.isEmpty()) {
                 startUnRegistration(context);
             } else {
                 Log.e(TAG, "Registration ID is already null");
             }
         }
-
-
     }
 
     /**
@@ -101,9 +95,7 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
      * @param context - Application context.
      */
     public void startUnRegistration(Context context) {
-        if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
-
-        } else {
+        if (!Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
             String regId = Preference.getString(context, Constants.PreferenceFlag.REG_ID);
             if (regId != null && !regId.isEmpty()) {
                 String serverIP = Constants.DEFAULT_HOST;
@@ -132,7 +124,6 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
                 }
             }
         }
-
     }
 
     @Override
@@ -168,8 +159,7 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
 
     @Override
     public void onProfileProvisioningComplete(Context context, Intent intent) {
-        if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
-
+        if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
             DevicePolicyManager devicePolicyManager =
                     (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
             ComponentName cdmDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(context);
@@ -199,7 +189,6 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
             Intent launch = new Intent(context, ServerDetails.class);
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(launch);
-
         } else {
             Intent launch = new Intent(context, EnableProfileActivity.class);
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

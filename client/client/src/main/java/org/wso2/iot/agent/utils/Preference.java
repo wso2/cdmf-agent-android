@@ -3,9 +3,6 @@ package org.wso2.iot.agent.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.util.Log;
-
-import org.wso2.iot.agent.R;
 
 /**
  * This class handles all the functionality related to data retrieval and saving to 
@@ -25,7 +22,7 @@ public class Preference {
 				context.getSharedPreferences(Constants.AGENT_PACKAGE, Context.MODE_PRIVATE);
 		Editor editor = mainPref.edit();
 		editor.putString(key, value);
-		editor.commit();
+		editor.apply();
 	}
 
 	/**
@@ -50,7 +47,7 @@ public class Preference {
 				context.getSharedPreferences(Constants.AGENT_PACKAGE, Context.MODE_PRIVATE);
 		Editor editor = mainPref.edit();
 		editor.putFloat(key, value);
-		editor.commit();
+		editor.apply();
 	}
 
 	/**
@@ -75,7 +72,7 @@ public class Preference {
 				context.getSharedPreferences(Constants.AGENT_PACKAGE, Context.MODE_PRIVATE);
 		Editor editor = mainPref.edit();
 		editor.putInt(key, value);
-		editor.commit();
+		editor.apply();
 	}
 
 	/**
@@ -100,7 +97,7 @@ public class Preference {
 				context.getSharedPreferences(Constants.AGENT_PACKAGE, Context.MODE_PRIVATE);
 		Editor editor = mainPref.edit();
 		editor.putBoolean(key, value);
-		editor.commit();
+		editor.apply();
 	}
 
 	/**
@@ -121,7 +118,7 @@ public class Preference {
 	public static void clearPreferences(Context context) {
 		SharedPreferences mainPref =
 				context.getSharedPreferences(Constants.AGENT_PACKAGE, Context.MODE_PRIVATE);
-		mainPref.edit().clear().commit();
+		mainPref.edit().clear().apply();
 	}
 
 	public static boolean hasPreferenceKey(Context context, String key){
@@ -136,7 +133,7 @@ public class Preference {
 		if (mainPref.contains(key)) {
 			Editor editor = mainPref.edit();
 			editor.remove(key);
-			editor.commit();
+			editor.apply();
 		}
 	}
 

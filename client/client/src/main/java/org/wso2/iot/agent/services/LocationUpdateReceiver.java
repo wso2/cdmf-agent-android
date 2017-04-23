@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.util.Log;
 
+import org.wso2.iot.agent.proxy.IdentityProxy;
 import org.wso2.iot.agent.services.location.impl.OpenStreetMapService;
 import org.wso2.iot.agent.utils.Constants;
 
@@ -32,7 +33,9 @@ public class LocationUpdateReceiver extends BroadcastReceiver {
         if (location == null) {
             Log.w(TAG, "Location not received");
         } else {
-            OpenStreetMapService.getInstance().fetchReverseGeoCodes(location);
+            if (IdentityProxy.getInstance().getContext() != null) {
+                OpenStreetMapService.getInstance().fetchReverseGeoCodes(location);
+            }
             if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "Location> Lat:" + location.getLatitude()
                         + " Lon:" + location.getLongitude()

@@ -33,7 +33,7 @@ android {
         targetSdkVersion 23
         multiDexEnabled true
 
-        versionCode 328
+        versionCode 329
         versionName "3.1.15"
     }
     buildTypes {

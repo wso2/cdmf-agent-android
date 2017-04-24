@@ -20,6 +20,7 @@ package org.wso2.iot.agent.services.location.impl;
 
 import android.location.Location;
 import android.util.Log;
+
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
@@ -28,6 +29,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.beans.Address;
@@ -50,7 +52,8 @@ public class OpenStreetMapService implements ReverseGeoCodingService {
 
     private static OpenStreetMapService instance;
 
-    private OpenStreetMapService() {}
+    private OpenStreetMapService() {
+    }
 
     public static OpenStreetMapService getInstance() {
         if (instance == null) {
@@ -63,27 +66,6 @@ public class OpenStreetMapService implements ReverseGeoCodingService {
         return instance;
     }
 
-    @Override
-    public Address getReverseGeoCodes(Location location) {
-        if (location == null) {
-            return null;
-        }
-        String url = new StringBuilder()
-                .append(Constants.Location.GEO_ENDPOINT)
-                .append("?" + Constants.Location.RESULT_FORMAT)
-                .append("&" + Constants.Location.ACCEPT_LANGUAGE + "=" + Constants.Location.LANGUAGE_CODE)
-                .append("&" + Constants.Location.LATITUDE + "=" + location.getLatitude())
-                .append("&" + Constants.Location.LONGITUDE + "=" + location.getLongitude())
-                .toString();
-
-        EndPointInfo endPointInfo = new EndPointInfo();
-        endPointInfo.setHttpMethod(org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS.GET);
-        endPointInfo.setEndPoint(url);
-
-        sendRequest(endPointInfo);
-        return currentAddress;
-    }
-
     /**
      * This method is used to send requests to reverse geo coordination API.
      * The reason to use this method because the function which is already
@@ -91,39 +73,38 @@ public class OpenStreetMapService implements ReverseGeoCodingService {
      * to send requests without tokens.
      */
     private void sendRequest(EndPointInfo endPointInfo) {
-        RequestQueue queue = null;
+        RequestQueue queue;
         try {
             queue = ServerUtilities.getCertifiedHttpClient();
         } catch (IDPTokenManagerException e) {
             Log.e(TAG, "Failed to retrieve HTTP client", e);
+            return;
         }
 
         StringRequest request = new StringRequest(Request.Method.GET, endPointInfo.getEndPoint(),
-                                                  new Response.Listener<String>() {
-                                                      @Override
-                                                      public void onResponse(String response) {
-                                                          Log.d(TAG, response);
-                                                      }
-                                                  },
-                                                  new Response.ErrorListener() {
-                                                      @Override
-                                                      public void onErrorResponse(VolleyError error) {
-                                                          Log.e(TAG, error.toString());
-                                                      }
-                                                  })
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.d(TAG, response);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, error.toString());
+                    }
+                })
 
         {
             @Override
             protected Response<String> parseNetworkResponse(NetworkResponse response) {
                 String result = new String(response.data);
-                if (org.wso2.iot.agent.proxy.utils.Constants.DEBUG_ENABLED) {
-                    if (result != null && !result.isEmpty()) {
-                        Log.d(TAG, "Result :" + result);
-                    }
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    Log.d(TAG, "Result :" + result);
                 }
                 Map<String, String> responseParams = new HashMap<>();
-                responseParams.put(org.wso2.iot.agent.proxy.utils.Constants.SERVER_RESPONSE_BODY, result);
-                responseParams.put(org.wso2.iot.agent.proxy.utils.Constants.SERVER_RESPONSE_STATUS, String.valueOf(response.statusCode));
+                responseParams.put(Constants.RESPONSE, result);
+                responseParams.put(Constants.STATUS, String.valueOf(response.statusCode));
                 processTokenResponse(responseParams);
                 return super.parseNetworkResponse(response);
             }
@@ -177,14 +158,13 @@ public class OpenStreetMapService implements ReverseGeoCodingService {
                     }
 
                     if (Constants.DEBUG_MODE_ENABLED) {
-                        String addr = new StringBuilder().append("Address: ")
-                                .append(currentAddress.getStreet1() + ", ")
-                                .append(currentAddress.getStreet2() + ", ")
-                                .append(currentAddress.getCity() + ", ")
-                                .append(currentAddress.getState() + ", ")
-                                .append(currentAddress.getZip() + ", ")
-                                .append(currentAddress.getCountry())
-                                .toString();
+                        String addr = "Address: " +
+                                currentAddress.getStreet1() + ", " +
+                                currentAddress.getStreet2() + ", " +
+                                currentAddress.getCity() + ", " +
+                                currentAddress.getState() + ", " +
+                                currentAddress.getZip() + ", " +
+                                currentAddress.getCountry();
                         Log.d(TAG, addr);
                     }
                 } catch (JSONException e) {
@@ -194,4 +174,28 @@ public class OpenStreetMapService implements ReverseGeoCodingService {
         }
     }
 
+    @Override
+    public void fetchReverseGeoCodes(Location location) {
+        if (location == null) {
+            return;
+        }
+        String url = Constants.Location.GEO_ENDPOINT +
+                "?" + Constants.Location.RESULT_FORMAT +
+                "&" + Constants.Location.ACCEPT_LANGUAGE +
+                "=" + Constants.Location.LANGUAGE_CODE +
+                "&" + Constants.Location.LATITUDE +
+                "=" + location.getLatitude() +
+                "&" + Constants.Location.LONGITUDE +
+                "=" + location.getLongitude();
+
+        EndPointInfo endPointInfo = new EndPointInfo();
+        endPointInfo.setHttpMethod(org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS.GET);
+        endPointInfo.setEndPoint(url);
+        sendRequest(endPointInfo);
+    }
+
+    @Override
+    public Address getReverseGeoCodes() {
+        return currentAddress;
+    }
 }

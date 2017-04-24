@@ -52,6 +52,7 @@ public class Constants {
 	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 	public static final String SYSTEM_APP_SERVICE_START_ACTION = "org.wso2.emm.system.service.START_SERVICE";
 	public static final String SYSTEM_APP_BROADCAST_ACTION = "org.wso2.emm.system.service.MESSAGE_PROCESSED";
+	public static final String LOCATION_UPDATE_BROADCAST_ACTION = "org.ws2.iot.agent.LOCATION_UPDATE";
 	public static final String HTTPS_PROTOCOL = "https://";
 	public static final String OWNERSHIP_BYOD = "BYOD";
 	public static final String OWNERSHIP_COPE = "COPE";

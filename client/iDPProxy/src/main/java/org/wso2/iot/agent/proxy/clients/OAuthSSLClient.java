@@ -18,6 +18,7 @@
 
 package org.wso2.iot.agent.proxy.clients;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.android.volley.RequestQueue;
@@ -58,6 +59,12 @@ public class OAuthSSLClient implements CommunicationClient {
         RequestQueue client = null;
         InputStream inStream = null;
         try {
+            Context context = IdentityProxy.getInstance().getContext();
+            if (context == null) {
+                String message = "Context is not available";
+                Log.e(TAG, message);
+                throw new IDPTokenManagerException(message);
+            }
             if (Constants.SERVER_PROTOCOL.equalsIgnoreCase("https://")) {
                 KeyStore localTrustStore = KeyStore.getInstance("BKS");
                 if (Constants.TRUSTSTORE_LOCATION != null) {
@@ -72,9 +79,9 @@ public class OAuthSSLClient implements CommunicationClient {
                 tmf.init(localTrustStore);
 
 
-                SSLContext context = SSLContext.getInstance("TLS");
-                context.init(null, tmf.getTrustManagers(), null);
-                final SSLSocketFactory socketFactory = context.getSocketFactory();
+                SSLContext sslContext = SSLContext.getInstance("TLS");
+                sslContext.init(null, tmf.getTrustManagers(), null);
+                final SSLSocketFactory socketFactory = sslContext.getSocketFactory();
                 HurlStack hurlStack = new HurlStack() {
                     @Override
                     protected HttpURLConnection createConnection(URL url) throws IOException {
@@ -97,9 +104,9 @@ public class OAuthSSLClient implements CommunicationClient {
                         }
                     }
                 };
-                client = Volley.newRequestQueue(IdentityProxy.getInstance().getContext(), hurlStack);
+                client = Volley.newRequestQueue(context, hurlStack);
             } else {
-                client = Volley.newRequestQueue(IdentityProxy.getInstance().getContext());
+                client = Volley.newRequestQueue(context);
             }
 
         } catch (KeyStoreException e) {

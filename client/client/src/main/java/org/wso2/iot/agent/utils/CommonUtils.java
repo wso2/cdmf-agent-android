@@ -25,9 +25,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -35,12 +32,14 @@ import android.content.res.Resources;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.IBinder;
+import android.os.Build;
 import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
+
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -68,6 +67,7 @@ import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
 import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.services.DynamicClientManager;
+import org.wso2.iot.agent.services.LocationUpdateReceiver;
 import org.wso2.iot.agent.services.PolicyOperationsMapper;
 import org.wso2.iot.agent.services.PolicyRevokeHandler;
 import org.wso2.iot.agent.services.ResultPayload;
@@ -204,14 +204,8 @@ public class CommonUtils {
 							} catch (FileNotFoundException e) {
 								Log.e(TAG, e.getMessage());
 							}
-						} catch (CertificateException e) {
-							Log.e(TAG, e.getMessage());
-						} catch (KeyStoreException e) {
-							e.printStackTrace();
-						} catch (NoSuchAlgorithmException e) {
-							e.printStackTrace();
-						} catch (IOException e) {
-							e.printStackTrace();
+						} catch (CertificateException | KeyStoreException | NoSuchAlgorithmException | IOException e) {
+							Log.e(TAG, e.getMessage(), e);
 						}
 					}
 				},Constants.SCEP_REQUEST_CODE,context, true);
@@ -225,10 +219,7 @@ public class CommonUtils {
 			} catch (InvalidKeyException e) {
 				throw new AndroidAgentException("Invalid key", e);
 			}
-
 		}
-
-
 	}
 
 	/**
@@ -241,24 +232,10 @@ public class CommonUtils {
 		} catch (SecurityException e) {
 			throw new AndroidAgentException("Error occurred while revoking policy", e);
 		} finally {
-			Resources resources = context.getResources();
-			SharedPreferences mainPref = context.getSharedPreferences(Constants.AGENT_PACKAGE, Context.MODE_PRIVATE);
-			Editor editor = mainPref.edit();
-			editor.putBoolean(Constants.PreferenceFlag.IS_AGREED, false);
-			editor.putString(Constants.PreferenceFlag.REG_ID, null);
-			editor.putBoolean(Constants.PreferenceFlag.REGISTERED, false);
-			editor.putString(Constants.PreferenceFlag.IP, null);
-			editor.putString(Constants.PreferenceFlag.NOTIFIER_TYPE, null);
-			editor.putString(context.getResources().getString(R.string.shared_pref_sender_id),
-			                 resources.getString(R.string.shared_pref_default_string));
-			editor.putString(context.getResources().getString(R.string.shared_pref_eula),
-			                 resources.getString(R.string.shared_pref_default_string));
-			editor.putBoolean(Constants.PreferenceFlag.DEVICE_ACTIVE, false);
-			editor.commit();
 			Preference.clearPreferences(context);
-			clearClientCredentials(context);
 			context.deleteDatabase(Constants.EMM_DB);
 		}
+		Toast.makeText(context, R.string.toast_message_disenroll, Toast.LENGTH_LONG).show();
 	}
 
 	/**
@@ -382,11 +359,8 @@ public class CommonUtils {
 	 * @param context - Application context.
 	 */
 	public static void clearClientCredentials(Context context) {
-		SharedPreferences mainPref = context.getSharedPreferences(Constants.AGENT_PACKAGE, Context.MODE_PRIVATE);
-		Editor editor = mainPref.edit();
-		editor.putString(Constants.CLIENT_ID, null);
-		editor.putString(Constants.CLIENT_SECRET, null);
-		editor.commit();
+		Preference.removePreference(context, Constants.CLIENT_ID);
+		Preference.removePreference(context, Constants.CLIENT_SECRET);
 	}
 
 	/**
@@ -638,37 +612,9 @@ public class CommonUtils {
 	}
 
 	public static Location getLocation(Context context) {
-		if (!isServiceRunning(context, LocationService.class)) {
-			Intent serviceIntent = new Intent(context, LocationService.class);
-			context.startService(serviceIntent);
-		}
-		Location location = new Gson().fromJson(Preference.getString(context, Constants.Location.LOCATION), Location.class);
-		if (location == null) {
-			Log.w(TAG, "Location not found");
-			if (!isServiceRunning(context, LocationService.class)) {
-				Intent serviceIntent = new Intent(context, LocationService.class);
-				context.startService(serviceIntent);
-			} else {
-				try {
-					int locationSetting = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
-					if (locationSetting == 0) {
-						displayNotification(context,
-								R.drawable.notification,
-								context.getResources().getString(R.string.title_need_location),
-								context.getResources().getString(R.string.msg_need_location),
-								AgentReceptionActivity.class,
-								Constants.LOCATION_DISABLED,
-								Constants.LOCATION_DISABLED_NOTIFICATION_ID);
-					}
-				} catch (Settings.SettingNotFoundException e) {
-					Log.w(TAG, "Location setting is not available on this device");
-				}
-			}
-
-		} else if (Constants.DEBUG_MODE_ENABLED) {
-			Log.d(TAG, "Location> Lat:" + location.getLatitude() + " Lon:" + location.getLongitude() + " Provider:" + location.getProvider());
-		}
-		return location;
+		Intent serviceIntent = new Intent(context, LocationService.class);
+		context.startService(serviceIntent);
+		return LocationUpdateReceiver.getLocation();
 	}
 
 	public static void displayNotification(Context context, int icon, String title, String message, Class<?> sourceActivityClass, String tag, int id){

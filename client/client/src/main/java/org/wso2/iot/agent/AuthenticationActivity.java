@@ -99,8 +99,10 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	private String usernameVal;
 	private String passwordVal;
 	private ProgressDialog progressDialog;
+	private LinearLayout loginLayout, footer;
 	private boolean isReLogin = false;
 	private boolean isCloudLogin = false;
+	private int kioskExit;
 
 	private DeviceInfo deviceInfo;
 	private static final String TAG = AuthenticationActivity.class.getSimpleName();
@@ -225,6 +227,22 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			});
 		}
 
+		footer = (LinearLayout) findViewById(R.id.footer);
+		if (Constants.COSU_SECRET_EXIT) {
+			footer.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					kioskExit++;
+					if (kioskExit == 6) {
+						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+							stopLockTask();
+						}
+						finish();
+					}
+				}
+			});
+		}
+
 		etUsername.addTextChangedListener(new TextWatcher() {
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -291,7 +309,6 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		if (Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED) {
 			finish();
 		}
-
 	}
 
 	@Override

@@ -29,6 +29,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -92,40 +93,42 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	private EditText etDomain;
 	private EditText etPassword;
 	private RadioButton radioBYOD;
-	private RadioButton radioCOPE;
 	private String deviceType;
 	private Context context;
 	private String username;
 	private String usernameVal;
 	private String passwordVal;
-	private TextView textViewWipeData;
 	private ProgressDialog progressDialog;
-	private LinearLayout loginLayout;
 	private boolean isReLogin = false;
 	private boolean isCloudLogin = false;
 
 	private DeviceInfo deviceInfo;
 	private static final String TAG = AuthenticationActivity.class.getSimpleName();
 	private static final String[] SUBSCRIBED_API = new String[]{"android"};
-	private ClientAuthenticator authenticator;
 	private Tenant currentTenant;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		context = this;
+
+		if (Constants.DEFAULT_HOST == null && Preference.getString(context, Constants.PreferenceFlag.IP) == null) {
+			Intent intent = new Intent(AuthenticationActivity.this, AlreadyRegisteredActivity.class);
+			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(intent);
+			finish();
+			return;
+		}
+
 		setContentView(R.layout.activity_authentication);
 		getSupportActionBar().setDisplayShowCustomEnabled(true);
 		getSupportActionBar().setCustomView(R.layout.custom_sherlock_bar);
 		getSupportActionBar().setTitle(Constants.EMPTY_STRING);
 
-		context = this;
 		deviceInfo = new DeviceInfo(context);
 		etDomain = (EditText) findViewById(R.id.etDomain);
 		etUsername = (EditText) findViewById(R.id.etUsername);
 		etPassword = (EditText) findViewById(R.id.etPassword);
-		radioBYOD = (RadioButton) findViewById(R.id.radioBYOD);
-		radioCOPE = (RadioButton) findViewById(R.id.radioCOPE);
-		loginLayout = (LinearLayout) findViewById(R.id.errorLayout);
 		etDomain.setFocusable(true);
 		etDomain.requestFocus();
 		btnSignIn = (Button) findViewById(R.id.btnSignIn);
@@ -135,8 +138,10 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		// change button color background till user enters a valid input
 		btnSignIn.setBackground(getResources().getDrawable(R.drawable.btn_grey));
 		btnSignIn.setTextColor(getResources().getColor(R.color.black));
-
+		radioBYOD = (RadioButton) findViewById(R.id.radioBYOD);
+		RadioButton radioCOPE = (RadioButton) findViewById(R.id.radioCOPE);
 		TextView textViewSignIn = (TextView) findViewById(R.id.textViewSignIn);
+		LinearLayout loginLayout = (LinearLayout) findViewById(R.id.errorLayout);
 
 		if (Preference.hasPreferenceKey(context, Constants.TOKEN_EXPIRED)) {
 			etDomain.setEnabled(false);
@@ -160,6 +165,14 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			textViewSignIn.setText(R.string.txt_sign_in_cloud);
 		}
 
+		if (Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE) && !isReLogin) {
+			Intent intent = new Intent(AuthenticationActivity.this, AlreadyRegisteredActivity.class);
+			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(intent);
+			finish();
+			return;
+		}
+
 		TextView textViewSignUp = (TextView) findViewById(R.id.textViewSignUp);
 		if (!isReLogin && Constants.SIGN_UP_URL != null) {
 			Linkify.TransformFilter transformFilter = new Linkify.TransformFilter() {
@@ -178,14 +191,14 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			loginLayout.setVisibility(View.GONE);
 		}
 
-		if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
+		if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 				startLockTask();
 			}
 		}
 
-		textViewWipeData = (TextView) this.findViewById(R.id.textViewWipeData);
-		if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU && Constants.DISPLAY_WIPE_DEVICE_BUTTON){
+		TextView textViewWipeData = (TextView) this.findViewById(R.id.textViewWipeData);
+		if(Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP) && Constants.DISPLAY_WIPE_DEVICE_BUTTON){
 			textViewWipeData.setVisibility(View.VISIBLE);
 			textViewWipeData.setOnClickListener(new OnClickListener() {
 				@Override
@@ -197,9 +210,14 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 								public void onClick(DialogInterface dialog, int whichButton) {
 									DevicePolicyManager devicePolicyManager = (DevicePolicyManager)
 											getApplicationContext().getSystemService(Context.DEVICE_POLICY_SERVICE);
-									devicePolicyManager.
-											wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE |
-													DevicePolicyManager.WIPE_RESET_PROTECTION_DATA);
+									if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+										devicePolicyManager.
+												wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE |
+														DevicePolicyManager.WIPE_RESET_PROTECTION_DATA);
+									} else {
+										devicePolicyManager.
+												wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE);
+									}
 								}})
 							.setNegativeButton(android.R.string.no, null)
 							.show();
@@ -243,7 +261,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 				equals(org.wso2.iot.agent.proxy.utils.Constants.Authenticator.MUTUAL_SSL_AUTHENTICATOR)) {
 
 			AuthenticatorFactory authenticatorFactory = new AuthenticatorFactory();
-			authenticator = authenticatorFactory.getClient(
+			ClientAuthenticator authenticator = authenticatorFactory.getClient(
 					org.wso2.iot.agent.proxy.utils.Constants.Authenticator.AUTHENTICATOR_IN_USE,
 					AuthenticationActivity.this, Constants.AUTHENTICATION_REQUEST_CODE);
 			authenticator.doAuthenticate();
@@ -270,10 +288,19 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		// This is added so that in case due to an agent customisation, if the authentication
 		// activity is called the AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED is set, the activity
 		// must be finished.
-		if (Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED == true) {
+		if (Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED) {
 			finish();
 		}
 
+	}
+
+	@Override
+	protected void onDestroy(){
+		super.onDestroy();
+		if (progressDialog != null && progressDialog.isShowing()) {
+			progressDialog.dismiss();
+			progressDialog = null;
+		}
 	}
 
 	private OnClickListener onClickAuthenticate = new OnClickListener() {
@@ -418,7 +445,6 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		if (CommonUtils.isNetworkAvailable(context)) {
 			String clientId = Preference.getString(context, Constants.CLIENT_ID);
 			String clientSecret = Preference.getString(context, Constants.CLIENT_SECRET);
-			String clientName;
 
 			if (clientId == null || clientSecret == null) {
 				String clientCredentials = Preference.getString(context, getResources().getString(R.string.shared_pref_client_credentials));
@@ -649,7 +675,9 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	}
 
 	@Override
-	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+	public void onRequestPermissionsResult(int requestCode,
+										   @NonNull String[] permissions,
+										   @NonNull int[] grantResults) {
 		if(requestCode == 110){
 			getConfigurationsFromServer();
 		}
@@ -911,13 +939,13 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	 * @param message Message text to be shown as the license.
 	 * @param title   Title of the license.
 	 */
-	private void showAgreement(final String message, String title) {
+	private void showAgreement(final String message, final String title) {
 		AuthenticationActivity.this.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
 				final Dialog dialog = new Dialog(context);
 				dialog.setContentView(R.layout.custom_terms_popup);
-				dialog.setTitle(Constants.EULA_TITLE);
+				dialog.setTitle(title);
 				dialog.setCancelable(false);
 
 				WebView webView = (WebView) dialog.findViewById(R.id.webview);
@@ -1165,9 +1193,6 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 	/**
 	 * This method is used to retrieve consumer-key and consumer-secret.
-	 *
-	 * @return JSON formatted string.
-	 * @throws AndroidAgentException
 	 */
 	private void getClientCredentials() {
 		String ipSaved = Constants.DEFAULT_HOST;

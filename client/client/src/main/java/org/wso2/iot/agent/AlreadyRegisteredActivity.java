@@ -27,10 +27,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -70,7 +70,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	private static final int ACTIVATION_REQUEST = 47;
 	private String regId;
 	private Context context;
-	private Resources resources;
 	private ProgressDialog progressDialog;
 	private Button btnUnregister;
 	private TextView txtRegText;
@@ -78,12 +77,8 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	private static final int TAG_BTN_RE_REGISTER = 2;
 	private boolean freshRegFlag = false;
 	private boolean isUnregisterBtnClicked = false;
-	private AlertDialog.Builder alertDialog;
-	private boolean isPollingStarted;
 	private DevicePolicyManager devicePolicyManager;
 	private ComponentName cdmDeviceAdmin;
-	private DeviceInfo info;
-	private RelativeLayout unregisterLayout;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -96,8 +91,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
 		cdmDeviceAdmin = new ComponentName(this, AgentDeviceAdminReceiver.class);
 		context = this;
-		resources = context.getResources();
-		info = new DeviceInfo(context);
+		DeviceInfo info = new DeviceInfo(context);
 		Bundle extras = getIntent().getExtras();
 
 		if (extras != null) {
@@ -131,7 +125,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		btnUnregister = (Button) findViewById(R.id.btnUnreg);
 		btnUnregister.setTag(TAG_BTN_UNREGISTER);
 		btnUnregister.setOnClickListener(onClickListenerButtonClicked);
-		unregisterLayout = (RelativeLayout) findViewById(R.id.unregisterLayout);
+		RelativeLayout unregisterLayout = (RelativeLayout) findViewById(R.id.unregisterLayout);
 		if (Constants.HIDE_UNREGISTER_BUTTON) {
 			unregisterLayout.setVisibility(View.GONE);
 		}
@@ -158,24 +152,43 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 						110);
 			}
 		}
-
-		try {
-			int locationSetting = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
-			if (locationSetting == 0) {
-				Intent enableLocationIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-				startActivity(enableLocationIntent);
-				Toast.makeText(context, R.string.msg_need_location, Toast.LENGTH_LONG).show();
+		if (Build.VERSION.SDK_INT >= 19) {
+			try {
+				int locationSetting = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
+				if (locationSetting == 0) {
+					Intent enableLocationIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+					startActivity(enableLocationIntent);
+					Toast.makeText(context, R.string.msg_need_location, Toast.LENGTH_LONG).show();
+				}
+			} catch (Settings.SettingNotFoundException e) {
+				Log.w(TAG, "Location setting is not available on this device");
 			}
-		} catch (Settings.SettingNotFoundException e) {
-			Log.w(TAG, "Location setting is not available on this device");
 		}
 	}
 
 	@Override
-	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+	protected void onDestroy(){
+		super.onDestroy();
+		if (progressDialog != null && progressDialog.isShowing()) {
+			progressDialog.dismiss();
+			progressDialog = null;
+		}
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 		if (requestCode == 110) {
+			List<String> missingPermissions = new ArrayList<>();
+			for (int i =0;  i < permissions.length; i++) {
+				if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+					missingPermissions.add(permissions[i]);
+				}
+			}
+			if (!missingPermissions.isEmpty()) {
+				Log.w(TAG, "Permissions not granted: " + missingPermissions.toString());
+			}
 			NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-			mNotificationManager.cancel(Constants.TOKEN_EXPIRED, Constants.SIGN_IN_NOTIFICATION_ID);
+			mNotificationManager.cancel(Constants.PERMISSION_MISSING, Constants.PERMISSION_MISSING_NOTIFICATION_ID);
 		}
 	}
 
@@ -341,8 +354,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		} else if (keyCode == KeyEvent.KEYCODE_HOME) {
 			loadHomeScreen();
 			return true;
-		}
-		else {
+		} else {
 			return super.onKeyDown(keyCode, event);
 		}
 	}
@@ -355,14 +367,16 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 			Log.d(TAG, "Calling onResume");
 		}
 
-		try {
-			int locationSetting = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
-			if (locationSetting != 0) {
-				NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-				mNotificationManager.cancel(Constants.LOCATION_DISABLED, Constants.LOCATION_DISABLED_NOTIFICATION_ID);
+		if (Build.VERSION.SDK_INT >= 19) {
+			try {
+				int locationSetting = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
+				if (locationSetting != 0) {
+					NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+					mNotificationManager.cancel(Constants.LOCATION_DISABLED, Constants.LOCATION_DISABLED_NOTIFICATION_ID);
+				}
+			} catch (Settings.SettingNotFoundException e) {
+				Log.w(TAG, "Location setting is not available on this device");
 			}
-		} catch (Settings.SettingNotFoundException e) {
-			Log.w(TAG, "Location setting is not available on this device");
 		}
 
 		boolean isRegistered = Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED);
@@ -413,7 +427,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	 * Displays an internal server error message to the user.
 	 */
 	private void displayInternalServerError() {
-		alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
+		AlertDialog.Builder alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
 				getResources().getString(R.string.title_head_connection_error),
 				getResources().getString(R.string.error_internal_server),
 				getResources().getString(R.string.button_ok),
@@ -476,6 +490,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	 */
 
 	private void loadHomeScreen() {
+		finish();
 		Intent i = new Intent();
 		i.setAction(Intent.ACTION_MAIN);
 		i.addCategory(Intent.CATEGORY_HOME);

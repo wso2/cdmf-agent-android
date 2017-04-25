@@ -17,25 +17,11 @@
  */
 package org.wso2.iot.agent;
 
-import java.util.Map;
-import org.wso2.iot.agent.api.DeviceInfo;
-import org.wso2.iot.agent.beans.ServerConfig;
-import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
-import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
-import org.wso2.iot.agent.services.DeviceInfoPayload;
-import org.wso2.iot.agent.utils.CommonDialogUtils;
-import org.wso2.iot.agent.utils.Constants;
-import org.wso2.iot.agent.utils.FCMRegistrationUtil;
-import org.wso2.iot.agent.utils.Preference;
-import org.wso2.iot.agent.utils.CommonUtils;
-
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -44,17 +30,27 @@ import android.view.MenuItem;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 
+import org.wso2.iot.agent.api.DeviceInfo;
+import org.wso2.iot.agent.beans.ServerConfig;
+import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
+import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
+import org.wso2.iot.agent.services.DeviceInfoPayload;
+import org.wso2.iot.agent.utils.CommonDialogUtils;
+import org.wso2.iot.agent.utils.CommonUtils;
+import org.wso2.iot.agent.utils.Constants;
+import org.wso2.iot.agent.utils.FCMRegistrationUtil;
+import org.wso2.iot.agent.utils.Preference;
+
+import java.util.Map;
+
 /**
  * Activity which handles user enrollment.
  */
 public class RegistrationActivity extends Activity implements APIResultCallBack {
 	private Context context;
 	private ProgressDialog progressDialog;
-	private AlertDialog.Builder alertDialog;
 	private DeviceInfoPayload deviceInfoBuilder;
-	private Resources resources;
-	private String deviceIdentifier;
-    private String TAG = RegistrationActivity.class.getSimpleName();
+	private String TAG = RegistrationActivity.class.getSimpleName();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -72,9 +68,8 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 			}
 		});
 		deviceInfoBuilder = new DeviceInfoPayload(context);
-		resources = context.getResources();
 		DeviceInfo deviceInfo = new DeviceInfo(context);
-		deviceIdentifier = deviceInfo.getDeviceId();
+		String deviceIdentifier = deviceInfo.getDeviceId();
 		Preference.putString(context, Constants.PreferenceFlag.REG_ID, deviceIdentifier);
 
 		// If the notification type is gcm, before registering the device, make sure that particular device has google
@@ -95,6 +90,15 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 			registerDevice();
 		}
 
+	}
+
+	@Override
+	protected void onDestroy(){
+		super.onDestroy();
+		if (progressDialog != null && progressDialog.isShowing()) {
+			progressDialog.dismiss();
+			progressDialog = null;
+		}
 	}
 
 	private void registerDevice() {
@@ -163,7 +167,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		return super.onOptionsItemSelected(item);
 	}
 
-	private DialogInterface.OnClickListener registrationFailedOKBtnClickListerner =
+	private DialogInterface.OnClickListener registrationFailedOKBanClickListener =
 			new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface arg0,
@@ -182,6 +186,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		intent.putExtra(getResources().getString(R.string.intent_extra_fresh_reg_flag), true);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intent);
+		finish();
 	}
 
 	private void loadKioskActivity(){
@@ -190,6 +195,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		intent.putExtra(getResources().getString(R.string.intent_extra_fresh_reg_flag), true);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intent);
+		finish();
 	}
 	
 	/**
@@ -199,11 +205,11 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		RegistrationActivity.this.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
-                                                        getResources().getString(R.string.title_head_connection_error),
-                                                        getResources().getString(R.string.error_internal_server),
-                                                        getResources().getString(R.string.button_ok),
-                                                        registrationFailedOKBtnClickListerner);
+				CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
+						getResources().getString(R.string.title_head_connection_error),
+						getResources().getString(R.string.error_internal_server),
+						getResources().getString(R.string.button_ok),
+						registrationFailedOKBanClickListener);
 			}
 		});
 	}
@@ -215,11 +221,11 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		RegistrationActivity.this.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
-                                                        getResources().getString(R.string.title_head_registration_error),
-                                                        getResources().getString(R.string.error_for_all_unknown_registration_failures),
-                                                        getResources().getString(R.string.button_ok),
-                                                        registrationFailedOKBtnClickListerner);
+				CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
+						getResources().getString(R.string.title_head_registration_error),
+						getResources().getString(R.string.error_for_all_unknown_registration_failures),
+						getResources().getString(R.string.button_ok),
+						registrationFailedOKBanClickListener);
 			}
 		});
 	}
@@ -230,10 +236,10 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 	private void displayGooglePlayServicesError() {
 		RegistrationActivity.this.runOnUiThread(new Runnable() {
 			@Override public void run() {
-				alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
+				CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
 						getResources().getString(R.string.title_head_registration_error),
 						getResources().getString(R.string.error_for_gcm_unavailability),
-						getResources().getString(R.string.button_ok), registrationFailedOKBtnClickListerner);
+						getResources().getString(R.string.button_ok), registrationFailedOKBanClickListener);
 			}
 		});
 	}
@@ -251,7 +257,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 						registerGCM();
 					} else {
 						CommonDialogUtils.stopProgressDialog(progressDialog);
-						if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
+						if(Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)){
 							loadKioskActivity();
 						}else{
 							loadAlreadyRegisteredActivity();
@@ -265,10 +271,10 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 			}
 		} else if (Constants.POLICY_REQUEST_CODE == requestCode) {
 			CommonDialogUtils.stopProgressDialog(progressDialog);
-			if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
+			if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
 				loadKioskActivity();
 				finish();
-			}else{
+			} else {
 				loadAlreadyRegisteredActivity();
 			}
 		} else if (requestCode == Constants.GCM_REGISTRATION_ID_SEND_CODE && result != null) {
@@ -277,9 +283,9 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 				displayConnectionError();
 			} else {
 				CommonDialogUtils.stopProgressDialog(progressDialog);
-				if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
+				if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
 					loadKioskActivity();
-				}else{
+				} else {
 					loadAlreadyRegisteredActivity();
 				}
 			}
@@ -358,7 +364,5 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		startActivity(intent);
 		finish();
 	}
-
-
 
 }

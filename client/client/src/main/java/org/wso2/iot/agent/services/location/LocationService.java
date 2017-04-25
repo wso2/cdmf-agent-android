@@ -22,7 +22,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -40,6 +39,7 @@ import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,9 +51,9 @@ public class LocationService extends Service implements LocationListener {
 
     private LocationManager locationManager = null;
     private Context context;
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 100;
-    private static final long MIN_TIME_BW_UPDATES = 1000 * 60;
-    private String provider = null;
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1000; //If more than 10Km
+    private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 15; //If more than 15 minutes
+    private List<String> providers = new ArrayList<>();
     private boolean isUpdateRequested = false;
     private final IBinder mBinder = new LocalBinder();
 
@@ -97,14 +97,16 @@ public class LocationService extends Service implements LocationListener {
             return START_STICKY;
         }
         Location location = null;
+        long locationTime = 0;
         //We are trying for all enabled providers
-        List<String> providers = locationManager.getProviders(true);
-        for (String p : providers) {
-            location = locationManager.getLastKnownLocation(p);
-            if (location != null) {
-                break;
+        List<String> _providers = locationManager.getProviders(true);
+        for (String p : _providers) {
+            Location l = locationManager.getLastKnownLocation(p);
+            if (l != null && l.getTime() > locationTime) {
+                locationTime = l.getTime();
+                location = l;
             } else if (Constants.DEBUG_MODE_ENABLED) {
-                Log.d(TAG, "No last known location found for provider " + p);
+                Log.d(TAG, "Last known location from provider " + p + " is not found or too old.");
             }
         }
         if (location != null) {
@@ -167,20 +169,18 @@ public class LocationService extends Service implements LocationListener {
                     displayPermissionMissingNotification();
                     return;
                 }
-                Criteria criteria = new Criteria();
-                criteria.setAccuracy(Criteria.ACCURACY_FINE);
-                criteria.setAltitudeRequired(false);
-                criteria.setBearingRequired(false);
-                provider = locationManager.getBestProvider(criteria, true);
-                if (provider != null) {
+                providers = locationManager.getProviders(true);
+                if (providers != null && !providers.isEmpty()) {
                     if (isUpdateRequested) {
                         locationManager.removeUpdates(this);
                     }
-                    if (Constants.DEBUG_MODE_ENABLED) {
-                        Log.d(TAG, "Requesting locations from provider: " + provider);
+                    for (String provider : providers) {
+                        if (Constants.DEBUG_MODE_ENABLED) {
+                            Log.d(TAG, "Requesting locations from provider: " + provider);
+                        }
+                        locationManager.requestLocationUpdates(provider, MIN_TIME_BW_UPDATES,
+                                MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                     }
-                    locationManager.requestLocationUpdates(provider, MIN_TIME_BW_UPDATES,
-                            MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                     isUpdateRequested = true;
                 } else {
                     Log.w(TAG, "No suitable location providers found");
@@ -229,7 +229,7 @@ public class LocationService extends Service implements LocationListener {
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Provider disabled: " + provider);
         }
-        if (this.provider != null && this.provider.equals(provider)) {
+        if (providers.contains(provider) && locationManager != null) {
             setLocation();
         }
     }

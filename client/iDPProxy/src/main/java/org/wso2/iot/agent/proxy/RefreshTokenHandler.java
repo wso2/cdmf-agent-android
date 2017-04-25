@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Log;
+
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
@@ -30,6 +31,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
+
 import org.apache.commons.codec.binary.Base64;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,11 +39,8 @@ import org.wso2.iot.agent.proxy.beans.Token;
 import org.wso2.iot.agent.proxy.utils.Constants;
 import org.wso2.iot.agent.proxy.utils.ServerUtilities;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -69,6 +68,7 @@ public class RefreshTokenHandler {
 			queue = ServerUtilities.getCertifiedHttpClient();
 		} catch (IDPTokenManagerException e) {
 			Log.e(TAG, "Failed to retrieve HTTP client", e);
+			return;
 		}
 
 		StringRequest request = new StringRequest(Request.Method.POST, IdentityProxy.getInstance().getAccessTokenURL(),
@@ -159,7 +159,7 @@ public class RefreshTokenHandler {
 				editor.putString(Constants.ACCESS_TOKEN, accessToken);
 				editor.putString(Constants.REFRESH_TOKEN, refreshToken);
 				editor.putLong(Constants.EXPIRE_TIME, expiresOn);
-				editor.commit();
+				editor.apply();
 
 				identityProxy
 						.receiveNewAccessToken(responseCode, Constants.SUCCESS_RESPONSE, token);

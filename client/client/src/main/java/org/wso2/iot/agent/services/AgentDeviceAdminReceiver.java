@@ -17,7 +17,15 @@
  */
 package org.wso2.iot.agent.services;
 
-import java.util.Map;
+import android.annotation.TargetApi;
+import android.app.admin.DeviceAdminReceiver;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
+import android.util.Log;
+import android.widget.Toast;
 
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
@@ -25,20 +33,11 @@ import org.wso2.iot.agent.ServerDetails;
 import org.wso2.iot.agent.beans.ServerConfig;
 import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
+import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
-import org.wso2.iot.agent.utils.CommonUtils;
 
-import android.annotation.TargetApi;
-import android.app.admin.DeviceAdminReceiver;
-import android.app.admin.DevicePolicyManager;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.res.Resources;
-import android.os.Build;
-import android.util.Log;
-import android.widget.Toast;
+import java.util.Map;
 
 /**
  * This is the component that is responsible for actual device administration.
@@ -49,8 +48,6 @@ import android.widget.Toast;
 public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements APIResultCallBack {
 
     private static final String TAG = AgentDeviceAdminReceiver.class.getName();
-    private String regId;
-    private static final int ACTIVATION_REQUEST = 47;
     public static final String DISALLOW_SAFE_BOOT = "no_safe_boot";
 
     /**
@@ -76,10 +73,11 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
     public void onDisabled(Context context, Intent intent) {
         super.onDisabled(context, intent);
 
+        Preference.putBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE, false);
         if (!Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
             Toast.makeText(context, R.string.device_admin_disabled,
                     Toast.LENGTH_LONG).show();
-            regId = Preference
+            String regId = Preference
                     .getString(context, Constants.PreferenceFlag.REG_ID);
             if (regId != null && !regId.isEmpty()) {
                 startUnRegistration(context);

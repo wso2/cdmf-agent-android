@@ -18,11 +18,9 @@
 package org.wso2.iot.agent.proxy;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.wso2.iot.agent.proxy.beans.CredentialInfo;
 import org.wso2.iot.agent.proxy.beans.Token;
@@ -116,7 +114,7 @@ public class IdentityProxy implements CallBack {
         editor.putString(Constants.CLIENT_ID, clientID);
         editor.putString(Constants.CLIENT_SECRET, clientSecret);
         editor.putString(Constants.TOKEN_ENDPOINT, info.getTokenEndPoint());
-        editor.commit();
+        editor.apply();
         setAccessTokenURL(info.getTokenEndPoint());
         AccessTokenHandler accessTokenHandler = new AccessTokenHandler(info, this);
         accessTokenHandler.obtainAccessToken();

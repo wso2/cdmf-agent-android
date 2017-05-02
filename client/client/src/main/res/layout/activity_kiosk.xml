@@ -69,6 +69,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:id="@+id/textViewWipeData"
-        android:text="@string/wipe_the_device"/>
+        android:text="@string/wipe_the_device"
+        android:visibility="invisible"/>
 
 </RelativeLayout>

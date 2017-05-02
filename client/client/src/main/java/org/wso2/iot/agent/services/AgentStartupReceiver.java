@@ -31,6 +31,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.ServerDetails;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.events.EventRegistry;
 import org.wso2.iot.agent.services.location.LocationService;
@@ -68,6 +69,13 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 		if (!CommonUtils.isServiceRunning(context, LocationService.class)) {
 			Intent serviceIntent = new Intent(context, LocationService.class);
 			context.startService(serviceIntent);
+		}
+		if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
+			if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
+				Intent i = new Intent(context, ServerDetails.class);
+				i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				context.startActivity(i);
+			}
 		}
 	}
 

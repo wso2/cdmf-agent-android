@@ -279,7 +279,6 @@
 
     <!-- AGENT SETTINGS ACTIVITY -->
     <string name="menu_item_phone_info">Phone Info</string>
-    <string name="menu_item_change_pin">Change PIN code</string>
     <string name="menu_item_change_ip">Change IP address</string>
 
     <!-- ALREADY REGISTERED ACTIVITY -->
@@ -368,7 +367,7 @@
     <string name="title_activity_log">LogActivity</string>
 
     <!-- Headings -->
-    <string name="registration_heading">Set your server address here to continue, i.e : www.abc.com. If your server runs on a different port than the default ports (80 or 443), server address should be in following format. i.e : www.abc.com:8280</string>
+    <string name="registration_info">If your server runs on a different port, server address should be like www.abc.com:8280</string>
     <string name="enable_work_profile_heading">Your device supports Android For Work. Set-up the work-profile first and let the Agent Control the Work Profile.</string>
 
     <!-- Validation Errors -->
@@ -433,5 +432,40 @@
     <string name="msg_need_permissions">Please allow necessary permissions.</string>
     <string name="title_need_location">Location disabled</string>
     <string name="msg_need_location">Please enable location to work agent properly.</string>
-    <string name="copyright">©2017 WSO2</string>
+    <string name="footer_text">v%1$s ©%2$d WSO2</string>
+    <string name="txt_last_server_sync">Last server sync</string>
+    <string name="txt_device_id">Device Information</string>
+    <string name="txt_device_id_message">Show device model, OS version IMEI and other information</string>
+    <string name="txt_change_pin">Change PIN</string>
+    <string name="txt_change_pin_message">Click here to change PIN code</string>
+    <string name="txt_registration">Unregister</string>
+    <string name="txt_registration_message">Click here to unregister device</string>
+    <string name="txt_agent_version">Agent Version</string>
+    <string name="txt_never">Never synced. Tap here to sync.</string>
+    <string name="txt_sync">Synchronizing…</string>
+
+    <!-- Date Util -->
+    <string name="date_util_term_less">less than</string>
+    <string name="date_util_term_a">a</string>
+    <string name="date_util_term_an">an</string>
+
+    <string name="date_util_unit_second">second</string>
+    <string name="date_util_unit_seconds">seconds</string>
+    <string name="date_util_unit_minute">minute</string>
+    <string name="date_util_unit_minutes">minutes</string>
+    <string name="date_util_unit_hour">hour</string>
+    <string name="date_util_unit_hours">hours</string>
+    <string name="date_util_unit_day">day</string>
+    <string name="date_util_unit_days">days</string>
+    <string name="date_util_unit_month">month</string>
+    <string name="date_util_unit_months">months</string>
+    <string name="date_util_unit_year">year</string>
+    <string name="date_util_unit_years">years</string>
+
+    <string name="date_util_prefix_lt">less than a</string>
+    <string name="date_util_prefix_about">about</string>
+    <string name="date_util_prefix_over">over</string>
+    <string name="date_util_prefix_almost">almost</string>
+
+    <string name="date_util_suffix">ago</string>
 </resources>

@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.iot.agent.services;
+package org.wso2.iot.agent.activities;
 
 import android.app.Activity;
 import android.app.admin.DevicePolicyManager;
@@ -24,7 +24,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.wso2.iot.agent.ServerDetails;
+import org.wso2.iot.agent.activities.ServerConfigsActivity;
+import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.utils.Constants;
 
 /**
@@ -52,7 +53,7 @@ public class EnableProfileActivity extends Activity {
     }
 
     private void startEnrollment(){
-        Intent intent = new Intent(this, ServerDetails.class);
+        Intent intent = new Intent(this, ServerConfigsActivity.class);
         startActivity(intent);
     }
 

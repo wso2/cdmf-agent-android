@@ -87,6 +87,31 @@ public class Preference {
 	}
 
 	/**
+	 * Put long data to shared preferences in private mode.
+	 * @param context - The context of activity which is requesting to put data.
+	 * @param key     - Used to identify the value.
+	 * @param value   - The actual value to be saved.
+	 */
+	public static void putLong(Context context, String key, long value) {
+		SharedPreferences mainPref =
+				context.getSharedPreferences(Constants.AGENT_PACKAGE, Context.MODE_PRIVATE);
+		Editor editor = mainPref.edit();
+		editor.putLong(key, value);
+		editor.apply();
+	}
+
+	/**
+	 * Retrieve long data from shared preferences in private mode.
+	 * @param context - The context of activity which is requesting to put data.
+	 * @param key     - Used to identify the value to to be retrieved.
+	 */
+	public static long getLong(Context context, String key) {
+		SharedPreferences mainPref =
+				context.getSharedPreferences(Constants.AGENT_PACKAGE, Context.MODE_PRIVATE);
+		return mainPref.getLong(key, DEFAULT_INDEX);
+	}
+
+	/**
 	 * Put boolean data to shared preferences in private mode.
 	 * @param context - The context of activity which is requesting to put data.
 	 * @param key     - Used to identify the value.

@@ -27,6 +27,8 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 
+import org.wso2.iot.agent.activities.AlreadyRegisteredActivity;
+import org.wso2.iot.agent.activities.AuthenticationActivity;
 import org.wso2.iot.agent.utils.Constants;
 
 /**

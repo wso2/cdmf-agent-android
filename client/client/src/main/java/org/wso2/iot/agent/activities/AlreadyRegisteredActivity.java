@@ -15,36 +15,42 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.iot.agent;
+package org.wso2.iot.agent.activities;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.app.admin.DevicePolicyManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
-
+import org.wso2.iot.agent.AndroidAgentException;
+import org.wso2.iot.agent.AuthenticationErrorActivity;
+import org.wso2.iot.agent.BuildConfig;
+import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.api.DeviceInfo;
 import org.wso2.iot.agent.beans.ServerConfig;
 import org.wso2.iot.agent.events.EventRegistry;
@@ -52,6 +58,7 @@ import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
 import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.services.LocalNotification;
+import org.wso2.iot.agent.services.MessageProcessor;
 import org.wso2.iot.agent.utils.CommonDialogUtils;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
@@ -60,34 +67,45 @@ import org.wso2.iot.agent.utils.Preference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Activity which handles user un-registration from the MDM server.
  */
-public class AlreadyRegisteredActivity extends SherlockActivity implements APIResultCallBack {
+public class AlreadyRegisteredActivity extends AppCompatActivity implements APIResultCallBack {
 
 	private static final String TAG = AlreadyRegisteredActivity.class.getSimpleName();
 	private static final int ACTIVATION_REQUEST = 47;
+	private static final int DELAY_TIME = 0;
+	private static final int PERIOD_TIME = 60 * 1000;
 	private String regId;
 	private Context context;
 	private ProgressDialog progressDialog;
-	private Button btnUnregister;
-	private TextView txtRegText;
-	private static final int TAG_BTN_UNREGISTER = 0;
-	private static final int TAG_BTN_RE_REGISTER = 2;
-	private boolean freshRegFlag = false;
-	private boolean isUnregisterBtnClicked = false;
+	private boolean isFreshRegistration = false;
 	private DevicePolicyManager devicePolicyManager;
 	private ComponentName cdmDeviceAdmin;
+	private long lastSyncMillis = -1;
+	private TextView textViewLastSync;
+	private ImageView imageViewRefresh;
+	private Handler mHandler;
+	private Timer mTimer;
+
+	private BroadcastReceiver syncUpdateReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(final Context context, Intent intent) {
+			lastSyncMillis = CommonUtils.currentDate().getTime();
+			updateSyncText();
+		}
+	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_already_registered);
-		getSupportActionBar().setDisplayShowCustomEnabled(true);
-		getSupportActionBar().setCustomView(R.layout.custom_sherlock_bar);
-		getSupportActionBar().setTitle(Constants.EMPTY_STRING);
 
+		textViewLastSync = (TextView) findViewById(R.id.textViewLastSync);
+		imageViewRefresh = (ImageView) findViewById(R.id.imageViewRefresh);
 		devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
 		cdmDeviceAdmin = new ComponentName(this, AgentDeviceAdminReceiver.class);
 		context = this;
@@ -96,7 +114,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 
 		if (extras != null) {
 			if (extras.containsKey(getResources().getString(R.string.intent_extra_fresh_reg_flag))) {
-				freshRegFlag = extras.getBoolean(getResources().getString(R.string.intent_extra_fresh_reg_flag));
+				isFreshRegistration = extras.getBoolean(getResources().getString(R.string.intent_extra_fresh_reg_flag));
 			}
 		}
 		String registrationId = Preference.getString(context, Constants.PreferenceFlag.REG_ID);
@@ -107,28 +125,56 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 			regId = info.getDeviceId();
 		}
 
-		if (freshRegFlag) {
+		if (isFreshRegistration) {
 			Preference.putBoolean(context, Constants.PreferenceFlag.REGISTERED, true);
 			if (!isDeviceAdminActive()) {
 				startDeviceAdminPrompt(cdmDeviceAdmin);
 			}
-			freshRegFlag = false;
+			isFreshRegistration = false;
+		}
 
-		} else if (Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED)) {
-			if (isDeviceAdminActive()) {
-				startEvents();
-				startPolling();
+		RelativeLayout relativeLayoutSync = (RelativeLayout) findViewById(R.id.layoutSync);
+		relativeLayoutSync.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED)
+						&& isDeviceAdminActive()) {
+					syncWithServer();
+				}
 			}
+		});
+
+		RelativeLayout relativeLayoutDeviceInfo = (RelativeLayout) findViewById(R.id.layoutDeviceInfo);
+		relativeLayoutDeviceInfo.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				loadDeviceInfoActivity();
+			}
+		});
+
+		RelativeLayout relativeLayoutChangePIN = (RelativeLayout) findViewById(R.id.layoutChangePIN);
+		relativeLayoutChangePIN.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				loadPinCodeActivity();
+			}
+		});
+
+		RelativeLayout relativeLayoutRegistration = (RelativeLayout) findViewById(R.id.layoutRegistration);
+		if (Constants.HIDE_UNREGISTER_BUTTON) {
+			relativeLayoutRegistration.setVisibility(View.GONE);
+		} else {
+			relativeLayoutRegistration.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					showUnregisterDialog();
+				}
+			});
 		}
 
-		txtRegText = (TextView) findViewById(R.id.txtRegText);
-		btnUnregister = (Button) findViewById(R.id.btnUnreg);
-		btnUnregister.setTag(TAG_BTN_UNREGISTER);
-		btnUnregister.setOnClickListener(onClickListenerButtonClicked);
-		RelativeLayout unregisterLayout = (RelativeLayout) findViewById(R.id.unregisterLayout);
-		if (Constants.HIDE_UNREGISTER_BUTTON) {
-			unregisterLayout.setVisibility(View.GONE);
-		}
+		TextView textViewAgentVersion = (TextView) findViewById(R.id.textViewVersion);
+		String versionText = BuildConfig.BUILD_TYPE + " v" + BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ") ";
+		textViewAgentVersion.setText(versionText);
 
 		if (Build.VERSION.SDK_INT >= 23) {
 			List<String> missingPermissions = new ArrayList<>();
@@ -164,10 +210,53 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 				Log.w(TAG, "Location setting is not available on this device");
 			}
 		}
+
+		boolean isRegistered = Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED);
+		if (isRegistered) {
+			if (CommonUtils.isNetworkAvailable(context)) {
+				String serverIP = Constants.DEFAULT_HOST;
+				String prefIP = Preference.getString(context, Constants.PreferenceFlag.IP);
+				if (prefIP != null) {
+					serverIP = prefIP;
+				}
+				regId = Preference.getString(context, Constants.PreferenceFlag.REG_ID);
+
+				if (regId != null) {
+					if (serverIP != null && !serverIP.isEmpty()) {
+						ServerConfig utils = new ServerConfig();
+						utils.setServerIP(serverIP);
+						if (utils.getHostFromPreferences(context) != null && !utils.getHostFromPreferences(context).isEmpty()) {
+							CommonUtils.callSecuredAPI(AlreadyRegisteredActivity.this,
+									utils.getAPIServerURL(context) + Constants.DEVICES_ENDPOINT + regId + Constants.IS_REGISTERED_ENDPOINT,
+									HTTP_METHODS.GET,
+									null, AlreadyRegisteredActivity.this,
+									Constants.IS_REGISTERED_REQUEST_CODE);
+						} else {
+							try {
+								CommonUtils.clearAppData(context);
+							} catch (AndroidAgentException e) {
+								String msg = "Device already dis-enrolled.";
+								Log.e(TAG, msg, e);
+							}
+							loadInitialActivity();
+						}
+					} else {
+						Log.e(TAG, "There is no valid IP to contact server");
+					}
+				}
+			} else {
+				if(!Constants.HIDE_ERROR_DIALOG) {
+					CommonDialogUtils.showNetworkUnavailableMessage(AlreadyRegisteredActivity.this);
+				}
+			}
+		} else {
+			loadInitialActivity();
+		}
 	}
 
 	@Override
 	protected void onDestroy(){
+		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
 		super.onDestroy();
 		if (progressDialog != null && progressDialog.isShowing()) {
 			progressDialog.dismiss();
@@ -216,29 +305,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		}
 	};
 
-	private OnClickListener onClickListenerButtonClicked = new OnClickListener() {
-
-		@Override
-		public void onClick(View view) {
-			int iTag = (Integer) view.getTag();
-
-			switch (iTag) {
-
-				case TAG_BTN_UNREGISTER:
-					showUnregisterDialog();
-					break;
-
-				case TAG_BTN_RE_REGISTER:
-					loadServerDetailsActivity();
-					break;
-
-				default:
-					break;
-			}
-
-		}
-	};
-
 	/**
 	 * Dialog box click listener for publishing location details to the server as event
 	 */
@@ -264,10 +330,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	 * Send unregistration request.
 	 */
 	private void startUnRegistration() {
-		final Context context = AlreadyRegisteredActivity.this;
-		isUnregisterBtnClicked = true;
-
-		progressDialog = ProgressDialog.show(AlreadyRegisteredActivity.this,
+		progressDialog = ProgressDialog.show(context,
 						getResources().getString(R.string.dialog_message_unregistering),
 						getResources().getString(R.string.dialog_message_please_wait),
 						true);
@@ -275,7 +338,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		if (regId != null && !regId.isEmpty()) {
 			if (CommonUtils.isNetworkAvailable(context)) {
 				String serverIP = Constants.DEFAULT_HOST;
-				String prefIP = Preference.getString(AlreadyRegisteredActivity.this, Constants.PreferenceFlag.IP);
+				String prefIP = Preference.getString(context, Constants.PreferenceFlag.IP);
 				if (prefIP != null) {
 					serverIP = prefIP;
 				}
@@ -284,7 +347,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 					ServerConfig utils = new ServerConfig();
 					utils.setServerIP(serverIP);
 
-					CommonUtils.callSecuredAPI(AlreadyRegisteredActivity.this,
+					CommonUtils.callSecuredAPI(context,
 					                           utils.getAPIServerURL(context) + Constants.UNREGISTER_ENDPOINT + regId,
 					                           HTTP_METHODS.DELETE,
 					                           null, AlreadyRegisteredActivity.this,
@@ -292,52 +355,13 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 				} else {
 					Log.e(TAG, "There is no valid IP to contact the server");
 					CommonDialogUtils.stopProgressDialog(progressDialog);
-					CommonDialogUtils.showNetworkUnavailableMessage(AlreadyRegisteredActivity.this);
+					CommonDialogUtils.showNetworkUnavailableMessage(context);
 				}
 			} else {
 				Log.e(TAG, "Registration ID is not available");
 				CommonDialogUtils.stopProgressDialog(progressDialog);
-				CommonDialogUtils.showNetworkUnavailableMessage(AlreadyRegisteredActivity.this);
+				CommonDialogUtils.showNetworkUnavailableMessage(context);
 			}
-
-		}
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		String deviceType = Preference.getString(context, getResources().
-				getString(R.string.shared_pref_reg_type));
-		if (deviceType != null && !deviceType.isEmpty()) {
-			if (Constants.OWNERSHIP_BYOD.equalsIgnoreCase(deviceType)) {
-				getSupportMenuInflater().inflate(R.menu.sherlock_menu_byod, menu);
-			} else {
-				getSupportMenuInflater().inflate(R.menu.sherlock_menu_cope, menu);
-			}
-			if (Constants.DEFAULT_HOST != null) {
-				menu.findItem(R.id.ip_setting).setVisible(false);
-				invalidateOptionsMenu();
-			}
-		}
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-			case R.id.info_setting:
-				loadDeviceInfoActivity();
-				return true;
-			case R.id.pin_setting:
-				loadPinCodeActivity();
-				return true;
-			case R.id.ip_setting:
-				loadServerDetailsActivity();
-				return true;
-			case R.id.location_setting:
-				showEventListeningEnableDisableDialog();
-				return true;
-			default:
-				return super.onOptionsItemSelected(item);
 		}
 	}
 
@@ -378,49 +402,44 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 				Log.w(TAG, "Location setting is not available on this device");
 			}
 		}
+		updateSyncText();
+		IntentFilter filter = new IntentFilter(Constants.SYNC_BROADCAST_ACTION);
+		registerReceiver(syncUpdateReceiver, filter);
 
-		boolean isRegistered = Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED);
-
-		if (isRegistered) {
-			if (CommonUtils.isNetworkAvailable(context)) {
-				String serverIP = Constants.DEFAULT_HOST;
-				String prefIP = Preference.getString(context, Constants.PreferenceFlag.IP);
-				if (prefIP != null) {
-					serverIP = prefIP;
-				}
-				regId = Preference.getString(context, Constants.PreferenceFlag.REG_ID);
-
-				if (regId != null) {
-					if (regId.isEmpty() && isUnregisterBtnClicked) {
-						initiateUnregistration();
-					} else if (serverIP != null && !serverIP.isEmpty()) {
-						ServerConfig utils = new ServerConfig();
-						utils.setServerIP(serverIP);
-						if (utils.getHostFromPreferences(context) != null && !utils.getHostFromPreferences(context).isEmpty()) {
-							CommonUtils.callSecuredAPI(AlreadyRegisteredActivity.this,
-							                           utils.getAPIServerURL(context) + Constants.DEVICES_ENDPOINT + regId + Constants.IS_REGISTERED_ENDPOINT,
-							                           HTTP_METHODS.GET,
-							                           null, AlreadyRegisteredActivity.this,
-							                           Constants.IS_REGISTERED_REQUEST_CODE);
-						} else {
-							try {
-								CommonUtils.clearAppData(context);
-							} catch (AndroidAgentException e) {
-								String msg = "Device already dis-enrolled.";
-								Log.e(TAG, msg, e);
-							}
-							loadServerDetailsActivity();
-						}
-					} else {
-						Log.e(TAG, "There is no valid IP to contact server");
+		mHandler = new Handler();
+		mTimer = new Timer();
+		mTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				mHandler.post(new Runnable() {
+					@Override
+					public void run() {
+						updateSyncText();
 					}
-				}
-			} else {
-				if(!Constants.HIDE_ERROR_DIALOG) {
-					CommonDialogUtils.showNetworkUnavailableMessage(AlreadyRegisteredActivity.this);
-				}
+				});
 			}
+		}, DELAY_TIME, PERIOD_TIME);
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		unregisterReceiver(syncUpdateReceiver);
+		mTimer.cancel();
+	}
+
+	private void updateSyncText() {
+		if (lastSyncMillis <= 0
+				&& Preference.hasPreferenceKey(context, Constants.PreferenceFlag.LAST_SERVER_CALL)) {
+			lastSyncMillis = Preference.getLong(context, Constants.PreferenceFlag.LAST_SERVER_CALL);
 		}
+		String syncText = CommonUtils.getTimeAgo(lastSyncMillis, context);
+		if (syncText == null) {
+			syncText = getResources().getString(R.string.txt_never);
+		}
+		imageViewRefresh.clearAnimation();
+		textViewLastSync.setText(syncText);
+		textViewLastSync.invalidate();
 	}
 
 	/**
@@ -438,13 +457,14 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	@Override
 	public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
 
-		String responseStatus;
 		if (Constants.DEBUG_MODE_ENABLED) {
-			Log.d(TAG, "onReceiveAPIResult-requestcode: " + requestCode);
+			Log.d(TAG, "onReceiveAPIResult> request code: " + requestCode);
 		}
 
+		CommonDialogUtils.stopProgressDialog(progressDialog);
+
+		String responseStatus;
 		if (requestCode == Constants.UNREGISTER_REQUEST_CODE) {
-			stopProgressDialog();
 			if (result != null) {
 				responseStatus = result.get(Constants.STATUS);
 				if (responseStatus != null && Constants.Status.SUCCESSFUL.equals(responseStatus)) {
@@ -461,10 +481,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 				startPolling();
 				loadAuthenticationErrorActivity();
 			}
-		}
-
-		if (requestCode == Constants.IS_REGISTERED_REQUEST_CODE) {
-			stopProgressDialog();
+		} else if (requestCode == Constants.IS_REGISTERED_REQUEST_CODE) {
 			if (result != null) {
 				responseStatus = result.get(Constants.STATUS);
 				if (Constants.Status.INTERNAL_SERVER_ERROR.equals(responseStatus)) {
@@ -479,7 +496,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 				} else {
 					stopPolling();
 					initiateUnregistration();
-					loadServerDetailsActivity();
+					loadInitialActivity();
 				}
 			}
 		}
@@ -502,16 +519,8 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	 * Initiate unregistration.
 	 */
 	private void initiateUnregistration() {
-		AlreadyRegisteredActivity.this.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				txtRegText.setText(R.string.register_text_view_text_unregister);
-				btnUnregister.setText(R.string.register_button_text);
-				btnUnregister.setTag(TAG_BTN_RE_REGISTER);
-				btnUnregister.setOnClickListener(onClickListenerButtonClicked);
-				CommonUtils.disableAdmin(context);
-			}
-		});
+		CommonUtils.disableAdmin(context);
+		loadInitialActivity();
 	}
 
 	/**
@@ -536,13 +545,18 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	 * Display unregistration confirmation dialog.
 	 */
 	private void showUnregisterDialog() {
+		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+		} else {
+			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+		}
 		AlertDialog.Builder alertDialog =
 				CommonDialogUtils.getAlertDialogWithTwoButtonAndTitle(context,
-                      null,
-                      getResources().getString(R.string.dialog_unregister),
-                      getResources().getString(R.string.yes),
-                      getResources().getString(R.string.no),
-                      dialogClickListener, dialogClickListener);
+						null,
+						getResources().getString(R.string.dialog_unregister),
+						getResources().getString(R.string.yes),
+						getResources().getString(R.string.no),
+						dialogClickListener, dialogClickListener);
 		alertDialog.show();
 	}
 
@@ -582,17 +596,11 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	}
 
 	/**
-	 * Load server details activity.
+	 * Load initial activity.
 	 */
-	private void loadServerDetailsActivity() {
+	private void loadInitialActivity() {
 		Preference.putString(context, Constants.PreferenceFlag.IP, null);
-		Intent intent = new Intent(
-				AlreadyRegisteredActivity.this,
-				ServerDetails.class);
-		intent.putExtra(getResources().getString(R.string.intent_extra_regid),
-				regId);
-		intent.putExtra(getResources().getString(R.string.intent_extra_from_activity),
-				AlreadyRegisteredActivity.class.getSimpleName());
+		Intent intent = new Intent( AlreadyRegisteredActivity.this, SplashActivity.class);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intent);
 		finish();
@@ -643,17 +651,12 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		}
 	}
 
-	private void stopProgressDialog() {
-		if (progressDialog != null && progressDialog.isShowing()) {
-			progressDialog.dismiss();
-		}
-	}
-
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == ACTIVATION_REQUEST) {
-			if (resultCode == Activity.RESULT_OK) {
+			if (resultCode == AppCompatActivity.RESULT_OK) {
 				startEvents();
+				syncWithServer();
 				CommonUtils.callSystemApp(context, null, null, null);
 				Log.i("onActivityResult", "Administration enabled!");
 			} else {
@@ -661,6 +664,19 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 			}
 		}
 	}
+
+    private void syncWithServer() {
+        Animation rotate = AnimationUtils.loadAnimation(context, R.anim.clockwise_refresh);
+        imageViewRefresh.startAnimation(rotate);
+        textViewLastSync.setText(R.string.txt_sync);
+        textViewLastSync.invalidate();
+        MessageProcessor messageProcessor = new MessageProcessor(context);
+        try {
+            messageProcessor.getMessages();
+        } catch (AndroidAgentException e) {
+            Log.e(TAG, "Failed to sync with server", e);
+        }
+    }
 
 	private boolean isDeviceAdminActive() {
 		return devicePolicyManager.isAdminActive(cdmDeviceAdmin);

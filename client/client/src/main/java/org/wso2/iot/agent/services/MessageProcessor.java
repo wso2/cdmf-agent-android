@@ -18,6 +18,7 @@
 package org.wso2.iot.agent.services;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -31,7 +32,7 @@ import com.google.gson.Gson;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
-import org.wso2.iot.agent.AuthenticationActivity;
+import org.wso2.iot.agent.activities.AuthenticationActivity;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceInfo;
@@ -289,6 +290,11 @@ public class MessageProcessor implements APIResultCallBack {
 		String responseStatus;
 		String response;
 		if (requestCode == Constants.NOTIFICATION_REQUEST_CODE) {
+			Preference.putLong(context, Constants.PreferenceFlag.LAST_SERVER_CALL, CommonUtils.currentDate().getTime());
+			Intent intent = new Intent();
+			intent.setAction(Constants.SYNC_BROADCAST_ACTION);
+			context.sendBroadcast(intent);
+
 			if (isWipeTriggered) {
 				if(Constants.SYSTEM_APP_ENABLED) {
 					CommonUtils.callSystemApp(context, Constants.Operation.WIPE_DATA, null, null);

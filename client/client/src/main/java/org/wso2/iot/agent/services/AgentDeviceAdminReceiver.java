@@ -29,7 +29,8 @@ import android.widget.Toast;
 
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
-import org.wso2.iot.agent.ServerDetails;
+import org.wso2.iot.agent.activities.EnableProfileActivity;
+import org.wso2.iot.agent.activities.ServerConfigsActivity;
 import org.wso2.iot.agent.beans.ServerConfig;
 import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
@@ -184,7 +185,7 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
                 }
             }
 
-            Intent launch = new Intent(context, ServerDetails.class);
+            Intent launch = new Intent(context, ServerConfigsActivity.class);
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(launch);
         } else {

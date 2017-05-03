@@ -34,7 +34,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
-import org.wso2.iot.agent.AgentReceptionActivity;
+import org.wso2.iot.agent.activities.WorkProfileSelectionActivity;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
@@ -78,7 +78,7 @@ public class LocationService extends Service implements LocationListener {
                             R.drawable.notification,
                             context.getResources().getString(R.string.title_need_location),
                             context.getResources().getString(R.string.msg_need_location),
-                            AgentReceptionActivity.class,
+                            WorkProfileSelectionActivity.class,
                             Constants.LOCATION_DISABLED,
                             Constants.LOCATION_DISABLED_NOTIFICATION_ID);
                 }
@@ -239,7 +239,7 @@ public class LocationService extends Service implements LocationListener {
                 R.drawable.notification,
                 context.getResources().getString(R.string.title_need_permissions),
                 context.getResources().getString(R.string.msg_need_permissions),
-                AgentReceptionActivity.class,
+                WorkProfileSelectionActivity.class,
                 Constants.PERMISSION_MISSING,
                 Constants.PERMISSION_MISSING_NOTIFICATION_ID);
     }

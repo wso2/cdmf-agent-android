@@ -30,6 +30,8 @@ import android.view.MenuItem;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 
+import org.wso2.iot.agent.activities.AlreadyRegisteredActivity;
+import org.wso2.iot.agent.activities.ServerConfigsActivity;
 import org.wso2.iot.agent.api.DeviceInfo;
 import org.wso2.iot.agent.beans.ServerConfig;
 import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
@@ -38,7 +40,6 @@ import org.wso2.iot.agent.services.DeviceInfoPayload;
 import org.wso2.iot.agent.utils.CommonDialogUtils;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
-import org.wso2.iot.agent.utils.FCMRegistrationUtil;
 import org.wso2.iot.agent.utils.Preference;
 
 import java.util.Map;
@@ -55,7 +56,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+		setContentView(R.layout.activity_registration);
 		context = this;
 
 		RegistrationActivity.this.runOnUiThread(new Runnable() {
@@ -71,24 +72,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		DeviceInfo deviceInfo = new DeviceInfo(context);
 		String deviceIdentifier = deviceInfo.getDeviceId();
 		Preference.putString(context, Constants.PreferenceFlag.REG_ID, deviceIdentifier);
-
-		// If the notification type is gcm, before registering the device, make sure that particular device has google
-		// play services installed
-		if (Constants.NOTIFIER_FCM.equals(Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE))) {
-			if (FCMRegistrationUtil.isPlayServicesInstalled(this.getApplicationContext())) {
-				registerDevice();
-			} else {
-				try {
-					CommonDialogUtils.stopProgressDialog(progressDialog);
-					CommonUtils.clearAppData(context);
-					displayGooglePlayServicesError();
-				} catch (AndroidAgentException e) {
-					Log.e(TAG, "Failed to clear app data", e);
-				}
-			}
-		} else {
-			registerDevice();
-		}
+		registerDevice();
 
 	}
 
@@ -357,7 +341,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		Preference.putString(context, Constants.PreferenceFlag.IP, null);
 		Intent intent = new Intent(
 				RegistrationActivity.this,
-				ServerDetails.class);
+				ServerConfigsActivity.class);
 		intent.putExtra(getResources().getString(R.string.intent_extra_from_activity),
 		                RegistrationActivity.class.getSimpleName());
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

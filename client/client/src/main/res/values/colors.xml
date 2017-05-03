@@ -24,5 +24,7 @@
     <color name="kioskBackground">#212121</color>
 
     <color name="black_overlay">#66000000</color>
+    <color name="colorPrimary">#EF6C00</color>
+    <color name="colorPrimaryDark">#BF360C</color>
 
 </resources>

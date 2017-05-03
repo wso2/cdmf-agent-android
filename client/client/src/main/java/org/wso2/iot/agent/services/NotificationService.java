@@ -141,7 +141,7 @@ public class NotificationService extends BroadcastReceiver {
                             .setOngoing(true)
                             .setOnlyAlertOnce(true)
                             .setTicker(context.getResources().getString(R.string.txt_notification))
-                            .addAction(R.drawable.abs__ic_clear, "Dismiss", dismiss);
+                            .addAction(R.drawable.notification, "Dismiss", dismiss);
 
             notifyManager.notify(operationId, mBuilder.build());
 

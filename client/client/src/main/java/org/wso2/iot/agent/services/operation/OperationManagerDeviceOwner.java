@@ -31,7 +31,7 @@ import org.json.JSONObject;
 import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
-import org.wso2.iot.agent.ServerDetails;
+import org.wso2.iot.agent.activities.ServerConfigsActivity;
 import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.utils.CommonUtils;
@@ -432,7 +432,7 @@ public class OperationManagerDeviceOwner extends OperationManager {
 
         CommonUtils.disableAdmin(getContext());
 
-        Intent intent = new Intent(getContext(), ServerDetails.class);
+        Intent intent = new Intent(getContext(), ServerConfigsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         getContext().startActivity(intent);

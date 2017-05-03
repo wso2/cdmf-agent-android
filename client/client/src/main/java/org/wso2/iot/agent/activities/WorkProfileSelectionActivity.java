@@ -16,25 +16,28 @@
  * under the License.
  */
 
-package org.wso2.iot.agent;
+package org.wso2.iot.agent.activities;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.WorkProfileManager;
 import org.wso2.iot.agent.api.DeviceState;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 import org.wso2.iot.agent.utils.Response;
 
-public class AgentReceptionActivity extends Activity {
+public class WorkProfileSelectionActivity extends AppCompatActivity {
 
     private Context context;
     private static final int TAG_BTN_ENABLE_PROFILE = 0;
@@ -43,23 +46,24 @@ public class AgentReceptionActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        DeviceState state;
-
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_enable_work_profile);
+
         context = this.getApplicationContext();
-        state = new DeviceState(context);
-        Response androidForWorkCompatibility = state.evaluateAndroidForWorkCompatibility();
         manager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+
+        DeviceState state = new DeviceState(context);
+        Response androidForWorkCompatibility = state.evaluateAndroidForWorkCompatibility();
         boolean isDeviceActive = Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE);
 
         if (CommonUtils.isNetworkAvailable(context)) {
             if (isDeviceActive || Constants.SKIP_WORK_PROFILE_CREATION) {
                 skipToEnrollment();
             }
-            if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
+            if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
                 skipToEnrollment();
-            }else if (androidForWorkCompatibility.getCode()) {
-                manageAndroidForWorkReceiption();
+            } else if (androidForWorkCompatibility.getCode()) {
+                manageAndroidForWorkReception();
             } else {
                 skipToEnrollment();
             }
@@ -71,7 +75,7 @@ public class AgentReceptionActivity extends Activity {
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void manageAndroidForWorkReceiption() {
+    private void manageAndroidForWorkReception() {
         if (manager.isProfileOwnerApp(getApplicationContext().getPackageName())) {
                 /* If the managed profile is already set up, we show the enrollment screen. */
             skipToEnrollment();
@@ -87,7 +91,6 @@ public class AgentReceptionActivity extends Activity {
             switch (iTag) {
                 case TAG_BTN_ENABLE_PROFILE:
                     startManagedProfileManager();
-                    finish();
                     break;
                 case TAG_BTN_SKIP_PROFILE:
                     skipToEnrollment();
@@ -104,17 +107,15 @@ public class AgentReceptionActivity extends Activity {
     private void startManagedProfileManager() {
         Intent ManagedProfileManager = new Intent(getApplicationContext(), WorkProfileManager.class);
         startActivity(ManagedProfileManager);
-        finish();
     }
 
     /**
      * Go to the Enrollment Screen if the user don't want a separate managed profile.
      */
     private void skipToEnrollment() {
-        Intent intent = new Intent(context, ServerDetails.class);
+        Intent intent = new Intent(context, ServerConfigsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
-        finish();
     }
 
     /**
@@ -124,7 +125,6 @@ public class AgentReceptionActivity extends Activity {
         Button btnEnableMngProfile;
         Button btnSkipProfile;
 
-        setContentView(R.layout.activity_enable_work_profile);
         btnEnableMngProfile = (Button) findViewById(R.id.btnSetupWorkProfile);
         btnEnableMngProfile.setTag(TAG_BTN_ENABLE_PROFILE);
         btnEnableMngProfile.setOnClickListener(onClickListenerButtonClicked);

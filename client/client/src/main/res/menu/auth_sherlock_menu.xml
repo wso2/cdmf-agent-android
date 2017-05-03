@@ -19,8 +19,7 @@
 
     <item
         android:id="@+id/more"
-        android:icon="@drawable/abs__ic_menu_moreoverflow_holo_dark"
-        android:showAsAction="ifRoom"
+        android:background="?android:attr/colorBackground"
         android:title="@string/action_settings">
         <menu>
             <item

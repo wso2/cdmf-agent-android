@@ -29,6 +29,7 @@ public class KioskActivity extends Activity {
     private boolean freshRegFlag = false;
     private static final int ACTIVATION_REQUEST = 47;
     private TextView textViewWipeData;
+    private Context context;
 
     AppInstallationBroadcastReceiver appInstallationBroadcastReceiver;
     boolean isAppInstallationBroadcastReceiverRegistered = false;
@@ -40,11 +41,13 @@ public class KioskActivity extends Activity {
     int kioskExit;
 
     static String packageName = null;
+    private String kioskAppPackageNameKey ="kioskAppPackageName";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_kiosk);
+        context = this.getApplicationContext();
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         Preference.putBoolean(getApplicationContext(), Constants.PreferenceFlag.DEVICE_ACTIVE, true);
@@ -110,6 +113,8 @@ public class KioskActivity extends Activity {
                 }
             });
         }
+
+        launchKioskAppIfExists();
     }
 
     @Override
@@ -132,6 +137,19 @@ public class KioskActivity extends Activity {
         }
     }
 
+    /*Checks whether there is an already installed app and if exists the app will be launched*/
+    private void launchKioskAppIfExists() {
+        packageName = Preference.getString(context.getApplicationContext(), kioskAppPackageNameKey);
+        if (packageName != null && !packageName.equals("")) {
+            textViewLaunch.setVisibility(View.VISIBLE);
+            Intent launchIntent = getApplicationContext().getPackageManager()
+                    .getLaunchIntentForPackage(packageName);
+            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if (launchIntent != null) {
+                getApplicationContext().startActivity(launchIntent);
+            }
+        }
+    }
 
     private class AppInstallationBroadcastReceiver extends BroadcastReceiver {
 
@@ -149,14 +167,9 @@ public class KioskActivity extends Activity {
                             DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
                 }
             }
-            KioskActivity.packageName = packageName;
-            textViewLaunch.setVisibility(View.VISIBLE);
-            Intent launchIntent = getApplicationContext().getPackageManager()
-                    .getLaunchIntentForPackage(packageName);
-            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            if (launchIntent != null) {
-                getApplicationContext().startActivity(launchIntent);
-            }
+            Preference.putString(KioskActivity.this.context.getApplicationContext(),
+                    kioskAppPackageNameKey, packageName);
+            launchKioskAppIfExists();
         }
     }
 

@@ -16,7 +16,7 @@
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/bottomLinearLayout"
+        android:layout_alignParentBottom="true"
         android:layout_below="@+id/top_banner">
 
         <LinearLayout
@@ -24,6 +24,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
             android:layout_marginTop="20dp"
+            android:gravity="center"
             android:orientation="vertical">
 
             <android.support.design.widget.TextInputLayout
@@ -56,25 +57,16 @@
                 android:layout_weight="1"
                 android:gravity="start"
                 android:text="@string/registration_info" />
+
+            <Button
+                android:id="@+id/btnStartRegistration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/btn_grey"
+                android:enabled="false"
+                android:text="@string/txt_start_reg"
+                android:textColor="@color/black" />
         </LinearLayout>
     </ScrollView>
-
-    <LinearLayout
-        android:id="@+id/bottomLinearLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true">
-
-        <Button
-            android:id="@+id/btnStartRegistration"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:background="@drawable/btn_grey"
-            android:enabled="false"
-            android:text="@string/txt_start_reg"
-            android:textColor="@color/black" />
-    </LinearLayout>
-
 </RelativeLayout>

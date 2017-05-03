@@ -55,7 +55,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
-import org.wso2.iot.agent.RegistrationActivity;
 import org.wso2.iot.agent.api.DeviceInfo;
 import org.wso2.iot.agent.api.TenantResolverCallback;
 import org.wso2.iot.agent.api.TenantResolverHandler;

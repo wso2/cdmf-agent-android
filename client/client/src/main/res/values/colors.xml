@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
  ~ Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  ~
  ~ WSO2 Inc. licenses this file to you under the Apache License,
@@ -24,7 +23,10 @@
     <color name="kioskBackground">#212121</color>
 
     <color name="black_overlay">#66000000</color>
-    <color name="colorPrimary">#EF6C00</color>
-    <color name="colorPrimaryDark">#BF360C</color>
+    <color name="colorPrimary">#ef6c00</color>
+    <color name="colorPrimaryDark">#bf360c</color>
+    <color name="colorButton">#EF6C00</color>
+    <color name="colorButtonPressed">#e78535</color>
+    <color name="colorButtonBorder">#C77627</color>
 
 </resources>

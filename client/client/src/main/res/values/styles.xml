@@ -35,6 +35,9 @@
         <!-- Main theme colors -->
         <!--   theme UI controls like checkboxes and text fields -->
         <item name="colorAccent">@color/colorPrimary</item>
+        <item name="android:colorForeground">@color/colorPrimaryDark</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
     </style>
 
     <style name="TopBarTheme" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -90,7 +93,7 @@
         <item name="android:shadowRadius">2</item>
     </style>
 
-    <style name="FullscreenTheme" parent="TopBarTheme">
+    <style name="FullscreenTheme" parent="AppTheme">
         <item name="android:actionBarStyle">@style/FullscreenActionBarStyle</item>
         <item name="android:windowActionBarOverlay">true</item>
         <item name="android:windowBackground">@null</item>

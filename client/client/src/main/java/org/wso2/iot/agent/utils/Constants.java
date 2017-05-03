@@ -190,7 +190,7 @@ public class Constants {
 	public static final int UNREGISTER_REQUEST_CODE = 305;
 	public static final int NOTIFICATION_REQUEST_CODE = 306;
 	public static final int DEVICE_INFO_REQUEST_CODE = 307;
-	public static final int GCM_REGISTRATION_ID_SEND_CODE = 308;
+	public static final int FCM_REGISTRATION_ID_SEND_CODE = 308;
 	public static final int POLICY_REQUEST_CODE = 309;
 	public static final int CONFIGURATION_REQUEST_CODE = 310;
 	public static final int AUTHENTICATION_REQUEST_CODE = 311;

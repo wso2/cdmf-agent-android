@@ -41,12 +41,14 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
             android:layout_marginTop="20dp"
+            android:gravity="center_horizontal"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/tvSeverAddress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
                 android:gravity="center"
@@ -55,21 +57,21 @@
 
             <Button
                 android:id="@+id/btnSetupWorkProfile"
-                android:layout_width="match_parent"
+                android:layout_width="220dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
                 android:background="@drawable/btn_orange"
                 android:text="@string/txt_start_enable_work_profile"
-                android:textColor="@android:color/white" />
+                android:textColor="@color/white" />
 
             <Button
                 android:id="@+id/btnSkipProfile"
-                android:layout_width="match_parent"
+                android:layout_width="220dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:background="@drawable/btn_orange"
+                android:background="@drawable/btn_orange_non_prominent"
                 android:text="@string/txt_skip_to_enrolling"
-                android:textColor="@android:color/white" />
+                android:textColor="@color/non_prominent_button_text" />
         </LinearLayout>
     </ScrollView>
 

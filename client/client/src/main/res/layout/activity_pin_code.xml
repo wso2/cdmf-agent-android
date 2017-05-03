@@ -40,7 +40,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="10dip">
+            android:padding="10dip"
+            android:gravity="center_horizontal">
 
             <TextView
                 android:id="@+id/lblPin"
@@ -118,7 +119,7 @@
             <Button
                 android:id="@+id/btnSetPin"
                 style="@style/ButtonText"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/btn_orange"
                 android:text="@string/txt_new_pin" />

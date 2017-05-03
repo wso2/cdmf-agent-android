@@ -47,8 +47,10 @@ import java.util.Map;
  */
 public class OpenStreetMapService implements ReverseGeoCodingService {
 
-    private Address currentAddress;
     private static final String TAG = OpenStreetMapService.class.getSimpleName();
+
+    private Address currentAddress;
+    private Location location;
 
     private static OpenStreetMapService instance;
 
@@ -178,7 +180,14 @@ public class OpenStreetMapService implements ReverseGeoCodingService {
     public void fetchReverseGeoCodes(Location location) {
         if (location == null) {
             return;
+        } else if (this.location != null && this.currentAddress != null) {
+            if (location.getLatitude() == this.location.getLatitude()
+                    && location.getLongitude() == this.location.getLongitude()) {
+                //No need to fetch address for same geo coordinates
+                return;
+            }
         }
+        this.location = location;
         String url = Constants.Location.GEO_ENDPOINT +
                 "?" + Constants.Location.RESULT_FORMAT +
                 "&" + Constants.Location.ACCEPT_LANGUAGE +

@@ -45,6 +45,7 @@ import android.view.View.OnClickListener;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -100,7 +101,6 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	private String usernameVal;
 	private String passwordVal;
 	private ProgressDialog progressDialog;
-	private LinearLayout loginLayout, footer;
 	private boolean isReLogin = false;
 	private boolean isCloudLogin = false;
 	private int kioskExit;
@@ -218,9 +218,9 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 			});
 		}
 
-		footer = (LinearLayout) findViewById(R.id.footer);
+		ImageView logo = (ImageView) findViewById(R.id.imageViewLogo);
 		if (Constants.COSU_SECRET_EXIT) {
-			footer.setOnClickListener(new View.OnClickListener() {
+			logo.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					kioskExit++;

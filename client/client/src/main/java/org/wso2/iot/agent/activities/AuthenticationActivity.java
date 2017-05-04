@@ -1021,9 +1021,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 		Preference.putBoolean(context, Constants.PreferenceFlag.REGISTERED, false);
 		Preference.putString(context, Constants.PreferenceFlag.IP, null);
 
-		Intent intentIP = new Intent(AuthenticationActivity.this, ServerConfigsActivity.class);
-		intentIP.putExtra(getResources().getString(R.string.intent_extra_from_activity),
-		                  AuthenticationActivity.class.getSimpleName());
+		Intent intentIP = new Intent(AuthenticationActivity.this, SplashActivity.class);
 		intentIP.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intentIP);
 		finish();
@@ -1067,9 +1065,6 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 				@Override
 				public void onClick(DialogInterface dialog,
 				                    int which) {
-//					etUsername.setText(Constants.EMPTY_STRING);
-//					etPassword.setText(Constants.EMPTY_STRING);
-//					etDomain.setText(Constants.EMPTY_STRING);
 					btnSignIn.setBackgroundResource(R.drawable.btn_orange);
 					btnSignIn.setTextColor(ContextCompat.getColor(AuthenticationActivity.this, R.color.white));
 					btnSignIn.setEnabled(true);

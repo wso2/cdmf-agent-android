@@ -332,7 +332,7 @@ public class MessageProcessor implements APIResultCallBack {
 					LocalNotification.stopPolling(context);
 					Preference.putBoolean(context, Constants.TOKEN_EXPIRED, true);
 					CommonUtils.displayNotification(context,
-							R.drawable.notification,
+							R.drawable.ic_error_outline_white_24dp,
 							context.getResources().getString(R.string.title_need_to_sign_in),
 							context.getResources().getString(R.string.msg_need_to_sign_in),
 							AuthenticationActivity.class,

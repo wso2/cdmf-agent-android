@@ -184,10 +184,6 @@
             android:name=".AuthenticationErrorActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".NotifyActivity"
-            android:label="@string/title_activity_notify"
-            android:screenOrientation="portrait" />
-        <activity
             android:name=".activities.ServerConfigsActivity"
             android:windowSoftInputMode="stateVisible|adjustResize" />
         <activity

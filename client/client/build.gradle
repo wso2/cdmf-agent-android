@@ -33,7 +33,7 @@ android {
         targetSdkVersion 25
         multiDexEnabled true
 
-        versionCode 331
+        versionCode 332
         versionName "3.1.17"
     }
     buildTypes {

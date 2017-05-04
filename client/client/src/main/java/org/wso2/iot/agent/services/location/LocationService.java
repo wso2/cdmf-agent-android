@@ -32,10 +32,9 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.widget.Toast;
 
-import org.wso2.iot.agent.activities.WorkProfileSelectionActivity;
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.activities.WorkProfileSelectionActivity;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 
@@ -75,7 +74,7 @@ public class LocationService extends Service implements LocationListener {
                         Settings.Secure.LOCATION_MODE);
                 if (locationSetting == 0) {
                     CommonUtils.displayNotification(context,
-                            R.drawable.notification,
+                            R.drawable.ic_warning_white_24dp,
                             context.getResources().getString(R.string.title_need_location),
                             context.getResources().getString(R.string.msg_need_location),
                             WorkProfileSelectionActivity.class,
@@ -86,7 +85,6 @@ public class LocationService extends Service implements LocationListener {
                 Log.w(TAG, "Location setting is not available on this device");
             }
         } else {
-            Toast.makeText(context, R.string.msg_need_location, Toast.LENGTH_LONG).show();
             Log.w(TAG, "Location setting retrieval is not supported by API level "
                     + android.os.Build.VERSION.SDK_INT);
         }
@@ -236,7 +234,7 @@ public class LocationService extends Service implements LocationListener {
 
     private void displayPermissionMissingNotification() {
         CommonUtils.displayNotification(context,
-                R.drawable.notification,
+                R.drawable.ic_warning_white_24dp,
                 context.getResources().getString(R.string.title_need_permissions),
                 context.getResources().getString(R.string.msg_need_permissions),
                 WorkProfileSelectionActivity.class,

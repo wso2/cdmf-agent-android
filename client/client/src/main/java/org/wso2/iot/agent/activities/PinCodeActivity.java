@@ -15,41 +15,38 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.iot.agent;
+package org.wso2.iot.agent.activities;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.TextInputLayout;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.text.InputType;
-import android.text.method.PasswordTransformationMethod;
 
-import org.wso2.iot.agent.utils.CommonDialogUtils;
+import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
 /**
  * Activity which handles PIN code setting/editing.
  */
-public class PinCodeActivity extends Activity {
-	private TextView txtPin;
+public class PinCodeActivity extends AppCompatActivity {
 	private EditText evPin;
 	private EditText evReTypePin;
 	private EditText evOldPin;
 	private Button btnPin;
+	private TextInputLayout inputLayoutOldPinCode;
 	private String username;
 	private String registrationId;
 	private static final int TAG_BTN_SET_PIN = 0;
@@ -81,7 +78,7 @@ public class PinCodeActivity extends Activity {
 			}
 		}
 
-		txtPin = (TextView) findViewById(R.id.lblPin);
+		TextView txtPin = (TextView) findViewById(R.id.lblPin);
 		evPin = (EditText) findViewById(R.id.txtPinCode);
 		evReTypePin = (EditText) findViewById(R.id.txtRetypePinCode);
 		evOldPin = (EditText) findViewById(R.id.txtOldPinCode);
@@ -89,21 +86,41 @@ public class PinCodeActivity extends Activity {
 		btnPin.setTag(TAG_BTN_SET_PIN);
 		btnPin.setOnClickListener(onClickListenerButtonClicked);
 		btnPin.setEnabled(false);
-		btnPin.setBackground(getResources().getDrawable(R.drawable.btn_grey));
-		btnPin.setTextColor(getResources().getColor(R.color.black));
+		btnPin.setBackgroundResource(R.drawable.btn_grey);
+		btnPin.setTextColor(ContextCompat.getColor(this, R.color.black));
+		inputLayoutOldPinCode = (TextInputLayout) findViewById(R.id.inputLayoutOldPinCode);
 
-		if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
+		if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 				startLockTask();
 			}
 		}
 
 		if (AlreadyRegisteredActivity.class.getSimpleName().equals(fromActivity)) {
+			inputLayoutOldPinCode.setVisibility(View.VISIBLE);
 			txtPin.setVisibility(View.GONE);
-			evOldPin.setVisibility(View.VISIBLE);
 			evOldPin.requestFocus();
-			evPin.setHint(getResources().getString(R.string.hint_new_pin));
-			evReTypePin.setHint(getResources().getString(R.string.hint_retype_pin));
+
+			evOldPin.addTextChangedListener(new TextWatcher() {
+				@Override
+				public void afterTextChanged(Editable s) {
+
+				}
+
+				@Override
+				public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+				}
+
+				@Override
+				public void onTextChanged(CharSequence s, int start, int before, int count) {
+					inputLayoutOldPinCode.setErrorEnabled(false);
+				}
+			});
+
+			TextInputLayout inputLayoutPinCode = (TextInputLayout) findViewById(R.id.inputLayoutPinCode);
+			inputLayoutPinCode.setHint(getResources().getString(R.string.hint_new_pin));
+			inputLayoutPinCode.invalidate();
 		}
 
 		evPin.addTextChangedListener(new TextWatcher() {
@@ -158,11 +175,10 @@ public class PinCodeActivity extends Activity {
 		if (AlreadyRegisteredActivity.class.getSimpleName().equals(fromActivity)) {
 			String pin = Preference.getString(context, getResources().getString(R.string.shared_pref_pin));
 			if (!evOldPin.getText().toString().trim().equals(pin.trim())) {
-				Toast.makeText(getApplicationContext(),
-						getResources().getString(R.string.toast_message_pin_change_failed),
-						Toast.LENGTH_SHORT).show();
 				evOldPin.requestFocus();
 				evOldPin.setText("");
+				inputLayoutOldPinCode.setError(getResources().getString(R.string.toast_message_pin_change_failed));
+				inputLayoutOldPinCode.setErrorEnabled(true);
 				return;
 			}
 			Toast.makeText(getApplicationContext(),
@@ -195,12 +211,12 @@ public class PinCodeActivity extends Activity {
 		}
 
 		if (isReady) {
-			btnPin.setBackground(getResources().getDrawable(R.drawable.btn_orange));
-			btnPin.setTextColor(getResources().getColor(R.color.white));
+			btnPin.setBackgroundResource(R.drawable.btn_orange);
+			btnPin.setTextColor(ContextCompat.getColor(this, R.color.white));
 			btnPin.setEnabled(true);
 		} else {
-			btnPin.setBackground(getResources().getDrawable(R.drawable.btn_grey));
-			btnPin.setTextColor(getResources().getColor(R.color.black));
+			btnPin.setBackgroundResource(R.drawable.btn_grey);
+			btnPin.setTextColor(ContextCompat.getColor(this, R.color.black));
 			btnPin.setEnabled(false);
 		}
 	}
@@ -225,11 +241,6 @@ public class PinCodeActivity extends Activity {
 			return true;
 		}
 		return super.onKeyDown(keyCode, event);
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		return true;
 	}
 
 }

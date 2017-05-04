@@ -17,6 +17,7 @@
  */
 package org.wso2.iot.agent.api;
 
+import android.annotation.SuppressLint;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -40,14 +41,13 @@ import java.util.List;
 /**
  * This class represents all the device information related APIs.
  */
+@SuppressLint("HardwareIds")
 public class DeviceInfo {
-	private Root rootChecker;
 	private Context context;
 	private Resources resources;
 	private TelephonyManager telephonyManager;
 	private DevicePolicyManager devicePolicyManager;
 	private ComponentName cdmDeviceAdmin;
-	private static final String BUILD_DATE_UTC_PROPERTY = "ro.build.date.utc";
 
 	public DeviceInfo(Context context) {
 		this.context = context;
@@ -176,7 +176,7 @@ public class DeviceInfo {
 	 * @return - Device rooted status.
 	 */
 	public boolean isRooted() {
-		rootChecker = new Root();
+		Root rootChecker = new Root();
 		return rootChecker.isDeviceRooted();
 	}
 

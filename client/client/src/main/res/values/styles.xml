@@ -30,13 +30,28 @@
     </style>
 
     <!-- Application theme. -->
-    <style name="AppTheme" parent="AppBaseTheme">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+        <!-- Main theme colors -->
+        <!--   theme UI controls like checkboxes and text fields -->
+        <item name="colorAccent">@color/colorPrimary</item>
+        <item name="android:colorForeground">@color/colorPrimaryDark</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
     </style>
 
-    <style name="TopBarTheme" parent="Theme.Sherlock">
+    <style name="TopBarTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="android:windowBackground">@null</item>
         <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <style name="InputText" parent="TextAppearance.AppCompat">
+        <!-- Hint color and label color in FALSE state -->
+        <item name="android:textColorHint">@color/colorPrimary</item>
+        <item name="android:textSize">20sp</item>
+        <item name="colorControlActivated">@color/colorPrimaryDark</item>
+        <item name="android:textColorHighlight">@color/colorPrimary</item>
+        <item name="android:textColorLink">@color/colorPrimary</item>
     </style>
 
     <style name="TitleBar">
@@ -78,7 +93,7 @@
         <item name="android:shadowRadius">2</item>
     </style>
 
-    <style name="FullscreenTheme" parent="TopBarTheme">
+    <style name="FullscreenTheme" parent="AppTheme">
         <item name="android:actionBarStyle">@style/FullscreenActionBarStyle</item>
         <item name="android:windowActionBarOverlay">true</item>
         <item name="android:windowBackground">@null</item>
@@ -88,6 +103,12 @@
 
     <style name="FullscreenActionBarStyle" parent="android:Widget.Holo.ActionBar">
         <item name="android:background">@color/black_overlay</item>
+    </style>
+
+    <style name="Dialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="colorAccent">@color/colorPrimary</item>
     </style>
 
 </resources>

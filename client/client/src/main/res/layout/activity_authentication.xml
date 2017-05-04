@@ -15,22 +15,35 @@
  ~ specific language governing permissions and limitations
  ~ under the License.
 -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:fillViewport="true">
 
-    <RelativeLayout
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:orientation="vertical"
+    tools:context=".activities.AuthenticationActivity">
+
+    <include
+        android:id="@+id/top_banner"
+        layout="@layout/top_banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <ScrollView
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:background="#ffffff">
+        android:layout_height="fill_parent"
+        android:layout_below="@+id/top_banner"
+        android:fillViewport="true">
 
         <LinearLayout
-            android:id="@+id/errorLayout"
+            android:id="@+id/loginLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="10dip">
+            android:padding="10dp"
+            android:gravity="center_horizontal">
 
             <TextView
                 android:id="@+id/textViewSignIn"
@@ -39,75 +52,72 @@
                 android:layout_marginTop="5dp"
                 android:gravity="center"
                 android:text="@string/txt_sign_in"
-                android:textColor="@android:color/black"
-                android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium" />
+                android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
+                android:textColor="@android:color/black" />
 
-            <EditText
-                android:id="@+id/etDomain"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:hint="@string/txt_organization"
-                android:inputType="text"
-                android:cursorVisible="true"
-                android:maxLines="1"
-                android:textColor="@android:color/black"
-                android:textCursorDrawable="@null" />
-
-            <EditText
-                android:id="@+id/etUsername"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:hint="@string/txt_username"
-                android:inputType="textEmailAddress"
-                android:cursorVisible="true"
-                android:maxLines="1"
-                android:textColor="@android:color/black"
-                android:textCursorDrawable="@null" />
-
-            <EditText
-                android:id="@+id/etPassword"
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/inputLayoutEditTextDomain"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:ems="10"
-                android:hint="@string/txt_password"
-                android:inputType="textPassword"
-                android:cursorVisible="true"
-                android:textColor="@android:color/black"
-                android:textCursorDrawable="@null" />
+                android:theme="@style/InputText">
 
-            <RadioGroup
-                android:id="@+id/radioGroupType"
-                android:layout_width="wrap_content"
+                <EditText
+                    android:id="@+id/etDomain"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:cursorVisible="true"
+                    android:hint="@string/txt_organization"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:textColor="@android:color/black"
+                    android:textCursorDrawable="@null" />
+            </android.support.design.widget.TextInputLayout>
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/inputLayoutEditTextUsername"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp">
+                android:theme="@style/InputText">
 
-                <RadioButton
-                    android:id="@+id/radioBYOD"
-                    android:layout_width="wrap_content"
+                <EditText
+                    android:id="@+id/etUsername"
+                    android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="5dp"
-                    android:button="@drawable/custom_checkbox"
-                    android:checked="true"
-                    android:text="@string/txt_byod"
-                    android:textColor="@android:color/black" />
+                    android:cursorVisible="true"
+                    android:hint="@string/txt_username"
+                    android:inputType="textEmailAddress"
+                    android:maxLines="1"
+                    android:textColor="@android:color/black"
+                    android:textCursorDrawable="@null" />
+            </android.support.design.widget.TextInputLayout>
 
-                <RadioButton
-                    android:id="@+id/radioCOPE"
-                    android:layout_width="wrap_content"
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/inputLayoutEditTextPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:theme="@style/InputText"
+                app:passwordToggleEnabled="true"
+                app:passwordToggleTint="@color/colorPrimary">
+
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/etPassword"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="5dp"
-                    android:button="@drawable/custom_checkbox"
-                    android:text="@string/txt_cope"
-                    android:textColor="@android:color/black" />
-            </RadioGroup>
+                    android:cursorVisible="true"
+                    android:ems="10"
+                    android:hint="@string/txt_password"
+                    android:inputType="textPassword"
+                    android:textColor="@android:color/black"
+                    android:textCursorDrawable="@null" />
+            </android.support.design.widget.TextInputLayout>
 
             <Button
                 android:id="@+id/btnSignIn"
                 style="@style/ButtonText"
-                android:layout_width="fill_parent"
+                android:layout_width="125dp"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:layout_marginLeft="10dp"
@@ -126,26 +136,16 @@
                 android:textColor="@android:color/black" />
 
             <TextView
+                android:id="@+id/textViewWipeData"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:gravity="center"
-                android:visibility="gone"
-                android:id="@+id/textViewWipeData"
-                android:text="@string/wipe_the_device"/>
+                android:text="@string/wipe_the_device"
+                android:visibility="gone" />
 
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/footer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_margin="10dp"
-            android:background="@drawable/repeat_bg"
-            android:gravity="center"
-            android:orientation="vertical"></LinearLayout>
-    </RelativeLayout>
+    </ScrollView>
 
-</ScrollView>
+</RelativeLayout>

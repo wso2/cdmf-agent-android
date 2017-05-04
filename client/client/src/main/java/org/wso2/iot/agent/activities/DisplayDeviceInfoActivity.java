@@ -15,44 +15,32 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.iot.agent;
-
-import org.wso2.iot.agent.api.DeviceInfo;
+package org.wso2.iot.agent.activities;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.TextView;
+
+import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.api.DeviceInfo;
 
 /**
  * Activity which displays device information.
  */
 public class DisplayDeviceInfoActivity extends Activity {
-	private String fromActivity;
-	private String registrationId;
-	private TextView deviceId;
-	private TextView deviceName;
-	private TextView model;
-	private TextView operator;
-	private TextView sdk;
-	private TextView os;
-	private TextView root;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_display_device_info);
 		DeviceInfo deviceInfo = new DeviceInfo(this.getApplicationContext());
-		deviceId = (TextView) findViewById(R.id.txtId);
-		deviceName = (TextView) findViewById(R.id.txtDevice);
-		model = (TextView) findViewById(R.id.txtModel);
-		operator = (TextView) findViewById(R.id.txtOperator);
-		sdk = (TextView) findViewById(R.id.txtSDK);
-		os = (TextView) findViewById(R.id.txtOS);
-		root = (TextView) findViewById(R.id.txtRoot);
+		TextView deviceId = (TextView) findViewById(R.id.txtId);
+		TextView deviceName = (TextView) findViewById(R.id.txtDevice);
+		TextView model = (TextView) findViewById(R.id.txtModel);
+		TextView operator = (TextView) findViewById(R.id.txtOperator);
+		TextView sdk = (TextView) findViewById(R.id.txtSDK);
+		TextView os = (TextView) findViewById(R.id.txtOS);
+		TextView root = (TextView) findViewById(R.id.txtRoot);
 
 		deviceId.setText(getResources().getString(R.string.info_label_imei) +
 		                 getResources().getString(R.string.intent_extra_space) +
@@ -66,7 +54,7 @@ public class DisplayDeviceInfoActivity extends Activity {
 		              getResources().getString(R.string.intent_extra_space) +
 		              deviceInfo.getDeviceModel());
 
-		String operators = null;
+		String operators;
 		
 		if (deviceInfo.getNetworkOperatorName() != null) {
 			operators = deviceInfo.getNetworkOperatorName();
@@ -94,53 +82,6 @@ public class DisplayDeviceInfoActivity extends Activity {
 		             getResources().getString(R.string.intent_extra_space) +
 		             (deviceInfo.isRooted() ? getResources().getString(R.string.yes)
 		                                    : getResources().getString(R.string.no)));
-
-		Bundle extras = getIntent().getExtras();
-		if (extras != null) {
-			if (extras.containsKey(getResources().getString(R.string.intent_extra_from_activity))) {
-				fromActivity =
-						extras.getString(
-								getResources().getString(R.string.intent_extra_from_activity));
-			}
-
-			if (extras.containsKey(getResources().getString(R.string.intent_extra_regid))) {
-				registrationId =
-						extras.getString(getResources().getString(R.string.intent_extra_regid));
-			}
-		}
-
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		return true;
-	}
-
-	public boolean onOptionsItemSelected(MenuItem menu) {
-		return true;
-	}
-
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_BACK &&
-				AlreadyRegisteredActivity.class.getSimpleName().equals(fromActivity)) {
-			Intent intent =
-					new Intent(DisplayDeviceInfoActivity.this,
-					           AlreadyRegisteredActivity.class);
-			intent.putExtra(getResources().getString(R.string.intent_extra_from_activity),
-			                DisplayDeviceInfoActivity.class.getSimpleName());
-			intent.putExtra(getResources().getString(R.string.intent_extra_regid), registrationId);
-			startActivity(intent);
-			return true;
-		} else if (keyCode == KeyEvent.KEYCODE_BACK) {
-			Intent i = new Intent();
-			i.setAction(Intent.ACTION_MAIN);
-			i.addCategory(Intent.CATEGORY_HOME);
-			this.startActivity(i);
-			this.finish();
-			return true;
-		}
-		return super.onKeyDown(keyCode, event);
 	}
 
 }

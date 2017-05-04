@@ -32,8 +32,6 @@ import android.content.res.Resources;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Build;
-import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Base64;
@@ -45,14 +43,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.gson.Gson;
 
 import org.bouncycastle.jce.PKCS10CertificationRequest;
 import org.bouncycastle.jce.provider.asymmetric.ec.KeyPairGenerator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.wso2.iot.agent.AgentReceptionActivity;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.api.ApplicationManager;
@@ -93,6 +89,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -636,6 +634,59 @@ public class CommonUtils {
 
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		mNotificationManager.notify(tag, id, mBuilder.build());
+	}
+
+	public static Date currentDate() {
+		Calendar calendar = Calendar.getInstance();
+		return calendar.getTime();
+	}
+
+	public static String getTimeAgo(long time, Context ctx) {
+
+		Date curDate = currentDate();
+		long now = curDate.getTime();
+		if (time > now || time <= 0) {
+			return null;
+		}
+
+		int dim = getTimeDistanceInMinutes(time);
+
+		String timeAgo;
+
+		if (dim == 0) {
+			timeAgo = ctx.getResources().getString(R.string.date_util_term_less) + " " + ctx.getResources().getString(R.string.date_util_term_a) + " " + ctx.getResources().getString(R.string.date_util_unit_minute);
+		} else if (dim == 1) {
+			timeAgo = dim + ctx.getResources().getString(R.string.date_util_unit_minute);
+		} else if (dim >= 2 && dim <= 44) {
+			timeAgo = dim + " " + ctx.getResources().getString(R.string.date_util_unit_minutes);
+		} else if (dim >= 45 && dim <= 89) {
+			timeAgo = ctx.getResources().getString(R.string.date_util_prefix_about) + " " + ctx.getResources().getString(R.string.date_util_term_an) + " " + ctx.getResources().getString(R.string.date_util_unit_hour);
+		} else if (dim >= 90 && dim <= 1439) {
+			timeAgo = ctx.getResources().getString(R.string.date_util_prefix_about) + " " + (Math.round(dim / 60)) + " " + ctx.getResources().getString(R.string.date_util_unit_hours);
+		} else if (dim >= 1440 && dim <= 2519) {
+			timeAgo = "1 " + ctx.getResources().getString(R.string.date_util_unit_day);
+		} else if (dim >= 2520 && dim <= 43199) {
+			timeAgo = (Math.round(dim / 1440)) + " " + ctx.getResources().getString(R.string.date_util_unit_days);
+		} else if (dim >= 43200 && dim <= 86399) {
+			timeAgo = ctx.getResources().getString(R.string.date_util_prefix_about) + " " + ctx.getResources().getString(R.string.date_util_term_a) + " " + ctx.getResources().getString(R.string.date_util_unit_month);
+		} else if (dim >= 86400 && dim <= 525599) {
+			timeAgo = (Math.round(dim / 43200)) + " " + ctx.getResources().getString(R.string.date_util_unit_months);
+		} else if (dim >= 525600 && dim <= 655199) {
+			timeAgo = ctx.getResources().getString(R.string.date_util_prefix_about) + " " + ctx.getResources().getString(R.string.date_util_term_a) + " " + ctx.getResources().getString(R.string.date_util_unit_year);
+		} else if (dim >= 655200 && dim <= 914399) {
+			timeAgo = ctx.getResources().getString(R.string.date_util_prefix_over) + " " + ctx.getResources().getString(R.string.date_util_term_a) + " " + ctx.getResources().getString(R.string.date_util_unit_year);
+		} else if (dim >= 914400 && dim <= 1051199) {
+			timeAgo = ctx.getResources().getString(R.string.date_util_prefix_almost) + " 2 " + ctx.getResources().getString(R.string.date_util_unit_years);
+		} else {
+			timeAgo = ctx.getResources().getString(R.string.date_util_prefix_about) + " " + (Math.round(dim / 525600)) + " " + ctx.getResources().getString(R.string.date_util_unit_years);
+		}
+
+		return timeAgo + " " + ctx.getResources().getString(R.string.date_util_suffix);
+	}
+
+	private static int getTimeDistanceInMinutes(long time) {
+		long timeDistance = currentDate().getTime() - time;
+		return Math.round((Math.abs(timeDistance) / 1000) / 60);
 	}
 
 }

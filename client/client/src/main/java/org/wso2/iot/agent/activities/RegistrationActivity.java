@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.iot.agent;
+package org.wso2.iot.agent.activities;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -25,11 +25,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 
+import org.wso2.iot.agent.AndroidAgentException;
+import org.wso2.iot.agent.KioskActivity;
+import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.api.DeviceInfo;
 import org.wso2.iot.agent.beans.ServerConfig;
 import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
@@ -38,7 +39,6 @@ import org.wso2.iot.agent.services.DeviceInfoPayload;
 import org.wso2.iot.agent.utils.CommonDialogUtils;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
-import org.wso2.iot.agent.utils.FCMRegistrationUtil;
 import org.wso2.iot.agent.utils.Preference;
 
 import java.util.Map;
@@ -55,40 +55,13 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+		setContentView(R.layout.activity_registration);
 		context = this;
-
-		RegistrationActivity.this.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				progressDialog = CommonDialogUtils.showProgressDialog(RegistrationActivity.this,
-				                                                      getResources().getString(R.string.dialog_enrolling),
-				                                                      getResources().getString(R.string.dialog_please_wait),
-				                                                      null);
-			}
-		});
 		deviceInfoBuilder = new DeviceInfoPayload(context);
 		DeviceInfo deviceInfo = new DeviceInfo(context);
 		String deviceIdentifier = deviceInfo.getDeviceId();
 		Preference.putString(context, Constants.PreferenceFlag.REG_ID, deviceIdentifier);
-
-		// If the notification type is gcm, before registering the device, make sure that particular device has google
-		// play services installed
-		if (Constants.NOTIFIER_FCM.equals(Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE))) {
-			if (FCMRegistrationUtil.isPlayServicesInstalled(this.getApplicationContext())) {
-				registerDevice();
-			} else {
-				try {
-					CommonDialogUtils.stopProgressDialog(progressDialog);
-					CommonUtils.clearAppData(context);
-					displayGooglePlayServicesError();
-				} catch (AndroidAgentException e) {
-					Log.e(TAG, "Failed to clear app data", e);
-				}
-			}
-		} else {
-			registerDevice();
-		}
+		registerDevice();
 
 	}
 
@@ -102,6 +75,10 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 	}
 
 	private void registerDevice() {
+		progressDialog = CommonDialogUtils.showProgressDialog(RegistrationActivity.this,
+				getResources().getString(R.string.dialog_enrolling),
+				getResources().getString(R.string.dialog_please_wait),
+				null);
 		String type = Preference.getString(context,
 		                                   context.getResources().getString(R.string.shared_pref_reg_type));
 		String username = Preference.getString(context,
@@ -158,21 +135,12 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		return super.onKeyDown(keyCode, event);
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		return true;
-	}
-
-	public boolean onOptionsItemSelected(MenuItem item) {
-		return super.onOptionsItemSelected(item);
-	}
-
 	private DialogInterface.OnClickListener registrationFailedOKBanClickListener =
 			new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface arg0,
 				                    int arg1) {
-					loadAuthenticationErrorActivity();
+					loadAuthenticationActivity();
 				}
 	};
 	
@@ -231,14 +199,14 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 	}
 
 	/**
-	 * Display google play services error
+	 * Display FCM services error
 	 */
-	private void displayGooglePlayServicesError() {
+	private void displayFCMServicesError() {
 		RegistrationActivity.this.runOnUiThread(new Runnable() {
 			@Override public void run() {
 				CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
 						getResources().getString(R.string.title_head_registration_error),
-						getResources().getString(R.string.error_for_gcm_unavailability),
+						getResources().getString(R.string.error_for_fcm_unavailability),
 						getResources().getString(R.string.button_ok), registrationFailedOKBanClickListener);
 			}
 		});
@@ -254,7 +222,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 				Preference.putString(context, Constants.PreferenceFlag.REG_ID, info.getDeviceId());
 				if (Constants.Status.SUCCESSFUL.equals(responseStatus) || Constants.Status.CREATED.equals(responseStatus)) {
 					if (Constants.NOTIFIER_FCM.equals(Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE))) {
-						registerGCM();
+						registerFCM();
 					} else {
 						CommonDialogUtils.stopProgressDialog(progressDialog);
 						if(Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)){
@@ -273,11 +241,10 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 			CommonDialogUtils.stopProgressDialog(progressDialog);
 			if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
 				loadKioskActivity();
-				finish();
 			} else {
 				loadAlreadyRegisteredActivity();
 			}
-		} else if (requestCode == Constants.GCM_REGISTRATION_ID_SEND_CODE && result != null) {
+		} else if (requestCode == Constants.FCM_REGISTRATION_ID_SEND_CODE && result != null) {
 			String status = result.get(Constants.STATUS_KEY);
 			if (!(Constants.Status.SUCCESSFUL.equals(status) || Constants.Status.ACCEPT.equals(status))) {
 				displayConnectionError();
@@ -295,12 +262,12 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 	}
 
 	/**
-     * This will start the GCM flow by registering the device with Google and sending the
-     * registration ID to MDM. This is done in a Async task as a network call may be done, and
+     * This will start the FCM flow by registering the device with Google and sending the
+     * registration ID to IoTS. This is done in a Async task as a network call may be done, and
      * it should be done out side the UI thread. After retrieving the registration Id, it is send
      * to the MDM server so that it can send notifications to the device.
      */
-	private void registerGCM() {
+	private void registerFCM() {
 		String token =  FirebaseInstanceId.getInstance().getToken();
 		if(token != null) {
 			Preference.putString(context, Constants.FCM_REG_ID, token);
@@ -312,7 +279,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		} else {
 			try {
 				CommonUtils.clearAppData(context);
-				displayGooglePlayServicesError();
+				displayFCMServicesError();
 			} catch (AndroidAgentException e) {
 				Log.e(TAG, "Failed to clear app data", e);
 			}
@@ -344,22 +311,19 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 			String url = utils.getAPIServerURL(context) + Constants.DEVICE_ENDPOINT + deviceInfo.getDeviceId();
 
 			CommonUtils.callSecuredAPI(context, url, org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS.PUT,
-			                           replyPayload, RegistrationActivity.this, Constants.GCM_REGISTRATION_ID_SEND_CODE);
+			                           replyPayload, RegistrationActivity.this, Constants.FCM_REGISTRATION_ID_SEND_CODE);
 		} else {
 			Log.e(TAG, "There is no valid IP to contact the server");
 		}
 	}
 
 	/**
-	 * Loads Authentication error activity.
+	 * Loads Authentication activity.
 	 */
-	private void loadAuthenticationErrorActivity() {
+	private void loadAuthenticationActivity() {
 		Preference.putString(context, Constants.PreferenceFlag.IP, null);
-		Intent intent = new Intent(
-				RegistrationActivity.this,
-				ServerDetails.class);
-		intent.putExtra(getResources().getString(R.string.intent_extra_from_activity),
-		                RegistrationActivity.class.getSimpleName());
+		Intent intent = new Intent( RegistrationActivity.this, AuthenticationActivity.class);
+		intent.putExtra(getResources().getString(R.string.intent_extra_from_activity), RegistrationActivity.class.getSimpleName());
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intent);
 		finish();

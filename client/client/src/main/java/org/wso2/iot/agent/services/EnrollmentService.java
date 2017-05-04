@@ -100,7 +100,7 @@ public class EnrollmentService extends IntentService implements APIResultCallBac
                 Log.e(TAG, "Auto enrollment failed, server failed to respond to the enrollment request.");
                 startEnrollment();
             }
-        } else if (requestCode == Constants.GCM_REGISTRATION_ID_SEND_CODE && result != null) {
+        } else if (requestCode == Constants.FCM_REGISTRATION_ID_SEND_CODE && result != null) {
             String status = result.get(Constants.STATUS_KEY);
             Log.i(TAG, "EMM auto enrollment, enrollment update response received.");
             if (!(Constants.Status.SUCCESSFUL.equals(status) || Constants.Status.ACCEPT.equals(status))) {
@@ -377,7 +377,7 @@ public class EnrollmentService extends IntentService implements APIResultCallBac
             String url = utils.getAPIServerURL(context) + Constants.DEVICE_ENDPOINT + deviceInfo.getDeviceId();
 
             CommonUtils.callSecuredAPI(context, url, org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS.PUT,
-                                       replyPayload, EnrollmentService.this, Constants.GCM_REGISTRATION_ID_SEND_CODE);
+                                       replyPayload, EnrollmentService.this, Constants.FCM_REGISTRATION_ID_SEND_CODE);
         } else {
             Log.e(TAG, "There is no valid IP to contact the server");
         }

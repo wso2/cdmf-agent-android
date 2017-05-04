@@ -63,21 +63,15 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:largeHeap="true"
-        android:screenOrientation="portrait"
-        android:theme="@style/TopBarTheme">
+        android:theme="@style/AppTheme">
+        <activity android:name=".activities.RegistrationActivity" />
         <activity
-            android:name=".RegistrationActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/TopBarTheme" />
-        <activity
-            android:name=".DisplayDeviceInfoActivity"
-            android:label="@string/title_activity_display_device_info"
-            android:screenOrientation="portrait" />
+            android:name=".activities.DisplayDeviceInfoActivity"
+            android:label="@string/title_activity_display_device_info" />
         <activity
             android:name=".EnableDeviceAdminActivity"
             android:excludeFromRecents="true"
-            android:label="@string/title_activity_display_device_info"
-            android:screenOrientation="unspecified" />
+            android:label="@string/title_activity_display_device_info" />
 
         <receiver
             android:name=".services.AgentDeviceAdminReceiver"
@@ -182,15 +176,10 @@
             android:name=".services.NetworkInfoService"
             android:enabled="true" />
 
+        <activity android:name=".activities.AlreadyRegisteredActivity" />
         <activity
-            android:name=".AlreadyRegisteredActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.Sherlock" />
-        <activity
-            android:name=".AuthenticationActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.Sherlock"
-            android:windowSoftInputMode="stateUnchanged|adjustPan" />
+            android:name=".activities.AuthenticationActivity"
+            android:windowSoftInputMode="stateVisible|adjustResize" />
         <activity
             android:name=".AuthenticationErrorActivity"
             android:screenOrientation="portrait" />
@@ -199,14 +188,11 @@
             android:label="@string/title_activity_notify"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".ServerDetails"
-            android:label="@string/app_name"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="stateUnchanged|adjustPan" />
+            android:name=".activities.ServerConfigsActivity"
+            android:windowSoftInputMode="stateVisible|adjustResize" />
         <activity
-            android:name=".PinCodeActivity"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="stateUnchanged|adjustPan" />
+            android:name=".activities.PinCodeActivity"
+            android:windowSoftInputMode="stateVisible|adjustResize" />
         <activity
             android:name=".AlertActivity"
             android:screenOrientation="portrait"
@@ -217,15 +203,13 @@
             android:label="@string/title_activity_lock" />
         <!-- Managed Profile Manifest items -->
         <activity
-            android:name=".services.EnableProfileActivity"
+            android:name=".activities.EnableProfileActivity"
             android:label="@string/app_name" />
         <activity
             android:name=".WorkProfileManager"
             android:label="@string/title_activity_notify"
             android:screenOrientation="portrait" />
-        <activity
-            android:name=".AgentReceptionActivity"
-            android:label="WSO2 Agent" />
+        <activity android:name=".activities.WorkProfileSelectionActivity" />
         <activity
             android:name=".AppLockActivity"
             android:label="@string/title_activity_alert"
@@ -246,7 +230,7 @@
             android:name=".KioskActivity"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
         <activity
-            android:name=".SplashActivity"
+            android:name=".activities.SplashActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name"
             android:theme="@style/FullscreenTheme">

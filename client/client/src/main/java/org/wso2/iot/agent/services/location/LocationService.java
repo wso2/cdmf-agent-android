@@ -57,7 +57,7 @@ public class LocationService extends Service implements LocationListener {
     private LocationManager locationManager = null;
     private Context context;
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1000; //If more than 1Km
-    private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 15; //If more than 15 minutes
+    private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 5; //If more than 5 minutes
     private List<String> providers = new ArrayList<>();
     private boolean isUpdateRequested = false;
     private final IBinder mBinder = new LocalBinder();

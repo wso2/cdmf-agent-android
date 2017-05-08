@@ -61,6 +61,7 @@ public class LocationService extends Service implements LocationListener {
     private List<String> providers = new ArrayList<>();
     private boolean isUpdateRequested = false;
     private final IBinder mBinder = new LocalBinder();
+    private long lastPublishedLocationTime;
 
     public class LocalBinder extends Binder {
         LocationService getService() {
@@ -249,18 +250,19 @@ public class LocationService extends Service implements LocationListener {
     private void publishLocationInfo(Location location) {
         if (EventRegistry.eventListeningStarted) {
             String locationPayload = getLocationPayload(location);
-            if (locationPayload != null && !locationPayload.isEmpty()) {
+            if (lastPublishedLocationTime < location.getTime()) {
                 EventPayload eventPayload = new EventPayload();
                 eventPayload.setPayload(locationPayload);
                 eventPayload.setType(Constants.EventListeners.LOCATION_EVENT_TYPE);
                 HttpDataPublisher httpDataPublisher = new HttpDataPublisher();
                 httpDataPublisher.publish(eventPayload);
+                lastPublishedLocationTime = location.getTime();
                 if (Constants.DEBUG_MODE_ENABLED) {
                     Log.d(TAG, "Location Event is published.");
                 }
             } else {
                 if (Constants.DEBUG_MODE_ENABLED) {
-                    Log.d(TAG, "Location information is not found in the device.");
+                    Log.d(TAG, "Ignore publishing. Duplicate location timestamp.");
                 }
             }
         } else {
@@ -275,19 +277,17 @@ public class LocationService extends Service implements LocationListener {
      */
     private String getLocationPayload(Location deviceLocation) {
         String locationString = null;
-        if (deviceLocation != null) {
-            double latitude = deviceLocation.getLatitude();
-            double longitude = deviceLocation.getLongitude();
-            if (latitude != 0 && longitude != 0) {
-                JSONObject locationObject = new JSONObject();
-                try {
-                    locationObject.put(Constants.LocationInfo.LATITUDE, latitude);
-                    locationObject.put(Constants.LocationInfo.LONGITUDE, longitude);
-                    locationObject.put(Constants.LocationInfo.TIME_STAMP, new Date().getTime());
-                    locationString = locationObject.toString();
-                } catch (JSONException e) {
-                    Log.e(TAG, "Error occurred while creating a location payload for location event publishing", e);
-                }
+        double latitude = deviceLocation.getLatitude();
+        double longitude = deviceLocation.getLongitude();
+        if (latitude != 0 && longitude != 0) {
+            JSONObject locationObject = new JSONObject();
+            try {
+                locationObject.put(Constants.LocationInfo.LATITUDE, latitude);
+                locationObject.put(Constants.LocationInfo.LONGITUDE, longitude);
+                locationObject.put(Constants.LocationInfo.TIME_STAMP, new Date().getTime());
+                locationString = locationObject.toString();
+            } catch (JSONException e) {
+                Log.e(TAG, "Error occurred while creating a location payload for location event publishing", e);
             }
         }
         return locationString;

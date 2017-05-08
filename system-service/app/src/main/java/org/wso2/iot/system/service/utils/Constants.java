@@ -16,43 +16,43 @@
  * under the License.
  */
 
-package org.wso2.emm.system.service.utils;
+package org.wso2.iot.system.service.utils;
+
+import org.wso2.iot.system.service.BuildConfig;
 
 /**
  * This class holds all the constants used throughout the application.
  */
 public class Constants {
 
-	public static final String AGENT_APP_PACKAGE_NAME = "org.wso2.emm.agent";
-	public static final String PACKAGE_NAME = "org.wso2.emm.system.service";
-	public static final String AGENT_APP_LAUNCH_ACTIVITY = "ServerDetails";
-	public static final String DEFAULT_OTA_SERVER_ADDRESS = "emm.wso2.com";
-	public static final String DEFAULT_OTA_SERVER_PROTOCOL = "http";
-	public static final String DEFAULT_OTA_SERVER_SUB_DIRECTORY = null;
-	public static final int DEFAULT_OTA_SERVER_PORT = 80;
-	public static final int REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE = 50;
-	public static final String DEFAULT_OTA_BUILD_PROP_FILE = "build.prop";
-	public static final String DEFAULT_OTA_ZIP_FILE = ".ota.zip";
-	public static final String UPDATE_PACKAGE_NAME = "update.zip";
+	public static final String AGENT_APP_PACKAGE_NAME = BuildConfig.AGENT_PACKAGE;
+	public static final String PACKAGE_NAME = BuildConfig.SYSTEM_APP_PACKAGE;
+	public static final String AGENT_APP_LAUNCH_ACTIVITY = BuildConfig.AGENT_APP_LAUNCH_ACTIVITY;
+	public static final String DEFAULT_OTA_SERVER_ADDRESS = BuildConfig.DEFAULT_OTA_SERVER_ADDRESS;
+	public static final String DEFAULT_OTA_SERVER_PROTOCOL = BuildConfig.DEFAULT_OTA_SERVER_PROTOCOL;
+	public static final String DEFAULT_OTA_SERVER_SUB_DIRECTORY = BuildConfig.DEFAULT_OTA_SERVER_SUB_DIRECTORY;
+	public static final int DEFAULT_OTA_SERVER_PORT = BuildConfig.DEFAULT_OTA_SERVER_PORT;
+	public static final int REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE = BuildConfig.REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE;
+	public static final String DEFAULT_OTA_BUILD_PROP_FILE = BuildConfig.DEFAULT_OTA_BUILD_PROP_FILE;
+	public static final String DEFAULT_OTA_ZIP_FILE = BuildConfig.DEFAULT_OTA_ZIP_FILE;
+	public static final String UPDATE_PACKAGE_NAME = BuildConfig.UPDATE_PACKAGE_NAME;
+	public static final boolean DEBUG_MODE_ENABLED = BuildConfig.DEBUG_MODE_ENABLED;
+	public static final boolean SILENT_FIRMWARE_INSTALLATION = BuildConfig.SILENT_FIRMWARE_INSTALLATION;
+	public static final int FIRMWARE_UPGRADE_CONNECTIVITY_TIMEOUT = BuildConfig.FIRMWARE_UPGRADE_CONNECTIVITY_TIMEOUT;
+	public static final int FIRMWARE_UPGRADE_READ_TIMEOUT = BuildConfig.FIRMWARE_UPGRADE_READ_TIMEOUT;
+
+	public static final int DEFAULT_NOTIFICATION_CODE = 100;
 	public static final String STATUS = "status";
 	public static final String PAYLOAD = "payload";
 	public static final String CODE = "code";
 	public static final String OPERATION = "operation";
-	public static final String SYSTEM_APP_ACTION_RESPONSE = "org.wso2.emm.system.service.MESSAGE_PROCESSED";
-	public static final String AGENT_APP_SERVICE_NAME = "org.wso2.emm.agent.START_SERVICE";
-	public static final boolean DEBUG_MODE_ENABLED = false;
 	public static final String ADMIN_MESSAGE = "message";
 	public static final String IS_LOCKED = "lock";
-	public static final int FIRMWARE_UPGRADE_CONNECTIVITY_TIMEOUT = 10000;
 	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 	public static final String FIRMWARE_INSTALL_CONFIRM_ACTION = "FIRMWARE_INSTALL_CONFIRM_ACTION";
 	public static final String FIRMWARE_INSTALL_CANCEL_ACTION = "FIRMWARE_INSTALL_CANCEL_ACTION";
-	public static final boolean SILENT_FIRMWARE_INSTALLATION = true;
-	/**
-	 * Read_TIMEOUT = SO timeout(the time since the last byte has been received)
-	 */
-	public static final int FIRMWARE_UPGRADE_READ_TIMEOUT = 60000;
-	public static final int DEFAULT_NOTIFICATION_CODE = 100;
+	public static final String SYSTEM_APP_ACTION_RESPONSE = "org.wso2.iot.system.service.MESSAGE_PROCESSED";
+	public static final String AGENT_APP_SERVICE_NAME = "org.wso2.iot.agent.START_SERVICE";
 
 	/**
 	 * Operation IDs

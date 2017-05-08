@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.emm.system.service;
+package org.wso2.iot.system.service;
 
 import android.app.Activity;
 import android.app.admin.DevicePolicyManager;

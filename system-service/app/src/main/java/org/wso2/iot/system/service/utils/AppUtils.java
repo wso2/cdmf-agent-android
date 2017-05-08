@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.emm.system.service.utils;
+package org.wso2.iot.system.service.utils;
 
 import android.app.PackageInstallObserver;
 import android.content.Context;
@@ -186,15 +186,8 @@ public class AppUtils {
                             case INSTALL_FAILED_ABORTED:
                                 msg = "INSTALL_FAILED_ABORTED";
                                 break;
-                            case INSTALL_FAILED_THEME_AAPT_ERROR:
-                                msg = "INSTALL_FAILED_THEME_AAPT_ERROR";
-                                break;
-                            case INSTALL_FAILED_THEME_IDMAP_ERROR:
-                                msg = "INSTALL_FAILED_THEME_IDMAP_ERROR";
-                                break;
-                            case INSTALL_FAILED_THEME_UNKNOWN_ERROR:
-                                msg = "INSTALL_FAILED_THEME_UNKNOWN_ERROR";
-                                break;
+                            default:
+                                msg = "UNKNOWN";
                         }
                     }
                     String error = "Package installation failed due to an internal error with code: " + returnCode + " and message: " + msg;

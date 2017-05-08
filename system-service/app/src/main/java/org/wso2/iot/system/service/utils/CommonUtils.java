@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.emm.system.service.utils;
+package org.wso2.iot.system.service.utils;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class CommonUtils {
     /**
-     * Call EMM agent app to send operation updates.
+     * Call IoT agent app to send operation updates.
      * @param context - Application context.
      * @param operation - Operation code.
      * @param operationId - Operation ID.

@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.emm.system.service.utils;
+package org.wso2.iot.system.service.utils;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -24,8 +24,8 @@ import android.content.Intent;
 import android.os.SystemClock;
 import android.util.Log;
 
-import org.wso2.emm.system.service.R;
-import org.wso2.emm.system.service.services.AlarmReceiver;
+import org.wso2.iot.system.service.R;
+import org.wso2.iot.system.service.services.AlarmReceiver;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

@@ -16,26 +16,28 @@
  * under the License.
  */
 
-package org.wso2.emm.system.service.api;
+package org.wso2.iot.system.service.api;
 
 import android.annotation.TargetApi;
+import android.content.ComponentName;
 import android.os.Build;
 import android.util.Log;
-import org.wso2.emm.system.service.BuildConfig;
-import org.wso2.emm.system.service.EMMSystemService;
+import org.wso2.iot.system.service.BuildConfig;
+import org.wso2.iot.system.service.SystemService;
 
 public class SettingsManager {
     private static final String TAG = SettingsManager.class.getName();
 
     public static void makeDeviceOwner() {
-        EMMSystemService.devicePolicyManager.setDeviceOwner(BuildConfig.APPLICATION_ID);
+        ComponentName componentName = new ComponentName(BuildConfig.APPLICATION_ID, SystemService.class.getName());
+        SystemService.devicePolicyManager.setDeviceOwner(componentName);
         Log.i(TAG, "enabled device owner");
     }
 
     public static void clearDeviceOwner() {
         Log.i(TAG, "disabled device owner");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            EMMSystemService.devicePolicyManager.clearDeviceOwnerApp(BuildConfig.APPLICATION_ID);
+            SystemService.devicePolicyManager.clearDeviceOwnerApp(BuildConfig.APPLICATION_ID);
         }
     }
 
@@ -43,14 +45,14 @@ public class SettingsManager {
         Log.d(TAG, "Restriction :" + code + " , set to:" + state);
         boolean restrictionState = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
-            EMMSystemService.devicePolicyManager != null) {
+            SystemService.devicePolicyManager != null) {
             if (isDeviceOwner()) {
                 if (state) {
-                    EMMSystemService.devicePolicyManager.
-                            addUserRestriction(EMMSystemService.cdmDeviceAdmin, code);
+                    SystemService.devicePolicyManager.
+                            addUserRestriction(SystemService.cdmDeviceAdmin, code);
                 } else {
-                    EMMSystemService.devicePolicyManager.
-                            clearUserRestriction(EMMSystemService.cdmDeviceAdmin, code);
+                    SystemService.devicePolicyManager.
+                            clearUserRestriction(SystemService.cdmDeviceAdmin, code);
                 }
                 restrictionState = true;
             } else {
@@ -62,26 +64,26 @@ public class SettingsManager {
 
     public static void setScreenCaptureDisabled(boolean value) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            EMMSystemService.devicePolicyManager.setScreenCaptureDisabled(EMMSystemService.cdmDeviceAdmin, value);
+            SystemService.devicePolicyManager.setScreenCaptureDisabled(SystemService.cdmDeviceAdmin, value);
         }
     }
 
     public static void setStatusBarDisabled(boolean value) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            EMMSystemService.devicePolicyManager.setStatusBarDisabled(EMMSystemService.cdmDeviceAdmin, value);
+            SystemService.devicePolicyManager.setStatusBarDisabled(SystemService.cdmDeviceAdmin, value);
         }
     }
 
     public static void setAutoTimeRequired(boolean value) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            EMMSystemService.devicePolicyManager.setAutoTimeRequired(EMMSystemService.cdmDeviceAdmin, value);
+            SystemService.devicePolicyManager.setAutoTimeRequired(SystemService.cdmDeviceAdmin, value);
         }
     }
 
     public static void setVisibilityOfApp(String packageName , boolean visibility) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Log.i(TAG, "visibility of package "+ packageName + " will be set to "+ visibility);
-            EMMSystemService.devicePolicyManager.setApplicationHidden(EMMSystemService.cdmDeviceAdmin, packageName, !visibility);
+            SystemService.devicePolicyManager.setApplicationHidden(SystemService.cdmDeviceAdmin, packageName, !visibility);
         }
     }
 
@@ -92,7 +94,7 @@ public class SettingsManager {
      */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     public static boolean isDeviceOwner() {
-        return EMMSystemService.devicePolicyManager.isDeviceOwnerApp(BuildConfig.APPLICATION_ID);
+        return SystemService.devicePolicyManager.isDeviceOwnerApp(BuildConfig.APPLICATION_ID);
     }
 
 }

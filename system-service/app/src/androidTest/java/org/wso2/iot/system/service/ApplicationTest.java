@@ -1,4 +1,4 @@
-package org.wso2.emm.system.service;
+package org.wso2.iot.system.service;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

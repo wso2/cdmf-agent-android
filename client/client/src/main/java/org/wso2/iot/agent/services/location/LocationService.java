@@ -33,12 +33,18 @@ import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.activities.AlreadyRegisteredActivity;
+import org.wso2.iot.agent.events.EventRegistry;
+import org.wso2.iot.agent.events.beans.EventPayload;
+import org.wso2.iot.agent.events.publisher.HttpDataPublisher;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -94,7 +100,7 @@ public class LocationService extends Service implements LocationListener {
                 && ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             displayPermissionMissingNotification();
-            return START_STICKY;
+            return START_NOT_STICKY;
         }
         Location location = null;
         long locationTime = 0;
@@ -206,6 +212,7 @@ public class LocationService extends Service implements LocationListener {
                 Log.d(TAG, "Location changed> lat:" + location.getLatitude() + " lon:" + location.getLongitude() + " provider:" + location.getProvider());
             }
             broadcastLocation(location);
+            publishLocationInfo(location);
         }
     }
 
@@ -232,6 +239,58 @@ public class LocationService extends Service implements LocationListener {
         if (providers.contains(provider) && locationManager != null) {
             setLocation();
         }
+    }
+
+    /**
+     * To publish the location event to the server
+     *
+     * @param location location details
+     */
+    private void publishLocationInfo(Location location) {
+        if (EventRegistry.eventListeningStarted) {
+            String locationPayload = getLocationPayload(location);
+            if (locationPayload != null && !locationPayload.isEmpty()) {
+                EventPayload eventPayload = new EventPayload();
+                eventPayload.setPayload(locationPayload);
+                eventPayload.setType(Constants.EventListeners.LOCATION_EVENT_TYPE);
+                HttpDataPublisher httpDataPublisher = new HttpDataPublisher();
+                httpDataPublisher.publish(eventPayload);
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    Log.d(TAG, "Location Event is published.");
+                }
+            } else {
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    Log.d(TAG, "Location information is not found in the device.");
+                }
+            }
+        } else {
+            Log.w(TAG, "Event listening not started yet");
+        }
+    }
+
+    /**
+     * Returns the location payload.
+     *
+     * @return - Location info payload as a string
+     */
+    private String getLocationPayload(Location deviceLocation) {
+        String locationString = null;
+        if (deviceLocation != null) {
+            double latitude = deviceLocation.getLatitude();
+            double longitude = deviceLocation.getLongitude();
+            if (latitude != 0 && longitude != 0) {
+                JSONObject locationObject = new JSONObject();
+                try {
+                    locationObject.put(Constants.LocationInfo.LATITUDE, latitude);
+                    locationObject.put(Constants.LocationInfo.LONGITUDE, longitude);
+                    locationObject.put(Constants.LocationInfo.TIME_STAMP, new Date().getTime());
+                    locationString = locationObject.toString();
+                } catch (JSONException e) {
+                    Log.e(TAG, "Error occurred while creating a location payload for location event publishing", e);
+                }
+            }
+        }
+        return locationString;
     }
 
     private void displayPermissionMissingNotification() {

@@ -57,7 +57,6 @@ import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.beans.WifiProfile;
 import org.wso2.iot.agent.events.beans.EventPayload;
 import org.wso2.iot.agent.events.listeners.WifiConfigCreationListener;
-import org.wso2.iot.agent.events.publisher.HttpDataPublisher;
 import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.services.DeviceInfoPayload;
@@ -195,38 +194,11 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         DeviceInfoPayload deviceInfoPayload = new DeviceInfoPayload(context);
         deviceInfoPayload.build();
         String replyPayload = deviceInfoPayload.getDeviceInfoPayload();
-        // Check whether the location publishing is enabled, before publishing the location events to the server
-        if (Preference.getBoolean(context, Constants.PreferenceFlag.IS_LOCATION_EVENT_PUBLICATION_ENABLED)) {
-            // publish location notifications for every device info operation invoked
-            publishLocationInfo(deviceInfoPayload.getLocationPayload());
-        }
         operation.setOperationResponse(replyPayload);
         operation.setStatus(resources.getString(R.string.operation_value_completed));
         resultBuilder.build(operation);
         if(Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "getDeviceInfo executed.");
-        }
-    }
-
-    /**
-     * To publish the location event to the server
-     *
-     * @param locationPayload Payload with location details
-     */
-    private void publishLocationInfo(String locationPayload) {
-        if (locationPayload != null && !locationPayload.isEmpty()) {
-            EventPayload eventPayload = new EventPayload();
-            eventPayload.setPayload(locationPayload);
-            eventPayload.setType(Constants.EventListeners.LOCATION_EVENT_TYPE);
-            HttpDataPublisher httpDataPublisher = new HttpDataPublisher();
-            httpDataPublisher.publish(eventPayload);
-            if (Constants.DEBUG_MODE_ENABLED) {
-                Log.d(TAG, "Location Event is published.");
-            }
-        } else {
-            if (Constants.DEBUG_MODE_ENABLED) {
-                Log.d(TAG, "Location information is not found in the device.");
-            }
         }
     }
 

@@ -1,4 +1,4 @@
-package org.wso2.emm.system.service;
+package org.wso2.iot.system.service;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -10,7 +10,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
-import org.wso2.emm.system.service.utils.Constants;
+
+import org.wso2.iot.system.service.utils.Constants;
 
 /**
  * This activity is used to lock the device.

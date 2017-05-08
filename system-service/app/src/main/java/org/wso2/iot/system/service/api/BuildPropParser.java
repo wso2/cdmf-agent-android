@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.emm.system.service.api;
+package org.wso2.iot.system.service.api;
 
 import android.content.Context;
 import android.util.Log;

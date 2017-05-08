@@ -1,9 +1,9 @@
-package org.wso2.emm.system.service.utils;
+package org.wso2.iot.system.service.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import org.wso2.emm.system.service.R;
+import org.wso2.iot.system.service.R;
 
 /**
  * This class handles all the functionality related to data retrieval and saving to 

@@ -16,8 +16,9 @@
  * under the License.
  */
 
-package org.wso2.emm.system.service.api;
+package org.wso2.iot.system.service.api;
 
+import android.annotation.NonNull;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -33,18 +34,17 @@ import android.os.PowerManager.WakeLock;
 import android.os.RecoverySystem;
 import android.os.StatFs;
 import android.os.SystemProperties;
-import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.wso2.emm.system.service.MainActivity;
-import org.wso2.emm.system.service.R;
-import org.wso2.emm.system.service.services.NotificationActionReceiver;
-import org.wso2.emm.system.service.utils.CommonUtils;
-import org.wso2.emm.system.service.utils.Constants;
-import org.wso2.emm.system.service.utils.FileUtils;
-import org.wso2.emm.system.service.utils.Preference;
+import org.wso2.iot.system.service.MainActivity;
+import org.wso2.iot.system.service.R;
+import org.wso2.iot.system.service.services.NotificationActionReceiver;
+import org.wso2.iot.system.service.utils.CommonUtils;
+import org.wso2.iot.system.service.utils.Constants;
+import org.wso2.iot.system.service.utils.FileUtils;
+import org.wso2.iot.system.service.utils.Preference;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -483,7 +483,7 @@ public class OTAServerManager {
         PendingIntent contentIntent = PendingIntent.getActivity(context, requestID,notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                 .setSmallIcon(R.drawable.notification)
-                .setContentTitle("Message from EMM")
+                .setContentTitle("Message from IoT Agent")
                 .setStyle(new NotificationCompat.BigTextStyle()
                                   .bigText(notificationMessage))
                 .setContentText(notificationMessage).setAutoCancel(true);

@@ -15,18 +15,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.emm.system.service.services;
+package org.wso2.iot.system.service.services;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import org.wso2.emm.system.service.R;
-import org.wso2.emm.system.service.api.OTADownload;
-import org.wso2.emm.system.service.api.OTAServerManager;
-import org.wso2.emm.system.service.utils.Constants;
-import org.wso2.emm.system.service.utils.Preference;
+import org.wso2.iot.system.service.R;
+import org.wso2.iot.system.service.api.OTADownload;
+import org.wso2.iot.system.service.api.OTAServerManager;
+import org.wso2.iot.system.service.utils.Constants;
+import org.wso2.iot.system.service.utils.Preference;
 
 import java.net.MalformedURLException;
 

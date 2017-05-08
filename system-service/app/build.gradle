@@ -18,13 +18,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "21.1.2"
+    compileSdkVersion 25
+    buildToolsVersion "25.0.3"
 
     defaultConfig {
-        applicationId "org.wso2.emm.system.service"
+        applicationId "org.wso2.iot.system.service"
         minSdkVersion 17
-        targetSdkVersion 23
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
     }
@@ -32,11 +32,82 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // DEBUG_MODE_ENABLED: Make the agent print the debug logs.
+            buildConfigField "boolean", "DEBUG_MODE_ENABLED", "false"
+            // AGENT_PACKAGE: If a modification of the agent's package name is done, this must be
+            // altered
+            buildConfigField "String", "AGENT_PACKAGE", "\"org.wso2.iot.agent\""
+            // SYSTEM_APP_PACKAGE: If a modification of the system app's package name is done, this
+            // must be altered
+            buildConfigField "String", "SYSTEM_APP_PACKAGE", "\"org.wso2.iot.system.service\""
+            // AGENT_APP_LAUNCH_ACTIVITY: Default launcher activity class name relative to
+            // agent package name
+            buildConfigField "String", "AGENT_APP_LAUNCH_ACTIVITY", "\"activities.SplashActivity\""
+            // DEFAULT_OTA_SERVER_ADDRESS: Default OTA upgrade server address
+            buildConfigField "String", "DEFAULT_OTA_SERVER_ADDRESS", "null"
+            // DEFAULT_OTA_SERVER_ADDRESS: Default OTA upgrade server protocol
+            buildConfigField "String", "DEFAULT_OTA_SERVER_PROTOCOL", "\"http\""
+            // DEFAULT_OTA_SERVER_ADDRESS: Default OTA upgrade server directory path to
+            // upgrade artifacts
+            buildConfigField "String", "DEFAULT_OTA_SERVER_SUB_DIRECTORY", "null"
+            // DEFAULT_OTA_SERVER_PORT: Port of the OTA upgrade server
+            buildConfigField "int", "DEFAULT_OTA_SERVER_PORT", "80"
+            // REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE: Minimum battery level required to
+            // initiate firmware upgrade
+            buildConfigField "int", "REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE", "50"
+            // DEFAULT_OTA_BUILD_PROP_FILE: Build property file to validate the upgrade
+            buildConfigField "String", "DEFAULT_OTA_BUILD_PROP_FILE", "\"build.prop\""
+            // DEFAULT_OTA_ZIP_FILE: Default suffix of the update package
+            buildConfigField "String", "DEFAULT_OTA_ZIP_FILE", "\".ota.zip\""
+            // UPDATE_PACKAGE_NAME: Default name of the OTA zip file
+            buildConfigField "String", "UPDATE_PACKAGE_NAME", "\"update.zip\""
+            // SILENT_FIRMWARE_INSTALLATION: Suppress all messages & confirmations during
+            // firmware upgrade
+            buildConfigField "boolean", "SILENT_FIRMWARE_INSTALLATION", "false"
+            buildConfigField "int", "FIRMWARE_UPGRADE_CONNECTIVITY_TIMEOUT", "10000"
+            buildConfigField "int", "FIRMWARE_UPGRADE_READ_TIMEOUT", "60000"
+        }
+        debug {
+            // DEBUG_MODE_ENABLED: Make the agent print the debug logs.
+            // Make this false in production.
+            buildConfigField "boolean", "DEBUG_MODE_ENABLED", "true"
+            // AGENT_PACKAGE: If a modification of the agent's package name is done, this must be
+            // altered
+            buildConfigField "String", "AGENT_PACKAGE", "\"org.wso2.iot.agent\""
+            // SYSTEM_APP_PACKAGE: If a modification of the system app's package name is done, this
+            // must be altered
+            buildConfigField "String", "SYSTEM_APP_PACKAGE", "\"org.wso2.iot.system.service\""
+            // AGENT_APP_LAUNCH_ACTIVITY: Default launcher activity class name relative to
+            // agent package name
+            buildConfigField "String", "AGENT_APP_LAUNCH_ACTIVITY", "\"activities.SplashActivity\""
+            // DEFAULT_OTA_SERVER_ADDRESS: Default OTA upgrade server address
+            buildConfigField "String", "DEFAULT_OTA_SERVER_ADDRESS", "null"
+            // DEFAULT_OTA_SERVER_ADDRESS: Default OTA upgrade server protocol
+            buildConfigField "String", "DEFAULT_OTA_SERVER_PROTOCOL", "\"http\""
+            // DEFAULT_OTA_SERVER_ADDRESS: Default OTA upgrade server directory path to
+            // upgrade artifacts
+            buildConfigField "String", "DEFAULT_OTA_SERVER_SUB_DIRECTORY", "null"
+            // DEFAULT_OTA_SERVER_PORT: Port of the OTA upgrade server
+            buildConfigField "int", "DEFAULT_OTA_SERVER_PORT", "80"
+            // REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE: Minimum battery level required to
+            // initiate firmware upgrade
+            buildConfigField "int", "REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE", "50"
+            // DEFAULT_OTA_BUILD_PROP_FILE: Build property file to validate the upgrade
+            buildConfigField "String", "DEFAULT_OTA_BUILD_PROP_FILE", "\"build.prop\""
+            // DEFAULT_OTA_ZIP_FILE: Default suffix of the update package
+            buildConfigField "String", "DEFAULT_OTA_ZIP_FILE", "\".ota.zip\""
+            // UPDATE_PACKAGE_NAME: Default name of the OTA zip file
+            buildConfigField "String", "UPDATE_PACKAGE_NAME", "\"update.zip\""
+            // SILENT_FIRMWARE_INSTALLATION: Suppress all messages & confirmations during
+            // firmware upgrade
+            buildConfigField "boolean", "SILENT_FIRMWARE_INSTALLATION", "false"
+            buildConfigField "int", "FIRMWARE_UPGRADE_CONNECTIVITY_TIMEOUT", "10000"
+            buildConfigField "int", "FIRMWARE_UPGRADE_READ_TIMEOUT", "60000"
         }
     }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:23.2.1'
+    compile 'com.android.support:appcompat-v7:25.3.1'
 }

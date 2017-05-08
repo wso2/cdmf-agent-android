@@ -23,12 +23,11 @@ buildscript {
 
     dependencies {
         classpath 'com.android.tools.build:gradle:2.2.3'
-        classpath 'com.google.gms:google-services:3.0.0'
     }
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.2.3'
+    gradleVersion = '2.2.3'
 }
 
 allprojects {

@@ -50,8 +50,8 @@ public class Constants {
 	public static final int FIRMWARE_UPGRADE_RETRY_COUNT = BuildConfig.FIRMWARE_UPGRADE_RETRY_COUNT;
 	public static final float SERVER_API_VERSION = BuildConfig.SERVER_API_VERSION;
 	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
-	public static final String SYSTEM_APP_SERVICE_START_ACTION = "org.wso2.emm.system.service.START_SERVICE";
-	public static final String SYSTEM_APP_BROADCAST_ACTION = "org.wso2.emm.system.service.MESSAGE_PROCESSED";
+	public static final String SYSTEM_APP_SERVICE_START_ACTION = "org.wso2.iot.system.service.START_SERVICE";
+	public static final String SYSTEM_APP_BROADCAST_ACTION = "org.wso2.iot.system.service.MESSAGE_PROCESSED";
 	public static final String LOCATION_UPDATE_BROADCAST_ACTION = "org.ws2.iot.agent.LOCATION_UPDATE";
 	public static final String SYNC_BROADCAST_ACTION = "org.ws2.iot.agent.SERVER_SYNC";
 	public static final String HTTPS_PROTOCOL = "https://";
@@ -65,14 +65,13 @@ public class Constants {
 	public static final String SERVER_PROTOCOL = BuildConfig.SERVER_PROTOCOL;
 	public static final String API_SERVER_PORT = BuildConfig.API_SERVER_PORT;
 
-
-
 	// This is used to skip the license
 	public static final boolean SKIP_LICENSE = BuildConfig.SKIP_LICENSE;
 	public static final boolean HIDE_LOGIN_UI = BuildConfig.HIDE_LOGIN_UI;
 	public static final boolean HIDE_UNREGISTER_BUTTON = BuildConfig.HIDE_UNREGISTER_BUTTON;
 	public static final boolean SKIP_WORK_PROFILE_CREATION = BuildConfig.SKIP_WORK_PROFILE_CREATION;
 	public static final boolean HIDE_ERROR_DIALOG = BuildConfig.HIDE_ERROR_DIALOG;
+	public static boolean ASK_TO_ENABLE_LOCATION = BuildConfig.ASK_TO_ENABLE_LOCATION;
 
 	//COSU Configurations
 	public static final String[] ANDROID_COSU_PERMISSIONS = {"android.permission.READ_PHONE_STATE",

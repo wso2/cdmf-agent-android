@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="org.wso2.emm.agent.LockActivity"
+    tools:context="org.wso2.iot.system.service.LockActivity"
     android:background="#000000">
 
     <!-- The primary full-screen view. This can be replaced with whatever view

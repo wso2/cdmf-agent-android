@@ -306,27 +306,6 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 	};
 
 	/**
-	 * Dialog box click listener for publishing location details to the server as event
-	 */
-    DialogInterface.OnClickListener locationPublishingEnableDisableListener = new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-			boolean isEventListeningEnabled = Preference.getBoolean(context,
-					Constants.PreferenceFlag.IS_LOCATION_EVENT_PUBLICATION_ENABLED);
-			switch (which) {
-				case DialogInterface.BUTTON_POSITIVE:
-					Preference.putBoolean(context, Constants.PreferenceFlag.IS_LOCATION_EVENT_PUBLICATION_ENABLED,
-							!isEventListeningEnabled);
-					dialog.dismiss();
-					break;
-				case DialogInterface.BUTTON_NEGATIVE:
-					dialog.dismiss();
-                    break;
-            }
-        }
-    };
-
-	/**
 	 * Send unregistration request.
 	 */
 	private void startUnRegistration() {
@@ -557,29 +536,6 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 						getResources().getString(R.string.yes),
 						getResources().getString(R.string.no),
 						dialogClickListener, dialogClickListener);
-		alertDialog.show();
-	}
-
-	/**
-	 * Display Location Event listening enable or disable confirmation dialog
-	 */
-	private void showEventListeningEnableDisableDialog() {
-		AlertDialog.Builder alertDialog;
-		if (!Preference.getBoolean(context, Constants.PreferenceFlag.IS_LOCATION_EVENT_PUBLICATION_ENABLED)) {
-			alertDialog = CommonDialogUtils.getAlertDialogWithTwoButtonAndTitle(context,
-							null,
-							getResources().getString(R.string.dialog__location_event_listening_enable),
-							getResources().getString(R.string.yes),
-							getResources().getString(R.string.no),
-					        locationPublishingEnableDisableListener, locationPublishingEnableDisableListener);
-		} else {
-			alertDialog = CommonDialogUtils.getAlertDialogWithTwoButtonAndTitle(context,
-					null,
-					getResources().getString(R.string.dialog_location_event_listening_disable),
-					getResources().getString(R.string.yes),
-					getResources().getString(R.string.no),
-					locationPublishingEnableDisableListener, locationPublishingEnableDisableListener);
-		}
 		alertDialog.show();
 	}
 

@@ -34,7 +34,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import org.wso2.iot.agent.R;
-import org.wso2.iot.agent.activities.WorkProfileSelectionActivity;
+import org.wso2.iot.agent.activities.AlreadyRegisteredActivity;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 
@@ -50,7 +50,7 @@ public class LocationService extends Service implements LocationListener {
 
     private LocationManager locationManager = null;
     private Context context;
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1000; //If more than 10Km
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1000; //If more than 1Km
     private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 15; //If more than 15 minutes
     private List<String> providers = new ArrayList<>();
     private boolean isUpdateRequested = false;
@@ -68,25 +68,27 @@ public class LocationService extends Service implements LocationListener {
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Starting service with ID: " + startId);
         }
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            try {
-                int locationSetting = Settings.Secure.getInt(context.getContentResolver(),
-                        Settings.Secure.LOCATION_MODE);
-                if (locationSetting == 0) {
-                    CommonUtils.displayNotification(context,
-                            R.drawable.ic_warning_white_24dp,
-                            context.getResources().getString(R.string.title_need_location),
-                            context.getResources().getString(R.string.msg_need_location),
-                            WorkProfileSelectionActivity.class,
-                            Constants.LOCATION_DISABLED,
-                            Constants.LOCATION_DISABLED_NOTIFICATION_ID);
+        if (Constants.ASK_TO_ENABLE_LOCATION) {
+            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                try {
+                    int locationSetting = Settings.Secure.getInt(context.getContentResolver(),
+                            Settings.Secure.LOCATION_MODE);
+                    if (locationSetting == 0) {
+                        CommonUtils.displayNotification(context,
+                                R.drawable.ic_warning_white_24dp,
+                                context.getResources().getString(R.string.title_need_location),
+                                context.getResources().getString(R.string.msg_need_location),
+                                AlreadyRegisteredActivity.class,
+                                Constants.LOCATION_DISABLED,
+                                Constants.LOCATION_DISABLED_NOTIFICATION_ID);
+                    }
+                } catch (Settings.SettingNotFoundException e) {
+                    Log.w(TAG, "Location setting is not available on this device");
                 }
-            } catch (Settings.SettingNotFoundException e) {
-                Log.w(TAG, "Location setting is not available on this device");
+            } else {
+                Log.w(TAG, "Location setting retrieval is not supported by API level "
+                        + android.os.Build.VERSION.SDK_INT);
             }
-        } else {
-            Log.w(TAG, "Location setting retrieval is not supported by API level "
-                    + android.os.Build.VERSION.SDK_INT);
         }
         if (Build.VERSION.SDK_INT >= 23
                 && ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -237,7 +239,7 @@ public class LocationService extends Service implements LocationListener {
                 R.drawable.ic_warning_white_24dp,
                 context.getResources().getString(R.string.title_need_permissions),
                 context.getResources().getString(R.string.msg_need_permissions),
-                WorkProfileSelectionActivity.class,
+                AlreadyRegisteredActivity.class,
                 Constants.PERMISSION_MISSING,
                 Constants.PERMISSION_MISSING_NOTIFICATION_ID);
     }

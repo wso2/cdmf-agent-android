@@ -28,8 +28,6 @@ import android.util.Log;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.api.DeviceInfo;
 import org.wso2.iot.agent.api.DeviceState;
@@ -41,7 +39,6 @@ import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -245,11 +242,13 @@ public class DeviceInfoPayload {
                 property.setValue(network);
                 properties.add(property);
             }
-            // adding wifi scan results..
-            property = new Device.Property();
-            property.setName(Constants.Device.WIFI_SCAN_RESULT);
-            property.setValue(NetworkInfoService.getWifiScanResult());
-            properties.add(property);
+            if (Constants.WIFI_SCANNING_ENABLED) {
+                // adding wifi scan results..
+                property = new Device.Property();
+                property.setName(Constants.Device.WIFI_SCAN_RESULT);
+                property.setValue(NetworkInfoService.getWifiScanResult());
+                properties.add(property);
+            }
         } catch (AndroidAgentException e) {
             Log.e(TAG, "Error retrieving network status. " + e.getMessage());
         }
@@ -362,29 +361,4 @@ public class DeviceInfoPayload {
         return null;
     }
 
-    /**
-     * Returns the location payload.
-     *
-     * @return - Location info payload as a string
-     */
-    public String getLocationPayload() {
-        Location deviceLocation = CommonUtils.getLocation(context);
-        String locationString = null;
-        if (deviceLocation != null) {
-            double latitude = deviceLocation.getLatitude();
-            double longitude = deviceLocation.getLongitude();
-            if (latitude != 0 && longitude != 0) {
-                JSONObject locationObject = new JSONObject();
-                try {
-                    locationObject.put(Constants.LocationInfo.LATITUDE, latitude);
-                    locationObject.put(Constants.LocationInfo.LONGITUDE, longitude);
-                    locationObject.put(Constants.LocationInfo.TIME_STAMP, new Date().getTime());
-                    locationString = locationObject.toString();
-                } catch (JSONException e) {
-                    Log.e(TAG, "Error occurred while creating a location payload for location event publishing", e);
-                }
-            }
-        }
-        return locationString;
-    }
 }

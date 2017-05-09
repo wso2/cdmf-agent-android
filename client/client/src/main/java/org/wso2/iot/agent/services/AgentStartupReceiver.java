@@ -61,6 +61,10 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 				&& !isNetworkConnected(context, intent)) {
 			return;
 		}
+		if (!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE)) {
+			Log.e(TAG, "Device is not active");
+			return;
+		}
 		setRecurringAlarm(context.getApplicationContext());
 		if(!EventRegistry.eventListeningStarted) {
 			EventRegistry registerEvent = new EventRegistry(context.getApplicationContext());

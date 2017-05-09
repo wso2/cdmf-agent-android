@@ -50,6 +50,7 @@ public class SplashActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_splash);
         if (Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED) {
             Intent intent = new Intent(this, EnrollmentService.class);
             startService(intent);
@@ -57,7 +58,6 @@ public class SplashActivity extends Activity {
         } else if (instantiatedActivityClass != null) {
             startActivity();
         } else {
-            setContentView(R.layout.activity_splash);
             String footerText = String.format(
                     getResources().getString(R.string.footer_text),
                     BuildConfig.VERSION_NAME,
@@ -81,19 +81,17 @@ public class SplashActivity extends Activity {
     }
 
     private void startActivity() {
-        if (instantiatedActivityClass == null) {
-            if (Preference.hasPreferenceKey(this, Constants.TOKEN_EXPIRED) ||
-                    (Constants.DEFAULT_HOST != null && !Preference.getBoolean(this, Constants.PreferenceFlag.DEVICE_ACTIVE))) {
-                instantiatedActivityClass = AuthenticationActivity.class;
-            } else if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
-                instantiatedActivityClass = ServerConfigsActivity.class;
-            } else if (Preference.getBoolean(this, Constants.PreferenceFlag.DEVICE_ACTIVE)) {
-                instantiatedActivityClass = AlreadyRegisteredActivity.class;
-            } else if (hasWorkProfileCapability()) {
-                instantiatedActivityClass = WorkProfileSelectionActivity.class;
-            } else {
-                instantiatedActivityClass = ServerConfigsActivity.class;
-            }
+        if (Preference.hasPreferenceKey(this, Constants.TOKEN_EXPIRED) ||
+                (Constants.DEFAULT_HOST != null && !Preference.getBoolean(this, Constants.PreferenceFlag.DEVICE_ACTIVE))) {
+            instantiatedActivityClass = AuthenticationActivity.class;
+        } else if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
+            instantiatedActivityClass = ServerConfigsActivity.class;
+        } else if (Preference.getBoolean(this, Constants.PreferenceFlag.DEVICE_ACTIVE)) {
+            instantiatedActivityClass = AlreadyRegisteredActivity.class;
+        } else if (hasWorkProfileCapability()) {
+            instantiatedActivityClass = WorkProfileSelectionActivity.class;
+        } else {
+            instantiatedActivityClass = ServerConfigsActivity.class;
         }
         Intent intent = new Intent(getApplicationContext(), instantiatedActivityClass);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

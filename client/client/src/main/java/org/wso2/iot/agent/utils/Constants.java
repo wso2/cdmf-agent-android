@@ -72,6 +72,8 @@ public class Constants {
 	public static final boolean SKIP_WORK_PROFILE_CREATION = BuildConfig.SKIP_WORK_PROFILE_CREATION;
 	public static final boolean HIDE_ERROR_DIALOG = BuildConfig.HIDE_ERROR_DIALOG;
 	public static boolean ASK_TO_ENABLE_LOCATION = BuildConfig.ASK_TO_ENABLE_LOCATION;
+	public static boolean LOCATION_PUBLISHING_ENABLED = BuildConfig.LOCATION_PUBLISHING_ENABLED;
+	public static boolean WIFI_SCANNING_ENABLED = BuildConfig.WIFI_SCANNING_ENABLED;
 
 	//COSU Configurations
 	public static final String[] ANDROID_COSU_PERMISSIONS = {"android.permission.READ_PHONE_STATE",
@@ -475,7 +477,6 @@ public class Constants {
 		public static final String IS_AGREED = "isAgreed";
 		public static final String NOTIFIER_TYPE = "notifierType";
 		public static final String CURRENT_INSTALLING_APP = "installingApplication";
-		public static final String IS_LOCATION_EVENT_PUBLICATION_ENABLED = "isLocationPublicationEnabled";
 		public static final String LOCAL_NOTIFIER_INVOKED_PREF_KEY = "localNotificationInvoked";
 		public static final String DEVICE_ID_PREFERENCE_KEY = "deviceId";
 		public static final String LAST_SERVER_CALL = "lastServerCall";

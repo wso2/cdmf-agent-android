@@ -416,10 +416,10 @@ android {
             // Set DEFAULT_OWNERSHIP to null if no overriding is needed. Other possible values are,
             // BYOD or COPE. If you are using the mutual SSL authentication
             // This value must be set to a value other than null.
-            buildConfigField "String", "DEFAULT_OWNERSHIP", "null"
+            buildConfigField "String", "DEFAULT_OWNERSHIP", "\"COSU\""
             //DEFAULT_HOST - Hardcode the server host to avoid having the user type it during
             //enrollment. If the user must type the hostname/IP during enrollment, leave it as null.
-            buildConfigField "String", "DEFAULT_HOST", "null"
+            buildConfigField "String", "DEFAULT_HOST", "\"http://192.168.12.103:8280\""
             // APP_MANAGER_HOST: If the App store host is different from the DEFAULT_HOST
             // change this value.
             buildConfigField "String", "APP_MANAGER_HOST", "null"

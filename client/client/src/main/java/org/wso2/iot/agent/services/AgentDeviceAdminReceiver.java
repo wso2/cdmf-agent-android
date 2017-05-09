@@ -24,11 +24,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.PersistableBundle;
 import android.util.Log;
 import android.widget.Toast;
 
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.activities.AuthenticationActivity;
 import org.wso2.iot.agent.activities.EnableProfileActivity;
 import org.wso2.iot.agent.activities.SplashActivity;
 import org.wso2.iot.agent.beans.ServerConfig;
@@ -185,7 +187,19 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
                 }
             }
 
-            Intent launch = new Intent(context, SplashActivity.class);
+            String token = "dido";
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                PersistableBundle persistableBundle = intent.getParcelableExtra(
+                        DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
+                if (persistableBundle == null) {
+                    token = "no token";
+                } else {
+                    token = (String) persistableBundle.get("android.app.extra.token");
+                }
+            }
+
+            Intent launch = new Intent(context, AuthenticationActivity.class);
+            launch.putExtra("android.app.extra.token", token);
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(launch);
         } else {

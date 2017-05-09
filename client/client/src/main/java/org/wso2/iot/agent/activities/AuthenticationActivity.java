@@ -31,6 +31,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -289,6 +290,19 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 		if (Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED) {
 			finish();
 		}
+
+		Intent intent = getIntent();
+			if(intent.hasExtra("android.app.extra.token")){
+				String token = intent.getStringExtra("android.app.extra.token");
+				textViewWipeData.setText(token);
+			}else {
+				textViewWipeData.setText("extra not found");
+			}
+
+
+
+
+
 	}
 
 	@Override

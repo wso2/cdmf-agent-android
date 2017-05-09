@@ -73,6 +73,7 @@ public class Constants {
 	public static final boolean HIDE_ERROR_DIALOG = BuildConfig.HIDE_ERROR_DIALOG;
 	public static boolean ASK_TO_ENABLE_LOCATION = BuildConfig.ASK_TO_ENABLE_LOCATION;
 	public static boolean LOCATION_PUBLISHING_ENABLED = BuildConfig.LOCATION_PUBLISHING_ENABLED;
+	public static boolean WIFI_SCANNING_ENABLED = BuildConfig.WIFI_SCANNING_ENABLED;
 
 	//COSU Configurations
 	public static final String[] ANDROID_COSU_PERMISSIONS = {"android.permission.READ_PHONE_STATE",

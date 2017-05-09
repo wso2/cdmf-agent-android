@@ -242,11 +242,13 @@ public class DeviceInfoPayload {
                 property.setValue(network);
                 properties.add(property);
             }
-            // adding wifi scan results..
-            property = new Device.Property();
-            property.setName(Constants.Device.WIFI_SCAN_RESULT);
-            property.setValue(NetworkInfoService.getWifiScanResult());
-            properties.add(property);
+            if (Constants.WIFI_SCANNING_ENABLED) {
+                // adding wifi scan results..
+                property = new Device.Property();
+                property.setName(Constants.Device.WIFI_SCAN_RESULT);
+                property.setValue(NetworkInfoService.getWifiScanResult());
+                properties.add(property);
+            }
         } catch (AndroidAgentException e) {
             Log.e(TAG, "Error retrieving network status. " + e.getMessage());
         }

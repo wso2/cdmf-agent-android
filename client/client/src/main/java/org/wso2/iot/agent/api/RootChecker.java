@@ -24,18 +24,20 @@ import java.io.File;
 /**
  * This class represents all the APIs to check if the device is Rooted or not.
  */
-public class Root {
+@SuppressWarnings("WeakerAccess")
+public class RootChecker {
+	private static final String TAG = RootChecker.class.getSimpleName();
+
 	private static final String[] SU_CHECK_COMMAND = new String[] { "/system/xbin/which", "su" };
 	private static final String SU_TAG = "test-keys";
 	private static final String SU_APK = "/system/app/Superuser.apk";
-	private static final String TAG = Root.class.getSimpleName();
 
 	/**
 	 * Returns true if the device is rooted (if any of the root methods returns
 	 * true).
 	 * @return - Device rooted status.
 	 */
-	public boolean isDeviceRooted() {
+	public static boolean isDeviceRooted() {
 		return checkRootBySuAccess() || checkRootBySuperUserApk() || checkRootByBuildTags();
 	}
 
@@ -43,7 +45,7 @@ public class Root {
 	 * Returns true if the OS build tags contains "test-keys".
 	 * @return - Device root status by build tags.
 	 */
-	public boolean checkRootByBuildTags() {
+	private static boolean checkRootByBuildTags() {
 
 		String buildTags = android.os.Build.TAGS;
 		if (buildTags != null && buildTags.contains(SU_TAG)) {
@@ -60,7 +62,7 @@ public class Root {
 	 * the device in the rooting process.
 	 * @return - Device root status by SU APK.
 	 */
-	public boolean checkRootBySuperUserApk() {
+	private static boolean checkRootBySuperUserApk() {
 		File suApk = new File(SU_APK);
 		if (suApk.exists()) {
 			if (Constants.DEBUG_MODE_ENABLED) {
@@ -76,7 +78,7 @@ public class Root {
 	 * true if the command succeeds.
 	 * @return - Device root status by shell access.
 	 */
-	public boolean checkRootBySuAccess() {
+	private static boolean checkRootBySuAccess() {
 		if (new ShellExecutor().executeCommand(SU_CHECK_COMMAND) != null) {
 			if (Constants.DEBUG_MODE_ENABLED) {
 				Log.d(TAG, "su command is enabled");

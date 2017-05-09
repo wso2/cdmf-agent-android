@@ -164,12 +164,13 @@ public class DeviceState {
      * @return - Device compatibility status.
      */
     public Response evaluateCompatibility() {
+        boolean isRooted = info.isRooted();
         if (!(info.getSdkVersion() >= android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) &&
-            info.isRooted()) {
+                isRooted) {
             return Response.INCOMPATIBLE;
-        } else if (info.getSdkVersion() < android.os.Build.VERSION_CODES.JELLY_BEAN) {
+        } else if (info.getSdkVersion() < Build.VERSION_CODES.JELLY_BEAN_MR1) {
             return Response.INCOMPATIBLE_OS;
-        } else if (info.isRooted()) {
+        } else if (isRooted) {
             return Response.INCOMPATIBLE_ROOT;
         }
         return Response.COMPATIBLE;

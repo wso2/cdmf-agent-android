@@ -158,6 +158,8 @@ android {
             buildConfigField "boolean", "ASK_TO_ENABLE_LOCATION", "false"
             //Publish location changes to server
             buildConfigField "boolean", "LOCATION_PUBLISHING_ENABLED", "false"
+            //Collect WiFi scan results
+            buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "false"
         }
         staging {
             // DEBUG_MODE_ENABLED: Make the agent print the debug logs.
@@ -274,6 +276,8 @@ android {
             buildConfigField "boolean", "ASK_TO_ENABLE_LOCATION", "false"
             //Publish location changes to server
             buildConfigField "boolean", "LOCATION_PUBLISHING_ENABLED", "false"
+            //Collect WiFi scan results
+            buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "false"
             debuggable true
         }
         debugCope {
@@ -393,6 +397,8 @@ android {
             buildConfigField "boolean", "ASK_TO_ENABLE_LOCATION", "false"
             //Publish location changes to server
             buildConfigField "boolean", "LOCATION_PUBLISHING_ENABLED", "false"
+            //Collect WiFi scan results
+            buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "true"
             debuggable true
         }
         debug {
@@ -512,6 +518,8 @@ android {
             buildConfigField "boolean", "ASK_TO_ENABLE_LOCATION", "false"
             //Publish location changes to server
             buildConfigField "boolean", "LOCATION_PUBLISHING_ENABLED", "true"
+            //Collect WiFi scan results
+            buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "false"
         }
     }
     compileOptions {

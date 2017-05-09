@@ -176,8 +176,7 @@ public class DeviceInfo {
 	 * @return - Device rooted status.
 	 */
 	public boolean isRooted() {
-		Root rootChecker = new Root();
-		return rootChecker.isDeviceRooted();
+		return RootChecker.isDeviceRooted();
 	}
 
 	/**

@@ -129,6 +129,7 @@ public class LocationService extends Service implements LocationListener {
         broadcastIntent.setAction(Constants.LOCATION_UPDATE_BROADCAST_ACTION);
         broadcastIntent.putExtra(Constants.Location.LOCATION, location);
         sendBroadcast(broadcastIntent);
+        publishLocationInfo(location);
     }
 
     @Override
@@ -213,7 +214,6 @@ public class LocationService extends Service implements LocationListener {
                 Log.d(TAG, "Location changed> lat:" + location.getLatitude() + " lon:" + location.getLongitude() + " provider:" + location.getProvider());
             }
             broadcastLocation(location);
-            publishLocationInfo(location);
         }
     }
 
@@ -248,6 +248,9 @@ public class LocationService extends Service implements LocationListener {
      * @param location location details
      */
     private void publishLocationInfo(Location location) {
+        if (!Constants.LOCATION_PUBLISHING_ENABLED) {
+            return;
+        }
         if (EventRegistry.eventListeningStarted) {
             String locationPayload = getLocationPayload(location);
             if (lastPublishedLocationTime < location.getTime()) {

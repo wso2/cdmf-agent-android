@@ -156,6 +156,8 @@ android {
             buildConfigField "float", "MAX_SERVER_API_VERSION", "1.0f"
             //Show notification to enable location if it is disabled
             buildConfigField "boolean", "ASK_TO_ENABLE_LOCATION", "false"
+            //Publish location changes to server
+            buildConfigField "boolean", "LOCATION_PUBLISHING_ENABLED", "false"
         }
         staging {
             // DEBUG_MODE_ENABLED: Make the agent print the debug logs.
@@ -270,6 +272,8 @@ android {
             buildConfigField "float", "MAX_SERVER_API_VERSION", "1.0f"
             //Show notification to enable location if it is disabled
             buildConfigField "boolean", "ASK_TO_ENABLE_LOCATION", "false"
+            //Publish location changes to server
+            buildConfigField "boolean", "LOCATION_PUBLISHING_ENABLED", "false"
             debuggable true
         }
         debugCope {
@@ -387,6 +391,8 @@ android {
             buildConfigField "float", "MAX_SERVER_API_VERSION", "1.0f"
             //Show notification to enable location if it is disabled
             buildConfigField "boolean", "ASK_TO_ENABLE_LOCATION", "false"
+            //Publish location changes to server
+            buildConfigField "boolean", "LOCATION_PUBLISHING_ENABLED", "false"
             debuggable true
         }
         debug {
@@ -504,6 +510,8 @@ android {
             buildConfigField "float", "MAX_SERVER_API_VERSION", "1.0f"
             //Show notification to enable location if it is disabled
             buildConfigField "boolean", "ASK_TO_ENABLE_LOCATION", "false"
+            //Publish location changes to server
+            buildConfigField "boolean", "LOCATION_PUBLISHING_ENABLED", "true"
         }
     }
     compileOptions {

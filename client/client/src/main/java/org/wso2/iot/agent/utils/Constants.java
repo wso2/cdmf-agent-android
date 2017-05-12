@@ -20,6 +20,9 @@ package org.wso2.iot.agent.utils;
 
 import org.wso2.iot.agent.BuildConfig;
 
+import static org.wso2.iot.agent.proxy.utils.Constants.Authenticator.AUTHENTICATOR_IN_USE;
+import static org.wso2.iot.agent.proxy.utils.Constants.Authenticator.MUTUAL_SSL_AUTHENTICATOR;
+
 /**
  * This class holds all the constants used throughout the application.
  */
@@ -113,8 +116,9 @@ public class Constants {
 		public static final String HEC_MINT_ENDPOINT_URL = BuildConfig.HEC_MINT_ENDPOINT_URL;
 	}
 
-	public static final String SERVER_APP_ENDPOINT = "/api/device-mgt/android/v" + SERVER_API_VERSION +
-													 "/";
+	public static final String SERVER_APP_ENDPOINT = AUTHENTICATOR_IN_USE.equals(MUTUAL_SSL_AUTHENTICATOR) ?
+			"/api/device-mgt/android/mssl/v" + SERVER_API_VERSION + "/"
+			: "/api/device-mgt/android/v" + SERVER_API_VERSION + "/";
 	public static final String LICENSE_ENDPOINT = SERVER_APP_ENDPOINT + "configuration/license";
 	public static final String REGISTER_ENDPOINT = SERVER_APP_ENDPOINT + "devices/";
 	public static final String CONFIGURATION_ENDPOINT = SERVER_APP_ENDPOINT + "configuration/";

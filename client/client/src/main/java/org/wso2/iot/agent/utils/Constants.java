@@ -177,6 +177,13 @@ public class Constants {
 	public static final String APP_LOCK_SERVICE = "AppLockService";
 
 	/**
+	 * Permission Policy Types.
+	 */
+	public static final int PERMISSION_POLICY_PROMPT = 0;
+	public static final int PERMISSION_POLICY_AUTO_GRANT = 1;
+	public static final int PERMISSION_POLICY_AUTO_DENY = 2;
+
+	/**
 	 * Request codes.
 	 */
 	public static final int REGISTER_REQUEST_CODE = 300;
@@ -330,6 +337,7 @@ public class Constants {
 		public static final String LOGCAT = "LOGCAT";
 		public static final String FIRMWARE_UPGRADE_AUTOMATIC_RETRY = "FIRMWARE_UPGRADE_AUTOMATIC_RETRY";
 		public static final String SYSTEM_UPDATE_POLICY = "SYSTEM_UPDATE_POLICY";
+		public static final String RUNTIME_PERMISSION_POLICY = "RUNTIME_PERMISSION_POLICY";
 	}
 
 	/**

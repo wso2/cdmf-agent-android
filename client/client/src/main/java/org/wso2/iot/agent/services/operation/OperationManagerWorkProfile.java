@@ -453,6 +453,14 @@ public class OperationManagerWorkProfile extends OperationManager {
         getResultBuilder().build(operation);
     }
 
+    @Override
+    public void setRuntimePermissionPolicy(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
+    }
+
     private void enableGooglePlayApps(String packageName) {
         triggerGooglePlayApp(packageName);
     }

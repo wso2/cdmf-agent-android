@@ -178,4 +178,12 @@ public interface VersionBasedOperations {
      */
     void setPolicyBundle(Operation operation) throws AndroidAgentException;
 
+    /**
+     * Restrict response to runtime permission requests by apps.
+     * @param operation
+     * @throws AndroidAgentException
+     */
+    void setRuntimePermissionPolicy(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException;
+
+
 }

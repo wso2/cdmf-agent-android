@@ -89,6 +89,8 @@ public class PolicyOperationsMapper {
 				return buildRestrictionOperation(operation);
 			case Constants.Operation.SYSTEM_UPDATE_POLICY:
 				return buildKioskOperation(operation);
+			case Constants.Operation.RUNTIME_PERMISSION_POLICY:
+				return buildRunTimePermissionPolicyOperation(operation);
 			default:
 				throw new AndroidAgentException("Invalid operation code received");
 		}
@@ -160,6 +162,11 @@ public class PolicyOperationsMapper {
 	}
 
 	private Operation buildKioskOperation(Operation operation) {
+		operation.setId(INVALID_FLAG);
+		return operation;
+	}
+
+	private Operation buildRunTimePermissionPolicyOperation(Operation operation) {
 		operation.setId(INVALID_FLAG);
 		return operation;
 	}

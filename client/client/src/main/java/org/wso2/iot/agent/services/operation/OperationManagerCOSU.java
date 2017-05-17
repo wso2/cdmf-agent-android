@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -655,6 +656,24 @@ public class OperationManagerCOSU extends OperationManager {
         getResultBuilder().build(operation);
     }
 
+    @Override
+    public void setRuntimePermissionPolicy(Operation operation) throws AndroidAgentException {
+        JSONObject runtimePermissionTypeData;
+        int permissionType;
+        try {
+            runtimePermissionTypeData = new JSONObject(operation.getPayLoad().toString());
+            if (!runtimePermissionTypeData.isNull("Type")) {
+                permissionType = (Integer) runtimePermissionTypeData.get("Type");
+                Toast.makeText(getContext(),permissionType,Toast.LENGTH_LONG).show();
+            }
+
+        } catch (JSONException e) {
+            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+            operation.setOperationResponse("Error in parsing PROFILE payload.");
+            getResultBuilder().build(operation);
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+    }
 
 
 }

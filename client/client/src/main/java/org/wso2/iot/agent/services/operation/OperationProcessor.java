@@ -154,6 +154,9 @@ public class OperationProcessor {
 			case Constants.Operation.SYSTEM_UPDATE_POLICY:
 				operationManager.setSystemUpdatePolicy(operation);
 				break;
+			case Constants.Operation.RUNTIME_PERMISSION_POLICY:
+				operationManager.setRuntimePermissionPolicy(operation);
+				break;
 			case Constants.Operation.ALLOW_PARENT_PROFILE_APP_LINKING:
 				if (operationManager instanceof OperationManagerDeviceOwner) {
 					operationManager.passOperationToSystemApp(operation);

@@ -131,7 +131,7 @@ public class NotificationService extends BroadcastReceiver {
             PendingIntent dismiss = PendingIntent.getBroadcast(context, operationId, notification, PendingIntent.FLAG_ONE_SHOT);
             NotificationCompat.Builder mBuilder =
                     new NotificationCompat.Builder(context)
-                            .setSmallIcon(R.drawable.notification)
+                            .setSmallIcon(R.drawable.ic_notifications_white_24dp)
                             .setContentTitle(messageTitle)
                             .setContentText(messageText)
                             .setPriority(android.app.Notification.PRIORITY_MAX)
@@ -141,7 +141,7 @@ public class NotificationService extends BroadcastReceiver {
                             .setOngoing(true)
                             .setOnlyAlertOnce(true)
                             .setTicker(context.getResources().getString(R.string.txt_notification))
-                            .addAction(R.drawable.abs__ic_clear, "Dismiss", dismiss);
+                            .addAction(R.drawable.dismiss, "Dismiss", dismiss);
 
             notifyManager.notify(operationId, mBuilder.build());
 

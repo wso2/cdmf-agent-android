@@ -25,9 +25,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -35,25 +32,23 @@ import android.content.res.Resources;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.IBinder;
-import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
+
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.gson.Gson;
 
 import org.bouncycastle.jce.PKCS10CertificationRequest;
 import org.bouncycastle.jce.provider.asymmetric.ec.KeyPairGenerator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.wso2.iot.agent.AgentReceptionActivity;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.api.ApplicationManager;
@@ -68,6 +63,7 @@ import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
 import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.services.DynamicClientManager;
+import org.wso2.iot.agent.services.LocationUpdateReceiver;
 import org.wso2.iot.agent.services.PolicyOperationsMapper;
 import org.wso2.iot.agent.services.PolicyRevokeHandler;
 import org.wso2.iot.agent.services.ResultPayload;
@@ -93,6 +89,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -204,14 +202,8 @@ public class CommonUtils {
 							} catch (FileNotFoundException e) {
 								Log.e(TAG, e.getMessage());
 							}
-						} catch (CertificateException e) {
-							Log.e(TAG, e.getMessage());
-						} catch (KeyStoreException e) {
-							e.printStackTrace();
-						} catch (NoSuchAlgorithmException e) {
-							e.printStackTrace();
-						} catch (IOException e) {
-							e.printStackTrace();
+						} catch (CertificateException | KeyStoreException | NoSuchAlgorithmException | IOException e) {
+							Log.e(TAG, e.getMessage(), e);
 						}
 					}
 				},Constants.SCEP_REQUEST_CODE,context, true);
@@ -225,10 +217,7 @@ public class CommonUtils {
 			} catch (InvalidKeyException e) {
 				throw new AndroidAgentException("Invalid key", e);
 			}
-
 		}
-
-
 	}
 
 	/**
@@ -241,24 +230,10 @@ public class CommonUtils {
 		} catch (SecurityException e) {
 			throw new AndroidAgentException("Error occurred while revoking policy", e);
 		} finally {
-			Resources resources = context.getResources();
-			SharedPreferences mainPref = context.getSharedPreferences(Constants.AGENT_PACKAGE, Context.MODE_PRIVATE);
-			Editor editor = mainPref.edit();
-			editor.putBoolean(Constants.PreferenceFlag.IS_AGREED, false);
-			editor.putString(Constants.PreferenceFlag.REG_ID, null);
-			editor.putBoolean(Constants.PreferenceFlag.REGISTERED, false);
-			editor.putString(Constants.PreferenceFlag.IP, null);
-			editor.putString(Constants.PreferenceFlag.NOTIFIER_TYPE, null);
-			editor.putString(context.getResources().getString(R.string.shared_pref_sender_id),
-			                 resources.getString(R.string.shared_pref_default_string));
-			editor.putString(context.getResources().getString(R.string.shared_pref_eula),
-			                 resources.getString(R.string.shared_pref_default_string));
-			editor.putBoolean(Constants.PreferenceFlag.DEVICE_ACTIVE, false);
-			editor.commit();
 			Preference.clearPreferences(context);
-			clearClientCredentials(context);
 			context.deleteDatabase(Constants.EMM_DB);
 		}
+		Toast.makeText(context, R.string.toast_message_disenroll, Toast.LENGTH_LONG).show();
 	}
 
 	/**
@@ -382,11 +357,8 @@ public class CommonUtils {
 	 * @param context - Application context.
 	 */
 	public static void clearClientCredentials(Context context) {
-		SharedPreferences mainPref = context.getSharedPreferences(Constants.AGENT_PACKAGE, Context.MODE_PRIVATE);
-		Editor editor = mainPref.edit();
-		editor.putString(Constants.CLIENT_ID, null);
-		editor.putString(Constants.CLIENT_SECRET, null);
-		editor.commit();
+		Preference.removePreference(context, Constants.CLIENT_ID);
+		Preference.removePreference(context, Constants.CLIENT_SECRET);
 	}
 
 	/**
@@ -638,37 +610,9 @@ public class CommonUtils {
 	}
 
 	public static Location getLocation(Context context) {
-		if (!isServiceRunning(context, LocationService.class)) {
-			Intent serviceIntent = new Intent(context, LocationService.class);
-			context.startService(serviceIntent);
-		}
-		Location location = new Gson().fromJson(Preference.getString(context, Constants.Location.LOCATION), Location.class);
-		if (location == null) {
-			Log.w(TAG, "Location not found");
-			if (!isServiceRunning(context, LocationService.class)) {
-				Intent serviceIntent = new Intent(context, LocationService.class);
-				context.startService(serviceIntent);
-			} else {
-				try {
-					int locationSetting = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
-					if (locationSetting == 0) {
-						displayNotification(context,
-								R.drawable.notification,
-								context.getResources().getString(R.string.title_need_location),
-								context.getResources().getString(R.string.msg_need_location),
-								AgentReceptionActivity.class,
-								Constants.LOCATION_DISABLED,
-								Constants.LOCATION_DISABLED_NOTIFICATION_ID);
-					}
-				} catch (Settings.SettingNotFoundException e) {
-					Log.w(TAG, "Location setting is not available on this device");
-				}
-			}
-
-		} else if (Constants.DEBUG_MODE_ENABLED) {
-			Log.d(TAG, "Location> Lat:" + location.getLatitude() + " Lon:" + location.getLongitude() + " Provider:" + location.getProvider());
-		}
-		return location;
+		Intent serviceIntent = new Intent(context, LocationService.class);
+		context.startService(serviceIntent);
+		return LocationUpdateReceiver.getLocation();
 	}
 
 	public static void displayNotification(Context context, int icon, String title, String message, Class<?> sourceActivityClass, String tag, int id){
@@ -690,6 +634,59 @@ public class CommonUtils {
 
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		mNotificationManager.notify(tag, id, mBuilder.build());
+	}
+
+	public static Date currentDate() {
+		Calendar calendar = Calendar.getInstance();
+		return calendar.getTime();
+	}
+
+	public static String getTimeAgo(long time, Context ctx) {
+
+		Date curDate = currentDate();
+		long now = curDate.getTime();
+		if (time > now || time <= 0) {
+			return null;
+		}
+
+		int dim = getTimeDistanceInMinutes(time);
+
+		String timeAgo;
+
+		if (dim == 0) {
+			timeAgo = ctx.getResources().getString(R.string.date_util_term_less) + " " + ctx.getResources().getString(R.string.date_util_term_a) + " " + ctx.getResources().getString(R.string.date_util_unit_minute);
+		} else if (dim == 1) {
+			timeAgo = dim + ctx.getResources().getString(R.string.date_util_unit_minute);
+		} else if (dim >= 2 && dim <= 44) {
+			timeAgo = dim + " " + ctx.getResources().getString(R.string.date_util_unit_minutes);
+		} else if (dim >= 45 && dim <= 89) {
+			timeAgo = ctx.getResources().getString(R.string.date_util_prefix_about) + " " + ctx.getResources().getString(R.string.date_util_term_an) + " " + ctx.getResources().getString(R.string.date_util_unit_hour);
+		} else if (dim >= 90 && dim <= 1439) {
+			timeAgo = ctx.getResources().getString(R.string.date_util_prefix_about) + " " + (Math.round(dim / 60)) + " " + ctx.getResources().getString(R.string.date_util_unit_hours);
+		} else if (dim >= 1440 && dim <= 2519) {
+			timeAgo = "1 " + ctx.getResources().getString(R.string.date_util_unit_day);
+		} else if (dim >= 2520 && dim <= 43199) {
+			timeAgo = (Math.round(dim / 1440)) + " " + ctx.getResources().getString(R.string.date_util_unit_days);
+		} else if (dim >= 43200 && dim <= 86399) {
+			timeAgo = ctx.getResources().getString(R.string.date_util_prefix_about) + " " + ctx.getResources().getString(R.string.date_util_term_a) + " " + ctx.getResources().getString(R.string.date_util_unit_month);
+		} else if (dim >= 86400 && dim <= 525599) {
+			timeAgo = (Math.round(dim / 43200)) + " " + ctx.getResources().getString(R.string.date_util_unit_months);
+		} else if (dim >= 525600 && dim <= 655199) {
+			timeAgo = ctx.getResources().getString(R.string.date_util_prefix_about) + " " + ctx.getResources().getString(R.string.date_util_term_a) + " " + ctx.getResources().getString(R.string.date_util_unit_year);
+		} else if (dim >= 655200 && dim <= 914399) {
+			timeAgo = ctx.getResources().getString(R.string.date_util_prefix_over) + " " + ctx.getResources().getString(R.string.date_util_term_a) + " " + ctx.getResources().getString(R.string.date_util_unit_year);
+		} else if (dim >= 914400 && dim <= 1051199) {
+			timeAgo = ctx.getResources().getString(R.string.date_util_prefix_almost) + " 2 " + ctx.getResources().getString(R.string.date_util_unit_years);
+		} else {
+			timeAgo = ctx.getResources().getString(R.string.date_util_prefix_about) + " " + (Math.round(dim / 525600)) + " " + ctx.getResources().getString(R.string.date_util_unit_years);
+		}
+
+		return timeAgo + " " + ctx.getResources().getString(R.string.date_util_suffix);
+	}
+
+	private static int getTimeDistanceInMinutes(long time) {
+		long timeDistance = currentDate().getTime() - time;
+		return Math.round((Math.abs(timeDistance) / 1000) / 60);
 	}
 
 }

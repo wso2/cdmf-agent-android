@@ -58,7 +58,6 @@ public class NetworkInfoService extends Service {
     private static List<ScanResult> wifiScanResults;
     private static NetworkInfoService thisInstance;
     private WifiManager wifiManager;
-    private WifiReceiver receiverWifi;
     private TelephonyManager telephonyManager;
 
     private static final int DEFAULT_AGE = 0;
@@ -86,15 +85,15 @@ public class NetworkInfoService extends Service {
         }
     };
 
-    class WifiReceiver extends BroadcastReceiver {
-        // This method call when number of wifi connections changed
-        public void onReceive(Context c, Intent intent) {
+    private BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
             if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "Wifi scan result found");
             }
             wifiScanResults = wifiManager.getScanResults();
         }
-    }
+    };
 
     class LocalBinder extends Binder {
         NetworkInfoService getService() {
@@ -119,23 +118,26 @@ public class NetworkInfoService extends Service {
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Creating service");
         }
-        wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        receiverWifi = new WifiReceiver();
         mapper = new ObjectMapper();
-        // Register broadcast receiver
-        // Broadcast receiver will automatically call when number of wifi connections changed
-        registerReceiver(receiverWifi, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        // start scanning wifi
-        startWifiScan();
         info = getNetworkInfo();
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         telephonyManager.listen(deviceNetworkStatusListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+        wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        if (Constants.WIFI_SCANNING_ENABLED) {
+            // Register broadcast receiver
+            // Broadcast receiver will automatically call when number of wifi connections changed
+            registerReceiver(wifiScanReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+            // start scanning wifi
+            startWifiScan();
+        }
     }
 
     @Override
     public void onDestroy() {
         telephonyManager.listen(deviceNetworkStatusListener, PhoneStateListener.LISTEN_NONE);
-        unregisterReceiver(receiverWifi);
+        if (Constants.WIFI_SCANNING_ENABLED) {
+            unregisterReceiver(wifiScanReceiver);
+        }
         thisInstance = null;
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Service destroyed.");
@@ -173,8 +175,7 @@ public class NetworkInfoService extends Service {
                     property.setName(Constants.Device.MOBILE_CONNECTION_TYPE);
                     property.setValue(info.getSubtypeName());
                     properties.add(property);
-                }
-                if (info.getType() == ConnectivityManager.TYPE_WIFI) {
+                } else if (info.getType() == ConnectivityManager.TYPE_WIFI) {
                     property = new Device.Property();
                     property.setName(Constants.Device.WIFI_SSID);
                     // NetworkInfo API of Android seem to add extra "" to SSID, therefore escaping it.

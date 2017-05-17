@@ -52,6 +52,6 @@ public class DeviceLocation {
      * @return Returns the address.
      */
     public Address getCurrentAddress() {
-        return reverseGeoCodingService.getReverseGeoCodes(CommonUtils.getLocation(context));
+        return reverseGeoCodingService.getReverseGeoCodes();
     }
 }

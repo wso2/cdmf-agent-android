@@ -18,6 +18,7 @@
 package org.wso2.iot.agent;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
@@ -35,7 +36,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
-import com.actionbarsherlock.app.SherlockActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,7 +47,7 @@ import org.wso2.iot.agent.utils.Constants;
 /**
  * Activity which is used to show alerts throughout the application.
  */
-public class AlertActivity extends SherlockActivity {
+public class AlertActivity extends Activity {
 	private String messageTitle;
 	private String messageText;
 	private String payload;
@@ -138,11 +138,6 @@ public class AlertActivity extends SherlockActivity {
 				}
 			}
 		});
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu) {
-		return true;
 	}
 
 	/**

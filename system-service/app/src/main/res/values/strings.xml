@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">WSO2 EMM System Service</string>
-    <string name="shared_pref_package">org.wso2.emm.system.service</string>
+    <string name="app_name">WSO2 IoT System Service</string>
+    <string name="shared_pref_package">org.wso2.iot.system.service</string>
     <string name="device_admin_enable_alert">Please Press activate again.</string>
     <string name="alarm_interval">interval</string>
     <string name="alarm_schedule">schedule</string>

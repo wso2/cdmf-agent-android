@@ -51,7 +51,7 @@
             android:background="@drawable/repeat_bg"></RelativeLayout>
 
         <LinearLayout
-            android:id="@+id/errorLayout"
+            android:id="@+id/loginLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/layout_topbar"
@@ -62,7 +62,7 @@
             android:id="@+id/error"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/errorLayout"
+            android:layout_below="@+id/loginLayout"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="114dp"
             android:text="@string/authentication_failed"

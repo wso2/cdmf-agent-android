@@ -20,6 +20,9 @@ package org.wso2.iot.agent.utils;
 
 import org.wso2.iot.agent.BuildConfig;
 
+import static org.wso2.iot.agent.proxy.utils.Constants.Authenticator.AUTHENTICATOR_IN_USE;
+import static org.wso2.iot.agent.proxy.utils.Constants.Authenticator.MUTUAL_SSL_AUTHENTICATOR;
+
 /**
  * This class holds all the constants used throughout the application.
  */
@@ -43,14 +46,17 @@ public class Constants {
 	public static final String DEFAULT_HOST = BuildConfig.DEFAULT_HOST;
 	public static final String APP_MANAGER_HOST = BuildConfig.APP_MANAGER_HOST;
 	public static final String CLOUD_MANAGER = BuildConfig.CLOUD_MANAGER;
+	public static final String SIGN_UP_URL = BuildConfig.SIGN_UP_URL;
 	public static final String SYSTEM_SERVICE_PACKAGE = BuildConfig.SYSTEM_SERVICE_PACKAGE;
 	public static final String AGENT_PACKAGE = BuildConfig.AGENT_PACKAGE;
 	public static final String CATALOG_APP_PACKAGE_NAME = BuildConfig.CATALOG_APP_PACKAGE_NAME;
 	public static final int FIRMWARE_UPGRADE_RETRY_COUNT = BuildConfig.FIRMWARE_UPGRADE_RETRY_COUNT;
 	public static final float SERVER_API_VERSION = BuildConfig.SERVER_API_VERSION;
 	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
-	public static final String SYSTEM_APP_SERVICE_START_ACTION = "org.wso2.emm.system.service.START_SERVICE";
-	public static final String SYSTEM_APP_BROADCAST_ACTION = "org.wso2.emm.system.service.MESSAGE_PROCESSED";
+	public static final String SYSTEM_APP_SERVICE_START_ACTION = "org.wso2.iot.system.service.START_SERVICE";
+	public static final String SYSTEM_APP_BROADCAST_ACTION = "org.wso2.iot.system.service.MESSAGE_PROCESSED";
+	public static final String LOCATION_UPDATE_BROADCAST_ACTION = "org.ws2.iot.agent.LOCATION_UPDATE";
+	public static final String SYNC_BROADCAST_ACTION = "org.ws2.iot.agent.SERVER_SYNC";
 	public static final String HTTPS_PROTOCOL = "https://";
 	public static final String OWNERSHIP_BYOD = "BYOD";
 	public static final String OWNERSHIP_COPE = "COPE";
@@ -62,14 +68,15 @@ public class Constants {
 	public static final String SERVER_PROTOCOL = BuildConfig.SERVER_PROTOCOL;
 	public static final String API_SERVER_PORT = BuildConfig.API_SERVER_PORT;
 
-
-
 	// This is used to skip the license
 	public static final boolean SKIP_LICENSE = BuildConfig.SKIP_LICENSE;
 	public static final boolean HIDE_LOGIN_UI = BuildConfig.HIDE_LOGIN_UI;
 	public static final boolean HIDE_UNREGISTER_BUTTON = BuildConfig.HIDE_UNREGISTER_BUTTON;
 	public static final boolean SKIP_WORK_PROFILE_CREATION = BuildConfig.SKIP_WORK_PROFILE_CREATION;
 	public static final boolean HIDE_ERROR_DIALOG = BuildConfig.HIDE_ERROR_DIALOG;
+	public static boolean ASK_TO_ENABLE_LOCATION = BuildConfig.ASK_TO_ENABLE_LOCATION;
+	public static boolean LOCATION_PUBLISHING_ENABLED = BuildConfig.LOCATION_PUBLISHING_ENABLED;
+	public static boolean WIFI_SCANNING_ENABLED = BuildConfig.WIFI_SCANNING_ENABLED;
 
 	//COSU Configurations
 	public static final String[] ANDROID_COSU_PERMISSIONS = {"android.permission.READ_PHONE_STATE",
@@ -109,8 +116,9 @@ public class Constants {
 		public static final String HEC_MINT_ENDPOINT_URL = BuildConfig.HEC_MINT_ENDPOINT_URL;
 	}
 
-	public static final String SERVER_APP_ENDPOINT = "/api/device-mgt/android/v" + SERVER_API_VERSION +
-													 "/";
+	public static final String SERVER_APP_ENDPOINT = AUTHENTICATOR_IN_USE.equals(MUTUAL_SSL_AUTHENTICATOR) ?
+			"/api/device-mgt/android/mssl/v" + SERVER_API_VERSION + "/"
+			: "/api/device-mgt/android/v" + SERVER_API_VERSION + "/";
 	public static final String LICENSE_ENDPOINT = SERVER_APP_ENDPOINT + "configuration/license";
 	public static final String REGISTER_ENDPOINT = SERVER_APP_ENDPOINT + "devices/";
 	public static final String CONFIGURATION_ENDPOINT = SERVER_APP_ENDPOINT + "configuration/";
@@ -194,7 +202,7 @@ public class Constants {
 	public static final int UNREGISTER_REQUEST_CODE = 305;
 	public static final int NOTIFICATION_REQUEST_CODE = 306;
 	public static final int DEVICE_INFO_REQUEST_CODE = 307;
-	public static final int GCM_REGISTRATION_ID_SEND_CODE = 308;
+	public static final int FCM_REGISTRATION_ID_SEND_CODE = 308;
 	public static final int POLICY_REQUEST_CODE = 309;
 	public static final int CONFIGURATION_REQUEST_CODE = 310;
 	public static final int AUTHENTICATION_REQUEST_CODE = 311;
@@ -237,10 +245,11 @@ public class Constants {
 
 	public static final String MIME_TYPE = "text/html";
 	public static final String ENCODING_METHOD = "utf-8";
-	public static final int DEFAILT_REPEAT_COUNT = 0;
+	public static final int DEFAULT_REPEAT_COUNT = 0;
 	public static int DEFAULT_INTERVAL = 30000;
+	public static int DEFAULT_START_INTERVAL = 10000;
 	public static final int NOTIFIER_CHECK = 2;
-
+	public static final int DEFAULT_REQUEST_CODE = 0;
 
 	/**
 	 * Operation IDs
@@ -480,7 +489,9 @@ public class Constants {
 		public static final String IS_AGREED = "isAgreed";
 		public static final String NOTIFIER_TYPE = "notifierType";
 		public static final String CURRENT_INSTALLING_APP = "installingApplication";
-		public static final String IS_LOCATION_EVENT_PUBLICATION_ENABLED = "isLocationPublicationEnabled";
+		public static final String LOCAL_NOTIFIER_INVOKED_PREF_KEY = "localNotificationInvoked";
+		public static final String DEVICE_ID_PREFERENCE_KEY = "deviceId";
+		public static final String LAST_SERVER_CALL = "lastServerCall";
 	}
 
 	public final class AppRestriction {

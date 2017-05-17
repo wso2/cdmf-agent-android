@@ -17,37 +17,8 @@
  */
 package org.wso2.iot.agent.services;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.admin.DevicePolicyManager;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.wso2.iot.agent.AgentReceptionActivity;
-import org.wso2.iot.agent.AndroidAgentException;
-import org.wso2.iot.agent.AuthenticationActivity;
-import org.wso2.iot.agent.R;
-import org.wso2.iot.agent.api.ApplicationManager;
-import org.wso2.iot.agent.api.DeviceInfo;
-import org.wso2.iot.agent.beans.AppInstallRequest;
-import org.wso2.iot.agent.beans.Operation;
-import org.wso2.iot.agent.beans.ServerConfig;
-import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
-import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
-import org.wso2.iot.agent.services.operation.OperationProcessor;
-import org.wso2.iot.agent.utils.AppInstallRequestUtil;
-import org.wso2.iot.agent.utils.Constants;
-import org.wso2.iot.agent.utils.Preference;
-import org.wso2.iot.agent.utils.CommonUtils;
-
 import android.content.Context;
 import android.content.Intent;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -58,8 +29,31 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.Gson;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.wso2.iot.agent.AndroidAgentException;
+import org.wso2.iot.agent.activities.AuthenticationActivity;
+import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.api.ApplicationManager;
+import org.wso2.iot.agent.api.DeviceInfo;
+import org.wso2.iot.agent.beans.AppInstallRequest;
+import org.wso2.iot.agent.beans.Operation;
+import org.wso2.iot.agent.beans.ServerConfig;
+import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
+import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
+import org.wso2.iot.agent.services.operation.OperationProcessor;
+import org.wso2.iot.agent.utils.AppInstallRequestUtil;
+import org.wso2.iot.agent.utils.CommonUtils;
+import org.wso2.iot.agent.utils.Constants;
+import org.wso2.iot.agent.utils.Preference;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 /**
- * This class handles all the functionalities related to coordinating the retrieval
+ * This class handles all the functionality related to coordinating the retrieval
  * and processing of messages from the server.
  */
 public class MessageProcessor implements APIResultCallBack {
@@ -67,17 +61,13 @@ public class MessageProcessor implements APIResultCallBack {
 	private String TAG = MessageProcessor.class.getSimpleName();
 	private Context context;
 	private String deviceId;
-	private static final String DEVICE_ID_PREFERENCE_KEY = "deviceId";
-	private static List<org.wso2.iot.agent.beans.Operation> replyPayload;
+	private static List<Operation> replyPayload;
 	private OperationProcessor operationProcessor;
 	private ObjectMapper mapper;
 	private boolean isWipeTriggered = false;
 	private boolean isRebootTriggered = false;
-	private int operationId;
 	private boolean isUpgradeTriggered = false;
 	private boolean isShellCommandTriggered = false;
-	private DevicePolicyManager devicePolicyManager;
-	private static final int ACTIVATION_REQUEST = 47;
 	private static final String ERROR_STATE = "ERROR";
 	private String shellCommand = null;
 
@@ -89,44 +79,37 @@ public class MessageProcessor implements APIResultCallBack {
 	public MessageProcessor(Context context) {
 		this.context = context;
 
-		deviceId = Preference.getString(context, DEVICE_ID_PREFERENCE_KEY);
+		deviceId = Preference.getString(context, Constants.PreferenceFlag.DEVICE_ID_PREFERENCE_KEY);
 		operationProcessor = new OperationProcessor(context.getApplicationContext());
 		mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-		this.devicePolicyManager =
-				(DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
 
 		if (deviceId == null) {
 			DeviceInfo deviceInfo = new DeviceInfo(context.getApplicationContext());
 			deviceId = deviceInfo.getDeviceId();
-			Preference.putString(context, DEVICE_ID_PREFERENCE_KEY, deviceId);
+			Preference.putString(context, Constants.PreferenceFlag.DEVICE_ID_PREFERENCE_KEY, deviceId);
 		}
 	}
 
 	/**
-	 * This method executes the set of pending operations which is recieved from the
+	 * This method executes the set of pending operations which is received from the
 	 * backend server.
 	 *
 	 * @param response Response received from the server that needs to be processed
 	 *                 and applied to the device.
 	 */
-	public void performOperation(String response) {
-
-		List<org.wso2.iot.agent.beans.Operation> operations = new ArrayList<>();
-
+	private void performOperation(String response) {
+		List<Operation> operations = new ArrayList<>();
 		try {
 			if (response != null) {
 				operations = mapper.readValue(
 						response,
 						mapper.getTypeFactory().constructCollectionType(List.class,
-								org.wso2.iot.agent.beans.Operation.class));
+								Operation.class));
 			}
-
-
-		// check whether if there are any dismissed notifications to be sent
-		operationProcessor.checkPreviousNotifications();
-
+			// check whether if there are any dismissed notifications to be sent
+			operationProcessor.checkPreviousNotifications();
 		} catch (JsonProcessingException e) {
 			Log.e(TAG,  "Issue in json parsing", e);
 		} catch (IOException e) {
@@ -135,7 +118,14 @@ public class MessageProcessor implements APIResultCallBack {
 			Log.e(TAG, "Error occurred while checking previous notification", e);
 		}
 
-		for (org.wso2.iot.agent.beans.Operation op : operations) {
+		if (!(operations.isEmpty() || (operations.size() == 1 && Constants.Operation.POLICY_MONITOR.equals(operations.get(0).getCode())))) {
+			if (Constants.DEBUG_MODE_ENABLED) {
+				Log.d(TAG, "Restarting to send quick update of received pending operations.");
+			}
+			LocalNotification.startPolling(context);
+		}
+
+		for (Operation op : operations) {
 			try {
 				operationProcessor.doTask(op);
 			} catch (AndroidAgentException e) {
@@ -164,9 +154,8 @@ public class MessageProcessor implements APIResultCallBack {
 		String requestParams;
 		ObjectMapper mapper = new ObjectMapper();
 		try {
-			requestParams =  mapper.writeValueAsString(replyPayload);
 			if (replyPayload != null) {
-				for (org.wso2.iot.agent.beans.Operation operation : replyPayload) {
+				for (Operation operation : replyPayload) {
 					if (operation.getCode().equals(Constants.Operation.WIPE_DATA) && !operation.getStatus().
 							equals(ERROR_STATE)) {
 						isWipeTriggered = true;
@@ -194,7 +183,7 @@ public class MessageProcessor implements APIResultCallBack {
 			int firmwareOperationId = Preference.getInt(context, context.getResources().getString(
 					R.string.firmware_upgrade_failed_id));
 			if (firmwareOperationMessage != null && firmwareOperationId != 0) {
-				org.wso2.iot.agent.beans.Operation firmwareOperation = new org.wso2.iot.agent.beans.Operation();
+				Operation firmwareOperation = new Operation();
 				firmwareOperation.setId(firmwareOperationId);
 				firmwareOperation.setCode(Constants.Operation.UPGRADE_FIRMWARE);
 				firmwareOperation.setStatus(context.getResources().getString(R.string.operation_value_error));
@@ -301,6 +290,11 @@ public class MessageProcessor implements APIResultCallBack {
 		String responseStatus;
 		String response;
 		if (requestCode == Constants.NOTIFICATION_REQUEST_CODE) {
+			Preference.putLong(context, Constants.PreferenceFlag.LAST_SERVER_CALL, CommonUtils.currentDate().getTime());
+			Intent intent = new Intent();
+			intent.setAction(Constants.SYNC_BROADCAST_ACTION);
+			context.sendBroadcast(intent);
+
 			if (isWipeTriggered) {
 				if(Constants.SYSTEM_APP_ENABLED) {
 					CommonUtils.callSystemApp(context, Constants.Operation.WIPE_DATA, null, null);
@@ -338,7 +332,7 @@ public class MessageProcessor implements APIResultCallBack {
 					LocalNotification.stopPolling(context);
 					Preference.putBoolean(context, Constants.TOKEN_EXPIRED, true);
 					CommonUtils.displayNotification(context,
-							R.drawable.notification,
+							R.drawable.ic_error_outline_white_24dp,
 							context.getResources().getString(R.string.title_need_to_sign_in),
 							context.getResources().getString(R.string.msg_need_to_sign_in),
 							AuthenticationActivity.class,

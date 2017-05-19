@@ -53,6 +53,7 @@ public class AccessTokenHandler {
     private static final String TAG = "AccessTokenHandler";
     private static final String USERNAME_LABEL = "username";
     private static final String PASSWORD_LABEL = "password";
+    private static final String ADMIN_ACCESS_TOKEN_LABEL = "admin_access_token";
     private static final String TENANT_DOMAIN_LABEL = "tenantDomain";
     private static final String COLON = ":";
     private CredentialInfo info;
@@ -123,9 +124,14 @@ public class AccessTokenHandler {
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> requestParams = new HashMap<>();
-                requestParams.put(Constants.GRANT_TYPE, Constants.GRANT_TYPE_PASSWORD);
-                requestParams.put(USERNAME_LABEL, info.getUsername());
-                requestParams.put(PASSWORD_LABEL, info.getPassword());
+                if (info.getAdminAccessToken() != null) {
+                    requestParams.put(Constants.GRANT_TYPE, Constants.GRANT_TYPE_ACCESS_TOKEN);
+                    requestParams.put(ADMIN_ACCESS_TOKEN_LABEL, info.getAdminAccessToken());
+                } else {
+                    requestParams.put(Constants.GRANT_TYPE, Constants.GRANT_TYPE_PASSWORD);
+                    requestParams.put(USERNAME_LABEL, info.getUsername());
+                    requestParams.put(PASSWORD_LABEL, info.getPassword());
+                }
                 if (info.getTenantDomain() != null) {
                     requestParams.put(TENANT_DOMAIN_LABEL, info.getTenantDomain());
                 }
@@ -164,7 +170,7 @@ public class AccessTokenHandler {
     private void processTokenResponse(String responseCode, String result) {
         String refreshToken;
         String accessToken;
-        int timeToExpireSecond;
+        long timeToExpireSecond;
         try {
             IdentityProxy identityProxy = IdentityProxy.getInstance();
 
@@ -173,7 +179,7 @@ public class AccessTokenHandler {
                 try {
                     accessToken = response.getString(Constants.ACCESS_TOKEN);
                     refreshToken = response.getString(Constants.REFRESH_TOKEN);
-                    timeToExpireSecond = Integer.parseInt(response.getString(Constants.EXPIRE_LABEL));
+                    timeToExpireSecond = Long.parseLong(response.getString(Constants.EXPIRE_LABEL));
                     Token token = new Token();
                     long expiresOn = new Date().getTime() + (timeToExpireSecond * 1000) - Constants.HttpClient.DEFAULT_TOKEN_TIME_OUT * 5;
                     token.setExpiresOn(new Date(expiresOn));

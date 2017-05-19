@@ -100,6 +100,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	private String username;
 	private String usernameVal;
 	private String passwordVal;
+	private String adminAccessToken;
 	private ProgressDialog progressDialog;
 	private boolean isReLogin = false;
 	private boolean isCloudLogin = false;
@@ -284,25 +285,20 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 			deviceType = Constants.OWNERSHIP_BYOD;
 		}
 
+		if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
+			Intent intent = getIntent();
+			if(intent.hasExtra("android.app.extra.token")){
+				adminAccessToken = intent.getStringExtra("android.app.extra.token");
+				proceedToAuthentication();
+			}
+		}
+
 		// This is added so that in case due to an agent customisation, if the authentication
 		// activity is called the AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED is set, the activity
 		// must be finished.
 		if (Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED) {
 			finish();
 		}
-
-		Intent intent = getIntent();
-			if(intent.hasExtra("android.app.extra.token")){
-				String token = intent.getStringExtra("android.app.extra.token");
-				textViewWipeData.setText(token);
-			}else {
-				textViewWipeData.setText("extra not found");
-			}
-
-
-
-
-
 	}
 
 	@Override
@@ -542,6 +538,10 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 
 			info.setPassword(passwordVal);
 			info.setTokenEndPoint(serverURL);
+
+			if (adminAccessToken != null) {
+				info.setAdminAccessToken(adminAccessToken);
+			}
 
 			//adding device-specific scope
 			String deviceScope = "deivce_" + deviceInfo.getDeviceId();
@@ -1205,8 +1205,13 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 			apiRegistrationProfile.setTags(SUBSCRIBED_API);
 			DynamicClientManager dynamicClientManager = new DynamicClientManager();
 			try {
-				dynamicClientManager.getClientCredentials(usernameVal, passwordVal, utils, context,
-						AuthenticationActivity.this, apiRegistrationProfile);
+				if (adminAccessToken != null) {
+					dynamicClientManager.getClientCredentials(adminAccessToken, utils, context,
+							AuthenticationActivity.this, apiRegistrationProfile);
+				} else {
+					dynamicClientManager.getClientCredentials(usernameVal, passwordVal, utils, context,
+							AuthenticationActivity.this, apiRegistrationProfile);
+				}
 				Preference.putString(context, Constants.CLIENT_NAME, applicationName);
 			} catch (AndroidAgentException e) {
 				String message = "Client credentials generation failed";

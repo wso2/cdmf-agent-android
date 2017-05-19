@@ -186,20 +186,21 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
                             DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
                 }
             }
-
-            String token = "dido";
+            Intent launch = new Intent(context, SplashActivity.class);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 PersistableBundle persistableBundle = intent.getParcelableExtra(
                         DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
-                if (persistableBundle == null) {
-                    token = "no token";
-                } else {
-                    token = (String) persistableBundle.get("android.app.extra.token");
+                if (persistableBundle != null) {
+                    if (org.wso2.iot.agent.proxy.utils.Constants.Authenticator.AUTHENTICATOR_IN_USE.
+                            equals(org.wso2.iot.agent.proxy.utils.Constants.Authenticator.OAUTH_AUTHENTICATOR)) {
+                        String token = (String) persistableBundle.get("android.app.extra.token");
+                        if (token != null && !token.equals("")) {
+                            launch = new Intent(context, AuthenticationActivity.class);
+                            launch.putExtra("android.app.extra.token", token);
+                        }
+                    }
                 }
             }
-
-            Intent launch = new Intent(context, AuthenticationActivity.class);
-            launch.putExtra("android.app.extra.token", token);
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(launch);
         } else {
@@ -212,7 +213,6 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
             }
             context.startActivity(launch);
         }
-
     }
 
     private void startDeviceAdminPrompt(Context context, final ComponentName cdmDeviceAdmin) {

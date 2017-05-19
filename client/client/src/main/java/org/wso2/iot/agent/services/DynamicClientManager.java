@@ -84,6 +84,32 @@ public class DynamicClientManager implements APIResultCallBack {
     }
 
     /**
+     * This method is used to register an oauth application in the backend using an access token in
+     * COSU mode.
+     *
+     * @param apiRegistrationProfile Payload of the register request.
+     * @param utils Server configurations.
+     *
+     * @return returns consumer key and consumer secret if success. Else returns null
+     *         if it fails to register.
+     * @throws AndroidAgentException
+     */
+    public void getClientCredentials(String adminAccessToken, ServerConfig utils,
+                                     Context context, APIResultCallBack apiResultCallback,
+                                     ApiRegistrationProfile apiRegistrationProfile)
+            throws AndroidAgentException {
+        IdentityProxy.getInstance().setContext(context);
+        EndPointInfo endPointInfo = new EndPointInfo();
+        String endPoint = utils.getAPIServerURL(context) +
+                org.wso2.iot.agent.utils.Constants.API_APPLICATION_REGISTRATION_CONTEXT;
+        endPointInfo.setHttpMethod(org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS.POST);
+        endPointInfo.setEndPoint(endPoint);
+        endPointInfo.setRequestParams(apiRegistrationProfile.toJSON());
+        sendRequest(endPointInfo, apiResultCallback, Constants.DYNAMIC_CLIENT_REGISTER_REQUEST_CODE,
+                adminAccessToken);
+    }
+
+    /**
      * This method is used to unregister the oauth application that has been
      * registered at the device authentication.
      *
@@ -201,6 +227,112 @@ public class DynamicClientManager implements APIResultCallBack {
                                         .getBytes()));
                         headers.put("Authorization", basicAuthValue);
                     }
+                    return headers;
+                }
+            };
+            request.setRetryPolicy(new DefaultRetryPolicy(
+                    org.wso2.iot.agent.proxy.utils.Constants.HttpClient.DEFAULT_TIME_OUT,
+                    MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to parse request JSON", e);
+        }
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                org.wso2.iot.agent.proxy.utils.Constants.HttpClient.DEFAULT_TIME_OUT,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        queue.add(request);
+    }
+
+    /**
+     * This method is used to send requests to backend using another access token in COSU mode.
+     */
+    private void sendRequest(final EndPointInfo endPointInfo,
+                             final APIResultCallBack apiResultCallback, final int requestCode,
+                             final String adminAccessToken) {
+        RequestQueue queue =  null;
+        int requestMethod = 0;
+        org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS httpMethod = endPointInfo.getHttpMethod();
+        switch (httpMethod) {
+            case POST:
+                requestMethod = Request.Method.POST;
+                break;
+            case DELETE:
+                requestMethod = Request.Method.DELETE;
+                break;
+        }
+
+        try {
+            queue = ServerUtilities.getCertifiedHttpClient();
+        } catch (IDPTokenManagerException e) {
+            Log.e(TAG, "Failed to retrieve HTTP client", e);
+        }
+
+        JsonObjectRequest request = null;
+        try {
+            request = new JsonObjectRequest(requestMethod, endPointInfo.getEndPoint(),
+                    (endPointInfo.getRequestParams() != null) ?
+                            new JSONObject(endPointInfo.getRequestParams()) : null,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            Log.d(TAG, response.toString());
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.d(TAG, error.toString());
+                            Map<String, String> responseParams = new HashMap<>();
+                            String statusCode = "500";
+                            if (error.networkResponse != null) {
+                                statusCode = String.valueOf(error.networkResponse.statusCode);
+                            }
+                            responseParams.put(
+                                    org.wso2.iot.agent.proxy.utils.Constants.SERVER_RESPONSE_STATUS,
+                                    statusCode
+                            );
+                            if (com.android.volley.ParseError.class.isInstance(error)) {
+                                responseParams.put(
+                                        org.wso2.iot.agent.proxy.utils.Constants.SERVER_RESPONSE_BODY,
+                                        "Invalid tenant domain"
+                                );
+                            } else if (error.getMessage() != null) {
+                                responseParams.put(
+                                        org.wso2.iot.agent.proxy.utils.Constants.SERVER_RESPONSE_BODY,
+                                        error.getMessage()
+                                );
+                            }
+                            apiResultCallback.onReceiveAPIResult(responseParams, requestCode);
+                        }
+                    })
+
+            {
+                @Override
+                protected Response<JSONObject> parseNetworkResponse(NetworkResponse response) {
+                    String result = new String(response.data);
+                    if(org.wso2.iot.agent.proxy.utils.Constants.DEBUG_ENABLED) {
+                        if(result != null && !result.isEmpty()) {
+                            Log.d(TAG, "Result :" + result);
+                        }
+                    }
+                    Map<String, String> responseParams = new HashMap<>();
+                    responseParams.put(org.wso2.iot.agent.proxy.utils.Constants.SERVER_RESPONSE_BODY, result);
+                    responseParams.put(org.wso2.iot.agent.proxy.utils.Constants.SERVER_RESPONSE_STATUS, String.valueOf(
+                            response.statusCode));
+                    apiResultCallback.onReceiveAPIResult(responseParams, requestCode);
+                    return super.parseNetworkResponse(response);
+                }
+
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Content-Type", "application/json");
+                    headers.put("Accept", "application/json");
+                    headers.put("User-Agent", Constants.USER_AGENT);
+                    String bearerAuthValue  = "Bearer " + adminAccessToken;
+                    headers.put("Authorization", bearerAuthValue);
+                    
                     return headers;
                 }
             };

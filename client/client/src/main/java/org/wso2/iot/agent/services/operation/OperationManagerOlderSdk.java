@@ -624,4 +624,19 @@ public class OperationManagerOlderSdk extends OperationManager {
         getResultBuilder().build(operation);
     }
 
+    @Override
+    public void setStatusBarDisabled(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
+    }
+
+    @Override
+    public void setScreenCaptureDisabled(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
+    }
 }

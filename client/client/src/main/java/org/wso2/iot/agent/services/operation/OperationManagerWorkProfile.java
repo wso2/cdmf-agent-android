@@ -321,12 +321,12 @@ public class OperationManagerWorkProfile extends OperationManager {
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
         if (isEnable) {
-            getDevicePolicyManager().addUserRestriction(getCdmDeviceAdmin(), key);
+            getDevicePolicyManager().addUserRestriction(getCdmDeviceAdmin(), getPermissionConstantValue(key));
             if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "Restriction added: " + key);
             }
         } else {
-            getDevicePolicyManager().clearUserRestriction(getCdmDeviceAdmin(), key);
+            getDevicePolicyManager().clearUserRestriction(getCdmDeviceAdmin(), getPermissionConstantValue(key));
             if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "Restriction cleared: " + key);
             }
@@ -453,8 +453,35 @@ public class OperationManagerWorkProfile extends OperationManager {
         getResultBuilder().build(operation);
     }
 
+    @Override
+    public void setStatusBarDisabled(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void setScreenCaptureDisabled(Operation operation) throws AndroidAgentException {
+        boolean isEnable = operation.isEnabled();
+        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        getResultBuilder().build(operation);
+        if (isEnable) {
+            getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), true);
+        }
+        else {
+            getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), false);
+        }
+    }
+
     private void enableGooglePlayApps(String packageName) {
         triggerGooglePlayApp(packageName);
+    }
+
+    private String getPermissionConstantValue(String key){
+        return getContext().getString(getContextResources().getIdentifier(
+                key.toString(),"string",getContext().getPackageName()));
     }
 
 }

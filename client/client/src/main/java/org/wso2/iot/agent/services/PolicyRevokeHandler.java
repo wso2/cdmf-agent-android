@@ -21,6 +21,8 @@ import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,6 +32,7 @@ import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.WiFiConfig;
 import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.DeviceAppInfo;
+import org.wso2.iot.agent.services.operation.OperationManagerFactory;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 
@@ -63,6 +66,7 @@ public class PolicyRevokeHandler {
      * @param operation - Operation object.
      * @return status - Revoke status.
      */
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public void revokeExistingPolicy(org.wso2.iot.agent.beans.Operation operation)
             throws AndroidAgentException {
 
@@ -146,6 +150,44 @@ public class PolicyRevokeHandler {
                 case Constants.Operation.APP_RESTRICTION:
                     revokeAppRestrictionPolicy(operation);
                     break;
+                case Constants.Operation.DISALLOW_ADJUST_VOLUME:
+                case Constants.Operation.DISALLOW_CONFIG_BLUETOOTH:
+                case Constants.Operation.DISALLOW_CONFIG_CELL_BROADCASTS:
+                case Constants.Operation.DISALLOW_CONFIG_CREDENTIALS:
+                case Constants.Operation.DISALLOW_CONFIG_MOBILE_NETWORKS:
+                case Constants.Operation.DISALLOW_CONFIG_TETHERING:
+                case Constants.Operation.DISALLOW_CONFIG_VPN:
+                case Constants.Operation.DISALLOW_CONFIG_WIFI:
+                case Constants.Operation.DISALLOW_APPS_CONTROL:
+                case Constants.Operation.DISALLOW_CREATE_WINDOWS:
+                case Constants.Operation.DISALLOW_CROSS_PROFILE_COPY_PASTE:
+                case Constants.Operation.DISALLOW_DEBUGGING_FEATURES:;
+                case Constants.Operation.DISALLOW_FACTORY_RESET:
+                case Constants.Operation.DISALLOW_ADD_USER:
+                case Constants.Operation.DISALLOW_INSTALL_APPS:
+                case Constants.Operation.DISALLOW_INSTALL_UNKNOWN_SOURCES:
+                case Constants.Operation.DISALLOW_MODIFY_ACCOUNTS:
+                case Constants.Operation.DISALLOW_MOUNT_PHYSICAL_MEDIA:
+                case Constants.Operation.DISALLOW_NETWORK_RESET:
+                case Constants.Operation.DISALLOW_OUTGOING_BEAM:
+                case Constants.Operation.DISALLOW_OUTGOING_CALLS:
+                case Constants.Operation.DISALLOW_REMOVE_USER:
+                case Constants.Operation.DISALLOW_SAFE_BOOT:
+                case Constants.Operation.DISALLOW_SHARE_LOCATION:
+                case Constants.Operation.DISALLOW_SMS:
+                case Constants.Operation.DISALLOW_UNINSTALL_APPS:
+                case Constants.Operation.DISALLOW_UNMUTE_MICROPHONE:
+                case Constants.Operation.DISALLOW_USB_FILE_TRANSFER:
+                case Constants.Operation.ALLOW_PARENT_PROFILE_APP_LINKING:
+                case Constants.Operation.ENSURE_VERIFY_APPS:
+                case Constants.Operation.AUTO_TIME:
+                    revokeRestrictionPolicy(operation);
+                    break;
+                case Constants.Operation.SET_SCREEN_CAPTURE_DISABLED:
+                    revokeScreenCaptureDisabledPolicy();
+                    break;
+                case Constants.Operation.SET_STATUS_BAR_DISABLED:
+                    revokeStatusBarDisabledPolicy();
             }
         }
     }
@@ -237,7 +279,6 @@ public class PolicyRevokeHandler {
      * @param operation - Operation object.
      */
     private void revokeEncryptPolicy(org.wso2.iot.agent.beans.Operation operation) {
-
         boolean encryptStatus = (devicePolicyManager.getStorageEncryptionStatus()!= devicePolicyManager.
                 ENCRYPTION_STATUS_UNSUPPORTED && (devicePolicyManager.getStorageEncryptionStatus() == devicePolicyManager.
                 ENCRYPTION_STATUS_ACTIVE || devicePolicyManager.getStorageEncryptionStatus() == devicePolicyManager.
@@ -280,6 +321,39 @@ public class PolicyRevokeHandler {
             }
         } catch (JSONException e) {
             throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+    }
+
+    /**
+     * Revokes Restriction policy on the device (Particular wifi configuration in the policy should be disabled).
+     *
+     * @param operation - Operation object.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void revokeRestrictionPolicy(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
+        if(devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE) || devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
+            devicePolicyManager.clearUserRestriction(deviceAdmin,getPermissionConstantValue(operation.getCode()));
+        }
+    }
+
+    private String getPermissionConstantValue(String key){
+        return context.getString(resources.getIdentifier(
+                key.toString(),"string",context.getPackageName()));
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void revokeScreenCaptureDisabledPolicy() throws AndroidAgentException {
+        if(devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE) || devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
+            if (devicePolicyManager.getScreenCaptureDisabled(deviceAdmin)) {
+                devicePolicyManager.setScreenCaptureDisabled(deviceAdmin, false);
+            }
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void revokeStatusBarDisabledPolicy() throws AndroidAgentException {
+        if(devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
+            devicePolicyManager.setStatusBarDisabled(deviceAdmin, false);
         }
     }
 }

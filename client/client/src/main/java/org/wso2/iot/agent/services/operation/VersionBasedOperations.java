@@ -178,4 +178,17 @@ public interface VersionBasedOperations {
      */
     void setPolicyBundle(Operation operation) throws AndroidAgentException;
 
+    /**
+     * Disable StatusBar.
+     *
+     * @param operation - Operation object.
+     */
+    void setStatusBarDisabled(Operation operation) throws AndroidAgentException;
+
+    /**
+     * Disable ScreenCapturing.
+     *
+     * @param operation - Operation object.
+     */
+    void setScreenCaptureDisabled(Operation operation) throws AndroidAgentException;
 }

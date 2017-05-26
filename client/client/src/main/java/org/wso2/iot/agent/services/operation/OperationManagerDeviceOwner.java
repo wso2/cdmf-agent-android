@@ -633,4 +633,33 @@ public class OperationManagerDeviceOwner extends OperationManager {
         getResultBuilder().build(operation);
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
+    @Override
+    public void setStatusBarDisabled(Operation operation) throws AndroidAgentException {
+        boolean isEnable = operation.isEnabled();
+        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        getResultBuilder().build(operation);
+        if (isEnable) {
+            getDevicePolicyManager().setStatusBarDisabled(getCdmDeviceAdmin(), true);
+        }
+        else {
+            getDevicePolicyManager().setStatusBarDisabled(getCdmDeviceAdmin(), false);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void setScreenCaptureDisabled(Operation operation) throws AndroidAgentException {
+        boolean isEnable = operation.isEnabled();
+        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        getResultBuilder().build(operation);
+        if (isEnable) {
+            getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), true);
+        }
+        else {
+            getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), false);
+        }
+
+    }
+
 }

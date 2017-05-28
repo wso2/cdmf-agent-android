@@ -23,6 +23,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -315,7 +316,7 @@ public class OperationManagerWorkProfile extends OperationManager {
 
     @Override
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public void handleUserRestriction(Operation operation) {
+    public void handleOwnersRestriction(Operation operation) {
         boolean isEnable = operation.isEnabled();
         String key = operation.getCode();
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
@@ -331,6 +332,14 @@ public class OperationManagerWorkProfile extends OperationManager {
                 Log.d(TAG, "Restriction cleared: " + key);
             }
         }
+    }
+
+    @Override
+    public void handleDeviceOwnerRestriction(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
     }
 
     @Override
@@ -473,6 +482,14 @@ public class OperationManagerWorkProfile extends OperationManager {
         else {
             getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), false);
         }
+    }
+
+    @Override
+    public void setAutoTimeRequired(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
     }
 
     private void enableGooglePlayApps(String packageName) {

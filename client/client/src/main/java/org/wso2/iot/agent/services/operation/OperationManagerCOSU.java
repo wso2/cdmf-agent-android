@@ -24,6 +24,7 @@ import android.app.admin.SystemUpdatePolicy;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -587,7 +588,7 @@ public class OperationManagerCOSU extends OperationManager {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
-    public void handleUserRestriction(Operation operation) throws AndroidAgentException {
+    public void handleOwnersRestriction(Operation operation) throws AndroidAgentException {
         boolean isEnable = operation.isEnabled();
         String key = operation.getCode();
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
@@ -603,6 +604,11 @@ public class OperationManagerCOSU extends OperationManager {
                 Log.d(TAG, "Restriction cleared: " + key);
             }
         }
+    }
+
+    @Override
+    public void handleDeviceOwnerRestriction(Operation operation) throws AndroidAgentException {
+        handleOwnersRestriction(operation);
     }
 
     @Override
@@ -680,6 +686,20 @@ public class OperationManagerCOSU extends OperationManager {
         }
         else {
             getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), false);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void setAutoTimeRequired(Operation operation) throws AndroidAgentException {
+        boolean isEnable = operation.isEnabled();
+        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        getResultBuilder().build(operation);
+        if (isEnable) {
+            getDevicePolicyManager().setAutoTimeRequired(getCdmDeviceAdmin(), true);
+        }
+        else {
+            getDevicePolicyManager().setAutoTimeRequired(getCdmDeviceAdmin(), false);
         }
     }
 

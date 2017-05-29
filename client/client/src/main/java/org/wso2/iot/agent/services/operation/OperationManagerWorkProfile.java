@@ -456,7 +456,7 @@ public class OperationManagerWorkProfile extends OperationManager {
         try {
             getDevicePolicyManager().enableSystemApp(getCdmDeviceAdmin(), packageName);
         }catch (IllegalArgumentException e) {
-            Log.d(TAG, "App is not available on the device to enable. " + e.toString() );
+            Log.e(TAG, "App is not available on the device to enable. " + e.toString() );
         }
     }
 

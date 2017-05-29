@@ -22,6 +22,9 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -31,6 +34,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.AppLockService;
@@ -47,7 +51,7 @@ import java.util.List;
 public class OperationManagerWorkProfile extends OperationManager {
 
     private static final String TAG = OperationManagerWorkProfile.class.getSimpleName();
-
+    private static final int SYSTEM_APPS_DISABLED_FLAG = 0;
 
     public OperationManagerWorkProfile(Context context) {
         super(context);
@@ -449,7 +453,11 @@ public class OperationManagerWorkProfile extends OperationManager {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void enableSystemApp(String packageName) {
-        getDevicePolicyManager().enableSystemApp(getCdmDeviceAdmin(), packageName);
+        try {
+            getDevicePolicyManager().enableSystemApp(getCdmDeviceAdmin(), packageName);
+        }catch (IllegalArgumentException e) {
+            Log.d(TAG, "App is not available on the device to enable. " + e.toString() );
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)

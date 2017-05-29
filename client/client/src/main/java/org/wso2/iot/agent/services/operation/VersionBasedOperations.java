@@ -143,11 +143,18 @@ public interface VersionBasedOperations {
     void setProfileName(Operation operation) throws AndroidAgentException;
 
     /**
-     * Handle User Restriction related to Device Policy Manager.
+     * Handle User Restriction related to Profile Owner.
      *
      * @param operation - Operation object
      */
-    void handleUserRestriction(Operation operation) throws AndroidAgentException;
+    void handleOwnersRestriction(Operation operation) throws AndroidAgentException;
+
+    /**
+     * Handle User Restriction related to Device Owner.
+     *
+     * @param operation - Operation object
+     */
+    void handleDeviceOwnerRestriction(Operation operation) throws AndroidAgentException;
 
     /**
      * Configure work-profile
@@ -185,5 +192,25 @@ public interface VersionBasedOperations {
      */
     void setRuntimePermissionPolicy(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException;
 
+    /**
+     * Disable StatusBar.
+     *
+     * @param operation - Operation object.
+     */
+    void setStatusBarDisabled(Operation operation) throws AndroidAgentException;
+
+    /**
+     * Disable ScreenCapturing.
+     *
+     * @param operation - Operation object.
+     */
+    void setScreenCaptureDisabled(Operation operation) throws AndroidAgentException;
+
+    /**
+     * Configuree AutoTime requirement.
+     *
+     * @param operation - Operation object.
+     */
+    void setAutoTimeRequired(Operation operation) throws AndroidAgentException;
 
 }

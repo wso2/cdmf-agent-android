@@ -567,7 +567,7 @@ public class OperationManagerDeviceOwner extends OperationManager {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
-    public void handleUserRestriction(Operation operation) throws AndroidAgentException {
+    public void handleOwnersRestriction(Operation operation) throws AndroidAgentException {
         boolean isEnable = operation.isEnabled();
         String key = operation.getCode();
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
@@ -583,6 +583,11 @@ public class OperationManagerDeviceOwner extends OperationManager {
                 Log.d(TAG, "Restriction cleared: " + key);
             }
         }
+    }
+
+    @Override
+    public void handleDeviceOwnerRestriction(Operation operation) throws AndroidAgentException {
+        handleOwnersRestriction(operation);
     }
 
     @Override
@@ -653,6 +658,50 @@ public class OperationManagerDeviceOwner extends OperationManager {
             operation.setOperationResponse("Error in parsing PROFILE payload.");
             getResultBuilder().build(operation);
             throw new AndroidAgentException("Invalid JSON format.", e);
+
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    @Override
+    public void setStatusBarDisabled(Operation operation) throws AndroidAgentException {
+        boolean isEnable = operation.isEnabled();
+        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        getResultBuilder().build(operation);
+        if (isEnable) {
+            getDevicePolicyManager().setStatusBarDisabled(getCdmDeviceAdmin(), true);
+        }
+        else {
+            getDevicePolicyManager().setStatusBarDisabled(getCdmDeviceAdmin(), false);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void setScreenCaptureDisabled(Operation operation) throws AndroidAgentException {
+        boolean isEnable = operation.isEnabled();
+        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        getResultBuilder().build(operation);
+        if (isEnable) {
+            getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), true);
+        }
+        else {
+            getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), false);
+        }
+
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void setAutoTimeRequired(Operation operation) throws AndroidAgentException {
+        boolean isEnable = operation.isEnabled();
+        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        getResultBuilder().build(operation);
+        if (isEnable) {
+            getDevicePolicyManager().setAutoTimeRequired(getCdmDeviceAdmin(), true);
+        }
+        else {
+            getDevicePolicyManager().setAutoTimeRequired(getCdmDeviceAdmin(), false);
         }
     }
 

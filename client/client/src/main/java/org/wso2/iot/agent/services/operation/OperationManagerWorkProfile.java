@@ -22,7 +22,11 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -30,6 +34,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.AppLockService;
@@ -46,7 +51,6 @@ import java.util.List;
 public class OperationManagerWorkProfile extends OperationManager {
 
     private static final String TAG = OperationManagerWorkProfile.class.getSimpleName();
-
 
     public OperationManagerWorkProfile(Context context) {
         super(context);
@@ -315,22 +319,30 @@ public class OperationManagerWorkProfile extends OperationManager {
 
     @Override
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public void handleUserRestriction(Operation operation) {
+    public void handleOwnersRestriction(Operation operation) {
         boolean isEnable = operation.isEnabled();
         String key = operation.getCode();
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
         if (isEnable) {
-            getDevicePolicyManager().addUserRestriction(getCdmDeviceAdmin(), key);
+            getDevicePolicyManager().addUserRestriction(getCdmDeviceAdmin(), getPermissionConstantValue(key));
             if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "Restriction added: " + key);
             }
         } else {
-            getDevicePolicyManager().clearUserRestriction(getCdmDeviceAdmin(), key);
+            getDevicePolicyManager().clearUserRestriction(getCdmDeviceAdmin(), getPermissionConstantValue(key));
             if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "Restriction cleared: " + key);
             }
         }
+    }
+
+    @Override
+    public void handleDeviceOwnerRestriction(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
     }
 
     @Override
@@ -440,7 +452,11 @@ public class OperationManagerWorkProfile extends OperationManager {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void enableSystemApp(String packageName) {
-        getDevicePolicyManager().enableSystemApp(getCdmDeviceAdmin(), packageName);
+        try {
+            getDevicePolicyManager().enableSystemApp(getCdmDeviceAdmin(), packageName);
+        }catch (IllegalArgumentException e) {
+            Log.e(TAG, "App is not available on the device to enable. " + e.toString() );
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -453,6 +469,7 @@ public class OperationManagerWorkProfile extends OperationManager {
         getResultBuilder().build(operation);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void setRuntimePermissionPolicy(Operation operation) throws AndroidAgentException {
         JSONObject runtimePermissionTypeData;
@@ -472,8 +489,42 @@ public class OperationManagerWorkProfile extends OperationManager {
         }
     }
 
+    public void setStatusBarDisabled(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void setScreenCaptureDisabled(Operation operation) throws AndroidAgentException {
+        boolean isEnable = operation.isEnabled();
+        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        getResultBuilder().build(operation);
+        if (isEnable) {
+            getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), true);
+        }
+        else {
+            getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), false);
+        }
+    }
+
+    @Override
+    public void setAutoTimeRequired(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
+    }
+
     private void enableGooglePlayApps(String packageName) {
         triggerGooglePlayApp(packageName);
+    }
+
+    private String getPermissionConstantValue(String key){
+        return getContext().getString(getContextResources().getIdentifier(
+                key.toString(),"string",getContext().getPackageName()));
     }
 
 }

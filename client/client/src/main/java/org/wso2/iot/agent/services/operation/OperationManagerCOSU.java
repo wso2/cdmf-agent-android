@@ -588,22 +588,27 @@ public class OperationManagerCOSU extends OperationManager {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
-    public void handleUserRestriction(Operation operation) throws AndroidAgentException {
+    public void handleOwnersRestriction(Operation operation) throws AndroidAgentException {
         boolean isEnable = operation.isEnabled();
         String key = operation.getCode();
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
         if (isEnable) {
-            getDevicePolicyManager().addUserRestriction(getCdmDeviceAdmin(), key);
+            getDevicePolicyManager().addUserRestriction(getCdmDeviceAdmin(), getPermissionConstantValue(key));
             if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "Restriction added: " + key);
             }
         } else {
-            getDevicePolicyManager().clearUserRestriction(getCdmDeviceAdmin(), key);
+            getDevicePolicyManager().clearUserRestriction(getCdmDeviceAdmin(), getPermissionConstantValue(key));
             if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "Restriction cleared: " + key);
             }
         }
+    }
+
+    @Override
+    public void handleDeviceOwnerRestriction(Operation operation) throws AndroidAgentException {
+        handleOwnersRestriction(operation);
     }
 
     @Override
@@ -676,5 +681,51 @@ public class OperationManagerCOSU extends OperationManager {
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
+    @Override
+    public void setStatusBarDisabled(Operation operation) throws AndroidAgentException {
+        boolean isEnable = operation.isEnabled();
+        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        getResultBuilder().build(operation);
+        if (isEnable) {
+            getDevicePolicyManager().setStatusBarDisabled(getCdmDeviceAdmin(), true);
+        }
+        else {
+            getDevicePolicyManager().setStatusBarDisabled(getCdmDeviceAdmin(), false);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void setScreenCaptureDisabled(Operation operation) throws AndroidAgentException {
+        boolean isEnable = operation.isEnabled();
+        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        getResultBuilder().build(operation);
+        if (isEnable) {
+            getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), true);
+        }
+        else {
+            getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), false);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void setAutoTimeRequired(Operation operation) throws AndroidAgentException {
+        boolean isEnable = operation.isEnabled();
+        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        getResultBuilder().build(operation);
+        if (isEnable) {
+            getDevicePolicyManager().setAutoTimeRequired(getCdmDeviceAdmin(), true);
+        }
+        else {
+            getDevicePolicyManager().setAutoTimeRequired(getCdmDeviceAdmin(), false);
+        }
+    }
+
+    private String getPermissionConstantValue(String key){
+        return getContext().getString(getContextResources().getIdentifier(
+                key.toString(),"string",getContext().getPackageName()));
+    }
 
 }

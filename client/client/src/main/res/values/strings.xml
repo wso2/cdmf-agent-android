@@ -468,4 +468,37 @@
     <string name="date_util_prefix_almost">almost</string>
 
     <string name="date_util_suffix">ago</string>
+
+    <!-- AfW User Restrictions -->
+    <string name="DISALLOW_CROSS_PROFILE_COPY_PASTE">no_cross_profile_copy_paste</string>
+    <string name="DISALLOW_CONFIG_CREDENTIALS">no_config_credentials</string>
+    <string name="DISALLOW_CONFIG_VPN">no_config_vpn</string>
+    <string name="DISALLOW_APPS_CONTROL">no_control_apps</string>
+    <string name="DISALLOW_DEBUGGING_FEATURES">no_debugging_features</string>
+    <string name="DISALLOW_INSTALL_APPS">no_install_apps</string>
+    <string name="DISALLOW_INSTALL_UNKNOWN_SOURCES">no_install_unknown_sources</string>
+    <string name="DISALLOW_MODIFY_ACCOUNTS">no_modify_accounts</string>
+    <string name="DISALLOW_OUTGOING_BEAM">no_outgoing_beam</string>
+    <string name="DISALLOW_OUTGOING_CALLS">no_outgoing_calls</string>
+    <string name="DISALLOW_SHARE_LOCATION">no_share_location</string>
+    <string name="DISALLOW_UNINSTALL_APPS">no_uninstall_apps</string>
+    <string name="DISALLOW_CONFIG_CELL_BROADCASTS">no_config_cell_broadcasts</string>
+    <string name="DISALLOW_CONFIG_MOBILE_NETWORKS">no_config_mobile_networks</string>
+    <string name="DISALLOW_BLUETOOTH">no_bluetooth</string>
+    <string name="DISALLOW_SMS">no_sms</string>
+    <string name="DISALLOW_ADJUST_VOLUME">no_adjust_volume</string>
+    <string name="DISALLOW_CONFIG_BLUETOOTH">no_config_bluetooth</string>
+    <string name="DISALLOW_CONFIG_WIFI">no_config_wifi</string>
+    <string name="DISALLOW_MOUNT_PHYSICAL_MEDIA">no_physical_media</string>
+    <string name="DISALLOW_CREATE_WINDOWS">no_create_windows</string>
+    <string name="DISALLOW_SAFE_BOOT">no_safe_boot</string>
+    <string name="DISALLOW_FACTORY_RESET">no_factory_reset</string>
+    <string name="DISALLOW_REMOVE_USER">no_remove_user</string>
+    <string name="DISALLOW_ADD_USER">no_add_user</string>
+    <string name="DISALLOW_NETWORK_RESET">no_network_reset</string>
+    <string name="DISALLOW_USB_FILE_TRANSFER">no_usb_file_transfer</string>
+    <string name="ENSURE_VERIFY_APPS">ensure_verify_apps</string>
+    <string name="DISALLOW_UNMUTE_MICROPHONE">no_unmute_microphone</string>
+    <string name="ALLOW_PARENT_PROFILE_APP_LINKING">allow_parent_profile_app_linking</string>
+    <string name="DISALLOW_CONFIG_TETHERING">no_config_tethering</string>
 </resources>

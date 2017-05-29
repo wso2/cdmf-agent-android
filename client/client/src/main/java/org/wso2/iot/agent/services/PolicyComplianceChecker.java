@@ -452,14 +452,14 @@ public class PolicyComplianceChecker {
      * @return policy - ComplianceFeature object.
      */
     private ComplianceFeature checkRuntimePermissionPolicy(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
-        int type;
-        int t;
+        int currentPermissionType;
+        int policyPermissionType;
         try {
             JSONObject runtimePermissionData = new JSONObject(operation.getPayLoad().toString());
             if (!runtimePermissionData.isNull("type")) {
-                type = Integer.parseInt(runtimePermissionData.get("type").toString());
-                t = devicePolicyManager.getPermissionPolicy(deviceAdmin);
-                if(type == t){
+                policyPermissionType = Integer.parseInt(runtimePermissionData.get("type").toString());
+                currentPermissionType = devicePolicyManager.getPermissionPolicy(deviceAdmin);
+                if(currentPermissionType != policyPermissionType){
                     policy.setCompliance(false);
                     policy.setMessage(resources.getString(R.string.error_runtime_permission_policy));
                     return policy;

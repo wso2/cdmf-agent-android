@@ -455,10 +455,21 @@ public class OperationManagerWorkProfile extends OperationManager {
 
     @Override
     public void setRuntimePermissionPolicy(Operation operation) throws AndroidAgentException {
-        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
-        operation.setOperationResponse("Operation not supported.");
-        getResultBuilder().build(operation);
-        Log.d(TAG, "Operation not supported.");
+        JSONObject runtimePermissionTypeData;
+        int permissionType;
+        try {
+            runtimePermissionTypeData = new JSONObject(operation.getPayLoad().toString());
+            if (!runtimePermissionTypeData.isNull("type")) {
+                permissionType = Integer.parseInt(runtimePermissionTypeData.get("type").toString());
+                getDevicePolicyManager().setPermissionPolicy(getCdmDeviceAdmin(), permissionType);
+            }
+
+        } catch (JSONException e) {
+            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+            operation.setOperationResponse("Error in parsing PROFILE payload.");
+            getResultBuilder().build(operation);
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
     }
 
     private void enableGooglePlayApps(String packageName) {

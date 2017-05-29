@@ -123,6 +123,8 @@ public class PolicyRevokeHandler {
                 case Constants.Operation.APP_RESTRICTION:
                     revokeAppRestrictionPolicy(operation);
                     break;
+                case Constants.Operation.RUNTIME_PERMISSION_POLICY:
+                    //return revokeRunTimePermissionPolicyOperation(operation);
                 default:
                     throw new AndroidAgentException("Invalid operation code received");
             }

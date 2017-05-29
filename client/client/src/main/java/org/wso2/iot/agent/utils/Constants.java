@@ -350,6 +350,13 @@ public class Constants {
 	}
 
 	/**
+	 *  Runtime Permission Policy specific constants
+	 */
+	public final class RuntimePermissionPolicy {
+		public static final String DEFAULT_PERMISSION_TYPE = "defaultType";
+	}
+
+	/**
 	 *  Device specific constants
 	 */
 	public final class Device {

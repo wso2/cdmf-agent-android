@@ -23,6 +23,7 @@ import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -634,15 +635,17 @@ public class OperationManagerDeviceOwner extends OperationManager {
         getResultBuilder().build(operation);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void setRuntimePermissionPolicy(Operation operation) throws AndroidAgentException {
         JSONObject runtimePermissionTypeData;
         int permissionType;
         try {
             runtimePermissionTypeData = new JSONObject(operation.getPayLoad().toString());
-            if (!runtimePermissionTypeData.isNull("Type")) {
-                permissionType = (Integer) runtimePermissionTypeData.get("Type");
-                Toast.makeText(getContext(),permissionType,Toast.LENGTH_LONG).show();
+            if (!runtimePermissionTypeData.isNull(Constants.RuntimePermissionPolicy.DEFAULT_PERMISSION_TYPE)) {
+                permissionType = Integer.parseInt(runtimePermissionTypeData.get(
+                        Constants.RuntimePermissionPolicy.DEFAULT_PERMISSION_TYPE).toString());
+                getDevicePolicyManager().setPermissionPolicy(getCdmDeviceAdmin(), permissionType);
             }
 
         } catch (JSONException e) {

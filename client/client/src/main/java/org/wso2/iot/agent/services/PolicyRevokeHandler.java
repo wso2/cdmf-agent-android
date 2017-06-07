@@ -372,7 +372,6 @@ public class PolicyRevokeHandler {
         }
     }
 
-
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void revokeAutoTimeRestrictionPolicy() throws AndroidAgentException {
         if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {

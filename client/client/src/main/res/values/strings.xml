@@ -173,6 +173,9 @@
     <string name="policy_email_username">username</string>
     <string name="policy_email_password">password</string>
     <string name="policy_email_host">hostname</string>
+    <string name="policy_runtime_permission_default_permission_type">defaultType</string>
+    <string name="policy_runtime_permission_permitted_applications">permittedApplications</string>
+
 
     <!-- POLICY VIOLATION MESSAGES -->
     <string name="policy_violation_wifi">\nYou are not using company WIFI account, please change your WIFI configuration \n</string>

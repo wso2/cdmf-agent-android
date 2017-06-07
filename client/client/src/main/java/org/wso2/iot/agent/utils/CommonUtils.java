@@ -517,13 +517,55 @@ public class CommonUtils {
 	                                                          Resources resources)
 			throws AndroidAgentException {
 		AppRestriction appRestriction = new AppRestriction();
-		JSONArray restrictedApps = null;
+		JSONArray permittedApps = null;
 		try {
 			JSONObject payload = new JSONObject(operation.getPayLoad().toString());
 			appRestriction.setRestrictionType(
 					(String) payload.get(Constants.AppRestriction.RESTRICTION_TYPE));
 			if (!payload.isNull(Constants.AppRestriction.RESTRICTED_APPLICATIONS)) {
-				restrictedApps = payload.getJSONArray(Constants.AppRestriction.RESTRICTED_APPLICATIONS);
+				permittedApps = payload.getJSONArray(Constants.AppRestriction.RESTRICTED_APPLICATIONS);
+			}
+		} catch (JSONException e) {
+			if (resources != null && resultBuilder != null) {
+				operation.setStatus(resources.getString(R.string.operation_value_error));
+				resultBuilder.build(operation);
+			}
+			throw new AndroidAgentException("Invalid JSON format.", e);
+		}
+
+		List<String> restrictedPackages = new ArrayList<>();
+
+		if (permittedApps != null) {
+			for (int i = 0; i < permittedApps.length(); i++) {
+				try {
+					restrictedPackages.add((String) ((JSONObject) permittedApps.get(i))
+							.get(Constants.AppRuntimePermission.PACKAGE_NAME));
+				} catch (JSONException e) {
+					if (resources != null && resultBuilder != null) {
+						operation.setStatus(resources.getString(R.string.operation_value_error));
+						resultBuilder.build(operation);
+					}
+					throw new AndroidAgentException("Invalid JSON format", e);
+				}
+			}
+		}
+
+		appRestriction.setRestrictedList(restrictedPackages);
+		return appRestriction;
+	}
+
+	public static AppRestriction getAppRuntimePermissionTypeAndList(Operation operation,
+															  ResultPayload resultBuilder,
+															  Resources resources)
+			throws AndroidAgentException {
+		AppRestriction appRestriction = new AppRestriction();
+		JSONArray restrictedApps = null;
+		try {
+			JSONObject payload = new JSONObject(operation.getPayLoad().toString());
+			appRestriction.setRestrictionType(
+					(String) payload.get(Constants.AppRuntimePermission.PERMISSION_TYPE));
+			if (!payload.isNull(Constants.AppRuntimePermission.PERMITTED_APPS)) {
+				restrictedApps = payload.getJSONArray(Constants.AppRuntimePermission.PERMITTED_APPS);
 			}
 		} catch (JSONException e) {
 			if (resources != null && resultBuilder != null) {

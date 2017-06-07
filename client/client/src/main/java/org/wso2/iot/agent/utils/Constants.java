@@ -514,6 +514,14 @@ public class Constants {
 		public static final String APP_LIST = "appList";
 	}
 
+	public final class AppRuntimePermission {
+		private AppRuntimePermission() { throw new AssertionError(); }
+		public static final String PERMISSION_TYPE = "permission-type";
+		public static final String PERMITTED_APPS = "permitted-applications";
+		public static final String APP_LIST = "appList";
+		public static final String PACKAGE_NAME = "packageName";
+	}
+
 	public final class SystemUpdatePolicyType {
 		private SystemUpdatePolicyType() {
 			throw new AssertionError();

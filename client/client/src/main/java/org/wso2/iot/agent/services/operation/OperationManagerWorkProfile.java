@@ -22,9 +22,6 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -75,7 +72,7 @@ public class OperationManagerWorkProfile extends OperationManager {
     @Override
     public void installAppBundle(Operation operation) throws AndroidAgentException {
         try {
-            if (operation.getCode().equals(Constants.Operation.INSTALL_APPLICATION)||
+            if (operation.getCode().equals(Constants.Operation.INSTALL_APPLICATION) ||
                     operation.getCode().equals(Constants.Operation.UPDATE_APPLICATION)) {
                 JSONObject appData = new JSONObject(operation.getPayLoad().toString());
                 installApplication(appData, operation);
@@ -113,7 +110,7 @@ public class OperationManagerWorkProfile extends OperationManager {
 
                 if (type.equalsIgnoreCase(getContextResources().getString(R.string.intent_extra_enterprise))) {
                     appUrl = data.getString(getContextResources().getString(R.string.app_url));
-                    if(data.has(getContextResources().getString(R.string.app_schedule))){
+                    if (data.has(getContextResources().getString(R.string.app_schedule))) {
                         schedule = data.getString(getContextResources().getString(R.string.app_schedule));
                     }
                     operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
@@ -454,13 +451,13 @@ public class OperationManagerWorkProfile extends OperationManager {
     private void enableSystemApp(String packageName) {
         try {
             getDevicePolicyManager().enableSystemApp(getCdmDeviceAdmin(), packageName);
-        }catch (IllegalArgumentException e) {
-            Log.e(TAG, "App is not available on the device to enable. " + e.toString() );
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "App is not available on the device to enable. " + e.toString());
         }
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void hideSystemApp(String packageName ) {
+    private void hideSystemApp(String packageName) {
         getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
     }
 
@@ -472,13 +469,27 @@ public class OperationManagerWorkProfile extends OperationManager {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void setRuntimePermissionPolicy(Operation operation) throws AndroidAgentException {
-        JSONObject runtimePermissionTypeData;
-        int permissionType;
+        JSONObject restrictionPolicyData;
+        JSONObject restrictionAppData;
+        JSONArray permittedApplicationsPayload;
+        int defaultPermissionType;
+
         try {
-            runtimePermissionTypeData = new JSONObject(operation.getPayLoad().toString());
-            if (!runtimePermissionTypeData.isNull("type")) {
-                permissionType = Integer.parseInt(runtimePermissionTypeData.get("type").toString());
-                getDevicePolicyManager().setPermissionPolicy(getCdmDeviceAdmin(), permissionType);
+            restrictionPolicyData = new JSONObject(operation.getPayLoad().toString());
+            if (!restrictionPolicyData.isNull("defaultType")) {
+                defaultPermissionType = Integer.parseInt(restrictionPolicyData.
+                        getString("defaultType"));
+                getDevicePolicyManager().setPermissionPolicy(getCdmDeviceAdmin(), defaultPermissionType);
+                Log.d(TAG, "Default runtime-permission type changed.");
+            }
+            if (!restrictionPolicyData.isNull("permittedApplications")) {
+                permittedApplicationsPayload = restrictionPolicyData.getJSONArray("permittedApplications");
+                for (int i = 0; i < permittedApplicationsPayload.length(); i++) {
+                    restrictionAppData = new JSONObject(permittedApplicationsPayload.getString(i));
+                    setAppRuntimePermission(restrictionAppData.
+                                    getString("packageName"), restrictionAppData.getString("permissionName"),
+                            Integer.parseInt(restrictionAppData.getString("permissionType")));
+                }
             }
 
         } catch (JSONException e) {
@@ -487,6 +498,13 @@ public class OperationManagerWorkProfile extends OperationManager {
             getResultBuilder().build(operation);
             throw new AndroidAgentException("Invalid JSON format.", e);
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void setAppRuntimePermission(String packageName, String permission, int permissionType) {
+        getDevicePolicyManager().setPermissionGrantState(
+                getCdmDeviceAdmin(), packageName, permission, permissionType);
+        Log.d(TAG, "App Permission Changed" + packageName + " : " + permission);
     }
 
     public void setStatusBarDisabled(Operation operation) throws AndroidAgentException {
@@ -504,8 +522,7 @@ public class OperationManagerWorkProfile extends OperationManager {
         getResultBuilder().build(operation);
         if (isEnable) {
             getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), true);
-        }
-        else {
+        } else {
             getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), false);
         }
     }
@@ -522,9 +539,9 @@ public class OperationManagerWorkProfile extends OperationManager {
         triggerGooglePlayApp(packageName);
     }
 
-    private String getPermissionConstantValue(String key){
+    private String getPermissionConstantValue(String key) {
         return getContext().getString(getContextResources().getIdentifier(
-                key.toString(),"string",getContext().getPackageName()));
+                key.toString(), "string", getContext().getPackageName()));
     }
 
 }

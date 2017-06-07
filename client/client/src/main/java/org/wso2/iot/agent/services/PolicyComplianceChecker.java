@@ -456,8 +456,8 @@ public class PolicyComplianceChecker {
         int policyPermissionType;
         try {
             JSONObject runtimePermissionData = new JSONObject(operation.getPayLoad().toString());
-            if (!runtimePermissionData.isNull("type")) {
-                policyPermissionType = Integer.parseInt(runtimePermissionData.get("type").toString());
+            if (!runtimePermissionData.isNull("defaultType")) {
+                policyPermissionType = Integer.parseInt(runtimePermissionData.get("defaultType").toString());
                 currentPermissionType = devicePolicyManager.getPermissionPolicy(deviceAdmin);
                 if(currentPermissionType != policyPermissionType){
                     policy.setCompliance(false);

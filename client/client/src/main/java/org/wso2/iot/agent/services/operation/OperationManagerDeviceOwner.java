@@ -643,14 +643,27 @@ public class OperationManagerDeviceOwner extends OperationManager {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void setRuntimePermissionPolicy(Operation operation) throws AndroidAgentException {
-        JSONObject runtimePermissionTypeData;
-        int permissionType;
+        JSONObject restrictionPolicyData;
+        JSONObject restrictionAppData;
+        JSONArray permittedApplicationsPayload;
+        int defaultPermissionType;
+
         try {
-            runtimePermissionTypeData = new JSONObject(operation.getPayLoad().toString());
-            if (!runtimePermissionTypeData.isNull(Constants.RuntimePermissionPolicy.DEFAULT_PERMISSION_TYPE)) {
-                permissionType = Integer.parseInt(runtimePermissionTypeData.get(
-                        Constants.RuntimePermissionPolicy.DEFAULT_PERMISSION_TYPE).toString());
-                getDevicePolicyManager().setPermissionPolicy(getCdmDeviceAdmin(), permissionType);
+            restrictionPolicyData = new JSONObject(operation.getPayLoad().toString());
+            if (!restrictionPolicyData.isNull("defaultType")) {
+                defaultPermissionType = Integer.parseInt(restrictionPolicyData.
+                        getString("defaultType"));
+                getDevicePolicyManager().setPermissionPolicy(getCdmDeviceAdmin(), defaultPermissionType);
+                Log.d(TAG, "Default runtime-permission type changed.");
+            }
+            if (!restrictionPolicyData.isNull("permittedApplications")) {
+                permittedApplicationsPayload = restrictionPolicyData.getJSONArray("permittedApplications");
+                for(int i = 0; i <permittedApplicationsPayload.length(); i++) {
+                    restrictionAppData = new JSONObject(permittedApplicationsPayload.getString(i));
+                    setAppRuntimePermission(restrictionAppData.
+                                    getString("packageName"), restrictionAppData.getString("permissionName"),
+                            Integer.parseInt(restrictionAppData.getString("permissionType")));
+                }
             }
 
         } catch (JSONException e) {
@@ -658,8 +671,13 @@ public class OperationManagerDeviceOwner extends OperationManager {
             operation.setOperationResponse("Error in parsing PROFILE payload.");
             getResultBuilder().build(operation);
             throw new AndroidAgentException("Invalid JSON format.", e);
-
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void setAppRuntimePermission(String packageName, String permission, int permissionType) {
+        getDevicePolicyManager().setPermissionGrantState(getCdmDeviceAdmin(),packageName,permission,permissionType);
+        Log.d(TAG,"App Permission Changed"+ packageName + " : " + permission );
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -688,7 +706,6 @@ public class OperationManagerDeviceOwner extends OperationManager {
         else {
             getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), false);
         }
-
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)

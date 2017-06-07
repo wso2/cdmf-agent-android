@@ -66,6 +66,7 @@ public class Constants {
 
 	public final static String GRANT_TYPE = "grant_type";
 	public final static String GRANT_TYPE_PASSWORD = "password";
+	public final static String GRANT_TYPE_ACCESS_TOKEN = "access_token";
 	public final static String AUTHORIZATION_MODE = "Basic ";
 	public final static String AUTHORIZATION_HEADER = "Authorization";
 	public final static String CONTENT_TYPE_HEADER = "Content-Type";

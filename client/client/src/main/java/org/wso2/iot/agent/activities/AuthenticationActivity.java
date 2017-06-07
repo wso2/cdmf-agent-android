@@ -544,7 +544,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 			}
 
 			//adding device-specific scope
-			String deviceScope = "deivce_" + deviceInfo.getDeviceId();
+			String deviceScope = "device_" + deviceInfo.getDeviceId();
 			info.setScopes(deviceScope);
 
 			if (tenantDomain != null && !tenantDomain.toString().trim().isEmpty()) {

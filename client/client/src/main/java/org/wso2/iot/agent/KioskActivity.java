@@ -1,15 +1,12 @@
 package org.wso2.iot.agent;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.admin.DevicePolicyManager;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,31 +17,17 @@ import android.widget.TextView;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.events.EventRegistry;
 import org.wso2.iot.agent.events.listeners.KioskAppInstallationListener;
-import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.services.LocalNotification;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
 public class KioskActivity extends Activity {
-
-    private DevicePolicyManager devicePolicyManager;
-    private ComponentName cdmfDeviceAdmin;
-    private boolean freshRegFlag = false;
-    private static final int ACTIVATION_REQUEST = 47;
     private TextView textViewWipeData;
     private Context context;
-
-//    AppInstallationBroadcastReceiver appInstallationBroadcastReceiver;
-//    boolean isAppInstallationBroadcastReceiverRegistered = false;
-
-    private static final String ACTION_INSTALL_COMPLETE = "INSTALL_COMPLETED";
-
-    TextView textViewKiosk;
-    static TextView textViewLaunch;
-    int kioskExit;
-
-    static String packageName = null;
-    private String kioskAppPackageNameKey ="kioskAppPackageName";
+    private TextView textViewKiosk;
+    private static TextView textViewLaunch;
+    private int kioskExit;
+    private static String packageName = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,12 +66,6 @@ public class KioskActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             startLockTask();
         }
-
-        devicePolicyManager =
-                (DevicePolicyManager) getApplicationContext().getSystemService(Context.DEVICE_POLICY_SERVICE);
-
-        cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(getApplicationContext());
-
 
         textViewWipeData = (TextView) this.findViewById(R.id.textViewWipeData);
         if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU && Constants.DISPLAY_WIPE_DEVICE_BUTTON){
@@ -145,7 +122,7 @@ public class KioskActivity extends Activity {
 
     /*Checks whether there is an already installed app and if exists the app will be launched*/
     private void launchKioskAppIfExists() {
-        packageName = Preference.getString(context.getApplicationContext(), kioskAppPackageNameKey);
+        packageName = Preference.getString(context.getApplicationContext(), Constants.KIOSK_APP_PACKAGE_NAME);
         if (packageName != null && !packageName.equals("")) {
             textViewLaunch.setVisibility(View.VISIBLE);
             Intent launchIntent = getApplicationContext().getPackageManager()
@@ -156,28 +133,6 @@ public class KioskActivity extends Activity {
             }
         }
     }
-
-//    private class AppInstallationBroadcastReceiver extends BroadcastReceiver {
-//
-//        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            String packageName =  intent.getData().getEncodedSchemeSpecificPart();
-//            devicePolicyManager.setLockTaskPackages(cdmfDeviceAdmin,
-//                    new String[]{context.getApplicationContext().getPackageName(), packageName});
-//            //Setting permissions
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//                for(String permission: Constants.ANDROID_COSU_PERMISSIONS){
-//                    devicePolicyManager.setPermissionGrantState(cdmfDeviceAdmin,
-//                            packageName, permission,
-//                            DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
-//                }
-//            }
-//            Preference.putString(KioskActivity.this.context.getApplicationContext(),
-//                    kioskAppPackageNameKey, packageName);
-//            launchKioskAppIfExists();
-//        }
-//    }
 
     @Override
     protected void onResume() {

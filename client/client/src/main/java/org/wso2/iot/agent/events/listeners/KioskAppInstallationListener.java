@@ -31,32 +31,30 @@ import static android.security.KeyStore.getApplicationContext;
 
 public class KioskAppInstallationListener extends BroadcastReceiver {
 
-    private String kioskAppPackageNameKey ="kioskAppPackageName";
-
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onReceive(Context context, Intent intent) {
         DevicePolicyManager devicePolicyManager =
                 (DevicePolicyManager) getApplicationContext().getSystemService(Context.DEVICE_POLICY_SERVICE);
-        ComponentName cdmfDeviceAdmin;cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(getApplicationContext());
+        ComponentName cdmfDeviceAdmin;
+        cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(getApplicationContext());
 
-        String packageName =  intent.getData().getEncodedSchemeSpecificPart();
+        String packageName = intent.getData().getEncodedSchemeSpecificPart();
         devicePolicyManager.setLockTaskPackages(cdmfDeviceAdmin,
                 new String[]{context.getApplicationContext().getPackageName(), packageName});
         //Setting permissions
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            for(String permission: Constants.ANDROID_COSU_PERMISSIONS){
+            for (String permission : Constants.ANDROID_COSU_PERMISSIONS) {
                 devicePolicyManager.setPermissionGrantState(cdmfDeviceAdmin,
                         packageName, permission,
                         DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
             }
         }
         Preference.putString(getApplicationContext(),
-                kioskAppPackageNameKey, packageName);
+                Constants.KIOSK_APP_PACKAGE_NAME, packageName);
         launchKioskApp(packageName);
     }
 
-    /*Checks whether there is an already installed app and if exists the app will be launched*/
     private void launchKioskApp(String packageName) {
         Intent launchIntent = getApplicationContext().getPackageManager()
                 .getLaunchIntentForPackage(packageName);

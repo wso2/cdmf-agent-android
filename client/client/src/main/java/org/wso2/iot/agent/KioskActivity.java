@@ -92,8 +92,7 @@ public class KioskActivity extends Activity {
         installKioskApp();
         launchKioskAppIfExists();
 
-        ComponentName component=new ComponentName(KioskActivity.this, KioskAppInstallationListener.class);
-
+        ComponentName component = new ComponentName(KioskActivity.this, KioskAppInstallationListener.class);
         getPackageManager()
                 .setComponentEnabledSetting(component,
                         PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
@@ -144,7 +143,6 @@ public class KioskActivity extends Activity {
 
     @Override
     protected void onPause() {
-
         super.onPause();
     }
 

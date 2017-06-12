@@ -86,6 +86,7 @@ public class Constants {
 			"android.permission.WRITE_SECURE_SETTINGS"};
 	public static final boolean DISPLAY_WIPE_DEVICE_BUTTON = BuildConfig.DISPLAY_WIPE_DEVICE_BUTTON;
 	public static final boolean COSU_SECRET_EXIT = BuildConfig.COSU_SECRET_EXIT;
+	public static final String KIOSK_APP_DOWNLOAD_URL = "kioskAppDownlaodUrl";
 
 	/**
 	 * Log publishers

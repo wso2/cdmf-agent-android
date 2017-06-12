@@ -199,6 +199,11 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
                             launch.putExtra("android.app.extra.token", token);
                         }
                     }
+
+                    String appUrl = (String) persistableBundle.get("android.app.extra.appurl");
+                    if (appUrl != null && !appUrl.equals("")) {
+                        Preference.putString(context, Constants.KIOSK_APP_DOWNLOAD_URL, appUrl);
+                    }
                 }
             }
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

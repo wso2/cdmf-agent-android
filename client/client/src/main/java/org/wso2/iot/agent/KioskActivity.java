@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.events.EventRegistry;
 import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.services.LocalNotification;
@@ -113,7 +114,7 @@ public class KioskActivity extends Activity {
                 }
             });
         }
-
+        installKioskApp();
         launchKioskAppIfExists();
     }
 
@@ -200,6 +201,15 @@ public class KioskActivity extends Activity {
         }
 
         super.onPause();
+    }
+
+    private void installKioskApp() {
+        String appUrl = Preference.getString(getApplicationContext(), Constants.KIOSK_APP_DOWNLOAD_URL);
+        if (appUrl != null) {
+            Preference.removePreference(getApplicationContext(), Constants.KIOSK_APP_DOWNLOAD_URL);
+            ApplicationManager applicationManager = new ApplicationManager(context.getApplicationContext());
+            applicationManager.installApp(appUrl, null, null);
+        }
     }
 
 }

@@ -87,6 +87,7 @@ public class Constants {
 	public static final boolean DISPLAY_WIPE_DEVICE_BUTTON = BuildConfig.DISPLAY_WIPE_DEVICE_BUTTON;
 	public static final boolean COSU_SECRET_EXIT = BuildConfig.COSU_SECRET_EXIT;
 	public static final String KIOSK_APP_DOWNLOAD_URL = "kioskAppDownlaodUrl";
+	public static final String KIOSK_APP_PACKAGE_NAME ="kioskAppPackageName";
 
 	/**
 	 * Log publishers

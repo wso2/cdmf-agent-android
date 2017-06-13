@@ -32,7 +32,7 @@ android {
         targetSdkVersion 25
         multiDexEnabled true
 
-        versionCode 333
+        versionCode 3010018
         versionName "3.1.18"
     }
     buildTypes {
@@ -564,7 +564,7 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind:2.6.0-rc3'
     compile 'com.fasterxml.jackson.core:jackson-annotations:2.6.0-rc3'
     compile 'org.bouncycastle:bcprov-jdk16:1.45'
-    compile 'com.google.code.gson:gson:2.6.2'
+    compile 'com.google.code.gson:gson:2.7'
     compile 'com.splunk.mint:mint:5.0.0'
 }
 

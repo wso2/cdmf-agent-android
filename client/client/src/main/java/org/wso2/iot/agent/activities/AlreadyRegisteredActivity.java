@@ -35,6 +35,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -344,11 +345,13 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 		}
 	}
 
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	public void onBackPressed() {
 		loadHomeScreen();
 	}
 
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -485,6 +488,7 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 	 * Load device home screen.
 	 */
 
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	private void loadHomeScreen() {
 		if(!devicePolicyManager.isProfileOwnerApp(getPackageName())) {
 			finish();

@@ -50,8 +50,19 @@ public class KioskAppInstallationListener extends BroadcastReceiver {
                         DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
             }
         }
-        Preference.putString(getApplicationContext(),
-                Constants.KIOSK_APP_PACKAGE_NAME, packageName);
+        if (!Constants.ALLOW_MULTIPLE_APPS_IN_COSU_MODE) {
+            Preference.putString(getApplicationContext(),
+                    Constants.KIOSK_APP_PACKAGE_NAME, packageName);
+        } else {
+            String currentList = Preference.getString(context, Constants.KIOSK_APP_PACKAGE_NAME);
+            if (currentList == null) {
+                Preference.putString(getApplicationContext(),
+                        Constants.KIOSK_APP_PACKAGE_NAME, packageName);
+            } else {
+                Preference.putString(getApplicationContext(),
+                        Constants.KIOSK_APP_PACKAGE_NAME, currentList + "_" + packageName);
+            }
+        }
         launchKioskApp(packageName);
     }
 

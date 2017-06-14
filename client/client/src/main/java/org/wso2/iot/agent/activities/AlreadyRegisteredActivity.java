@@ -486,12 +486,17 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 	 */
 
 	private void loadHomeScreen() {
-		finish();
-		Intent i = new Intent();
-		i.setAction(Intent.ACTION_MAIN);
-		i.addCategory(Intent.CATEGORY_HOME);
-		this.startActivity(i);
-		super.onBackPressed();
+		if(!devicePolicyManager.isProfileOwnerApp(getPackageName())) {
+			finish();
+			Intent i = new Intent();
+			i.setAction(Intent.ACTION_MAIN);
+			i.addCategory(Intent.CATEGORY_HOME);
+			this.startActivity(i);
+			super.onBackPressed();
+		}
+		else {
+			Toast.makeText(this,"Press Home Button to exit.", Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	/**

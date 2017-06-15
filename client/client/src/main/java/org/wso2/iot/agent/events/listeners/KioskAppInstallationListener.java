@@ -24,6 +24,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+
+import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
@@ -39,28 +41,65 @@ public class KioskAppInstallationListener extends BroadcastReceiver {
         ComponentName cdmfDeviceAdmin;
         cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(getApplicationContext());
 
+        String lockTaskPackages;
         String packageName = intent.getData().getEncodedSchemeSpecificPart();
+        if (!Constants.ALLOW_MULTIPLE_APPS_IN_COSU_MODE) {
+            Preference.putString(getApplicationContext(),
+                    Constants.KIOSK_APP_PACKAGE_NAME, packageName);
+            lockTaskPackages =
+                    context.getApplicationContext().getPackageName()
+                            + context.getString(R.string.kiosk_application_package_split_regex)
+                            + packageName;
+        } else {
+            String currentList = Preference.getString(context, Constants.KIOSK_APP_PACKAGE_NAME);
+            if (currentList == null) {
+                Preference.putString(getApplicationContext(),
+                        Constants.KIOSK_APP_PACKAGE_NAME, packageName);
+                lockTaskPackages =
+                        context.getApplicationContext().getPackageName()
+                                + context.getString(R.string.kiosk_application_package_split_regex)
+                                + packageName;
+            } else {
+                if (!currentList.contains(packageName)) {
+                    Preference.putString(getApplicationContext(),
+                            Constants.KIOSK_APP_PACKAGE_NAME, currentList
+                                    + context.getString(R.string.kiosk_application_package_split_regex)
+                                    + packageName);
+
+                    lockTaskPackages =
+                            context.getApplicationContext().getPackageName()
+                                    + context.getString(R.string.kiosk_application_package_split_regex)
+                                    + currentList
+                                    + context.getString(R.string.kiosk_application_package_split_regex)
+                                    + packageName;
+
+                } else {
+                    String newPackageList = "";
+                    String[] currentListArr =
+                            currentList.split(context.getString(R.string.kiosk_application_package_split_regex));
+                    for (String appPN : currentListArr) {
+                        if (!appPN.equals(packageName)) {
+                            newPackageList += appPN
+                                    + context.getString(R.string.kiosk_application_package_split_regex);
+                        }
+                    }
+                    newPackageList += packageName;
+                    Preference.putString(getApplicationContext(),
+                            Constants.KIOSK_APP_PACKAGE_NAME, newPackageList);
+                    lockTaskPackages = context.getApplicationContext().getPackageName() +
+                            context.getString(R.string.kiosk_application_package_split_regex) +
+                            newPackageList;
+                }
+            }
+        }
         devicePolicyManager.setLockTaskPackages(cdmfDeviceAdmin,
-                new String[]{context.getApplicationContext().getPackageName(), packageName});
+                lockTaskPackages.split(context.getString(R.string.kiosk_application_package_split_regex)));
         //Setting permissions
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             for (String permission : Constants.ANDROID_COSU_PERMISSIONS) {
                 devicePolicyManager.setPermissionGrantState(cdmfDeviceAdmin,
                         packageName, permission,
                         DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
-            }
-        }
-        if (!Constants.ALLOW_MULTIPLE_APPS_IN_COSU_MODE) {
-            Preference.putString(getApplicationContext(),
-                    Constants.KIOSK_APP_PACKAGE_NAME, packageName);
-        } else {
-            String currentList = Preference.getString(context, Constants.KIOSK_APP_PACKAGE_NAME);
-            if (currentList == null) {
-                Preference.putString(getApplicationContext(),
-                        Constants.KIOSK_APP_PACKAGE_NAME, packageName);
-            } else {
-                Preference.putString(getApplicationContext(),
-                        Constants.KIOSK_APP_PACKAGE_NAME, currentList + "_" + packageName);
             }
         }
         launchKioskApp(packageName);

@@ -45,12 +45,12 @@ public class AppDrawerAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return appList.length;
+        return appList != null ? appList.length : 0;
     }
 
     @Override
     public Object getItem(int position) {
-        return appList[position];
+        return appList != null ? appList[position] : null;
     }
 
     @Override
@@ -60,26 +60,30 @@ public class AppDrawerAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        Holder holder = new Holder();
-        View view = inflater.inflate(R.layout.kiosk_app_drawer, null);
-        holder.appName = (TextView) view.findViewById(R.id.name);
-        holder.appIcon = (ImageView) view.findViewById(R.id.icon);
-        PackageManager pm = context.getPackageManager();
+        if (appList != null) {
+            Holder holder = new Holder();
+            View view = inflater.inflate(R.layout.kiosk_app_drawer, null);
+            holder.appName = (TextView) view.findViewById(R.id.name);
+            holder.appIcon = (ImageView) view.findViewById(R.id.icon);
+            PackageManager pm = context.getPackageManager();
 
-        String packageName = appList[position];
-        ApplicationInfo applicationInfo = null;
-        try {
-            applicationInfo = pm.getApplicationInfo(packageName, 0);
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+            String packageName = appList[position];
+            ApplicationInfo applicationInfo = null;
+            try {
+                applicationInfo = pm.getApplicationInfo(packageName, 0);
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
+            holder.appName.setText(pm.getApplicationLabel(applicationInfo).toString());
+            try {
+                holder.appIcon.setImageDrawable(pm.getApplicationIcon(packageName));
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
+            return view;
+        } else {
+            return null;
         }
-        holder.appName.setText(pm.getApplicationLabel(applicationInfo));
-        try {
-            holder.appIcon.setImageDrawable(pm.getApplicationIcon(packageName));
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        return view;
     }
 
     private class Holder {
@@ -89,6 +93,6 @@ public class AppDrawerAdapter extends BaseAdapter {
 
     public void setAppList() {
         String appList = Preference.getString(context, Constants.KIOSK_APP_PACKAGE_NAME);
-        this.appList = appList.split("_");
+        this.appList = appList.split(context.getString(R.string.kiosk_application_package_split_regex));
     }
 }

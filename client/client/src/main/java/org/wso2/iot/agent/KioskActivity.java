@@ -131,7 +131,7 @@ public class KioskActivity extends Activity {
     private void launchKioskAppIfExists() {
         String appList = Preference.getString(context.getApplicationContext(), Constants.KIOSK_APP_PACKAGE_NAME);
         if (appList != null && !appList.equals("")) {
-            String[] packageName = appList.split("_");
+            String[] packageName = appList.split(context.getString(R.string.kiosk_application_package_split_regex));
             Intent launchIntent = getApplicationContext().getPackageManager()
                     .getLaunchIntentForPackage(packageName[packageName.length - 1]);
             launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

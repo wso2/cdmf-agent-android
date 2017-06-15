@@ -88,6 +88,7 @@ public class Constants {
 	public static final boolean COSU_SECRET_EXIT = BuildConfig.COSU_SECRET_EXIT;
 	public static final String KIOSK_APP_DOWNLOAD_URL = "kioskAppDownlaodUrl";
 	public static final String KIOSK_APP_PACKAGE_NAME ="kioskAppPackageName";
+	public static final boolean ALLOW_MULTIPLE_APPS_IN_COSU_MODE = BuildConfig.ALLOW_MULTIPLE_APPS_IN_COSU_MODE;
 
 	/**
 	 * Log publishers

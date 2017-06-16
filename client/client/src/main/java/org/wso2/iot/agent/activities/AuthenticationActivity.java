@@ -33,6 +33,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -110,11 +111,13 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	private static final String TAG = AuthenticationActivity.class.getSimpleName();
 	private static final String[] SUBSCRIBED_API = new String[]{"android"};
 	private Tenant currentTenant;
+	private DevicePolicyManager devicePolicyManager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		context = this;
+		devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
 		if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
 			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		} else {
@@ -555,6 +558,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 		}
 	}
 
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	public void onAPIAccessReceive(String status) {
         if (status != null) {
@@ -600,6 +604,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	 * Initialize get device license agreement. Check if the user has already
 	 * agreed to license agreement
 	 */
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	private void getLicense() {
 		boolean isAgreed = Preference.getBoolean(context, Constants.PreferenceFlag.IS_AGREED);
 		deviceType = Preference.getString(context, Constants.DEVICE_TYPE);
@@ -680,6 +685,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	/**
 	 * Retriever configurations from the server.
 	 */
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	private void checkManifestPermissions(){
 		if (ActivityCompat.checkSelfPermission(AuthenticationActivity.this, android.Manifest.permission.READ_PHONE_STATE)
 				!= PackageManager.PERMISSION_GRANTED) {
@@ -692,6 +698,11 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 					110);
 		}else{
 			getConfigurationsFromServer();
+		}
+		//Since the agent in Work Profile already granted the Device Admin Permissions,
+		// the relevant preference flag is changed to True.
+		if (devicePolicyManager.isProfileOwnerApp(getApplicationContext().getPackageName())){
+			Preference.putBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE, true);
 		}
 	}
 
@@ -977,6 +988,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 				Button btnCancel = (Button) dialog.findViewById(R.id.dialogButtonCancel);
 
 				btnAgree.setOnClickListener(new OnClickListener() {
+					@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 					@Override
 					public void onClick(View v) {
 						Preference.putBoolean(context, Constants.PreferenceFlag.IS_AGREED, true);
@@ -1237,6 +1249,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 		}
 	}
 
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	public void onAuthenticated(boolean status, int requestCode) {
 		if (requestCode == Constants.AUTHENTICATION_REQUEST_CODE) {

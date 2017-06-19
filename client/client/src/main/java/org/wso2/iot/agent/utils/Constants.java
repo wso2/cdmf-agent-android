@@ -52,7 +52,7 @@ public class Constants {
 	public static final String CATALOG_APP_PACKAGE_NAME = BuildConfig.CATALOG_APP_PACKAGE_NAME;
 	public static final int FIRMWARE_UPGRADE_RETRY_COUNT = BuildConfig.FIRMWARE_UPGRADE_RETRY_COUNT;
 	public static final float SERVER_API_VERSION = BuildConfig.SERVER_API_VERSION;
-	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
+	public static final String DATE_FORMAT = "MM-dd-yyyy hh:mm a";
 	public static final String SYSTEM_APP_SERVICE_START_ACTION = "org.wso2.iot.system.service.START_SERVICE";
 	public static final String SYSTEM_APP_BROADCAST_ACTION = "org.wso2.iot.system.service.MESSAGE_PROCESSED";
 	public static final String LOCATION_UPDATE_BROADCAST_ACTION = "org.ws2.iot.agent.LOCATION_UPDATE";

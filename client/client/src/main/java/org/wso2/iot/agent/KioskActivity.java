@@ -58,6 +58,12 @@ public class KioskActivity extends Activity {
             });
         }
 
+        ComponentName component = new ComponentName(KioskActivity.this, KioskAppInstallationListener.class);
+        getPackageManager()
+                .setComponentEnabledSetting(component,
+                        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                        PackageManager.DONT_KILL_APP);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             startLockTask();
         }
@@ -99,12 +105,6 @@ public class KioskActivity extends Activity {
 
         installKioskApp();
         launchKioskAppIfExists();
-
-        ComponentName component = new ComponentName(KioskActivity.this, KioskAppInstallationListener.class);
-        getPackageManager()
-                .setComponentEnabledSetting(component,
-                        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                        PackageManager.DONT_KILL_APP);
     }
 
     @Override

@@ -24,12 +24,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
-import static android.security.KeyStore.getApplicationContext;
 
 public class KioskAppInstallationListener extends BroadcastReceiver {
 
@@ -37,14 +35,14 @@ public class KioskAppInstallationListener extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         DevicePolicyManager devicePolicyManager =
-                (DevicePolicyManager) getApplicationContext().getSystemService(Context.DEVICE_POLICY_SERVICE);
+                (DevicePolicyManager) context.getApplicationContext().getSystemService(Context.DEVICE_POLICY_SERVICE);
         ComponentName cdmfDeviceAdmin;
-        cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(getApplicationContext());
+        cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(context.getApplicationContext());
 
         String lockTaskPackages;
         String packageName = intent.getData().getEncodedSchemeSpecificPart();
         if (!Constants.ALLOW_MULTIPLE_APPS_IN_COSU_MODE) {
-            Preference.putString(getApplicationContext(),
+            Preference.putString(context.getApplicationContext(),
                     Constants.KIOSK_APP_PACKAGE_NAME, packageName);
             lockTaskPackages =
                     context.getApplicationContext().getPackageName()
@@ -53,7 +51,7 @@ public class KioskAppInstallationListener extends BroadcastReceiver {
         } else {
             String currentList = Preference.getString(context, Constants.KIOSK_APP_PACKAGE_NAME);
             if (currentList == null) {
-                Preference.putString(getApplicationContext(),
+                Preference.putString(context.getApplicationContext(),
                         Constants.KIOSK_APP_PACKAGE_NAME, packageName);
                 lockTaskPackages =
                         context.getApplicationContext().getPackageName()
@@ -61,7 +59,7 @@ public class KioskAppInstallationListener extends BroadcastReceiver {
                                 + packageName;
             } else {
                 if (!currentList.contains(packageName)) {
-                    Preference.putString(getApplicationContext(),
+                    Preference.putString(context.getApplicationContext(),
                             Constants.KIOSK_APP_PACKAGE_NAME, currentList
                                     + context.getString(R.string.kiosk_application_package_split_regex)
                                     + packageName);
@@ -84,7 +82,7 @@ public class KioskAppInstallationListener extends BroadcastReceiver {
                         }
                     }
                     newPackageList += packageName;
-                    Preference.putString(getApplicationContext(),
+                    Preference.putString(context.getApplicationContext(),
                             Constants.KIOSK_APP_PACKAGE_NAME, newPackageList);
                     lockTaskPackages = context.getApplicationContext().getPackageName() +
                             context.getString(R.string.kiosk_application_package_split_regex) +
@@ -102,15 +100,15 @@ public class KioskAppInstallationListener extends BroadcastReceiver {
                         DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
             }
         }
-        launchKioskApp(packageName);
+        launchKioskApp(context, packageName);
     }
 
-    private void launchKioskApp(String packageName) {
-        Intent launchIntent = getApplicationContext().getPackageManager()
+    private void launchKioskApp(Context context, String packageName) {
+        Intent launchIntent = context.getApplicationContext().getPackageManager()
                 .getLaunchIntentForPackage(packageName);
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         if (launchIntent != null) {
-            getApplicationContext().startActivity(launchIntent);
+            context.getApplicationContext().startActivity(launchIntent);
         }
     }
 }

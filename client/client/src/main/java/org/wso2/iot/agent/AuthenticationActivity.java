@@ -17,11 +17,13 @@
  */
 package org.wso2.iot.agent;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
@@ -61,6 +63,7 @@ import org.wso2.iot.agent.proxy.interfaces.APIAccessCallBack;
 import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.proxy.interfaces.AuthenticationCallback;
 import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
+import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.services.DynamicClientManager;
 import org.wso2.iot.agent.services.LocalNotification;
 import org.wso2.iot.agent.services.location.LocationService;
@@ -97,6 +100,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 
 	private DeviceInfo deviceInfo;
 	private static final String TAG = AuthenticationActivity.class.getSimpleName();
+	private static final int ACTIVATION_REQUEST = 47;
 	private static final String[] SUBSCRIBED_API = new String[]{"android"};
 	private ClientAuthenticator authenticator;
 
@@ -309,6 +313,24 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 	};
 
 	/**
+	 * Start device admin activation request.
+	 *
+	 */
+	private void startDeviceAdminPrompt() {
+		DevicePolicyManager devicePolicyManager = (DevicePolicyManager)
+				getSystemService(Context.DEVICE_POLICY_SERVICE);
+		ComponentName cdmDeviceAdmin =
+				new ComponentName(AuthenticationActivity.this, AgentDeviceAdminReceiver.class);
+		if(!devicePolicyManager.isAdminActive(cdmDeviceAdmin)){
+			Intent deviceAdminIntent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+			deviceAdminIntent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, cdmDeviceAdmin);
+			deviceAdminIntent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+					getResources().getString(R.string.device_admin_enable_alert));
+			startActivityForResult(deviceAdminIntent, ACTIVATION_REQUEST);
+		}
+	}
+
+	/**
 	 * Start authentication process.
 	 */
 	private void startAuthentication() {
@@ -407,7 +429,23 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 		}
 	}
 
-	@Override
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == ACTIVATION_REQUEST) {
+            if (resultCode == Activity.RESULT_OK) {
+				checkManifestPermissions();
+                CommonUtils.callSystemApp(context, null, null, null);
+                Log.i("onActivityResult", "Administration enabled!");
+            } else {
+                Log.i("onActivityResult", "Administration enable FAILED!");
+				startDeviceAdminPrompt();
+            }
+        }
+    }
+
+
+    @Override
 	public void onAPIAccessReceive(String status) {
         if (status != null) {
 			if (status.trim().equals(Constants.Status.SUCCESSFUL)) {
@@ -497,7 +535,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 				}
 
 			} else {
-				checkManifestPermissions();
+				startDeviceAdminPrompt();
 			}
 		} else if (deviceType != null){
 			checkManifestPermissions();
@@ -834,7 +872,7 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 						Preference.putBoolean(context, Constants.PreferenceFlag.IS_AGREED, true);
 						dialog.dismiss();
 						//load the next intent based on ownership type
-						checkManifestPermissions();
+						startDeviceAdminPrompt();
 					}
 				});
 
@@ -1127,4 +1165,6 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 			}
 		}
 	}
+
+
 }

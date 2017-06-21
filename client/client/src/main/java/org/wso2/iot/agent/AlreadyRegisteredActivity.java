@@ -67,7 +67,6 @@ import java.util.Map;
 public class AlreadyRegisteredActivity extends SherlockActivity implements APIResultCallBack {
 
 	private static final String TAG = AlreadyRegisteredActivity.class.getSimpleName();
-	private static final int ACTIVATION_REQUEST = 47;
 	private String regId;
 	private Context context;
 	private Resources resources;
@@ -116,7 +115,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		if (freshRegFlag) {
 			Preference.putBoolean(context, Constants.PreferenceFlag.REGISTERED, true);
 			if (!isDeviceAdminActive()) {
-				startDeviceAdminPrompt(cdmDeviceAdmin);
+				startEvents();
 			}
 			freshRegFlag = false;
 
@@ -499,23 +498,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		});
 	}
 
-	/**
-	 * Start device admin activation request.
-	 *
-	 * @param cdmDeviceAdmin - Device admin component.
-	 */
-	private void startDeviceAdminPrompt(final ComponentName cdmDeviceAdmin) {
-		AlreadyRegisteredActivity.this.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				Intent deviceAdminIntent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-				deviceAdminIntent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, cdmDeviceAdmin);
-				deviceAdminIntent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-				                           getResources().getString(R.string.device_admin_enable_alert));
-				startActivityForResult(deviceAdminIntent, ACTIVATION_REQUEST);
-			}
-		});
-	}
+
 
 	/**
 	 * Display unregistration confirmation dialog.
@@ -634,18 +617,6 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 		}
 	}
 
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == ACTIVATION_REQUEST) {
-			if (resultCode == Activity.RESULT_OK) {
-				startEvents();
-				CommonUtils.callSystemApp(context, null, null, null);
-				Log.i("onActivityResult", "Administration enabled!");
-			} else {
-				Log.i("onActivityResult", "Administration enable FAILED!");
-			}
-		}
-	}
 
 	private boolean isDeviceAdminActive() {
 		return devicePolicyManager.isAdminActive(cdmDeviceAdmin);

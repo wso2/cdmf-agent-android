@@ -26,7 +26,7 @@ repositories {
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    buildToolsVersion '25.0.0'
     defaultConfig {
         applicationId "org.wso2.iot.agent"
         minSdkVersion 17

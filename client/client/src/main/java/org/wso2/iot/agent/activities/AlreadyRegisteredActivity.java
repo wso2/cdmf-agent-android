@@ -129,7 +129,7 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 		if (isFreshRegistration) {
 			Preference.putBoolean(context, Constants.PreferenceFlag.REGISTERED, true);
 			if (!isDeviceAdminActive()) {
-				startDeviceAdminPrompt(cdmDeviceAdmin);
+				startEvents();
 			}
 			isFreshRegistration = false;
 		}
@@ -511,23 +511,7 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 		loadInitialActivity();
 	}
 
-	/**
-	 * Start device admin activation request.
-	 *
-	 * @param cdmDeviceAdmin - Device admin component.
-	 */
-	private void startDeviceAdminPrompt(final ComponentName cdmDeviceAdmin) {
-		AlreadyRegisteredActivity.this.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				Intent deviceAdminIntent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-				deviceAdminIntent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, cdmDeviceAdmin);
-				deviceAdminIntent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-				                           getResources().getString(R.string.device_admin_enable_alert));
-				startActivityForResult(deviceAdminIntent, ACTIVATION_REQUEST);
-			}
-		});
-	}
+
 
 	/**
 	 * Display unregistration confirmation dialog.
@@ -615,6 +599,11 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 			LocalNotification.startPolling(context);
 		}
 	}
+	private void stopProgressDialog() {
+		if (progressDialog != null && progressDialog.isShowing()) {
+			progressDialog.dismiss();
+		}
+	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -629,7 +618,6 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 			}
 		}
 	}
-
     private void syncWithServer() {
         Animation rotate = AnimationUtils.loadAnimation(context, R.anim.clockwise_refresh);
         imageViewRefresh.startAnimation(rotate);

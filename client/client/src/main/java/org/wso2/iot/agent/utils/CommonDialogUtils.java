@@ -224,4 +224,24 @@ public abstract class CommonDialogUtils {
 		return builder;
 	}
 
+	/**
+	 * Return an Alert Dialog Single choice list and a title.
+	 *
+	 * @param context         - The Activity which needs this alert dialog.
+	 * @param title           - The message title the alert.
+	 * @param items           - List of items should show in the choice list
+	 * @param onClickListener - The onClickListener of choice item.
+	 * @return - The generated Alert Dialog.
+	 */
+	public static AlertDialog.Builder getAlertDialogWithSingleChoices(Context context,
+																	  String title,
+																	  String[] items,
+																	  DialogInterface.OnClickListener
+																			  onClickListener) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		builder.setTitle(title);
+		builder.setSingleChoiceItems(items, -1, onClickListener);
+		return builder;
+	}
+
 }

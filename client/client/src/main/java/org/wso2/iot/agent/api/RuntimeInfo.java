@@ -24,7 +24,6 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.beans.Application;
 import org.wso2.iot.agent.beans.Device;
@@ -40,21 +39,20 @@ import java.util.List;
 import java.util.Map;
 
 public class RuntimeInfo {
-    Context context;
+
     private static final String TAG = RuntimeInfo.class.getName();
-    private ObjectMapper mapper;
-    String[] topCommandRows;
+
+    private Context context;
+    private String[] topCommandRows;
 
     public RuntimeInfo(Context context) {
         this.context = context;
-        mapper = new ObjectMapper();
         String resultOfTop = executeCommand(new String[]{"top", "-n", "1"});
         topCommandRows = resultOfTop.split("\n");
     }
 
     public RuntimeInfo(Context context, String[] command) {
         this.context = context;
-        mapper = new ObjectMapper();
         String resultOfTop = executeCommand(command);
         topCommandRows = resultOfTop.split("\n");
     }
@@ -212,7 +210,7 @@ public class RuntimeInfo {
     }
 
 
-    public String executeCommand(String[] commands) {
+    private String executeCommand(String[] commands) {
         Process p;
         StringBuilder output = new StringBuilder();
         try {

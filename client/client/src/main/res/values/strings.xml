@@ -84,6 +84,7 @@
     <string name="app_uri">packageUri</string>
     <string name="alarm_schedule">schedule</string>
     <string name="alert_message">Message</string>
+    <string name="kiosk_application_package_split_regex">_</string>
 
     <!-- TEXT FIELD HINTS -->
     <string name="hint_new_pin">New PIN Code</string>
@@ -233,7 +234,7 @@
     <string name="error_authentication_failed">Incorrect login information. Please try again.</string>
     <string name="error_network_unavailable">Network connectivity is unavailable. Please check your network connectivity and make sure you are not in power saving mode.</string>
     <string name="error_for_all_unknown_registration_failures">Cannot proceed the registration. Please contact administrator.</string>
-    <string name="error_for_gcm_unavailability">Google Play Services is unavailable. This program requires google play services to function. Please contact administrator.</string>
+    <string name="error_for_fcm_unavailability">FCM Service is unavailable. This program requires FCM services to function. Please contact administrator.</string>
     <string name="error_for_all_unknown_authentication_failures">Cannot proceed the authentication. Please contact administrator.</string>
     <string name="error_for_all_unknown_unregister_failures">Cannot unregister the device. Please contact administrator.</string>
     <string name="error_for_all_unknown_notification_failures">Cannot execute the notification. Please contact administrator.</string>
@@ -248,6 +249,8 @@
 
     <!-- DIALOG TITLES AND MESSAGES -->
     <string name="dialog_authenticate">Authenticating</string>
+    <string name="dialog_registering">Registering with %1$s</string>
+    <string name="dialog_tenant_resolving">Resolving Organizations</string>
     <string name="dialog_title_system_app_required">SystemApp required</string>
     <string name="dialog_gps_settings">GPS Settings</string>
     <string name="dialog_gps_message">GPS is not enabled. Do you want to go to settings menu to enable GPS?</string>
@@ -268,7 +271,8 @@
     <string name="dialog__location_event_listening_enable">You are trying to enable location event listening. Are you sure you want to proceed?</string>
     <string name="dialog_location_event_listening_disable">You are trying to disable location event listening. Are you sure you want to proceed?</string>
     <string name="dialog_system_app_required">Please install the WSO2 System App to continue enrollment as a COPE user.</string>
-
+    <string name="dialog_tenants_not_available">You do not have any associated organizations. Please contact your administrator</string>
+    <string name="dialog_select_tenant">Select an Organization to register your device with.</string>
 
     <!-- REGISTRATION -->
     <string name="register_button_text">Register</string>
@@ -276,7 +280,6 @@
 
     <!-- AGENT SETTINGS ACTIVITY -->
     <string name="menu_item_phone_info">Phone Info</string>
-    <string name="menu_item_change_pin">Change PIN code</string>
     <string name="menu_item_change_ip">Change IP address</string>
 
     <!-- ALREADY REGISTERED ACTIVITY -->
@@ -301,6 +304,8 @@
     <!-- UI TITLES -->
     <string name="button_ok">OK</string>
     <string name="txt_message_title">WSO2 Device Management</string>
+    <string name="btn_sign_in">Sign In</string>
+    <string name="button_sign_up">Sign Up</string>
     <string name="button_agree">Agree</string>
     <string name="button_settings">Settings</string>
     <string name="button_stop">Stop</string>
@@ -311,10 +316,10 @@
     <string name="try_again">Try again</string>
     <string name="button_unregister">Unregister</string>
     <string name="button_enable_managed_profile">Enable Managed Profile</string>
+    <string name="txt_server_address">Server Address</string>
     <string name="txt_organization">Organization</string>
     <string name="txt_username">Username</string>
     <string name="txt_password">Password</string>
-    <string name="txt_register">Register</string>
     <string name="txt_refresh">Refresh</string>
     <string name="txt_reset">Reset</string>
     <string name="txt_byod">  BYOD (This device is my own device)</string>
@@ -333,9 +338,14 @@
     <string name="txt_register_success">Device successfully registered, click to un-register from the EMM</string>
     <string name="txt_unregister">Unregister</string>
     <string name="txt_enroll">Please click to enroll the device</string>
+    <string name="txt_sign_in">Please sign in to register your device with WSO2 IoT Server.</string>
+    <string name="txt_sign_in_cloud">Please sign in to register your device with WSO2 Device Cloud.</string>
+    <string name="txt_sign_up">Don\'t have an account? Sign up for free with Device cloud and try it out!</string>
+    <string name="txt_sign_up_linkify">Sign up</string>
     <string name="txt_lblpin">This PIN code will be used to authorize critical remote operations (ex: remote device wipe) performed against the device by administrators.</string>
     <string name="hint_retype_pin">Retype PIN Code</string>
-    <string name="lbl_pin_title">Please enter PIN code</string><string name="button_unregister_text">"You have successfully enrolled your device! If you want to unregister, tap Unregister."</string>
+    <string name="lbl_pin_title">Please enter PIN code</string>
+    <string name="button_unregister_text">"You have successfully enrolled your device! If you want to unregister, tap Unregister."</string>
     <string name="txt_managed_profile_enable">Managed Profile is Enabled</string>
     <!-- APPLICATION MANAGER -->
     <string name="application_mgr_download_location">/Download/</string>
@@ -358,7 +368,7 @@
     <string name="title_activity_log">LogActivity</string>
 
     <!-- Headings -->
-    <string name="registration_heading">Set your server address here to continue, i.e : www.abc.com. If your server runs on a different port than the default ports (80 or 443), server address should be in following format. i.e : www.abc.com:8280</string>
+    <string name="registration_info">If your server runs on a different port, server address should be like www.abc.com:8280</string>
     <string name="enable_work_profile_heading">Your device supports Android For Work. Set-up the work-profile first and let the Agent Control the Work Profile.</string>
 
     <!-- Validation Errors -->
@@ -423,5 +433,73 @@
     <string name="msg_need_permissions">Please allow necessary permissions.</string>
     <string name="title_need_location">Location disabled</string>
     <string name="msg_need_location">Please enable location to work agent properly.</string>
-    <string name="copyright">©2017 WSO2</string>
+    <string name="footer_text">v%1$s ©%2$d WSO2</string>
+    <string name="txt_last_server_sync">Last server sync</string>
+    <string name="txt_device_id">Device Information</string>
+    <string name="txt_device_id_message">Show device model, OS version IMEI and other information</string>
+    <string name="txt_change_pin">Change PIN</string>
+    <string name="txt_change_pin_message">Click here to change PIN code</string>
+    <string name="txt_registration">Unregister</string>
+    <string name="txt_registration_message">Click here to unregister device</string>
+    <string name="txt_agent_version">Agent Version</string>
+    <string name="txt_never">Never synced. Tap here to sync.</string>
+    <string name="txt_sync">Synchronizing…</string>
+
+    <!-- Date Util -->
+    <string name="date_util_term_less">less than</string>
+    <string name="date_util_term_a">a</string>
+    <string name="date_util_term_an">an</string>
+
+    <string name="date_util_unit_second">second</string>
+    <string name="date_util_unit_seconds">seconds</string>
+    <string name="date_util_unit_minute">minute</string>
+    <string name="date_util_unit_minutes">minutes</string>
+    <string name="date_util_unit_hour">hour</string>
+    <string name="date_util_unit_hours">hours</string>
+    <string name="date_util_unit_day">day</string>
+    <string name="date_util_unit_days">days</string>
+    <string name="date_util_unit_month">month</string>
+    <string name="date_util_unit_months">months</string>
+    <string name="date_util_unit_year">year</string>
+    <string name="date_util_unit_years">years</string>
+
+    <string name="date_util_prefix_lt">less than a</string>
+    <string name="date_util_prefix_about">about</string>
+    <string name="date_util_prefix_over">over</string>
+    <string name="date_util_prefix_almost">almost</string>
+
+    <string name="date_util_suffix">ago</string>
+
+    <!-- AfW User Restrictions -->
+    <string name="DISALLOW_CROSS_PROFILE_COPY_PASTE">no_cross_profile_copy_paste</string>
+    <string name="DISALLOW_CONFIG_CREDENTIALS">no_config_credentials</string>
+    <string name="DISALLOW_CONFIG_VPN">no_config_vpn</string>
+    <string name="DISALLOW_APPS_CONTROL">no_control_apps</string>
+    <string name="DISALLOW_DEBUGGING_FEATURES">no_debugging_features</string>
+    <string name="DISALLOW_INSTALL_APPS">no_install_apps</string>
+    <string name="DISALLOW_INSTALL_UNKNOWN_SOURCES">no_install_unknown_sources</string>
+    <string name="DISALLOW_MODIFY_ACCOUNTS">no_modify_accounts</string>
+    <string name="DISALLOW_OUTGOING_BEAM">no_outgoing_beam</string>
+    <string name="DISALLOW_OUTGOING_CALLS">no_outgoing_calls</string>
+    <string name="DISALLOW_SHARE_LOCATION">no_share_location</string>
+    <string name="DISALLOW_UNINSTALL_APPS">no_uninstall_apps</string>
+    <string name="DISALLOW_CONFIG_CELL_BROADCASTS">no_config_cell_broadcasts</string>
+    <string name="DISALLOW_CONFIG_MOBILE_NETWORKS">no_config_mobile_networks</string>
+    <string name="DISALLOW_BLUETOOTH">no_bluetooth</string>
+    <string name="DISALLOW_SMS">no_sms</string>
+    <string name="DISALLOW_ADJUST_VOLUME">no_adjust_volume</string>
+    <string name="DISALLOW_CONFIG_BLUETOOTH">no_config_bluetooth</string>
+    <string name="DISALLOW_CONFIG_WIFI">no_config_wifi</string>
+    <string name="DISALLOW_MOUNT_PHYSICAL_MEDIA">no_physical_media</string>
+    <string name="DISALLOW_CREATE_WINDOWS">no_create_windows</string>
+    <string name="DISALLOW_SAFE_BOOT">no_safe_boot</string>
+    <string name="DISALLOW_FACTORY_RESET">no_factory_reset</string>
+    <string name="DISALLOW_REMOVE_USER">no_remove_user</string>
+    <string name="DISALLOW_ADD_USER">no_add_user</string>
+    <string name="DISALLOW_NETWORK_RESET">no_network_reset</string>
+    <string name="DISALLOW_USB_FILE_TRANSFER">no_usb_file_transfer</string>
+    <string name="ENSURE_VERIFY_APPS">ensure_verify_apps</string>
+    <string name="DISALLOW_UNMUTE_MICROPHONE">no_unmute_microphone</string>
+    <string name="ALLOW_PARENT_PROFILE_APP_LINKING">allow_parent_profile_app_linking</string>
+    <string name="DISALLOW_CONFIG_TETHERING">no_config_tethering</string>
 </resources>

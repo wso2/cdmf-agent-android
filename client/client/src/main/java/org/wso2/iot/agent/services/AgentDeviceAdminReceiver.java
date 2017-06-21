@@ -17,28 +17,30 @@
  */
 package org.wso2.iot.agent.services;
 
-import java.util.Map;
-
-import org.wso2.iot.agent.AndroidAgentException;
-import org.wso2.iot.agent.R;
-import org.wso2.iot.agent.ServerDetails;
-import org.wso2.iot.agent.beans.ServerConfig;
-import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
-import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
-import org.wso2.iot.agent.utils.Constants;
-import org.wso2.iot.agent.utils.Preference;
-import org.wso2.iot.agent.utils.CommonUtils;
-
 import android.annotation.TargetApi;
 import android.app.admin.DeviceAdminReceiver;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Build;
+import android.os.PersistableBundle;
 import android.util.Log;
 import android.widget.Toast;
+
+import org.wso2.iot.agent.AndroidAgentException;
+import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.activities.AuthenticationActivity;
+import org.wso2.iot.agent.activities.EnableProfileActivity;
+import org.wso2.iot.agent.activities.SplashActivity;
+import org.wso2.iot.agent.beans.ServerConfig;
+import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
+import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
+import org.wso2.iot.agent.utils.CommonUtils;
+import org.wso2.iot.agent.utils.Constants;
+import org.wso2.iot.agent.utils.Preference;
+
+import java.util.Map;
 
 /**
  * This is the component that is responsible for actual device administration.
@@ -49,8 +51,6 @@ import android.widget.Toast;
 public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements APIResultCallBack {
 
     private static final String TAG = AgentDeviceAdminReceiver.class.getName();
-    private String regId;
-    private static final int ACTIVATION_REQUEST = 47;
     public static final String DISALLOW_SAFE_BOOT = "no_safe_boot";
 
     /**
@@ -60,8 +60,7 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
     public void onEnabled(final Context context, Intent intent) {
         super.onEnabled(context, intent);
 
-        if (Constants.DEFAULT_OWNERSHIP != Constants.OWNERSHIP_COSU) {
-            Resources resources = context.getResources();
+        if (!Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
             Preference.putBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE, true);
             String notifier = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
             if (Constants.NOTIFIER_LOCAL.equals(notifier)) {
@@ -77,22 +76,18 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
     public void onDisabled(Context context, Intent intent) {
         super.onDisabled(context, intent);
 
-        if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
-
-        } else {
+        Preference.putBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE, false);
+        if (!Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
             Toast.makeText(context, R.string.device_admin_disabled,
                     Toast.LENGTH_LONG).show();
-            regId = Preference
+            String regId = Preference
                     .getString(context, Constants.PreferenceFlag.REG_ID);
-
             if (regId != null && !regId.isEmpty()) {
                 startUnRegistration(context);
             } else {
                 Log.e(TAG, "Registration ID is already null");
             }
         }
-
-
     }
 
     /**
@@ -101,9 +96,7 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
      * @param context - Application context.
      */
     public void startUnRegistration(Context context) {
-        if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
-
-        } else {
+        if (!Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
             String regId = Preference.getString(context, Constants.PreferenceFlag.REG_ID);
             if (regId != null && !regId.isEmpty()) {
                 String serverIP = Constants.DEFAULT_HOST;
@@ -132,7 +125,6 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
                 }
             }
         }
-
     }
 
     @Override
@@ -168,8 +160,7 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
 
     @Override
     public void onProfileProvisioningComplete(Context context, Intent intent) {
-        if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
-
+        if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
             DevicePolicyManager devicePolicyManager =
                     (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
             ComponentName cdmDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(context);
@@ -195,11 +186,28 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
                             DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
                 }
             }
+            Intent launch = new Intent(context, SplashActivity.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                PersistableBundle persistableBundle = intent.getParcelableExtra(
+                        DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
+                if (persistableBundle != null) {
+                    if (org.wso2.iot.agent.proxy.utils.Constants.Authenticator.AUTHENTICATOR_IN_USE.
+                            equals(org.wso2.iot.agent.proxy.utils.Constants.Authenticator.OAUTH_AUTHENTICATOR)) {
+                        String token = (String) persistableBundle.get("android.app.extra.token");
+                        if (token != null && !token.equals("")) {
+                            launch = new Intent(context, AuthenticationActivity.class);
+                            launch.putExtra("android.app.extra.token", token);
+                        }
+                    }
 
-            Intent launch = new Intent(context, ServerDetails.class);
+                    String appUrl = (String) persistableBundle.get("android.app.extra.appurl");
+                    if (appUrl != null && !appUrl.equals("")) {
+                        Preference.putString(context, Constants.KIOSK_APP_DOWNLOAD_URL, appUrl);
+                    }
+                }
+            }
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(launch);
-
         } else {
             Intent launch = new Intent(context, EnableProfileActivity.class);
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -210,7 +218,6 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
             }
             context.startActivity(launch);
         }
-
     }
 
     private void startDeviceAdminPrompt(Context context, final ComponentName cdmDeviceAdmin) {

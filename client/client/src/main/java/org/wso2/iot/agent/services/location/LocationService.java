@@ -22,7 +22,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -30,16 +29,23 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
-import com.google.gson.Gson;
-
-import org.wso2.iot.agent.AgentReceptionActivity;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.activities.AlreadyRegisteredActivity;
+import org.wso2.iot.agent.events.EventRegistry;
+import org.wso2.iot.agent.events.beans.EventPayload;
+import org.wso2.iot.agent.events.publisher.HttpDataPublisher;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
-import org.wso2.iot.agent.utils.Preference;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * This class holds the function implementations of the location service.
@@ -48,14 +54,14 @@ public class LocationService extends Service implements LocationListener {
 
     private static final String TAG = LocationService.class.getSimpleName();
 
-    private static Location location = null;
     private LocationManager locationManager = null;
     private Context context;
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 100;
-    private static final long MIN_TIME_BW_UPDATES = 1000 * 60;
-    private String provider = null;
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1000; //If more than 1Km
+    private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 5; //If more than 5 minutes
+    private List<String> providers = new ArrayList<>();
     private boolean isUpdateRequested = false;
     private final IBinder mBinder = new LocalBinder();
+    private long lastPublishedLocationTime;
 
     public class LocalBinder extends Binder {
         LocationService getService() {
@@ -69,7 +75,61 @@ public class LocationService extends Service implements LocationListener {
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Starting service with ID: " + startId);
         }
+        if (Constants.ASK_TO_ENABLE_LOCATION) {
+            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                try {
+                    int locationSetting = Settings.Secure.getInt(context.getContentResolver(),
+                            Settings.Secure.LOCATION_MODE);
+                    if (locationSetting == 0) {
+                        CommonUtils.displayNotification(context,
+                                R.drawable.ic_warning_white_24dp,
+                                context.getResources().getString(R.string.title_need_location),
+                                context.getResources().getString(R.string.msg_need_location),
+                                AlreadyRegisteredActivity.class,
+                                Constants.LOCATION_DISABLED,
+                                Constants.LOCATION_DISABLED_NOTIFICATION_ID);
+                    }
+                } catch (Settings.SettingNotFoundException e) {
+                    Log.w(TAG, "Location setting is not available on this device");
+                }
+            } else {
+                Log.w(TAG, "Location setting retrieval is not supported by API level "
+                        + android.os.Build.VERSION.SDK_INT);
+            }
+        }
+        if (Build.VERSION.SDK_INT >= 23
+                && ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            displayPermissionMissingNotification();
+            return START_NOT_STICKY;
+        }
+        Location location = null;
+        long locationTime = 0;
+        //We are trying for all enabled providers
+        List<String> _providers = locationManager.getProviders(true);
+        for (String p : _providers) {
+            Location l = locationManager.getLastKnownLocation(p);
+            if (l != null && l.getTime() > locationTime) {
+                locationTime = l.getTime();
+                location = l;
+            } else if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Last known location from provider " + p + " is not found or too old.");
+            }
+        }
+        if (location != null) {
+            broadcastLocation(location);
+        } else {
+            Log.w(TAG, "No last known location found");
+        }
         return START_STICKY;
+    }
+
+    private void broadcastLocation(Location location) {
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction(Constants.LOCATION_UPDATE_BROADCAST_ACTION);
+        broadcastIntent.putExtra(Constants.Location.LOCATION, location);
+        sendBroadcast(broadcastIntent);
+        publishLocationInfo(location);
     }
 
     @Override
@@ -100,6 +160,9 @@ public class LocationService extends Service implements LocationListener {
                 Log.e(TAG, "fail to remove location listeners", ex);
             }
         }
+        if (Constants.DEBUG_MODE_ENABLED) {
+            Log.d(TAG, "Service destroyed.");
+        }
     }
 
     /**
@@ -114,28 +177,19 @@ public class LocationService extends Service implements LocationListener {
                     displayPermissionMissingNotification();
                     return;
                 }
-                Criteria criteria = new Criteria();
-                criteria.setAccuracy(Criteria.ACCURACY_FINE);
-                criteria.setAltitudeRequired(false);
-                criteria.setBearingRequired(false);
-                provider = locationManager.getBestProvider(criteria, true);
-                if (provider != null) {
+                providers = locationManager.getProviders(true);
+                if (providers != null && !providers.isEmpty()) {
                     if (isUpdateRequested) {
                         locationManager.removeUpdates(this);
                     }
-                    if (Constants.DEBUG_MODE_ENABLED) {
-                        Log.d(TAG, "Requesting locations from provider: " + provider);
+                    for (String provider : providers) {
+                        if (Constants.DEBUG_MODE_ENABLED) {
+                            Log.d(TAG, "Requesting locations from provider: " + provider);
+                        }
+                        locationManager.requestLocationUpdates(provider, MIN_TIME_BW_UPDATES,
+                                MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                     }
-                    locationManager.requestLocationUpdates(provider, MIN_TIME_BW_UPDATES,
-                            MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                     isUpdateRequested = true;
-                    location = locationManager.getLastLocation();
-                    if (location != null) {
-                        Preference.putString(context, Constants.Location.LOCATION,
-                                new Gson().toJson(location));
-                    } else {
-                        Log.w(TAG, "No last known location found");
-                    }
                 } else {
                     Log.w(TAG, "No suitable location providers found");
                 }
@@ -156,12 +210,11 @@ public class LocationService extends Service implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
         if (location != null) {
-            Preference.putString(context, Constants.Location.LOCATION, new Gson().toJson(location));
             if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "Location changed> lat:" + location.getLatitude() + " lon:" + location.getLongitude() + " provider:" + location.getProvider());
             }
+            broadcastLocation(location);
         }
-        LocationService.location = location;
     }
 
     @Override
@@ -184,17 +237,71 @@ public class LocationService extends Service implements LocationListener {
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Provider disabled: " + provider);
         }
-        if (this.provider != null && this.provider.equals(provider)) {
+        if (providers.contains(provider) && locationManager != null) {
             setLocation();
         }
     }
 
+    /**
+     * To publish the location event to the server
+     *
+     * @param location location details
+     */
+    private void publishLocationInfo(Location location) {
+        if (!Constants.LOCATION_PUBLISHING_ENABLED) {
+            return;
+        }
+        if (EventRegistry.eventListeningStarted) {
+            String locationPayload = getLocationPayload(location);
+            if (lastPublishedLocationTime < location.getTime()) {
+                EventPayload eventPayload = new EventPayload();
+                eventPayload.setPayload(locationPayload);
+                eventPayload.setType(Constants.EventListeners.LOCATION_EVENT_TYPE);
+                HttpDataPublisher httpDataPublisher = new HttpDataPublisher();
+                httpDataPublisher.publish(eventPayload);
+                lastPublishedLocationTime = location.getTime();
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    Log.d(TAG, "Location Event is published.");
+                }
+            } else {
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    Log.d(TAG, "Ignore publishing. Duplicate location timestamp.");
+                }
+            }
+        } else {
+            Log.w(TAG, "Event listening not started yet");
+        }
+    }
+
+    /**
+     * Returns the location payload.
+     *
+     * @return - Location info payload as a string
+     */
+    private String getLocationPayload(Location deviceLocation) {
+        String locationString = null;
+        double latitude = deviceLocation.getLatitude();
+        double longitude = deviceLocation.getLongitude();
+        if (latitude != 0 && longitude != 0) {
+            JSONObject locationObject = new JSONObject();
+            try {
+                locationObject.put(Constants.LocationInfo.LATITUDE, latitude);
+                locationObject.put(Constants.LocationInfo.LONGITUDE, longitude);
+                locationObject.put(Constants.LocationInfo.TIME_STAMP, new Date().getTime());
+                locationString = locationObject.toString();
+            } catch (JSONException e) {
+                Log.e(TAG, "Error occurred while creating a location payload for location event publishing", e);
+            }
+        }
+        return locationString;
+    }
+
     private void displayPermissionMissingNotification() {
         CommonUtils.displayNotification(context,
-                R.drawable.notification,
+                R.drawable.ic_warning_white_24dp,
                 context.getResources().getString(R.string.title_need_permissions),
                 context.getResources().getString(R.string.msg_need_permissions),
-                AgentReceptionActivity.class,
+                AlreadyRegisteredActivity.class,
                 Constants.PERMISSION_MISSING,
                 Constants.PERMISSION_MISSING_NOTIFICATION_ID);
     }

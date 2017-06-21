@@ -23,6 +23,7 @@ import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -31,7 +32,7 @@ import org.json.JSONObject;
 import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
-import org.wso2.iot.agent.ServerDetails;
+import org.wso2.iot.agent.activities.ServerConfigsActivity;
 import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.utils.CommonUtils;
@@ -432,7 +433,7 @@ public class OperationManagerDeviceOwner extends OperationManager {
 
         CommonUtils.disableAdmin(getContext());
 
-        Intent intent = new Intent(getContext(), ServerDetails.class);
+        Intent intent = new Intent(getContext(), ServerConfigsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         getContext().startActivity(intent);
@@ -565,7 +566,7 @@ public class OperationManagerDeviceOwner extends OperationManager {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
-    public void handleUserRestriction(Operation operation) throws AndroidAgentException {
+    public void handleOwnersRestriction(Operation operation) throws AndroidAgentException {
         boolean isEnable = operation.isEnabled();
         String key = operation.getCode();
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
@@ -581,6 +582,11 @@ public class OperationManagerDeviceOwner extends OperationManager {
                 Log.d(TAG, "Restriction cleared: " + key);
             }
         }
+    }
+
+    @Override
+    public void handleDeviceOwnerRestriction(Operation operation) throws AndroidAgentException {
+        handleOwnersRestriction(operation);
     }
 
     @Override
@@ -631,6 +637,49 @@ public class OperationManagerDeviceOwner extends OperationManager {
     @Override
     public void setPolicyBundle(Operation operation) throws AndroidAgentException {
         getResultBuilder().build(operation);
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    @Override
+    public void setStatusBarDisabled(Operation operation) throws AndroidAgentException {
+        boolean isEnable = operation.isEnabled();
+        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        getResultBuilder().build(operation);
+        if (isEnable) {
+            getDevicePolicyManager().setStatusBarDisabled(getCdmDeviceAdmin(), true);
+        }
+        else {
+            getDevicePolicyManager().setStatusBarDisabled(getCdmDeviceAdmin(), false);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void setScreenCaptureDisabled(Operation operation) throws AndroidAgentException {
+        boolean isEnable = operation.isEnabled();
+        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        getResultBuilder().build(operation);
+        if (isEnable) {
+            getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), true);
+        }
+        else {
+            getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), false);
+        }
+
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void setAutoTimeRequired(Operation operation) throws AndroidAgentException {
+        boolean isEnable = operation.isEnabled();
+        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        getResultBuilder().build(operation);
+        if (isEnable) {
+            getDevicePolicyManager().setAutoTimeRequired(getCdmDeviceAdmin(), true);
+        }
+        else {
+            getDevicePolicyManager().setAutoTimeRequired(getCdmDeviceAdmin(), false);
+        }
     }
 
 }

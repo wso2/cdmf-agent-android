@@ -30,7 +30,7 @@ import org.json.JSONObject;
 import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
-import org.wso2.iot.agent.ServerDetails;
+import org.wso2.iot.agent.activities.ServerConfigsActivity;
 import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.DeviceAppInfo;
 import org.wso2.iot.agent.beans.Operation;
@@ -441,7 +441,7 @@ public class OperationManagerOlderSdk extends OperationManager {
 
         CommonUtils.disableAdmin(getContext());
 
-        Intent intent = new Intent(getContext(), ServerDetails.class);
+        Intent intent = new Intent(getContext(), ServerConfigsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         getContext().startActivity(intent);
@@ -543,11 +543,19 @@ public class OperationManagerOlderSdk extends OperationManager {
     }
 
     @Override
-    public void handleUserRestriction(Operation operation) throws AndroidAgentException {
+    public void handleOwnersRestriction(Operation operation) throws AndroidAgentException {
         operation.setStatus(getContextResources().getString(R.string.operation_value_error));
         operation.setOperationResponse("Operation not supported.");
         getResultBuilder().build(operation);
         //Log.d(TAG, "Adding User Restriction is not supported");
+    }
+
+    @Override
+    public void handleDeviceOwnerRestriction(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
     }
 
     @Override
@@ -623,5 +631,30 @@ public class OperationManagerOlderSdk extends OperationManager {
     public void setPolicyBundle(Operation operation) throws AndroidAgentException {
         getResultBuilder().build(operation);
     }
+
+    @Override
+    public void setStatusBarDisabled(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
+    }
+
+    @Override
+    public void setScreenCaptureDisabled(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
+    }
+
+    @Override
+    public void setAutoTimeRequired(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
+    }
+
 
 }

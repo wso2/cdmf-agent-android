@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
 /**
@@ -33,40 +34,35 @@ import org.wso2.iot.agent.utils.Preference;
 public class LocalNotification {
 
 	private static final String TAG = LocalNotification.class.getSimpleName();
-
-	public static final int DEFAULT_INTERVAL = 30000;
-	public static final int DEFAULT_INDEX = 0;
-	public static final int DEFAULT_BUFFER = 10000;
-	public static final int REQUEST_CODE = 0;
-	public static final String LOCAL_NOTIFIER_INVOKED_PREF_KEY = "localNoticicationInvoked";
+	private static final int DEFAULT_INT_VALUE = 0;
 
 	public static void startPolling(Context context) {
 		int interval = Preference.getInt(context, context.getResources().getString(R.string.shared_pref_frequency));
-		if(interval == DEFAULT_INDEX){
-			interval = DEFAULT_INTERVAL;
+		if(interval == DEFAULT_INT_VALUE){
+			interval = Constants.DEFAULT_INTERVAL;
 		}
-		long currentTime = DEFAULT_BUFFER;
 		stopPolling(context);
-		if (!Preference.getBoolean(context, LOCAL_NOTIFIER_INVOKED_PREF_KEY)) {
-			Preference.putBoolean(context, LOCAL_NOTIFIER_INVOKED_PREF_KEY, true);
+		if (!Preference.getBoolean(context, Constants.PreferenceFlag.LOCAL_NOTIFIER_INVOKED_PREF_KEY)) {
+			Preference.putBoolean(context, Constants.PreferenceFlag.LOCAL_NOTIFIER_INVOKED_PREF_KEY, true);
 			Intent alarm = new Intent(context, AlarmReceiver.class);
-			PendingIntent recurringAlarm = PendingIntent.getBroadcast(context, REQUEST_CODE, alarm,
-							PendingIntent.FLAG_CANCEL_CURRENT);
+			PendingIntent recurringAlarm = PendingIntent.getBroadcast(context,
+					Constants.DEFAULT_REQUEST_CODE, alarm, PendingIntent.FLAG_CANCEL_CURRENT);
 			AlarmManager alarms = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-			alarms.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, currentTime, interval,
+			alarms.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Constants.DEFAULT_START_INTERVAL, interval,
 					recurringAlarm);
-			Log.d(TAG, "Polling started!");
+			Log.i(TAG, "Polling started! Interval: " + interval);
 		}
 	}
 
 	public static void stopPolling(Context context) {
-		if (Preference.getBoolean(context, LOCAL_NOTIFIER_INVOKED_PREF_KEY)) {
-			Preference.putBoolean(context, LOCAL_NOTIFIER_INVOKED_PREF_KEY, false);
+		if (Preference.getBoolean(context, Constants.PreferenceFlag.LOCAL_NOTIFIER_INVOKED_PREF_KEY)) {
+			Preference.putBoolean(context, Constants.PreferenceFlag.LOCAL_NOTIFIER_INVOKED_PREF_KEY, false);
 			Intent alarm = new Intent(context, AlarmReceiver.class);
-			PendingIntent sender = PendingIntent.getBroadcast(context, REQUEST_CODE, alarm, DEFAULT_INDEX);
+			PendingIntent sender = PendingIntent.getBroadcast(context,
+					Constants.DEFAULT_REQUEST_CODE, alarm, DEFAULT_INT_VALUE);
 			AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 			alarmManager.cancel(sender);
-			Log.d(TAG, "Polling stopped!");
+			Log.i(TAG, "Polling stopped!");
 		}
 	}
 }

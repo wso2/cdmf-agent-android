@@ -31,6 +31,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.activities.SplashActivity;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.events.EventRegistry;
 import org.wso2.iot.agent.services.location.LocationService;
@@ -46,11 +47,8 @@ import java.util.Locale;
  * notification service at device startup.
  */
 public class AgentStartupReceiver extends BroadcastReceiver {
-	private static final int DEFAULT_TIME_MILLISECONDS = 5000;
-	private static final int DEFAULT_REQUEST_CODE = 0;
-	public static final int DEFAULT_INDEX = 0;
+	public static final int DEFAULT_INT_VALUE = 0;
 	public static final int DEFAULT_ID = -1;
-	public static final int DEFAULT_INTERVAL = 30000;
 	private static final String TAG = AgentStartupReceiver.class.getSimpleName();
 
 	@Override
@@ -63,6 +61,10 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 				&& !isNetworkConnected(context, intent)) {
 			return;
 		}
+		if (!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE)) {
+			Log.e(TAG, "Device is not active");
+			return;
+		}
 		setRecurringAlarm(context.getApplicationContext());
 		if(!EventRegistry.eventListeningStarted) {
 			EventRegistry registerEvent = new EventRegistry(context.getApplicationContext());
@@ -72,6 +74,13 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 			Intent serviceIntent = new Intent(context, LocationService.class);
 			context.startService(serviceIntent);
 		}
+		if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
+			if(Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
+				Intent i = new Intent(context, SplashActivity.class);
+				i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				context.startActivity(i);
+			}
+		}
 	}
 
 	private boolean isNetworkConnected(Context context, Intent intent){
@@ -80,7 +89,9 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 			final NetworkInfo ni = connectivityManager.getActiveNetworkInfo();
 
 			if (ni != null && ni.isConnectedOrConnecting()) {
-				Log.i(TAG, "Network " + ni.getTypeName() + " connected");
+				if (Constants.DEBUG_MODE_ENABLED) {
+					Log.d(TAG, "Network " + ni.getTypeName() + " connected");
+				}
 				return true;
 			} else if (intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, Boolean.FALSE)) {
 				Log.i(TAG, "There's no network connectivity");
@@ -122,8 +133,8 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 		}
 
 		int interval = Preference.getInt(context, context.getResources().getString(R.string.shared_pref_frequency));
-		if(interval == DEFAULT_INDEX){
-			interval = DEFAULT_INTERVAL;
+		if(interval == DEFAULT_INT_VALUE){
+			interval = Constants.DEFAULT_INTERVAL;
 		}
 
 		if(mode == null) {
@@ -132,19 +143,18 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 
 		if (Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED) && Constants.NOTIFIER_LOCAL.equals(
 				mode.trim().toUpperCase(Locale.ENGLISH))) {
-			long startTime =  DEFAULT_TIME_MILLISECONDS;
 
 			Intent alarmIntent = new Intent(context, AlarmReceiver.class);
 			PendingIntent recurringAlarmIntent =
 					PendingIntent.getBroadcast(context,
-					                           DEFAULT_REQUEST_CODE,
+					                           Constants.DEFAULT_REQUEST_CODE,
 					                           alarmIntent,
 					                           PendingIntent.FLAG_CANCEL_CURRENT);
 			AlarmManager alarmManager =
 					(AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, startTime,
+			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Constants.DEFAULT_START_INTERVAL,
 			                          interval, recurringAlarmIntent);
-			Log.d(TAG, "Setting up alarm manager for polling every " + interval + " milliseconds.");
+			Log.i(TAG, "Setting up alarm manager for polling every " + interval + " milliseconds.");
 		}
 	}
 

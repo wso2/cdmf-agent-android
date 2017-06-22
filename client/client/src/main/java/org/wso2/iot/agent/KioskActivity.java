@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -32,6 +33,7 @@ public class KioskActivity extends Activity {
     private int kioskExit;
     private GridView gridView;
     private AppDrawerAdapter appDrawerAdapter;
+    private final String TAG = KioskActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +67,11 @@ public class KioskActivity extends Activity {
                         PackageManager.DONT_KILL_APP);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            startLockTask();
+            try {
+                startLockTask();
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage());
+            }
         }
 
         textViewWipeData = (TextView) this.findViewById(R.id.textViewWipeData);
@@ -104,7 +110,9 @@ public class KioskActivity extends Activity {
         });
 
         installKioskApp();
-        launchKioskAppIfExists();
+        if (Preference.getBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START)) {
+            launchKioskAppIfExists();
+        }
     }
 
     @Override
@@ -129,7 +137,9 @@ public class KioskActivity extends Activity {
 
     /*Checks whether there is an already installed app and if exists the app will be launched*/
     private void launchKioskAppIfExists() {
+        Preference.putBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START, false);
         String appList = Preference.getString(context.getApplicationContext(), Constants.KIOSK_APP_PACKAGE_NAME);
+
         if (appList != null && !appList.equals("")) {
             String[] packageName = appList.split(context.getString(R.string.kiosk_application_package_split_regex));
             Intent launchIntent = getApplicationContext().getPackageManager()

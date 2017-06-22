@@ -53,6 +53,8 @@
         android:name="org.wso2.iot.agent.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
 
+    <uses-permission android:name="android.permission.WAKE_LOCK"></uses-permission>
+
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="18" />
@@ -175,6 +177,9 @@
         <service
             android:name=".services.NetworkInfoService"
             android:enabled="true" />
+        <service android:name=".services.kiosk.KioskLockDownService" />
+
+        <service android:name=".services.kiosk.KioskUnlockService" />
 
         <activity android:name=".activities.AlreadyRegisteredActivity" />
         <activity
@@ -237,6 +242,9 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".activities.KioskRestrictionActivity"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+
         <receiver
             android:name=".services.LocationUpdateReceiver"
             android:enabled="true"
@@ -244,6 +252,8 @@
             <intent-filter>
                 <action android:name="org.ws2.iot.agent.LOCATION_UPDATE" />
             </intent-filter>
+        </receiver>
+            <receiver android:name=".services.kiosk.KioskAlarmReceiver">
         </receiver>
     </application>
 

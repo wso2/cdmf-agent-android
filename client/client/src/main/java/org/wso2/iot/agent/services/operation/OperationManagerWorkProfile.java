@@ -473,6 +473,10 @@ public class OperationManagerWorkProfile extends OperationManager {
         JSONObject restrictionAppData;
         JSONArray permittedApplicationsPayload;
         int defaultPermissionType;
+        String permissionName;
+        int permissionType;
+        String packageName;
+
 
         try {
             restrictionPolicyData = new JSONObject(operation.getPayLoad().toString());
@@ -486,9 +490,15 @@ public class OperationManagerWorkProfile extends OperationManager {
                 permittedApplicationsPayload = restrictionPolicyData.getJSONArray("permittedApplications");
                 for (int i = 0; i < permittedApplicationsPayload.length(); i++) {
                     restrictionAppData = new JSONObject(permittedApplicationsPayload.getString(i));
-                    setAppRuntimePermission(restrictionAppData.
-                                    getString("packageName"), restrictionAppData.getString("permissionName"),
-                            Integer.parseInt(restrictionAppData.getString("permissionType")));
+                    permissionName = restrictionAppData.getString(Constants.RuntimePermissionPolicy.PERMISSION_NAME);
+                    permissionType = Integer.parseInt(restrictionAppData.getString(Constants.RuntimePermissionPolicy.PERMISSION_TYPE));
+                    packageName = restrictionAppData.getString(Constants.RuntimePermissionPolicy.PACKAGE_NAME);
+                    if(!permissionName.equals(Constants.RuntimePermissionPolicy.ALL_PERMISSIONS)){
+                        setAppRuntimePermission(packageName, permissionName, permissionType);
+                    }
+                    else {
+                        setAppAllRuntimePermission(packageName, permissionType);
+                    }
                 }
             }
 
@@ -505,6 +515,14 @@ public class OperationManagerWorkProfile extends OperationManager {
         getDevicePolicyManager().setPermissionGrantState(
                 getCdmDeviceAdmin(), packageName, permission, permissionType);
         Log.d(TAG, "App Permission Changed" + packageName + " : " + permission);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void setAppAllRuntimePermission(String packageName, int permissionType) {
+        String[] permissionList = getContextResources().getStringArray(R.array.runtime_permission_list_array);
+        for(String permission: permissionList){
+            setAppRuntimePermission(packageName, permission, permissionType);
+        }
     }
 
     public void setStatusBarDisabled(Operation operation) throws AndroidAgentException {
@@ -529,6 +547,14 @@ public class OperationManagerWorkProfile extends OperationManager {
 
     @Override
     public void setAutoTimeRequired(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
+    }
+
+    @Override
+    public void configureCOSUProfile(Operation operation) throws AndroidAgentException {
         operation.setStatus(getContextResources().getString(R.string.operation_value_error));
         operation.setOperationResponse("Operation not supported.");
         getResultBuilder().build(operation);

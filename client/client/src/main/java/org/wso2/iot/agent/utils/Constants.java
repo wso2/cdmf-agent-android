@@ -347,6 +347,8 @@ public class Constants {
 		public static final String FIRMWARE_UPGRADE_AUTOMATIC_RETRY = "FIRMWARE_UPGRADE_AUTOMATIC_RETRY";
 		public static final String SYSTEM_UPDATE_POLICY = "SYSTEM_UPDATE_POLICY";
 		public static final String RUNTIME_PERMISSION_POLICY = "RUNTIME_PERMISSION_POLICY";
+		public static final String COSU_PROFILE_POLICY = "COSU_PROFILE";
+		public static final String ENABLE_LOCK ="ENABLE_LOCK";
 	}
 
 	/**
@@ -354,6 +356,12 @@ public class Constants {
 	 */
 	public final class RuntimePermissionPolicy {
 		public static final String DEFAULT_PERMISSION_TYPE = "defaultType";
+		public static final String PERMITTED_APPS = "permittedApplications";
+		public static final String PACKAGE_NAME = "packageName";
+		public static final String PERMISSION_NAME = "permissionName";
+		public static final String PERMISSION_TYPE = "permissionType";
+		public static final String ALL_PERMISSIONS = "*";
+
 	}
 
 	/**
@@ -501,6 +509,14 @@ public class Constants {
 		public static final String LAST_SERVER_CALL = "lastServerCall";
 	}
 
+	public final class PreferenceCOSUProfile {
+		private PreferenceCOSUProfile() {
+			throw new AssertionError();
+		}
+		public static final String FREEZE_TIME = "lockDownStartTime";
+		public static final String RELEASE_TIME = "lockDownEndTime";
+		public static final String ENABLE_LOCKDOWN = "false";
+	}
 	public final class AppRestriction {
 		private AppRestriction() {
 			throw new AssertionError();
@@ -534,4 +550,11 @@ public class Constants {
 	public static final String START_TIME = "startTime";
 	public static final String END_TIME = "endTime";
 
+	public final class COSUProfilePolicy {
+		private COSUProfilePolicy() {
+			throw new AssertionError();
+		}
+		public static final String deviceReleaseTime = "cosuProfileRestrictionStartTime";
+		public static final String deviceFreezeTime = "cosuProfileRestrictionEndTime";
+	}
 }

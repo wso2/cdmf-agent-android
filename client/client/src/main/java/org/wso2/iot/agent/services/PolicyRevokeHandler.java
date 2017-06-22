@@ -33,8 +33,10 @@ import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.WiFiConfig;
 import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.DeviceAppInfo;
+import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
+import org.wso2.iot.agent.utils.Preference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,6 +88,9 @@ public class PolicyRevokeHandler {
                     break;
                 case Constants.Operation.WIFI:
                     revokeWifiPolicy(operation);
+                    break;
+                case Constants.Operation.COSU_PROFILE_POLICY:
+                    revokeCOSU_PROFILE_POLICY(operation);
                     break;
                 case Constants.Operation.DISALLOW_ADJUST_VOLUME:
                 case Constants.Operation.DISALLOW_CONFIG_BLUETOOTH:
@@ -194,6 +199,9 @@ public class PolicyRevokeHandler {
                     break;
                 case Constants.Operation.SET_STATUS_BAR_DISABLED:
                     revokeStatusBarDisabledPolicy();
+                    break;
+                case Constants.Operation.COSU_PROFILE_POLICY:
+                    revokeCOSU_PROFILE_POLICY(operation);
             }
         }
     }
@@ -376,6 +384,24 @@ public class PolicyRevokeHandler {
     private void revokeAutoTimeRestrictionPolicy() throws AndroidAgentException {
         if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
             devicePolicyManager.setAutoTimeRequired(deviceAdmin, false);
+        }
+    }
+
+    private void revokeCOSU_PROFILE_POLICY(Operation operation) throws AndroidAgentException {
+        try {
+            JSONObject COSUProfileData = new JSONObject(operation.getPayLoad().toString());
+
+            int lockDownTime = Preference.getInt(context, Constants.PreferenceCOSUProfile.FREEZE_TIME);
+            int releaseTime = Preference.getInt(context, Constants.PreferenceCOSUProfile.RELEASE_TIME);
+            int payloadLockTime = Integer.parseInt(COSUProfileData.get(Constants.COSUProfilePolicy.deviceFreezeTime).toString());
+            int payloadReleaseTime = Integer.parseInt(COSUProfileData.get(Constants.COSUProfilePolicy.deviceReleaseTime).toString());
+            if((payloadLockTime == lockDownTime) && (payloadReleaseTime== releaseTime) &&
+                        Preference.getBoolean(context, Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN)){
+                Preference.putBoolean(context, Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN,false);
+            }
+
+        } catch (JSONException e) {
+            throw new AndroidAgentException("Invalid JSON format.", e);
         }
     }
 }

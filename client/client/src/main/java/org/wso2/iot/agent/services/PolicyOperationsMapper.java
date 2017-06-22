@@ -52,6 +52,8 @@ public class PolicyOperationsMapper {
 				return buildApplicationRestrictionOpearation(operation);
 			case Constants.Operation.WORK_PROFILE:
 				return buildWorkProfileOperation(operation);
+			case Constants.Operation.COSU_PROFILE_POLICY:
+				return buildCOSUProfileConfigurationOperation(operation);
 			case Constants.Operation.DISALLOW_ADJUST_VOLUME:
 			case Constants.Operation.DISALLOW_CONFIG_BLUETOOTH:
 			case Constants.Operation.DISALLOW_CONFIG_CELL_BROADCASTS:
@@ -170,4 +172,10 @@ public class PolicyOperationsMapper {
 		operation.setId(INVALID_FLAG);
 		return operation;
 	}
+
+	private Operation buildCOSUProfileConfigurationOperation(Operation operation) {
+		operation.setId(INVALID_FLAG);
+		return operation;
+	}
+
 }

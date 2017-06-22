@@ -184,6 +184,8 @@ public class OperationProcessor {
 			case Constants.Operation.APP_RESTRICTION:
 				operationManager.restrictAccessToApplications(operation);
 				break;
+			case Constants.Operation.COSU_PROFILE_POLICY:
+				operationManager.configureCOSUProfile(operation);
 			case Constants.Operation.LOGCAT:
 				operationManager.getLogcat(operation);
 				break;
@@ -226,6 +228,7 @@ public class OperationProcessor {
 			case Constants.Operation.SET_STATUS_BAR_DISABLED:
 				operationManager.setStatusBarDisabled(operation);
 				break;
+
 			default:
 				operationManager.passOperationToSystemApp(operation);
 				break;

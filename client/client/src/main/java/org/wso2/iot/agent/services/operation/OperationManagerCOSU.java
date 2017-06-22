@@ -26,7 +26,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,12 +37,15 @@ import org.wso2.iot.agent.activities.ServerConfigsActivity;
 import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
+import org.wso2.iot.agent.services.kiosk.KioskAlarmReceiver;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
 public class OperationManagerCOSU extends OperationManager {
 
@@ -257,7 +259,7 @@ public class OperationManagerCOSU extends OperationManager {
 
             getDevicePolicyManager().setStorageEncryption(getCdmDeviceAdmin(), doEncrypt);
             Intent intent = new Intent(DevicePolicyManager.ACTION_START_ENCRYPTION);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
             getContext().startActivity(intent);
 
         } else if (!doEncrypt &&
@@ -401,7 +403,7 @@ public class OperationManagerCOSU extends OperationManager {
                 intent.putExtra(getContextResources().getString(R.string.intent_extra_message_text),
                         getContextResources().getString(R.string.policy_violation_password_tail));
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                        Intent.FLAG_ACTIVITY_NEW_TASK);
+                        FLAG_ACTIVITY_NEW_TASK);
                 getContext().startActivity(intent);
             }
 
@@ -457,7 +459,7 @@ public class OperationManagerCOSU extends OperationManager {
 
         Intent intent = new Intent(getContext(), ServerConfigsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
         getContext().startActivity(intent);
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Started enterprise wipe");
@@ -667,26 +669,39 @@ public class OperationManagerCOSU extends OperationManager {
         JSONObject restrictionPolicyData;
         JSONObject restrictionAppData;
         JSONArray permittedApplicationsPayload;
+        String permissionName;
+        int permissionType;
+        String packageName;
+
         int defaultPermissionType;
 
         try {
             restrictionPolicyData = new JSONObject(operation.getPayLoad().toString());
-            if (!restrictionPolicyData.isNull("defaultType")) {
+            if (!restrictionPolicyData.isNull(
+                    Constants.RuntimePermissionPolicy.DEFAULT_PERMISSION_TYPE)) {
                 defaultPermissionType = Integer.parseInt(restrictionPolicyData.
-                        getString("defaultType"));
-                getDevicePolicyManager().setPermissionPolicy(getCdmDeviceAdmin(), defaultPermissionType);
+                        getString(Constants.RuntimePermissionPolicy.DEFAULT_PERMISSION_TYPE));
+                getDevicePolicyManager().
+                        setPermissionPolicy(getCdmDeviceAdmin(), defaultPermissionType);
                 Log.d(TAG, "Default runtime-permission type changed.");
             }
-            if (!restrictionPolicyData.isNull("permittedApplications")) {
-                permittedApplicationsPayload = restrictionPolicyData.getJSONArray("permittedApplications");
+            if (!restrictionPolicyData.isNull(Constants.RuntimePermissionPolicy.PERMITTED_APPS)) {
+                permittedApplicationsPayload = restrictionPolicyData.getJSONArray(
+                        Constants.RuntimePermissionPolicy.PERMITTED_APPS);
                 for(int i = 0; i <permittedApplicationsPayload.length(); i++) {
                     restrictionAppData = new JSONObject(permittedApplicationsPayload.getString(i));
-                    setAppRuntimePermission(restrictionAppData.
-                                    getString("packageName"), restrictionAppData.getString("permissionName"),
-                            Integer.parseInt(restrictionAppData.getString("permissionType")));
+                    permissionName = restrictionAppData.getString(Constants.RuntimePermissionPolicy.PERMISSION_NAME);
+                    permissionType = Integer.parseInt(restrictionAppData.getString(Constants.RuntimePermissionPolicy.PERMISSION_TYPE));
+                    packageName = restrictionAppData.getString(Constants.RuntimePermissionPolicy.PACKAGE_NAME);
+
+                    if(!permissionName.equals(Constants.RuntimePermissionPolicy.ALL_PERMISSIONS)){
+                        setAppRuntimePermission(packageName, permissionName, permissionType);
+                    }
+                    else {
+                        setAppAllRuntimePermission(packageName, permissionType);
+                    }
                 }
             }
-
         } catch (JSONException e) {
             operation.setStatus(getContextResources().getString(R.string.operation_value_error));
             operation.setOperationResponse("Error in parsing PROFILE payload.");
@@ -699,6 +714,14 @@ public class OperationManagerCOSU extends OperationManager {
     private void setAppRuntimePermission(String packageName, String permission, int permissionType) {
         getDevicePolicyManager().setPermissionGrantState(getCdmDeviceAdmin(),packageName,permission,permissionType);
         Log.d(TAG,"App Permission Changed"+ packageName + " : " + permission );
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void setAppAllRuntimePermission(String packageName, int permissionType) {
+        String[] permissionList = getContextResources().getStringArray(R.array.runtime_permission_list_array);
+        for(String permission: permissionList){
+            setAppRuntimePermission(packageName, permission, permissionType);
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -740,6 +763,38 @@ public class OperationManagerCOSU extends OperationManager {
         }
         else {
             getDevicePolicyManager().setAutoTimeRequired(getCdmDeviceAdmin(), false);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    @Override
+    public void configureCOSUProfile(Operation operation) throws AndroidAgentException {
+        int releaseTime;
+        int freezeTime;
+        try {
+            JSONObject payload = new JSONObject(operation.getPayLoad().toString());
+            releaseTime = Integer.
+                    parseInt(payload.getString(Constants.COSUProfilePolicy.deviceReleaseTime));
+            freezeTime = Integer.
+                    parseInt(payload.getString(Constants.COSUProfilePolicy.deviceFreezeTime));
+
+            Preference.putInt(getContext(), Constants.PreferenceCOSUProfile.FREEZE_TIME, freezeTime);
+            Preference.putInt(getContext(), Constants.PreferenceCOSUProfile.RELEASE_TIME, releaseTime);
+
+            if(!Preference.getBoolean(getContext(),Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN)) {
+                Preference.putBoolean(getContext(), Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN, true);
+                KioskAlarmReceiver kioskAlarmReceiver = new KioskAlarmReceiver();
+                kioskAlarmReceiver.startAlarm(getContext());
+            }
+
+            operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+            getResultBuilder().build(operation);
+
+        } catch (JSONException e) {
+            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+            operation.setOperationResponse("Error in parsing PROFILE payload.");
+            getResultBuilder().build(operation);
+            throw new AndroidAgentException("Invalid JSON format.", e);
         }
     }
 

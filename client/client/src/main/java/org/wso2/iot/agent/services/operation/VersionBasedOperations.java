@@ -207,10 +207,17 @@ public interface VersionBasedOperations {
     void setScreenCaptureDisabled(Operation operation) throws AndroidAgentException;
 
     /**
-     * Configuree AutoTime requirement.
+     * Configure AutoTime requirement.
      *
      * @param operation - Operation object.
      */
     void setAutoTimeRequired(Operation operation) throws AndroidAgentException;
+
+    /**
+     * Configure COSU profile requirement.
+     *
+     * @param operation - Operation object.
+     */
+    void configureCOSUProfile(Operation operation) throws AndroidAgentException;
 
 }

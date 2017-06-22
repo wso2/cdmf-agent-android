@@ -93,6 +93,7 @@ public class PolicyComplianceChecker {
                 return checkWorkProfilePolicy(operation);
             case Constants.Operation.RUNTIME_PERMISSION_POLICY:
                 return checkRuntimePermissionPolicy(operation);
+            case Constants.Operation.COSU_PROFILE_POLICY:
             case Constants.Operation.DISALLOW_ADJUST_VOLUME:
             case Constants.Operation.DISALLOW_CONFIG_BLUETOOTH:
             case Constants.Operation.DISALLOW_CONFIG_CELL_BROADCASTS:
@@ -250,7 +251,6 @@ public class PolicyComplianceChecker {
                 appInstalled = true;
             }
         }
-
         return  appInstalled;
     }
 

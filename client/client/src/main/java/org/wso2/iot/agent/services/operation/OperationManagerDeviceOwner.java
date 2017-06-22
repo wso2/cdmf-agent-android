@@ -722,4 +722,9 @@ public class OperationManagerDeviceOwner extends OperationManager {
         }
     }
 
+    @Override
+    public void configureCOSUProfile(Operation operation) throws AndroidAgentException {
+        //// TODO: 6/9/17 Implement
+    }
+
 }

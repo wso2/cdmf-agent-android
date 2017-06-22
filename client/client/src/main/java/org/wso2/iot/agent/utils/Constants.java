@@ -57,6 +57,7 @@ public class Constants {
 	public static final String SYSTEM_APP_BROADCAST_ACTION = "org.wso2.iot.system.service.MESSAGE_PROCESSED";
 	public static final String LOCATION_UPDATE_BROADCAST_ACTION = "org.ws2.iot.agent.LOCATION_UPDATE";
 	public static final String SYNC_BROADCAST_ACTION = "org.ws2.iot.agent.SERVER_SYNC";
+	public static final String AGENT_UPDATED_BROADCAST_ACTION = "org.ws2.iot.agent.APPLICATION_UPDATED";
 	public static final String HTTPS_PROTOCOL = "https://";
 	public static final String OWNERSHIP_BYOD = "BYOD";
 	public static final String OWNERSHIP_COPE = "COPE";
@@ -88,6 +89,7 @@ public class Constants {
 	public static final boolean COSU_SECRET_EXIT = BuildConfig.COSU_SECRET_EXIT;
 	public static final String KIOSK_APP_DOWNLOAD_URL = "kioskAppDownlaodUrl";
 	public static final String KIOSK_APP_PACKAGE_NAME ="kioskAppPackageName";
+	public static final String AGENT_FRESH_START ="agentFreshStart";
 	public static final boolean ALLOW_MULTIPLE_APPS_IN_COSU_MODE = BuildConfig.ALLOW_MULTIPLE_APPS_IN_COSU_MODE;
 
 	/**

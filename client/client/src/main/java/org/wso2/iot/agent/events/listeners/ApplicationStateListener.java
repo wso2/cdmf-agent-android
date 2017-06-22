@@ -105,7 +105,7 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
             }
             if (Intent.ACTION_PACKAGE_REPLACED.equals(intent.getAction()) && Constants.AGENT_PACKAGE.equals(packageName)){
                 Intent broadcastIntent = new Intent();
-                broadcastIntent.setAction("org.ws2.iot.agent.APPLICATION_UPDATED");
+                broadcastIntent.setAction(Constants.AGENT_UPDATED_BROADCAST_ACTION);
                 context.sendBroadcast(broadcastIntent);
             }
         }

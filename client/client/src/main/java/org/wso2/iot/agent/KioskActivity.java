@@ -1,47 +1,39 @@
 package org.wso2.iot.agent;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.admin.DevicePolicyManager;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.GridView;
 import android.widget.TextView;
 
+import org.wso2.iot.agent.adapters.AppDrawerAdapter;
+import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.events.EventRegistry;
-import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
+import org.wso2.iot.agent.events.listeners.KioskAppInstallationListener;
 import org.wso2.iot.agent.services.LocalNotification;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
 public class KioskActivity extends Activity {
-
-    private DevicePolicyManager devicePolicyManager;
-    private ComponentName cdmfDeviceAdmin;
-    private boolean freshRegFlag = false;
-    private static final int ACTIVATION_REQUEST = 47;
     private TextView textViewWipeData;
     private Context context;
-
-    AppInstallationBroadcastReceiver appInstallationBroadcastReceiver;
-    boolean isAppInstallationBroadcastReceiverRegistered = false;
-
-    private static final String ACTION_INSTALL_COMPLETE = "INSTALL_COMPLETED";
-
-    TextView textViewKiosk;
-    static TextView textViewLaunch;
-    int kioskExit;
-
-    static String packageName = null;
-    private String kioskAppPackageNameKey ="kioskAppPackageName";
+    private TextView textViewKiosk;
+    private TextView textViewNoApps;
+    private int kioskExit;
+    private GridView gridView;
+    private AppDrawerAdapter appDrawerAdapter;
+    private final String TAG = KioskActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +44,8 @@ public class KioskActivity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         Preference.putBoolean(getApplicationContext(), Constants.PreferenceFlag.DEVICE_ACTIVE, true);
 
+        /*
+<<<<<<< HEAD
             textViewLaunch = (TextView) findViewById(R.id.textViewLaunch);
                 textViewLaunch.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -65,13 +59,15 @@ public class KioskActivity extends Activity {
             }
         });
 
+=======
+>>>>>>> 8638437c041d741405a69bfc8c7fb63e91f6d2fa */
         textViewKiosk = (TextView) findViewById(R.id.textViewKiosk);
-        if(Constants.COSU_SECRET_EXIT){
+        if (Constants.COSU_SECRET_EXIT) {
             textViewKiosk.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     kioskExit++;
-                    if(kioskExit == 6){
+                    if (kioskExit == 6) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             stopLockTask();
                         }
@@ -81,18 +77,22 @@ public class KioskActivity extends Activity {
             });
         }
 
+        ComponentName component = new ComponentName(KioskActivity.this, KioskAppInstallationListener.class);
+        getPackageManager()
+                .setComponentEnabledSetting(component,
+                        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                        PackageManager.DONT_KILL_APP);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            startLockTask();
+            try {
+                startLockTask();
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage());
+            }
         }
 
-        devicePolicyManager =
-                (DevicePolicyManager) getApplicationContext().getSystemService(Context.DEVICE_POLICY_SERVICE);
-
-        cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(getApplicationContext());
-
-
         textViewWipeData = (TextView) this.findViewById(R.id.textViewWipeData);
-        if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU && Constants.DISPLAY_WIPE_DEVICE_BUTTON){
+        if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU && Constants.DISPLAY_WIPE_DEVICE_BUTTON) {
             textViewWipeData.setVisibility(View.VISIBLE);
             textViewWipeData.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -107,14 +107,29 @@ public class KioskActivity extends Activity {
                                     devicePolicyManager.
                                             wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE |
                                                     DevicePolicyManager.WIPE_RESET_PROTECTION_DATA);
-                                }})
+                                }
+                            })
                             .setNegativeButton(android.R.string.no, null)
                             .show();
                 }
             });
         }
 
-        launchKioskAppIfExists();
+        gridView = (GridView) findViewById(R.id.gridview);
+        textViewNoApps = (TextView) findViewById(R.id.textViewNoApps);
+        appDrawerAdapter = new AppDrawerAdapter(context);
+        gridView.setAdapter(appDrawerAdapter);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View v,
+                                    int position, long id) {
+                launchKioskApp((String) appDrawerAdapter.getItem(position));
+            }
+        });
+
+        installKioskApp();
+        if (Preference.getBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START)) {
+            launchKioskAppIfExists();
+        }
     }
 
     @Override
@@ -139,9 +154,44 @@ public class KioskActivity extends Activity {
 
     /*Checks whether there is an already installed app and if exists the app will be launched*/
     private void launchKioskAppIfExists() {
-        packageName = Preference.getString(context.getApplicationContext(), kioskAppPackageNameKey);
+        Preference.putBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START, false);
+        String appList = Preference.getString(context.getApplicationContext(), Constants.KIOSK_APP_PACKAGE_NAME);
+        if (appList != null && !appList.equals("")) {
+            String[] packageName = appList.split(context.getString(R.string.kiosk_application_package_split_regex));
+            Intent launchIntent = getApplicationContext().getPackageManager()
+                    .getLaunchIntentForPackage(packageName[packageName.length - 1]);
+            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if (launchIntent != null) {
+                getApplicationContext().startActivity(launchIntent);
+            }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        refreshAppDrawer();
+        startEvents();
+        startPolling();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    private void installKioskApp() {
+        String appUrl = Preference.getString(getApplicationContext(), Constants.KIOSK_APP_DOWNLOAD_URL);
+        if (appUrl != null) {
+            Preference.removePreference(getApplicationContext(), Constants.KIOSK_APP_DOWNLOAD_URL);
+            ApplicationManager applicationManager = new ApplicationManager(context.getApplicationContext());
+            applicationManager.installApp(appUrl, null, null);
+        }
+    }
+
+    private void launchKioskApp(String packageName) {
         if (packageName != null && !packageName.equals("")) {
-            textViewLaunch.setVisibility(View.VISIBLE);
             Intent launchIntent = getApplicationContext().getPackageManager()
                     .getLaunchIntentForPackage(packageName);
             launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -151,55 +201,17 @@ public class KioskActivity extends Activity {
         }
     }
 
-    private class AppInstallationBroadcastReceiver extends BroadcastReceiver {
-
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String packageName =  intent.getData().getEncodedSchemeSpecificPart();
-            devicePolicyManager.setLockTaskPackages(cdmfDeviceAdmin,
-                    new String[]{context.getApplicationContext().getPackageName(), packageName});
-            //Setting permissions
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                for(String permission: Constants.ANDROID_COSU_PERMISSIONS){
-                    devicePolicyManager.setPermissionGrantState(cdmfDeviceAdmin,
-                            packageName, permission,
-                            DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
-                }
-            }
-            Preference.putString(KioskActivity.this.context.getApplicationContext(),
-                    kioskAppPackageNameKey, packageName);
-            launchKioskAppIfExists();
+    private void refreshAppDrawer() {
+        String appList = Preference.getString(context, Constants.KIOSK_APP_PACKAGE_NAME);
+        if (appList == null) {
+            gridView.setVisibility(View.INVISIBLE);
+            textViewNoApps.setVisibility(View.VISIBLE);
+        } else {
+            appDrawerAdapter.setAppList();
+            appDrawerAdapter.notifyDataSetChanged();
+            textViewNoApps.setVisibility(View.INVISIBLE);
+            gridView.setVisibility(View.VISIBLE);
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (!isAppInstallationBroadcastReceiverRegistered) {
-            if (appInstallationBroadcastReceiver == null)
-                appInstallationBroadcastReceiver = new AppInstallationBroadcastReceiver();
-            IntentFilter intentFilter = new IntentFilter();
-            intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
-            intentFilter.addAction(Intent.ACTION_PACKAGE_INSTALL);
-            intentFilter.addDataScheme("package");
-            registerReceiver(appInstallationBroadcastReceiver, intentFilter);
-            isAppInstallationBroadcastReceiverRegistered = true;
-        }
-
-        startEvents();
-        startPolling();
-    }
-
-    @Override
-    protected void onPause() {
-        if (isAppInstallationBroadcastReceiverRegistered) {
-            unregisterReceiver(appInstallationBroadcastReceiver);
-            appInstallationBroadcastReceiver = null;
-            isAppInstallationBroadcastReceiverRegistered = false;
-        }
-
-        super.onPause();
     }
 
 }

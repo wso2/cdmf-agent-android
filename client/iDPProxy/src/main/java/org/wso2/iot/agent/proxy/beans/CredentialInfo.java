@@ -29,6 +29,7 @@ public class CredentialInfo {
     private String tokenEndPoint = null;
     private String tenantDomain = null;
     private String scopes = null;
+    private String adminAccessToken = null;
 
     public String getUsername() {
         return username;
@@ -84,5 +85,13 @@ public class CredentialInfo {
 
     public void setScopes(String scopes) {
         this.scopes = scopes;
+    }
+
+    public void setAdminAccessToken(String adminAccessToken) {
+        this.adminAccessToken = adminAccessToken;
+    }
+
+    public String getAdminAccessToken() {
+        return adminAccessToken;
     }
 }

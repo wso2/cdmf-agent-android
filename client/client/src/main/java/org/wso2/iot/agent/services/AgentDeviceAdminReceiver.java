@@ -24,11 +24,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.PersistableBundle;
 import android.util.Log;
 import android.widget.Toast;
 
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.activities.AuthenticationActivity;
 import org.wso2.iot.agent.activities.EnableProfileActivity;
 import org.wso2.iot.agent.activities.SplashActivity;
 import org.wso2.iot.agent.beans.ServerConfig;
@@ -184,8 +186,26 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
                             DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
                 }
             }
-
             Intent launch = new Intent(context, SplashActivity.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                PersistableBundle persistableBundle = intent.getParcelableExtra(
+                        DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
+                if (persistableBundle != null) {
+                    if (org.wso2.iot.agent.proxy.utils.Constants.Authenticator.AUTHENTICATOR_IN_USE.
+                            equals(org.wso2.iot.agent.proxy.utils.Constants.Authenticator.OAUTH_AUTHENTICATOR)) {
+                        String token = (String) persistableBundle.get("android.app.extra.token");
+                        if (token != null && !token.equals("")) {
+                            launch = new Intent(context, AuthenticationActivity.class);
+                            launch.putExtra("android.app.extra.token", token);
+                        }
+                    }
+
+                    String appUrl = (String) persistableBundle.get("android.app.extra.appurl");
+                    if (appUrl != null && !appUrl.equals("")) {
+                        Preference.putString(context, Constants.KIOSK_APP_DOWNLOAD_URL, appUrl);
+                    }
+                }
+            }
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(launch);
         } else {
@@ -198,7 +218,6 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
             }
             context.startActivity(launch);
         }
-
     }
 
     private void startDeviceAdminPrompt(Context context, final ComponentName cdmDeviceAdmin) {

@@ -92,14 +92,6 @@ public class KioskAppInstallationListener extends BroadcastReceiver {
         }
         devicePolicyManager.setLockTaskPackages(cdmfDeviceAdmin,
                 lockTaskPackages.split(context.getString(R.string.kiosk_application_package_split_regex)));
-        //Setting permissions
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            for (String permission : Constants.ANDROID_COSU_PERMISSIONS) {
-                devicePolicyManager.setPermissionGrantState(cdmfDeviceAdmin,
-                        packageName, permission,
-                        DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
-            }
-        }
         launchKioskApp(context, packageName);
     }
 

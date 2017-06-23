@@ -52,18 +52,7 @@ public class KioskRestrictionActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_kiosk_lock_down);
         textViewLaunch = (TextView) findViewById(R.id.textViewLaunch);
-        millis = 60000;
-
-        new CountDownTimer(millis, 1000) {
-            public void onTick(long millisUntilFinished) {
-                textViewLaunch.setText("seconds remaining: " + millisUntilFinished / 1000);
-            }
-
-            public void onFinish() {
-                textViewLaunch.setText("Device unlocking..");
-            }
-        }.start();
-
+        textViewLaunch.setText("Device is locked until next operation time!");
         textViewKiosk = (TextView) findViewById(R.id.textViewKiosk);
         if(Constants.COSU_SECRET_EXIT){
             textViewKiosk.setOnClickListener(new View.OnClickListener() {

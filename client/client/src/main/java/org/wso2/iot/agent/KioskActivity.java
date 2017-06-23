@@ -43,24 +43,6 @@ public class KioskActivity extends Activity {
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         Preference.putBoolean(getApplicationContext(), Constants.PreferenceFlag.DEVICE_ACTIVE, true);
-
-        /*
-<<<<<<< HEAD
-            textViewLaunch = (TextView) findViewById(R.id.textViewLaunch);
-                textViewLaunch.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent launchIntent = getApplicationContext().getPackageManager()
-                                .getLaunchIntentForPackage(KioskActivity.this.packageName);
-                        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                if (launchIntent != null) {
-                    getApplicationContext().startActivity(launchIntent);
-                }
-            }
-        });
-
-=======
->>>>>>> 8638437c041d741405a69bfc8c7fb63e91f6d2fa */
         textViewKiosk = (TextView) findViewById(R.id.textViewKiosk);
         if (Constants.COSU_SECRET_EXIT) {
             textViewKiosk.setOnClickListener(new View.OnClickListener() {

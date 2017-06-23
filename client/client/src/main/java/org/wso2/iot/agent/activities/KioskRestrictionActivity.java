@@ -45,7 +45,6 @@ public class KioskRestrictionActivity extends Activity {
     TextView textViewKiosk;
     TextView textViewLaunch;
     int kioskExit;
-    int millis;
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -1297,7 +1297,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 					    equals(org.wso2.iot.agent.proxy.utils.Constants.Authenticator.
 							           MUTUAL_SSL_AUTHENTICATOR)) {
 				if(Constants.SKIP_LICENSE){
-					checkManifestPermissions();
+					startDeviceAdminPrompt();
 				} else {
 					getLicense();
 				}

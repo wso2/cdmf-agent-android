@@ -23,9 +23,12 @@ import android.app.admin.DevicePolicyManager;
 import android.app.admin.SystemUpdatePolicy;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
+
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,7 +51,6 @@ import java.util.List;
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
 public class OperationManagerCOSU extends OperationManager {
-
     private static final String TAG = OperationManagerCOSU.class.getSimpleName();
 
     public OperationManagerCOSU(Context context) {
@@ -677,17 +679,10 @@ public class OperationManagerCOSU extends OperationManager {
 
         try {
             restrictionPolicyData = new JSONObject(operation.getPayLoad().toString());
-            if (!restrictionPolicyData.isNull(
-                    Constants.RuntimePermissionPolicy.DEFAULT_PERMISSION_TYPE)) {
-                defaultPermissionType = Integer.parseInt(restrictionPolicyData.
-                        getString(Constants.RuntimePermissionPolicy.DEFAULT_PERMISSION_TYPE));
-                getDevicePolicyManager().
-                        setPermissionPolicy(getCdmDeviceAdmin(), defaultPermissionType);
-                Log.d(TAG, "Default runtime-permission type changed.");
-            }
             if (!restrictionPolicyData.isNull(Constants.RuntimePermissionPolicy.PERMITTED_APPS)) {
                 permittedApplicationsPayload = restrictionPolicyData.getJSONArray(
                         Constants.RuntimePermissionPolicy.PERMITTED_APPS);
+                saveToPreferences(permittedApplicationsPayload);
                 for(int i = 0; i <permittedApplicationsPayload.length(); i++) {
                     restrictionAppData = new JSONObject(permittedApplicationsPayload.getString(i));
                     permissionName = restrictionAppData.getString(Constants.RuntimePermissionPolicy.PERMISSION_NAME);
@@ -702,6 +697,14 @@ public class OperationManagerCOSU extends OperationManager {
                     }
                 }
             }
+            if (!restrictionPolicyData.isNull(
+                    Constants.RuntimePermissionPolicy.DEFAULT_PERMISSION_TYPE)) {
+                defaultPermissionType = Integer.parseInt(restrictionPolicyData.
+                        getString(Constants.RuntimePermissionPolicy.DEFAULT_PERMISSION_TYPE));
+                getDevicePolicyManager().
+                        setPermissionPolicy(getCdmDeviceAdmin(), defaultPermissionType);
+                Log.d(TAG, "Default runtime-permission type changed to " + defaultPermissionType);
+            }
         } catch (JSONException e) {
             operation.setStatus(getContextResources().getString(R.string.operation_value_error));
             operation.setOperationResponse("Error in parsing PROFILE payload.");
@@ -713,7 +716,11 @@ public class OperationManagerCOSU extends OperationManager {
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void setAppRuntimePermission(String packageName, String permission, int permissionType) {
         getDevicePolicyManager().setPermissionGrantState(getCdmDeviceAdmin(),packageName,permission,permissionType);
-        Log.d(TAG,"App Permission Changed"+ packageName + " : " + permission );
+        Log.d(TAG,"App permission changed in "+ packageName + "'s " + permission + " into " + permissionType);
+    }
+
+    private void saveToPreferences(JSONArray array){
+        Preference.putString(getContext(),Constants.RuntimePermissionPolicy.PERMITTED_APP_DATA, array.toString());
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -801,6 +808,7 @@ public class OperationManagerCOSU extends OperationManager {
     private String getPermissionConstantValue(String key){
         return getContext().getString(getContextResources().getIdentifier(
                 key.toString(),"string",getContext().getPackageName()));
+
     }
 
 

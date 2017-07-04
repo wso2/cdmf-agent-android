@@ -17,26 +17,33 @@
  */
 package org.wso2.iot.agent.events.listeners;
 
-import android.annotation.TargetApi;
 import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
+import android.util.Log;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
+import org.wso2.iot.agent.services.operation.OperationManagerCOSU;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
 public class KioskAppInstallationListener extends BroadcastReceiver {
+    private static final String TAG = OperationManagerCOSU.class.getSimpleName();
+    private DevicePolicyManager devicePolicyManager;
+    private ComponentName cdmfDeviceAdmin;
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onReceive(Context context, Intent intent) {
-        DevicePolicyManager devicePolicyManager =
+        devicePolicyManager =
                 (DevicePolicyManager) context.getApplicationContext().getSystemService(Context.DEVICE_POLICY_SERVICE);
-        ComponentName cdmfDeviceAdmin;
         cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(context.getApplicationContext());
 
         String lockTaskPackages;
@@ -92,7 +99,39 @@ public class KioskAppInstallationListener extends BroadcastReceiver {
         }
         devicePolicyManager.setLockTaskPackages(cdmfDeviceAdmin,
                 lockTaskPackages.split(context.getString(R.string.kiosk_application_package_split_regex)));
+        addIfPermissionEnforcementExist(packageName, context);
         launchKioskApp(context, packageName);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void addIfPermissionEnforcementExist(String installedPackageName, Context context) {
+        JSONObject permittedApp;
+        String permittedPackageName;
+        String permissionName;
+        int permissionType;
+
+        try {
+            JSONArray permittedAppsData = new JSONArray(Preference.getString(context,Constants.RuntimePermissionPolicy.PERMITTED_APP_DATA));
+            for(int i = 0; i <permittedAppsData.length(); i++) {
+                permittedApp = new JSONObject(permittedAppsData.getString(i));
+                permittedPackageName = permittedApp.getString(Constants.RuntimePermissionPolicy.PACKAGE_NAME);
+                if(permittedPackageName.equals(installedPackageName)) {
+                    permissionName = permittedApp.getString(Constants.RuntimePermissionPolicy.PERMISSION_NAME);
+                    permissionType = Integer.parseInt(permittedApp.getString(Constants.RuntimePermissionPolicy.PERMISSION_TYPE));
+
+                    if(permissionName.equals(Constants.RuntimePermissionPolicy.ALL_PERMISSIONS)){
+                        String[] permissionList = context.getResources().getStringArray(R.array.runtime_permission_list_array);
+                        for(String permission: permissionList){
+                            devicePolicyManager.setPermissionGrantState(cdmfDeviceAdmin, permittedPackageName, permission, permissionType);
+                        }
+                    }
+                    devicePolicyManager.setPermissionGrantState(cdmfDeviceAdmin, permittedPackageName, permissionName, permissionType);
+                    break;
+                }
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Invalid JSON format..");
+        }
     }
 
     private void launchKioskApp(Context context, String packageName) {
@@ -103,4 +142,5 @@ public class KioskAppInstallationListener extends BroadcastReceiver {
             context.getApplicationContext().startActivity(launchIntent);
         }
     }
+
 }

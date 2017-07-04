@@ -366,6 +366,7 @@ public class Constants {
 		public static final String PERMISSION_NAME = "permissionName";
 		public static final String PERMISSION_TYPE = "permissionType";
 		public static final String ALL_PERMISSIONS = "*";
+		public static final String PERMITTED_APP_DATA = "permittedAppData";
 
 	}
 

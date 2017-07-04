@@ -133,7 +133,7 @@ public class PolicyRevokeHandler {
                     revokeAppRestrictionPolicy(operation);
                     break;
                 case Constants.Operation.RUNTIME_PERMISSION_POLICY:
-                    //return revokeRunTimePermissionPolicyOperation(operation);
+                    revokeRunTimePermissionPolicyOperation(operation);
                 default:
                     throw new AndroidAgentException("Invalid operation code received");
             }
@@ -404,4 +404,13 @@ public class PolicyRevokeHandler {
             throw new AndroidAgentException("Invalid JSON format.", e);
         }
     }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void revokeRunTimePermissionPolicyOperation(Operation operation) throws AndroidAgentException {
+        if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE) ||
+                devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
+                devicePolicyManager.setPermissionPolicy(deviceAdmin, DevicePolicyManager.PERMISSION_POLICY_PROMPT);
+        }
+    }
+
 }

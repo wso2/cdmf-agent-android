@@ -34,6 +34,8 @@ import org.wso2.iot.agent.services.operation.OperationManagerCOSU;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
+import java.util.Objects;
+
 public class KioskAppInstallationListener extends BroadcastReceiver {
     private static final String TAG = OperationManagerCOSU.class.getSimpleName();
     private DevicePolicyManager devicePolicyManager;
@@ -110,12 +112,16 @@ public class KioskAppInstallationListener extends BroadcastReceiver {
         String permissionName;
         int permissionType;
 
+        Log.d(TAG, "addIfPremissionEnforcementExist triggered.");
+
         try {
-            JSONArray permittedAppsData = new JSONArray(Preference.getString(context,Constants.RuntimePermissionPolicy.PERMITTED_APP_DATA));
+            JSONArray permittedAppsData = new JSONArray(Preference.getString(context,Constants.RuntimePermissionPolicy.PERMITTED_APP_DATA).toString());
             for(int i = 0; i <permittedAppsData.length(); i++) {
                 permittedApp = new JSONObject(permittedAppsData.getString(i));
                 permittedPackageName = permittedApp.getString(Constants.RuntimePermissionPolicy.PACKAGE_NAME);
-                if(permittedPackageName.equals(installedPackageName)) {
+                Log.d(TAG,permittedPackageName +" <-> " +installedPackageName);
+                if(Objects.equals(permittedPackageName, installedPackageName)) {
+                    Log.d(TAG, "packageName found of payload.");
                     permissionName = permittedApp.getString(Constants.RuntimePermissionPolicy.PERMISSION_NAME);
                     permissionType = Integer.parseInt(permittedApp.getString(Constants.RuntimePermissionPolicy.PERMISSION_TYPE));
 

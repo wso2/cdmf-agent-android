@@ -23,12 +23,9 @@ import android.app.admin.DevicePolicyManager;
 import android.app.admin.SystemUpdatePolicy;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-
-import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -637,7 +634,6 @@ public class OperationManagerCOSU extends OperationManager {
 
     @Override
     public void restrictAccessToApplications(Operation operation) throws AndroidAgentException {
-
         AppRestriction appRestriction = CommonUtils.getAppRestrictionTypeAndList(operation, getResultBuilder(), getContextResources());
 
         if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
@@ -668,28 +664,33 @@ public class OperationManagerCOSU extends OperationManager {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void setRuntimePermissionPolicy(Operation operation) throws AndroidAgentException {
+        int permissionType;
+        int defaultPermissionType;
+        String permissionName;
+        String packageName;
         JSONObject restrictionPolicyData;
         JSONObject restrictionAppData;
         JSONArray permittedApplicationsPayload;
-        String permissionName;
-        int permissionType;
-        String packageName;
-
-        int defaultPermissionType;
-
         try {
             restrictionPolicyData = new JSONObject(operation.getPayLoad().toString());
             if (!restrictionPolicyData.isNull(Constants.RuntimePermissionPolicy.PERMITTED_APPS)) {
                 permittedApplicationsPayload = restrictionPolicyData.getJSONArray(
                         Constants.RuntimePermissionPolicy.PERMITTED_APPS);
+
+                /* Permitted App permission policy payload is persisted in preferences so that if
+                any of those apps are added later, the app can be identified and do the needful at
+                that time. */
                 saveToPreferences(permittedApplicationsPayload);
                 for(int i = 0; i <permittedApplicationsPayload.length(); i++) {
                     restrictionAppData = new JSONObject(permittedApplicationsPayload.getString(i));
-                    permissionName = restrictionAppData.getString(Constants.RuntimePermissionPolicy.PERMISSION_NAME);
-                    permissionType = Integer.parseInt(restrictionAppData.getString(Constants.RuntimePermissionPolicy.PERMISSION_TYPE));
-                    packageName = restrictionAppData.getString(Constants.RuntimePermissionPolicy.PACKAGE_NAME);
+                    permissionName = restrictionAppData.getString(Constants.
+                            RuntimePermissionPolicy.PERMISSION_NAME);
+                    permissionType = Integer.parseInt(restrictionAppData.
+                            getString(Constants.RuntimePermissionPolicy.PERMISSION_TYPE));
+                    packageName = restrictionAppData.getString(Constants.
+                            RuntimePermissionPolicy.PACKAGE_NAME);
 
-                    if(!permissionName.equals(Constants.RuntimePermissionPolicy.ALL_PERMISSIONS)){
+                    if(!permissionName.equals(Constants.RuntimePermissionPolicy.ALL_PERMISSIONS)) {
                         setAppRuntimePermission(packageName, permissionName, permissionType);
                     }
                     else {
@@ -703,7 +704,6 @@ public class OperationManagerCOSU extends OperationManager {
                         getString(Constants.RuntimePermissionPolicy.DEFAULT_PERMISSION_TYPE));
                 getDevicePolicyManager().
                         setPermissionPolicy(getCdmDeviceAdmin(), defaultPermissionType);
-                Log.d(TAG, "Default runtime-permission type changed to " + defaultPermissionType);
             }
         } catch (JSONException e) {
             operation.setStatus(getContextResources().getString(R.string.operation_value_error));
@@ -715,8 +715,8 @@ public class OperationManagerCOSU extends OperationManager {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void setAppRuntimePermission(String packageName, String permission, int permissionType) {
-        getDevicePolicyManager().setPermissionGrantState(getCdmDeviceAdmin(),packageName,permission,permissionType);
-        Log.d(TAG,"App permission changed in "+ packageName + "'s " + permission + " into " + permissionType);
+        getDevicePolicyManager().
+                setPermissionGrantState(getCdmDeviceAdmin(), packageName, permission, permissionType);
     }
 
     private void saveToPreferences(JSONArray array){
@@ -793,10 +793,8 @@ public class OperationManagerCOSU extends OperationManager {
                 KioskAlarmReceiver kioskAlarmReceiver = new KioskAlarmReceiver();
                 kioskAlarmReceiver.startAlarm(getContext());
             }
-
             operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
             getResultBuilder().build(operation);
-
         } catch (JSONException e) {
             operation.setStatus(getContextResources().getString(R.string.operation_value_error));
             operation.setOperationResponse("Error in parsing PROFILE payload.");
@@ -805,11 +803,10 @@ public class OperationManagerCOSU extends OperationManager {
         }
     }
 
-    private String getPermissionConstantValue(String key){
+    private String getPermissionConstantValue(String key) {
         return getContext().getString(getContextResources().getIdentifier(
                 key.toString(),"string",getContext().getPackageName()));
 
     }
-
 
 }

@@ -90,7 +90,7 @@ public class PolicyRevokeHandler {
                     revokeWifiPolicy(operation);
                     break;
                 case Constants.Operation.COSU_PROFILE_POLICY:
-                    revokeCOSU_PROFILE_POLICY(operation);
+                    revokeCOSUProfilePolicy(operation);
                     break;
                 case Constants.Operation.DISALLOW_ADJUST_VOLUME:
                 case Constants.Operation.DISALLOW_CONFIG_BLUETOOTH:
@@ -201,7 +201,10 @@ public class PolicyRevokeHandler {
                     revokeStatusBarDisabledPolicy();
                     break;
                 case Constants.Operation.COSU_PROFILE_POLICY:
-                    revokeCOSU_PROFILE_POLICY(operation);
+                    revokeCOSUProfilePolicy(operation);
+                    break;
+                default:
+                    throw new AndroidAgentException("Invalid operation code received");
             }
         }
     }
@@ -302,7 +305,6 @@ public class PolicyRevokeHandler {
         if (operation.isEnabled() && encryptStatus) {
             devicePolicyManager.setStorageEncryption(deviceAdmin, false);
         }
-
     }
 
     /**
@@ -387,14 +389,15 @@ public class PolicyRevokeHandler {
         }
     }
 
-    private void revokeCOSU_PROFILE_POLICY(Operation operation) throws AndroidAgentException {
+    private void revokeCOSUProfilePolicy(Operation operation) throws AndroidAgentException {
         try {
             JSONObject COSUProfileData = new JSONObject(operation.getPayLoad().toString());
-
             int lockDownTime = Preference.getInt(context, Constants.PreferenceCOSUProfile.FREEZE_TIME);
             int releaseTime = Preference.getInt(context, Constants.PreferenceCOSUProfile.RELEASE_TIME);
-            int payloadLockTime = Integer.parseInt(COSUProfileData.get(Constants.COSUProfilePolicy.deviceFreezeTime).toString());
-            int payloadReleaseTime = Integer.parseInt(COSUProfileData.get(Constants.COSUProfilePolicy.deviceReleaseTime).toString());
+            int payloadLockTime = Integer.parseInt(COSUProfileData.
+                    get(Constants.COSUProfilePolicy.deviceFreezeTime).toString());
+            int payloadReleaseTime = Integer.parseInt(COSUProfileData.
+                    get(Constants.COSUProfilePolicy.deviceReleaseTime).toString());
             if((payloadLockTime == lockDownTime) && (payloadReleaseTime== releaseTime) &&
                         Preference.getBoolean(context, Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN)){
                 Preference.putBoolean(context, Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN,false);
@@ -410,6 +413,7 @@ public class PolicyRevokeHandler {
         if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE) ||
                 devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
                 devicePolicyManager.setPermissionPolicy(deviceAdmin, DevicePolicyManager.PERMISSION_POLICY_PROMPT);
+                Preference.putString(context,Constants.RuntimePermissionPolicy.PERMITTED_APP_DATA, "");
         }
     }
 

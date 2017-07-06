@@ -211,11 +211,6 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
         } else {
             Intent launch = new Intent(context, EnableProfileActivity.class);
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             context.startActivity(launch);
         }
     }
@@ -256,4 +251,3 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
     }
 
 }
-

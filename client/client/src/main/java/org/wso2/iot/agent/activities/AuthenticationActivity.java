@@ -17,6 +17,7 @@
  */
 package org.wso2.iot.agent.activities;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -464,17 +465,24 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	 * Start device admin activation request.
 	 *
 	 */
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	private void startDeviceAdminPrompt() {
-		DevicePolicyManager devicePolicyManager = (DevicePolicyManager)
-				getSystemService(Context.DEVICE_POLICY_SERVICE);
-		ComponentName cdmDeviceAdmin =
-				new ComponentName(AuthenticationActivity.this, AgentDeviceAdminReceiver.class);
-		if(!devicePolicyManager.isAdminActive(cdmDeviceAdmin)){
-			Intent deviceAdminIntent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-			deviceAdminIntent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, cdmDeviceAdmin);
-			deviceAdminIntent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-					getResources().getString(R.string.device_admin_enable_alert));
-			startActivityForResult(deviceAdminIntent, ACTIVATION_REQUEST);
+		if (devicePolicyManager.isProfileOwnerApp(getPackageName())) {
+			checkManifestPermissions();
+			CommonUtils.callSystemApp(context, null, null, null);
+			Log.i("onActivityResult", "Administration enabled!");
+		} else {
+			DevicePolicyManager devicePolicyManager = (DevicePolicyManager)
+					getSystemService(Context.DEVICE_POLICY_SERVICE);
+			ComponentName cdmDeviceAdmin =
+					new ComponentName(AuthenticationActivity.this, AgentDeviceAdminReceiver.class);
+			if (!devicePolicyManager.isAdminActive(cdmDeviceAdmin)) {
+				Intent deviceAdminIntent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+				deviceAdminIntent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, cdmDeviceAdmin);
+				deviceAdminIntent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+						getResources().getString(R.string.device_admin_enable_alert));
+				startActivityForResult(deviceAdminIntent, ACTIVATION_REQUEST);
+			}
 		}
 	}
 
@@ -582,7 +590,8 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 
 
 
-    @Override
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+	@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == ACTIVATION_REQUEST) {
             if (resultCode == Activity.RESULT_OK) {

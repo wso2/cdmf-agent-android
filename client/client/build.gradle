@@ -143,6 +143,9 @@ android {
             buildConfigField "long", "DEFAULT_INTERVAL", "300000"
             buildConfigField "int", "DEFAULT_LISTENER_CODE", "10001"
             // COSU related configurations.
+            // ALLOW_MULTIPLE_APPS_IN_COSU_MODE: Set to true to make all installed app in COSU mode
+            // accessible; if false only the last installation will be accessible.
+            buildConfigField "boolean", "ALLOW_MULTIPLE_APPS_IN_COSU_MODE", "false"
             // By enabling this button, data wipe can be performed on a device without having to
             // issue a remote wipe operation.
             buildConfigField "boolean", "DISPLAY_WIPE_DEVICE_BUTTON", "true"
@@ -261,6 +264,9 @@ android {
             buildConfigField "long", "DEFAULT_INTERVAL", "300000"
             buildConfigField "int", "DEFAULT_LISTENER_CODE", "10001"
             // COSU related configurations.
+            // ALLOW_MULTIPLE_APPS_IN_COSU_MODE: Set to true to make all installed app in COSU mode
+            // accessible; if false only the last installation will be accessible.
+            buildConfigField "boolean", "ALLOW_MULTIPLE_APPS_IN_COSU_MODE", "false"
             // By enabling this button, data wipe can be performed on a device without having to
             // issue a remote wipe operation.
             buildConfigField "boolean", "DISPLAY_WIPE_DEVICE_BUTTON", "true"
@@ -382,6 +388,9 @@ android {
             buildConfigField "long", "DEFAULT_INTERVAL", "30000"
             buildConfigField "int", "DEFAULT_LISTENER_CODE", "10001"
             // COSU related configurations.
+            // ALLOW_MULTIPLE_APPS_IN_COSU_MODE: Set to true to make all installed app in COSU mode
+            // accessible; if false only the last installation will be accessible.
+            buildConfigField "boolean", "ALLOW_MULTIPLE_APPS_IN_COSU_MODE", "false"
             // By enabling this button, data wipe can be performed on a device without having to
             // issue a remote wipe operation.
             buildConfigField "boolean", "DISPLAY_WIPE_DEVICE_BUTTON", "true"
@@ -503,6 +512,9 @@ android {
             buildConfigField "long", "DEFAULT_INTERVAL", "30000"
             buildConfigField "int", "DEFAULT_LISTENER_CODE", "10001"
             // COSU related configurations.
+            // ALLOW_MULTIPLE_APPS_IN_COSU_MODE: Set to true to make all installed app in COSU mode
+            // accessible; if false only the last installation will be accessible.
+            buildConfigField "boolean", "ALLOW_MULTIPLE_APPS_IN_COSU_MODE", "true"
             // By enabling this button, data wipe can be performed on a device without having to
             // issue a remote wipe operation.
             buildConfigField "boolean", "DISPLAY_WIPE_DEVICE_BUTTON", "true"

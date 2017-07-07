@@ -393,7 +393,7 @@ public class ApplicationManager {
      * @param  operation - App installation operation.
      */
     public void installApp(String url, String schedule, Operation operation) {
-        if (schedule != null && !schedule.trim().isEmpty() && !schedule.equals("undefined")) {
+        if (schedule != null && !schedule.trim().isEmpty() && !schedule.equals("undefined") && !schedule.equals("false")) {
             try {
                 AlarmUtils.setOneTimeAlarm(context, schedule, Constants.Operation.INSTALL_APPLICATION, operation, url, null);
             } catch (ParseException e) {

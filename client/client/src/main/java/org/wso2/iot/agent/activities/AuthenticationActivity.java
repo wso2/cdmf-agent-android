@@ -17,11 +17,13 @@
  */
 package org.wso2.iot.agent.activities;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
@@ -33,6 +35,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -70,6 +73,7 @@ import org.wso2.iot.agent.proxy.interfaces.APIAccessCallBack;
 import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.proxy.interfaces.AuthenticationCallback;
 import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
+import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.services.DynamicClientManager;
 import org.wso2.iot.agent.services.LocalNotification;
 import org.wso2.iot.agent.services.location.LocationService;
@@ -108,13 +112,16 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 
 	private DeviceInfo deviceInfo;
 	private static final String TAG = AuthenticationActivity.class.getSimpleName();
+	private static final int ACTIVATION_REQUEST = 47;
 	private static final String[] SUBSCRIBED_API = new String[]{"android"};
 	private Tenant currentTenant;
+	private DevicePolicyManager devicePolicyManager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		context = this;
+		devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
 		if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
 			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		} else {
@@ -454,6 +461,24 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	}
 
 	/**
+	 * Start device admin activation request.
+	 *
+	 */
+	private void startDeviceAdminPrompt() {
+		DevicePolicyManager devicePolicyManager = (DevicePolicyManager)
+				getSystemService(Context.DEVICE_POLICY_SERVICE);
+		ComponentName cdmDeviceAdmin =
+				new ComponentName(AuthenticationActivity.this, AgentDeviceAdminReceiver.class);
+		if(!devicePolicyManager.isAdminActive(cdmDeviceAdmin)){
+			Intent deviceAdminIntent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+			deviceAdminIntent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, cdmDeviceAdmin);
+			deviceAdminIntent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+					getResources().getString(R.string.device_admin_enable_alert));
+			startActivityForResult(deviceAdminIntent, ACTIVATION_REQUEST);
+		}
+	}
+
+	/**
 	 * Start authentication process.
 	 */
 	private void startAuthentication() {
@@ -555,6 +580,24 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 		}
 	}
 
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == ACTIVATION_REQUEST) {
+            if (resultCode == Activity.RESULT_OK) {
+				checkManifestPermissions();
+                CommonUtils.callSystemApp(context, null, null, null);
+                Log.i("onActivityResult", "Administration enabled!");
+            } else {
+                Log.i("onActivityResult", "Administration enable FAILED!");
+				startDeviceAdminPrompt();
+            }
+        }
+    }
+
+
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	public void onAPIAccessReceive(String status) {
         if (status != null) {
@@ -600,6 +643,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	 * Initialize get device license agreement. Check if the user has already
 	 * agreed to license agreement
 	 */
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	private void getLicense() {
 		boolean isAgreed = Preference.getBoolean(context, Constants.PreferenceFlag.IS_AGREED);
 		deviceType = Preference.getString(context, Constants.DEVICE_TYPE);
@@ -644,7 +688,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 				}
 
 			} else {
-				checkManifestPermissions();
+				startDeviceAdminPrompt();
 			}
 		} else if (deviceType != null){
 			checkManifestPermissions();
@@ -680,6 +724,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	/**
 	 * Retriever configurations from the server.
 	 */
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	private void checkManifestPermissions(){
 		if (ActivityCompat.checkSelfPermission(AuthenticationActivity.this, android.Manifest.permission.READ_PHONE_STATE)
 				!= PackageManager.PERMISSION_GRANTED) {
@@ -692,6 +737,11 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 					110);
 		}else{
 			getConfigurationsFromServer();
+		}
+		//Since the agent in Work Profile already granted the Device Admin Permissions,
+		// the relevant preference flag is changed to True.
+		if (devicePolicyManager.isProfileOwnerApp(getApplicationContext().getPackageName())){
+			Preference.putBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE, true);
 		}
 	}
 
@@ -977,12 +1027,13 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 				Button btnCancel = (Button) dialog.findViewById(R.id.dialogButtonCancel);
 
 				btnAgree.setOnClickListener(new OnClickListener() {
+					@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 					@Override
 					public void onClick(View v) {
 						Preference.putBoolean(context, Constants.PreferenceFlag.IS_AGREED, true);
 						dialog.dismiss();
 						//load the next intent based on ownership type
-						checkManifestPermissions();
+						startDeviceAdminPrompt();
 					}
 				});
 
@@ -1237,6 +1288,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 		}
 	}
 
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	public void onAuthenticated(boolean status, int requestCode) {
 		if (requestCode == Constants.AUTHENTICATION_REQUEST_CODE) {
@@ -1245,11 +1297,13 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 					    equals(org.wso2.iot.agent.proxy.utils.Constants.Authenticator.
 							           MUTUAL_SSL_AUTHENTICATOR)) {
 				if(Constants.SKIP_LICENSE){
-					checkManifestPermissions();
+					startDeviceAdminPrompt();
 				} else {
 					getLicense();
 				}
 			}
 		}
 	}
+
+
 }

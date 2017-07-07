@@ -52,11 +52,12 @@ public class Constants {
 	public static final String CATALOG_APP_PACKAGE_NAME = BuildConfig.CATALOG_APP_PACKAGE_NAME;
 	public static final int FIRMWARE_UPGRADE_RETRY_COUNT = BuildConfig.FIRMWARE_UPGRADE_RETRY_COUNT;
 	public static final float SERVER_API_VERSION = BuildConfig.SERVER_API_VERSION;
-	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
+	public static final String DATE_FORMAT = "MM-dd-yyyy hh:mm a";
 	public static final String SYSTEM_APP_SERVICE_START_ACTION = "org.wso2.iot.system.service.START_SERVICE";
 	public static final String SYSTEM_APP_BROADCAST_ACTION = "org.wso2.iot.system.service.MESSAGE_PROCESSED";
 	public static final String LOCATION_UPDATE_BROADCAST_ACTION = "org.ws2.iot.agent.LOCATION_UPDATE";
 	public static final String SYNC_BROADCAST_ACTION = "org.ws2.iot.agent.SERVER_SYNC";
+	public static final String AGENT_UPDATED_BROADCAST_ACTION = "org.ws2.iot.agent.APPLICATION_UPDATED";
 	public static final String HTTPS_PROTOCOL = "https://";
 	public static final String OWNERSHIP_BYOD = "BYOD";
 	public static final String OWNERSHIP_COPE = "COPE";
@@ -88,6 +89,8 @@ public class Constants {
 	public static final boolean COSU_SECRET_EXIT = BuildConfig.COSU_SECRET_EXIT;
 	public static final String KIOSK_APP_DOWNLOAD_URL = "kioskAppDownlaodUrl";
 	public static final String KIOSK_APP_PACKAGE_NAME ="kioskAppPackageName";
+	public static final String AGENT_FRESH_START ="agentFreshStart";
+	public static final boolean ALLOW_MULTIPLE_APPS_IN_COSU_MODE = BuildConfig.ALLOW_MULTIPLE_APPS_IN_COSU_MODE;
 
 	/**
 	 * Log publishers

@@ -10,10 +10,14 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.GridView;
 import android.widget.TextView;
 
+import org.wso2.iot.agent.adapters.AppDrawerAdapter;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.events.EventRegistry;
 import org.wso2.iot.agent.events.listeners.KioskAppInstallationListener;
@@ -25,9 +29,11 @@ public class KioskActivity extends Activity {
     private TextView textViewWipeData;
     private Context context;
     private TextView textViewKiosk;
-    private static TextView textViewLaunch;
+    private TextView textViewNoApps;
     private int kioskExit;
-    private static String packageName = null;
+    private GridView gridView;
+    private AppDrawerAdapter appDrawerAdapter;
+    private final String TAG = KioskActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,22 +44,13 @@ public class KioskActivity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         Preference.putBoolean(getApplicationContext(), Constants.PreferenceFlag.DEVICE_ACTIVE, true);
 
-        textViewLaunch = (TextView) findViewById(R.id.textViewLaunch);
-        textViewLaunch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                launchKioskAppIfExists();
-            }
-        });
-        textViewLaunch.setVisibility(View.VISIBLE);
-
         textViewKiosk = (TextView) findViewById(R.id.textViewKiosk);
-        if(Constants.COSU_SECRET_EXIT){
+        if (Constants.COSU_SECRET_EXIT) {
             textViewKiosk.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     kioskExit++;
-                    if(kioskExit == 6){
+                    if (kioskExit == 6) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             stopLockTask();
                         }
@@ -63,12 +60,22 @@ public class KioskActivity extends Activity {
             });
         }
 
+        ComponentName component = new ComponentName(KioskActivity.this, KioskAppInstallationListener.class);
+        getPackageManager()
+                .setComponentEnabledSetting(component,
+                        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                        PackageManager.DONT_KILL_APP);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            startLockTask();
+            try {
+                startLockTask();
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage());
+            }
         }
 
         textViewWipeData = (TextView) this.findViewById(R.id.textViewWipeData);
-        if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU && Constants.DISPLAY_WIPE_DEVICE_BUTTON){
+        if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU && Constants.DISPLAY_WIPE_DEVICE_BUTTON) {
             textViewWipeData.setVisibility(View.VISIBLE);
             textViewWipeData.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -83,20 +90,29 @@ public class KioskActivity extends Activity {
                                     devicePolicyManager.
                                             wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE |
                                                     DevicePolicyManager.WIPE_RESET_PROTECTION_DATA);
-                                }})
+                                }
+                            })
                             .setNegativeButton(android.R.string.no, null)
                             .show();
                 }
             });
         }
-        installKioskApp();
-        launchKioskAppIfExists();
 
-        ComponentName component = new ComponentName(KioskActivity.this, KioskAppInstallationListener.class);
-        getPackageManager()
-                .setComponentEnabledSetting(component,
-                        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                        PackageManager.DONT_KILL_APP);
+        gridView = (GridView) findViewById(R.id.gridview);
+        textViewNoApps = (TextView) findViewById(R.id.textViewNoApps);
+        appDrawerAdapter = new AppDrawerAdapter(context);
+        gridView.setAdapter(appDrawerAdapter);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View v,
+                                    int position, long id) {
+                launchKioskApp((String) appDrawerAdapter.getItem(position));
+            }
+        });
+
+        installKioskApp();
+        if (Preference.getBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START)) {
+            launchKioskAppIfExists();
+        }
     }
 
     @Override
@@ -121,11 +137,12 @@ public class KioskActivity extends Activity {
 
     /*Checks whether there is an already installed app and if exists the app will be launched*/
     private void launchKioskAppIfExists() {
-        packageName = Preference.getString(context.getApplicationContext(), Constants.KIOSK_APP_PACKAGE_NAME);
-        if (packageName != null && !packageName.equals("")) {
-            textViewLaunch.setVisibility(View.VISIBLE);
+        Preference.putBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START, false);
+        String appList = Preference.getString(context.getApplicationContext(), Constants.KIOSK_APP_PACKAGE_NAME);
+        if (appList != null && !appList.equals("")) {
+            String[] packageName = appList.split(context.getString(R.string.kiosk_application_package_split_regex));
             Intent launchIntent = getApplicationContext().getPackageManager()
-                    .getLaunchIntentForPackage(packageName);
+                    .getLaunchIntentForPackage(packageName[packageName.length - 1]);
             launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             if (launchIntent != null) {
                 getApplicationContext().startActivity(launchIntent);
@@ -137,6 +154,7 @@ public class KioskActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
+        refreshAppDrawer();
         startEvents();
         startPolling();
     }
@@ -152,6 +170,30 @@ public class KioskActivity extends Activity {
             Preference.removePreference(getApplicationContext(), Constants.KIOSK_APP_DOWNLOAD_URL);
             ApplicationManager applicationManager = new ApplicationManager(context.getApplicationContext());
             applicationManager.installApp(appUrl, null, null);
+        }
+    }
+
+    private void launchKioskApp(String packageName) {
+        if (packageName != null && !packageName.equals("")) {
+            Intent launchIntent = getApplicationContext().getPackageManager()
+                    .getLaunchIntentForPackage(packageName);
+            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if (launchIntent != null) {
+                getApplicationContext().startActivity(launchIntent);
+            }
+        }
+    }
+
+    private void refreshAppDrawer() {
+        String appList = Preference.getString(context, Constants.KIOSK_APP_PACKAGE_NAME);
+        if (appList == null) {
+            gridView.setVisibility(View.INVISIBLE);
+            textViewNoApps.setVisibility(View.VISIBLE);
+        } else {
+            appDrawerAdapter.setAppList();
+            appDrawerAdapter.notifyDataSetChanged();
+            textViewNoApps.setVisibility(View.INVISIBLE);
+            gridView.setVisibility(View.VISIBLE);
         }
     }
 

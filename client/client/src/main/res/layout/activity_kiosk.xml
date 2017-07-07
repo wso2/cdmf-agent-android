@@ -9,6 +9,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:keepScreenOn="true"
+    android:background="@color/white"
     tools:context="org.wso2.iot.agent.KioskActivity">
 
     <Button
@@ -42,30 +43,46 @@
         android:visibility="gone"
         android:layout_alignStart="@+id/buttonStart" />
 
+    <GridView
+        android:id="@+id/gridview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:columnWidth="90dp"
+        android:numColumns="auto_fit"
+        android:verticalSpacing="10dp"
+        android:horizontalSpacing="10dp"
+        android:stretchMode="columnWidth"
+        android:gravity="center"
+        android:layout_alignParentTop="true"
+        android:layout_above="@+id/textViewKiosk"
+        android:layout_marginBottom="20dp"
+        android:visibility="invisible"
+        android:listSelector="@android:color/transparent"
+        />
+
     <TextView
         android:text="@string/wso2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/textViewKiosk"
-        android:textSize="40sp"
-        android:textColor="@color/kioskBackground"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:textColor="@color/colorPrimary"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true" />
 
     <TextView
-        android:text="Please click here to launch the app"
+        android:text="No apps available"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/textViewKiosk"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="50dp"
-        android:visibility="invisible"
-        android:id="@+id/textViewLaunch" />
+        android:layout_centerVertical="true"
+        android:visibility="visible"
+        android:textColor="@color/colorPrimary"
+        android:id="@+id/textViewNoApps" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/kioskBackground"
+        android:textColor="@color/colorPrimary"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:id="@+id/textViewWipeData"

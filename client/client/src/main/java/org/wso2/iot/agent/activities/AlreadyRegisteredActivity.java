@@ -35,6 +35,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -128,7 +129,7 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 		if (isFreshRegistration) {
 			Preference.putBoolean(context, Constants.PreferenceFlag.REGISTERED, true);
 			if (!isDeviceAdminActive()) {
-				startDeviceAdminPrompt(cdmDeviceAdmin);
+				startEvents();
 			}
 			isFreshRegistration = false;
 		}
@@ -344,11 +345,13 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 		}
 	}
 
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	public void onBackPressed() {
 		loadHomeScreen();
 	}
 
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -485,13 +488,19 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 	 * Load device home screen.
 	 */
 
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	private void loadHomeScreen() {
-		finish();
-		Intent i = new Intent();
-		i.setAction(Intent.ACTION_MAIN);
-		i.addCategory(Intent.CATEGORY_HOME);
-		this.startActivity(i);
-		super.onBackPressed();
+		if(!devicePolicyManager.isProfileOwnerApp(getPackageName())) {
+			finish();
+			Intent i = new Intent();
+			i.setAction(Intent.ACTION_MAIN);
+			i.addCategory(Intent.CATEGORY_HOME);
+			this.startActivity(i);
+			super.onBackPressed();
+		}
+		else {
+			Toast.makeText(this,"Press Home Button to exit.", Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	/**
@@ -502,23 +511,7 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 		loadInitialActivity();
 	}
 
-	/**
-	 * Start device admin activation request.
-	 *
-	 * @param cdmDeviceAdmin - Device admin component.
-	 */
-	private void startDeviceAdminPrompt(final ComponentName cdmDeviceAdmin) {
-		AlreadyRegisteredActivity.this.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				Intent deviceAdminIntent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-				deviceAdminIntent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, cdmDeviceAdmin);
-				deviceAdminIntent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-				                           getResources().getString(R.string.device_admin_enable_alert));
-				startActivityForResult(deviceAdminIntent, ACTIVATION_REQUEST);
-			}
-		});
-	}
+
 
 	/**
 	 * Display unregistration confirmation dialog.
@@ -606,6 +599,11 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 			LocalNotification.startPolling(context);
 		}
 	}
+	private void stopProgressDialog() {
+		if (progressDialog != null && progressDialog.isShowing()) {
+			progressDialog.dismiss();
+		}
+	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -620,7 +618,6 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 			}
 		}
 	}
-
     private void syncWithServer() {
         Animation rotate = AnimationUtils.loadAnimation(context, R.anim.clockwise_refresh);
         imageViewRefresh.startAnimation(rotate);

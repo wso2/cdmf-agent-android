@@ -99,7 +99,7 @@
                 android:layout_height="wrap_content"
                 android:theme="@style/InputText"
                 app:passwordToggleEnabled="true"
-                app:passwordToggleTint="@color/colorPrimary">
+                app:passwordToggleTint="@color/light_grey">
 
                 <android.support.design.widget.TextInputEditText
                     android:id="@+id/etPassword"

@@ -465,9 +465,9 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	 * Start device admin activation request.
 	 *
 	 */
-	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	private void startDeviceAdminPrompt() {
-		if (devicePolicyManager.isProfileOwnerApp(getPackageName())) {
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP &&
+				devicePolicyManager.isProfileOwnerApp(getPackageName())) {
 			checkManifestPermissions();
 			CommonUtils.callSystemApp(context, null, null, null);
 			Log.i("onActivityResult", "Administration enabled!");
@@ -589,8 +589,6 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	}
 
 
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == ACTIVATION_REQUEST) {
@@ -733,8 +731,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	/**
 	 * Retriever configurations from the server.
 	 */
-	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-	private void checkManifestPermissions(){
+	private void checkManifestPermissions() {
 		if (ActivityCompat.checkSelfPermission(AuthenticationActivity.this, android.Manifest.permission.READ_PHONE_STATE)
 				!= PackageManager.PERMISSION_GRANTED) {
 
@@ -744,14 +741,19 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 							android.Manifest.permission.ACCESS_FINE_LOCATION,
 							android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
 					110);
-		}else{
+		} else {
 			getConfigurationsFromServer();
 		}
 		//Since the agent in Work Profile already granted the Device Admin Permissions,
 		// the relevant preference flag is changed to True.
-		if (devicePolicyManager.isProfileOwnerApp(getApplicationContext().getPackageName())){
-			Preference.putBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE, true);
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+			if (devicePolicyManager.isProfileOwnerApp(getApplicationContext().getPackageName())) {
+				Preference.putBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE, true);
+			}
+		} else {
+			Log.e(TAG, "Phones running an SDK before lollipop, hence couldn't execute isProfileOwnerApp() method");
 		}
+
 	}
 
 	@Override

@@ -57,11 +57,11 @@ public class OperationManagerFactory {
         else if (manager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
             return new OperationManagerWorkProfile(context);
         }
-        else if (manager.isDeviceOwnerApp(Constants.SYSTEM_SERVICE_PACKAGE)) {
+        else if (manager.isDeviceOwnerApp(Constants.SYSTEM_SERVICE_PACKAGE) || manager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
                 return new OperationManagerDeviceOwner(context);
         }
         else {
-            return new OperationManagerOlderSdk(context);
+            return new OperationManagerBYOD(context);
         }
     }
 

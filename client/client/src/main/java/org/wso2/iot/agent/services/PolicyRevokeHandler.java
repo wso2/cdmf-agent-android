@@ -33,8 +33,10 @@ import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.WiFiConfig;
 import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.DeviceAppInfo;
+import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
+import org.wso2.iot.agent.utils.Preference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,6 +89,9 @@ public class PolicyRevokeHandler {
                 case Constants.Operation.WIFI:
                     revokeWifiPolicy(operation);
                     break;
+                case Constants.Operation.COSU_PROFILE_POLICY:
+                    revokeCOSUProfilePolicy(operation);
+                    break;
                 case Constants.Operation.DISALLOW_ADJUST_VOLUME:
                 case Constants.Operation.DISALLOW_CONFIG_BLUETOOTH:
                 case Constants.Operation.DISALLOW_CONFIG_CELL_BROADCASTS:
@@ -127,6 +132,8 @@ public class PolicyRevokeHandler {
                 case Constants.Operation.APP_RESTRICTION:
                     revokeAppRestrictionPolicy(operation);
                     break;
+                case Constants.Operation.RUNTIME_PERMISSION_POLICY:
+                    revokeRunTimePermissionPolicyOperation(operation);
                 default:
                     throw new AndroidAgentException("Invalid operation code received");
             }
@@ -192,6 +199,12 @@ public class PolicyRevokeHandler {
                     break;
                 case Constants.Operation.SET_STATUS_BAR_DISABLED:
                     revokeStatusBarDisabledPolicy();
+                    break;
+                case Constants.Operation.COSU_PROFILE_POLICY:
+                    revokeCOSUProfilePolicy(operation);
+                    break;
+                default:
+                    throw new AndroidAgentException("Invalid operation code received");
             }
         }
     }
@@ -292,7 +305,6 @@ public class PolicyRevokeHandler {
         if (operation.isEnabled() && encryptStatus) {
             devicePolicyManager.setStorageEncryption(deviceAdmin, false);
         }
-
     }
 
     /**
@@ -370,11 +382,39 @@ public class PolicyRevokeHandler {
         }
     }
 
-
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void revokeAutoTimeRestrictionPolicy() throws AndroidAgentException {
         if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
             devicePolicyManager.setAutoTimeRequired(deviceAdmin, false);
         }
     }
+
+    private void revokeCOSUProfilePolicy(Operation operation) throws AndroidAgentException {
+        try {
+            JSONObject COSUProfileData = new JSONObject(operation.getPayLoad().toString());
+            int lockDownTime = Preference.getInt(context, Constants.PreferenceCOSUProfile.FREEZE_TIME);
+            int releaseTime = Preference.getInt(context, Constants.PreferenceCOSUProfile.RELEASE_TIME);
+            int payloadLockTime = Integer.parseInt(COSUProfileData.
+                    get(Constants.COSUProfilePolicy.deviceFreezeTime).toString());
+            int payloadReleaseTime = Integer.parseInt(COSUProfileData.
+                    get(Constants.COSUProfilePolicy.deviceReleaseTime).toString());
+            if((payloadLockTime == lockDownTime) && (payloadReleaseTime== releaseTime) &&
+                        Preference.getBoolean(context, Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN)){
+                Preference.putBoolean(context, Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN,false);
+            }
+
+        } catch (JSONException e) {
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void revokeRunTimePermissionPolicyOperation(Operation operation) throws AndroidAgentException {
+        if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE) ||
+                devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
+                devicePolicyManager.setPermissionPolicy(deviceAdmin, DevicePolicyManager.PERMISSION_POLICY_PROMPT);
+                Preference.putString(context,Constants.RuntimePermissionPolicy.PERMITTED_APP_DATA, "");
+        }
+    }
+
 }

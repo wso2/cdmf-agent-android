@@ -18,7 +18,8 @@
 
 package org.wso2.iot.agent.services.operation;
 
-import android.annotation.TargetApi;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
@@ -35,20 +36,29 @@ import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.activities.ServerConfigsActivity;
 import org.wso2.iot.agent.beans.AppRestriction;
+import org.wso2.iot.agent.beans.DeviceAppInfo;
 import org.wso2.iot.agent.beans.Operation;
-import org.wso2.iot.agent.services.kiosk.KioskAlarmReceiver;
+import org.wso2.iot.agent.services.AppLockService;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 
-public class OperationManagerDeviceOwner extends OperationManager {
-    private static final String TAG = OperationManagerDeviceOwner.class.getSimpleName();
+public class OperationManagerBYOD extends OperationManager {
 
-    public OperationManagerDeviceOwner(Context context) {
+    private static final String TAG = OperationManagerBYOD.class.getSimpleName();
+
+    public OperationManagerBYOD(Context context){
         super(context);
+    }
+
+    @Override
+    public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
+        super.onReceiveAPIResult(result, requestCode);
     }
 
     @Override
@@ -74,7 +84,7 @@ public class OperationManagerDeviceOwner extends OperationManager {
                 status = getContextResources().getString(R.string.shared_pref_default_status);
                 result.put(getContextResources().getString(R.string.operation_status), status);
             } else if (Constants.OWNERSHIP_BYOD.equals(ownershipType.trim()) ||
-                       (inputPin != null && savedPin != null && inputPin.trim().equals(savedPin.trim()))) {
+                    (inputPin != null && savedPin != null && inputPin.trim().equals(savedPin.trim()))) {
                 status = getContextResources().getString(R.string.shared_pref_default_status);
                 result.put(getContextResources().getString(R.string.operation_status), status);
             } else {
@@ -129,7 +139,7 @@ public class OperationManagerDeviceOwner extends OperationManager {
     @Override
     public void installAppBundle(Operation operation) throws AndroidAgentException {
         try {
-            if (operation.getCode().equals(Constants.Operation.INSTALL_APPLICATION)||
+            if (operation.getCode().equals(Constants.Operation.INSTALL_APPLICATION) ||
                     operation.getCode().equals(Constants.Operation.UPDATE_APPLICATION)) {
                 JSONObject appData = new JSONObject(operation.getPayLoad().toString());
                 installApplication(appData, operation);
@@ -174,7 +184,7 @@ public class OperationManagerDeviceOwner extends OperationManager {
                     if(data.has(getContextResources().getString(R.string.app_schedule))){
                         schedule = data.getString(getContextResources().getString(R.string.app_schedule));
                     }
-                    operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
+                    operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
                     getResultBuilder().build(operation);
                     getAppList().installApp(appUrl, schedule, operation);
 
@@ -381,7 +391,7 @@ public class OperationManagerDeviceOwner extends OperationManager {
                 intent.putExtra(getContextResources().getString(R.string.intent_extra_message_text),
                         getContextResources().getString(R.string.policy_violation_password_tail));
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                                Intent.FLAG_ACTIVITY_NEW_TASK);
+                        Intent.FLAG_ACTIVITY_NEW_TASK);
                 getContext().startActivity(intent);
             }
 
@@ -413,7 +423,7 @@ public class OperationManagerDeviceOwner extends OperationManager {
 
             if (password != null && !password.isEmpty()) {
                 getDevicePolicyManager().resetPassword(password,
-                                                       DevicePolicyManager.RESET_PASSWORD_REQUIRE_ENTRY);
+                        DevicePolicyManager.RESET_PASSWORD_REQUIRE_ENTRY);
                 getDevicePolicyManager().lockNow();
             }
 
@@ -445,6 +455,58 @@ public class OperationManagerDeviceOwner extends OperationManager {
     }
 
     @Override
+    public void blacklistApps(Operation operation) throws AndroidAgentException {
+        ArrayList<DeviceAppInfo> apps = new ArrayList<>(getAppList().getInstalledApps().values());
+        JSONArray appList = new JSONArray();
+        JSONArray blacklistApps = new JSONArray();
+        String identity;
+        try {
+            JSONObject resultApp = new JSONObject(operation.getPayLoad().toString());
+            if (!resultApp.isNull(getContextResources().getString(R.string.app_identifier))) {
+                blacklistApps = resultApp.getJSONArray(getContextResources().getString(R.string.app_identifier));
+            }
+
+        } catch (JSONException e) {
+            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+            operation.setOperationResponse("Error in parsing APP_BLACKLIST payload.");
+            getResultBuilder().build(operation);
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+        for (int i = 0; i < blacklistApps.length(); i++) {
+            try {
+                identity = blacklistApps.getString(i);
+                for (DeviceAppInfo app : apps) {
+                    JSONObject result = new JSONObject();
+
+                    result.put(getContextResources().getString(R.string.intent_extra_name), app.getAppname());
+                    result.put(getContextResources().getString(R.string.intent_extra_package),
+                            app.getPackagename());
+                    if (identity.trim().equals(app.getPackagename())) {
+                        result.put(getContextResources().getString(R.string.intent_extra_not_violated), false);
+                        result.put(getContextResources().getString(R.string.intent_extra_package),
+                                app.getPackagename());
+                    } else {
+                        result.put(getContextResources().getString(R.string.intent_extra_not_violated), true);
+                    }
+                    appList.put(result);
+                }
+            } catch (JSONException e) {
+                operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+                operation.setOperationResponse("Error in parsing APP_BLACKLIST payload.");
+                getResultBuilder().build(operation);
+                throw new AndroidAgentException("Invalid JSON format.", e);
+            }
+        }
+        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        operation.setPayLoad(appList.toString());
+        getResultBuilder().build(operation);
+
+        if (Constants.DEBUG_MODE_ENABLED) {
+            Log.d(TAG, "Marked blacklist app");
+        }
+    }
+
+    @Override
     public void disenrollDevice(Operation operation) {
         boolean status = operation.isEnabled();
         if (status) {
@@ -452,143 +514,52 @@ public class OperationManagerDeviceOwner extends OperationManager {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void hideApp(Operation operation) throws AndroidAgentException {
-        String packageName = null;
-        try {
-            JSONObject hideAppData = new JSONObject(operation.getPayLoad().toString());
-            if (!hideAppData.isNull(getContextResources().getString(R.string.intent_extra_package))) {
-                packageName = (String) hideAppData.get(getContextResources().getString(R.string.intent_extra_package));
-            }
-
-            operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
-            getResultBuilder().build(operation);
-
-            if (packageName != null && !packageName.isEmpty()) {
-                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
-            }
-
-            if (Constants.DEBUG_MODE_ENABLED) {
-                Log.d(TAG, "App-Hide successful.");
-            }
-        } catch (JSONException e) {
-            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
-            operation.setOperationResponse("Error in parsing APP_HIDE payload.");
-            getResultBuilder().build(operation);
-            throw new AndroidAgentException("Invalid JSON format.", e);
-        }
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void unhideApp(Operation operation) throws AndroidAgentException {
-        String packageName = null;
-        try {
-            JSONObject hideAppData = new JSONObject(operation.getPayLoad().toString());
-            if (!hideAppData.isNull(getContextResources().getString(R.string.intent_extra_package))) {
-                packageName = (String) hideAppData.get(getContextResources().getString(R.string.intent_extra_package));
-            }
-
-            operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
-            getResultBuilder().build(operation);
-
-            if (packageName != null && !packageName.isEmpty()) {
-                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, false);
-            }
-
-            if (Constants.DEBUG_MODE_ENABLED) {
-                Log.d(TAG, "App-unhide successful.");
-            }
-        } catch (JSONException e) {
-            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
-            operation.setOperationResponse("Error in parsing APP_UN_HIDE payload.");
-            getResultBuilder().build(operation);
-            throw new AndroidAgentException("Invalid JSON format.", e);
-        }
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void blockUninstallByPackageName(Operation operation) throws AndroidAgentException {
-        String packageName = null;
-        try {
-            JSONObject hideAppData = new JSONObject(operation.getPayLoad().toString());
-            if (!hideAppData.isNull(getContextResources().getString(R.string.intent_extra_package))) {
-                packageName = (String) hideAppData.get(getContextResources().getString(R.string.intent_extra_package));
-            }
-
-            operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
-            getResultBuilder().build(operation);
-
-            if (packageName != null && !packageName.isEmpty()) {
-                getDevicePolicyManager().setUninstallBlocked(getCdmDeviceAdmin(), packageName, true);
-            }
-
-            if (Constants.DEBUG_MODE_ENABLED) {
-                Log.d(TAG, "App-Uninstall-Block successful.");
-            }
-        } catch (JSONException e) {
-            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
-            operation.setOperationResponse("Error in parsing APP_BLOCK payload.");
-            getResultBuilder().build(operation);
-            throw new AndroidAgentException("Invalid JSON format.", e);
-        }
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void setProfileName(Operation operation) throws AndroidAgentException {
-        //sets the name of the user since the agent is the device owner.
-        String profileName = null;
-        try {
-            JSONObject setProfileNameData = new JSONObject(operation.getPayLoad().toString());
-            if (!setProfileNameData.isNull(getContextResources().getString(R.string.intent_extra_profile_name))) {
-                profileName = (String) setProfileNameData.get(getContextResources().getString(
-                        R.string.intent_extra_profile_name));
-            }
-
-            operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
-            getResultBuilder().build(operation);
-
-            if (profileName != null && !profileName.isEmpty()) {
-                getDevicePolicyManager().setProfileName(getCdmDeviceAdmin(), profileName);
-            }
-
-            if (Constants.DEBUG_MODE_ENABLED) {
-                Log.d(TAG, "Profile Name is set");
-            }
-        } catch (JSONException e) {
-            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
-            operation.setOperationResponse("Error in parsing PROFILE payload.");
-            getResultBuilder().build(operation);
-            throw new AndroidAgentException("Invalid JSON format.", e);
-        }
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void handleOwnersRestriction(Operation operation) throws AndroidAgentException {
-        boolean isEnable = operation.isEnabled();
-        String key = operation.getCode();
-        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
         getResultBuilder().build(operation);
-        if (isEnable) {
-            getDevicePolicyManager().addUserRestriction(getCdmDeviceAdmin(), key);
-            if (Constants.DEBUG_MODE_ENABLED) {
-                Log.d(TAG, "Restriction added: " + key);
-            }
-        } else {
-            getDevicePolicyManager().clearUserRestriction(getCdmDeviceAdmin(), key);
-            if (Constants.DEBUG_MODE_ENABLED) {
-                Log.d(TAG, "Restriction cleared: " + key);
-            }
-        }
+        Log.d(TAG, "Operation not supported.");
     }
 
     @Override
     public void handleDeviceOwnerRestriction(Operation operation) throws AndroidAgentException {
-        handleOwnersRestriction(operation);
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
     }
 
     @Override
@@ -605,9 +576,9 @@ public class OperationManagerDeviceOwner extends OperationManager {
             CommonUtils.callSystemApp(getContext(),operation.getCode(),
                     Boolean.toString(operation.isEnabled()), null);
         } else {
-            if (operation.isEnabled()) {
-                Log.e(TAG, "Invalid operation code received");
-            }
+            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+            operation.setOperationResponse("System service not installed/activated.");
+            getResultBuilder().build(operation);
         }
     }
 
@@ -616,20 +587,44 @@ public class OperationManagerDeviceOwner extends OperationManager {
 
         AppRestriction appRestriction = CommonUtils.getAppRestrictionTypeAndList(operation, getResultBuilder(), getContextResources());
 
-        if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
-            List<String> installedAppPackagesByUser = CommonUtils.getInstalledAppPackagesByUser(getContext());
-            List<String> toBeHideApps = new ArrayList<>(installedAppPackagesByUser);
-            toBeHideApps.removeAll(appRestriction.getRestrictedList());
-            toBeHideApps.remove(Constants.SYSTEM_SERVICE_PACKAGE);
-            toBeHideApps.remove(Constants.AGENT_PACKAGE);
-            for (String packageName : toBeHideApps) {
-                CommonUtils.callSystemApp(getContext(), operation.getCode(), "false" , packageName);
-            }
-        } else if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
+        String ownershipType = Preference.getString(getContext(), Constants.DEVICE_TYPE);
 
-            for (String packageName : appRestriction.getRestrictedList()) {
-                CommonUtils.callSystemApp(getContext(), operation.getCode(), "false", packageName);
+        if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
+            if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
+
+                List<String> installedAppPackages = CommonUtils.getInstalledAppPackages(getContext());
+
+                List<String> toBeHideApps = new ArrayList<>(installedAppPackages);
+                toBeHideApps.removeAll(appRestriction.getRestrictedList());
+                for (String packageName : toBeHideApps) {
+                    CommonUtils.callSystemApp(getContext(), operation.getCode(), "false" , packageName);
+                }
             }
+        }
+        else if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
+            if (Constants.OWNERSHIP_BYOD.equals(ownershipType)) {
+                Intent restrictionIntent = new Intent(getContext(), AppLockService.class);
+                restrictionIntent.setAction(Constants.APP_LOCK_SERVICE);
+
+                restrictionIntent.putStringArrayListExtra(Constants.AppRestriction.APP_LIST, (ArrayList) appRestriction.getRestrictedList());
+
+                PendingIntent pendingIntent = PendingIntent.getService(getContext(), 0, restrictionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                AlarmManager alarmManager = (AlarmManager)getContext().getSystemService(Context.ALARM_SERVICE);
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTimeInMillis(System.currentTimeMillis());
+                calendar.add(Calendar.SECOND, 1); // First time
+                long frequency= 1 * 1000; // In ms
+                alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), frequency, pendingIntent);
+
+                getContext().startService(restrictionIntent);
+            } else if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
+
+                for (String packageName : appRestriction.getRestrictedList()) {
+                    CommonUtils.callSystemApp(getContext(), operation.getCode(), "false", packageName);
+                }
+            }
+
         }
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
@@ -644,136 +639,42 @@ public class OperationManagerDeviceOwner extends OperationManager {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void setRuntimePermissionPolicy(Operation operation) throws AndroidAgentException {
-        JSONObject restrictionPolicyData;
-        JSONObject restrictionAppData;
-        JSONArray permittedApplicationsPayload;
-        String permissionName;
-        int permissionType;
-        String packageName;
-
-        int defaultPermissionType;
-
-        try {
-            restrictionPolicyData = new JSONObject(operation.getPayLoad().toString());
-            if (!restrictionPolicyData.isNull(
-                    Constants.RuntimePermissionPolicy.DEFAULT_PERMISSION_TYPE)) {
-                defaultPermissionType = Integer.parseInt(restrictionPolicyData.
-                        getString(Constants.RuntimePermissionPolicy.DEFAULT_PERMISSION_TYPE));
-                getDevicePolicyManager().
-                        setPermissionPolicy(getCdmDeviceAdmin(), defaultPermissionType);
-                Log.d(TAG, "Default runtime-permission type changed.");
-            }
-            if (!restrictionPolicyData.isNull(Constants.RuntimePermissionPolicy.PERMITTED_APPS)) {
-                permittedApplicationsPayload = restrictionPolicyData.getJSONArray(
-                        Constants.RuntimePermissionPolicy.PERMITTED_APPS);
-                for(int i = 0; i <permittedApplicationsPayload.length(); i++) {
-                    restrictionAppData = new JSONObject(permittedApplicationsPayload.getString(i));
-                    permissionName = restrictionAppData.getString(Constants.RuntimePermissionPolicy.PERMISSION_NAME);
-                    permissionType = Integer.parseInt(restrictionAppData.getString(Constants.RuntimePermissionPolicy.PERMISSION_TYPE));
-                    packageName = restrictionAppData.getString(Constants.RuntimePermissionPolicy.PACKAGE_NAME);
-
-                    if(!permissionName.equals(Constants.RuntimePermissionPolicy.ALL_PERMISSIONS)){
-                        setAppRuntimePermission(packageName, permissionName, permissionType);
-                    }
-                    else {
-                        setAppAllRuntimePermission(packageName, permissionType);
-                    }
-                }
-            }
-        } catch (JSONException e) {
-            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
-            operation.setOperationResponse("Error in parsing PROFILE payload.");
-            getResultBuilder().build(operation);
-            throw new AndroidAgentException("Invalid JSON format.", e);
-        }
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private void setAppRuntimePermission(String packageName, String permission, int permissionType) {
-        getDevicePolicyManager().setPermissionGrantState(getCdmDeviceAdmin(),packageName,permission,permissionType);
-        Log.d(TAG,"App Permission Changed"+ packageName + " : " + permission );
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private void setAppAllRuntimePermission(String packageName, int permissionType) {
-        String[] permissionList = getContextResources().getStringArray(R.array.runtime_permission_list_array);
-        for(String permission: permissionList){
-            setAppRuntimePermission(packageName, permission, permissionType);
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
     @Override
     public void setStatusBarDisabled(Operation operation) throws AndroidAgentException {
-        boolean isEnable = operation.isEnabled();
-        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
         getResultBuilder().build(operation);
-        if (isEnable) {
-            getDevicePolicyManager().setStatusBarDisabled(getCdmDeviceAdmin(), true);
-        }
-        else {
-            getDevicePolicyManager().setStatusBarDisabled(getCdmDeviceAdmin(), false);
-        }
+        Log.d(TAG, "Operation not supported.");
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void setScreenCaptureDisabled(Operation operation) throws AndroidAgentException {
-        boolean isEnable = operation.isEnabled();
-        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
         getResultBuilder().build(operation);
-        if (isEnable) {
-            getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), true);
-        }
-        else {
-            getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), false);
-        }
+        Log.d(TAG, "Operation not supported.");
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void setAutoTimeRequired(Operation operation) throws AndroidAgentException {
-        boolean isEnable = operation.isEnabled();
-        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
         getResultBuilder().build(operation);
-        if (isEnable) {
-            getDevicePolicyManager().setAutoTimeRequired(getCdmDeviceAdmin(), true);
-        }
-        else {
-            getDevicePolicyManager().setAutoTimeRequired(getCdmDeviceAdmin(), false);
-        }
+        Log.d(TAG, "Operation not supported.");
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public void configureCOSUProfile(Operation operation) throws AndroidAgentException {
-        int releaseTime;
-        int freezeTime;
-        try {
-            JSONObject payload = new JSONObject(operation.getPayLoad().toString());
-            releaseTime = Integer.
-                    parseInt(payload.getString(Constants.COSUProfilePolicy.deviceReleaseTime));
-            freezeTime = Integer.
-                    parseInt(payload.getString(Constants.COSUProfilePolicy.deviceFreezeTime));
-
-            Preference.putInt(getContext(), Constants.PreferenceCOSUProfile.FREEZE_TIME, freezeTime);
-            Preference.putInt(getContext(), Constants.PreferenceCOSUProfile.RELEASE_TIME, releaseTime);
-
-            if(!Preference.getBoolean(getContext(),Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN)) {
-                Preference.putBoolean(getContext(), Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN, true);
-                KioskAlarmReceiver kioskAlarmReceiver = new KioskAlarmReceiver();
-                kioskAlarmReceiver.startAlarm(getContext());
-            }
-
-            operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
-            getResultBuilder().build(operation);
-
-        } catch (JSONException e) {
-            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
-            operation.setOperationResponse("Error in parsing PROFILE payload.");
-            getResultBuilder().build(operation);
-            throw new AndroidAgentException("Invalid JSON format.", e);
-        }
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
     }
 
 }

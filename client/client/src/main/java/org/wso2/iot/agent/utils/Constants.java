@@ -190,6 +190,13 @@ public class Constants {
 	public static final String APP_LOCK_SERVICE = "AppLockService";
 
 	/**
+	 * Permission Policy Types.
+	 */
+	public static final int PERMISSION_POLICY_PROMPT = 0;
+	public static final int PERMISSION_POLICY_AUTO_GRANT = 1;
+	public static final int PERMISSION_POLICY_AUTO_DENY = 2;
+
+	/**
 	 * Request codes.
 	 */
 	public static final int REGISTER_REQUEST_CODE = 300;
@@ -344,6 +351,23 @@ public class Constants {
 		public static final String LOGCAT = "LOGCAT";
 		public static final String FIRMWARE_UPGRADE_AUTOMATIC_RETRY = "FIRMWARE_UPGRADE_AUTOMATIC_RETRY";
 		public static final String SYSTEM_UPDATE_POLICY = "SYSTEM_UPDATE_POLICY";
+		public static final String RUNTIME_PERMISSION_POLICY = "RUNTIME_PERMISSION_POLICY";
+		public static final String COSU_PROFILE_POLICY = "COSU_PROFILE";
+		public static final String ENABLE_LOCK ="ENABLE_LOCK";
+	}
+
+	/**
+	 *  Runtime Permission Policy specific constants
+	 */
+	public final class RuntimePermissionPolicy {
+		public static final String DEFAULT_PERMISSION_TYPE = "defaultType";
+		public static final String PERMITTED_APPS = "permittedApplications";
+		public static final String PACKAGE_NAME = "packageName";
+		public static final String PERMISSION_NAME = "permissionName";
+		public static final String PERMISSION_TYPE = "permissionType";
+		public static final String ALL_PERMISSIONS = "*";
+		public static final String PERMITTED_APP_DATA = "permittedAppData";
+
 	}
 
 	/**
@@ -491,6 +515,14 @@ public class Constants {
 		public static final String LAST_SERVER_CALL = "lastServerCall";
 	}
 
+	public final class PreferenceCOSUProfile {
+		private PreferenceCOSUProfile() {
+			throw new AssertionError();
+		}
+		public static final String FREEZE_TIME = "lockDownStartTime";
+		public static final String RELEASE_TIME = "lockDownEndTime";
+		public static final String ENABLE_LOCKDOWN = "false";
+	}
 	public final class AppRestriction {
 		private AppRestriction() {
 			throw new AssertionError();
@@ -502,6 +534,14 @@ public class Constants {
 		public static final String BLACK_LIST = "black-list";
 		public static final String PACKAGE_NAME = "packageName";
 		public static final String APP_LIST = "appList";
+	}
+
+	public final class AppRuntimePermission {
+		private AppRuntimePermission() { throw new AssertionError(); }
+		public static final String PERMISSION_TYPE = "permission-type";
+		public static final String PERMITTED_APPS = "permitted-applications";
+		public static final String APP_LIST = "appList";
+		public static final String PACKAGE_NAME = "packageName";
 	}
 
 	public final class SystemUpdatePolicyType {
@@ -516,4 +556,11 @@ public class Constants {
 	public static final String START_TIME = "startTime";
 	public static final String END_TIME = "endTime";
 
+	public final class COSUProfilePolicy {
+		private COSUProfilePolicy() {
+			throw new AssertionError();
+		}
+		public static final String deviceReleaseTime = "cosuProfileRestrictionStartTime";
+		public static final String deviceFreezeTime = "cosuProfileRestrictionEndTime";
+	}
 }

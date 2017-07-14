@@ -94,8 +94,8 @@ import java.util.regex.Pattern;
  * and handles authentication.
  */
 public class AuthenticationActivity extends AppCompatActivity implements APIAccessCallBack,
-                                                                        APIResultCallBack,
-                                                                        AuthenticationCallback{
+		APIResultCallBack,
+		AuthenticationCallback{
 	private Button btnSignIn;
 	private EditText etUsername;
 	private EditText etDomain;
@@ -340,7 +340,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 		@Override
 		public void onClick(View view) {
 			if (etUsername.getText() != null && !etUsername.getText().toString().trim().isEmpty() &&
-			    etPassword.getText() != null && !etPassword.getText().toString().trim().isEmpty()) {
+					etPassword.getText() != null && !etPassword.getText().toString().trim().isEmpty()) {
 
 				passwordVal = etPassword.getText().toString().trim();
 				usernameVal = etUsername.getText().toString().trim();
@@ -353,12 +353,12 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 			} else {
 				if (etUsername.getText() != null && !etUsername.getText().toString().trim().isEmpty()) {
 					Toast.makeText(context,
-					               getResources().getString(R.string.toast_error_password),
-					               Toast.LENGTH_LONG).show();
+							getResources().getString(R.string.toast_error_password),
+							Toast.LENGTH_LONG).show();
 				} else {
 					Toast.makeText(context,
-					               getResources().getString(R.string.toast_error_username),
-					               Toast.LENGTH_LONG).show();
+							getResources().getString(R.string.toast_error_username),
+							Toast.LENGTH_LONG).show();
 				}
 			}
 		}
@@ -506,7 +506,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 						clientSecret = payload.getString(Constants.CLIENT_SECRET);
 
 						if (clientId != null && !clientId.isEmpty() &&
-						    clientSecret != null && !clientSecret.isEmpty()) {
+								clientSecret != null && !clientSecret.isEmpty()) {
 							initializeIDPLib(clientId, clientSecret);
 						}
 					} catch (JSONException e) {
@@ -555,7 +555,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 			if (tenantDomain != null && !tenantDomain.toString().trim().isEmpty()) {
 				username =
 						etUsername.getText().toString().trim() +
-						context.getResources().getString(R.string.intent_extra_at) + tenantDomain.toString().trim();
+								context.getResources().getString(R.string.intent_extra_at) + tenantDomain.toString().trim();
 
 			} else {
 				username = etUsername.getText().toString().trim();
@@ -594,20 +594,20 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
         if (requestCode == ACTIVATION_REQUEST) {
             if (resultCode == Activity.RESULT_OK) {
 				checkManifestPermissions();
-                CommonUtils.callSystemApp(context, null, null, null);
-                Log.i("onActivityResult", "Administration enabled!");
-            } else {
-                Log.i("onActivityResult", "Administration enable FAILED!");
+				CommonUtils.callSystemApp(context, null, null, null);
+				Log.i("onActivityResult", "Administration enabled!");
+			} else {
+				Log.i("onActivityResult", "Administration enable FAILED!");
 				startDeviceAdminPrompt();
-            }
-        }
-    }
+			}
+		}
+	}
 
 
 	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	public void onAPIAccessReceive(String status) {
-        if (status != null) {
+		if (status != null) {
 			if (status.trim().equals(Constants.Status.SUCCESSFUL)) {
 				CommonDialogUtils.stopProgressDialog(progressDialog);
 				if (isReLogin) {
@@ -658,7 +658,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 		if(deviceType == null) {
 			deviceType = Constants.DEFAULT_OWNERSHIP;
 			Preference.putString(context, Constants.DEVICE_TYPE,
-			                     deviceType);
+					deviceType);
 		}
 
 		if (deviceType != null && Constants.OWNERSHIP_BYOD.equals(deviceType.trim())) {
@@ -668,9 +668,9 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 					@Override
 					public void onCancel(DialogInterface arg0) {
 						CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
-                              getResources().getString(R.string.error_enrollment_failed_detail),
-                              getResources().getString(R.string.error_enrollment_failed),
-                              getResources().getString(R.string.button_ok), null);
+								getResources().getString(R.string.error_enrollment_failed_detail),
+								getResources().getString(R.string.error_enrollment_failed),
+								getResources().getString(R.string.button_ok), null);
 					}
 				};
 
@@ -678,11 +678,11 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 					@Override
 					public void run() {
 						progressDialog = CommonDialogUtils.showProgressDialog(context,
-								                                     getResources().getString(
-										                                     R.string.dialog_license_agreement),
-								                                     getResources().getString(
-										                                     R.string.dialog_please_wait),
-								                                     cancelListener);
+								getResources().getString(
+										R.string.dialog_license_agreement),
+								getResources().getString(
+										R.string.dialog_please_wait),
+								cancelListener);
 					}
 				});
 
@@ -717,9 +717,9 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 			ServerConfig utils = new ServerConfig();
 			utils.setServerIP(ipSaved);
 			CommonUtils.callSecuredAPI(AuthenticationActivity.this,
-			                           utils.getAPIServerURL(context) + Constants.LICENSE_ENDPOINT,
-			                           HTTP_METHODS.GET, null, AuthenticationActivity.this,
-			                           Constants.LICENSE_REQUEST_CODE
+					utils.getAPIServerURL(context) + Constants.LICENSE_ENDPOINT,
+					HTTP_METHODS.GET, null, AuthenticationActivity.this,
+					Constants.LICENSE_REQUEST_CODE
 			);
 		} else {
 			Log.e(TAG, "There is no valid IP to contact the server");
@@ -775,9 +775,9 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 			@Override
 			public void onCancel(DialogInterface arg0) {
 				CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
-	                                          getResources().getString(R.string.error_enrollment_failed_detail),
-	                                          getResources().getString(R.string.error_enrollment_failed),
-	                                          getResources().getString(R.string.button_ok), null);
+						getResources().getString(R.string.error_enrollment_failed_detail),
+						getResources().getString(R.string.error_enrollment_failed),
+						getResources().getString(R.string.button_ok), null);
 			}
 		};
 		AuthenticationActivity.this.runOnUiThread(new Runnable() {
@@ -785,11 +785,11 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 			public void run() {
 				progressDialog =
 						CommonDialogUtils.showProgressDialog(context,
-						                                     getResources().getString(
-								                                     R.string.dialog_sender_id),
-						                                     getResources().getString(
-								                                     R.string.dialog_please_wait),
-						                                     cancelListener);
+								getResources().getString(
+										R.string.dialog_sender_id),
+								getResources().getString(
+										R.string.dialog_please_wait),
+								cancelListener);
 			}
 		});
 
@@ -803,9 +803,9 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 			ServerConfig utils = new ServerConfig();
 			utils.setServerIP(ipSaved);
 			CommonUtils.callSecuredAPI(AuthenticationActivity.this,
-			                           utils.getAPIServerURL(context) + Constants.CONFIGURATION_ENDPOINT,
-			                           HTTP_METHODS.GET, null, AuthenticationActivity.this,
-			                           Constants.CONFIGURATION_REQUEST_CODE
+					utils.getAPIServerURL(context) + Constants.CONFIGURATION_ENDPOINT,
+					HTTP_METHODS.GET, null, AuthenticationActivity.this,
+					Constants.CONFIGURATION_REQUEST_CODE
 			);
 		} else {
 			Log.e(TAG, "There is no valid IP to contact the server");
@@ -836,7 +836,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 				String dynamicClientResponse = result.get(Constants.RESPONSE);
 				if (dynamicClientResponse != null) {
 					Preference.putString(context, getResources().getString(R.string.shared_pref_client_credentials),
-					                     dynamicClientResponse);
+							dynamicClientResponse);
 					startAuthentication();
 				}
 			} else if (Constants.Status.UNAUTHORIZED.equals(responseStatus)) {
@@ -873,7 +873,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 						JSONObject config = new JSONObject(configurationResponse);
 						if (!config.isNull(context.getString(R.string.shared_pref_configuration))) {
 							JSONArray configList = new JSONArray(config.getString(context.getString(R.string.
-					                                                                      shared_pref_configuration)));
+									shared_pref_configuration)));
 							for (int i = 0; i < configList.length(); i++) {
 								JSONObject param = new JSONObject(configList.get(i).toString());
 								if(param.getString(context.getString(R.string.shared_pref_config_key)).trim().equals(
@@ -881,20 +881,20 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 									String type = param.getString(context.getString(R.string.shared_pref_config_value)).trim();
 									if(type.equals(String.valueOf(Constants.NOTIFIER_CHECK))) {
 										Preference.putString(context, Constants.PreferenceFlag.NOTIFIER_TYPE,
-										                     Constants.NOTIFIER_FCM);
+												Constants.NOTIFIER_FCM);
 									}else{
 										Preference.putString(context, Constants.PreferenceFlag.NOTIFIER_TYPE,
-										                     Constants.NOTIFIER_LOCAL);
+												Constants.NOTIFIER_LOCAL);
 									}
 								} else if(param.getString(context.getString(R.string.shared_pref_config_key)).trim().
 										equals(context.getString(R.string.shared_pref_frequency)) && !param.getString(
 										context.getString(R.string.shared_pref_config_value)).trim().isEmpty()){
-										Preference.putInt(context, getResources().getString(R.string.shared_pref_frequency),
-										                  Integer.valueOf(param.getString(context.getString(R.string.shared_pref_config_value)).trim()));
+									Preference.putInt(context, getResources().getString(R.string.shared_pref_frequency),
+											Integer.valueOf(param.getString(context.getString(R.string.shared_pref_config_value)).trim()));
 								} else if(param.getString(context.getString(R.string.shared_pref_config_key)).trim().
 										equals(context.getString(R.string.shared_pref_gcm))){
-										Preference.putString(context, getResources().getString(R.string.shared_pref_sender_id),
-									                     param.getString(context.getString(R.string.shared_pref_config_value)).trim());
+									Preference.putString(context, getResources().getString(R.string.shared_pref_sender_id),
+											param.getString(context.getString(R.string.shared_pref_config_value)).trim());
 								}
 							}
 							String notifierType = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
@@ -940,7 +940,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	private void setDefaultNotifier(){
 		Preference.putString(context, Constants.PreferenceFlag.NOTIFIER_TYPE, Constants.NOTIFIER_LOCAL);
 		Preference.putInt(context, getResources().getString(R.string.shared_pref_frequency),
-		                  Constants.DEFAULT_INTERVAL);
+				Constants.DEFAULT_INTERVAL);
 	}
 
 
@@ -1002,12 +1002,12 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 		builder.setTitle(title);
 		builder.setCancelable(true);
 		builder.setPositiveButton(getResources().getString(R.string.button_ok),
-		                          new DialogInterface.OnClickListener() {
-			                          public void onClick(DialogInterface dialog, int id) {
-				                          cancelEntry();
-				                          dialog.dismiss();
-			                          }
-		                          }
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						cancelEntry();
+						dialog.dismiss();
+					}
+				}
 		);
 		AlertDialog alert = builder.create();
 		alert.show();
@@ -1029,7 +1029,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 
 				WebView webView = (WebView) dialog.findViewById(R.id.webViewLicense);
 				webView.loadDataWithBaseURL(null, licenseText, Constants.MIME_TYPE,
-				                            Constants.ENCODING_METHOD, null);
+						Constants.ENCODING_METHOD, null);
 
 				TextView textViewTitle = (TextView) dialog.findViewById(R.id.textViewDeviceNameTitle);
 				textViewTitle.setText(title);
@@ -1061,10 +1061,10 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 					@Override
 					public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
 						if (keyCode == KeyEvent.KEYCODE_SEARCH &&
-						    event.getRepeatCount() == Constants.DEFAULT_REPEAT_COUNT) {
+								event.getRepeatCount() == Constants.DEFAULT_REPEAT_COUNT) {
 							return true;
 						} else if (keyCode == KeyEvent.KEYCODE_BACK &&
-						           event.getRepeatCount() == Constants.DEFAULT_REPEAT_COUNT) {
+								event.getRepeatCount() == Constants.DEFAULT_REPEAT_COUNT) {
 							return true;
 						}
 						return false;
@@ -1112,7 +1112,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 		boolean isReady = false;
 
 		if (etUsername.getText().toString().length() >= 1 &&
-		    etPassword.getText().toString().length() >= 1) {
+				etPassword.getText().toString().length() >= 1) {
 			isReady = true;
 		}
 
@@ -1140,7 +1140,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 			new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog,
-				                    int which) {
+									int which) {
 					btnSignIn.setBackgroundResource(R.drawable.btn_orange);
 					btnSignIn.setTextColor(ContextCompat.getColor(AuthenticationActivity.this, R.color.white));
 					btnSignIn.setEnabled(true);
@@ -1304,9 +1304,9 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	public void onAuthenticated(boolean status, int requestCode) {
 		if (requestCode == Constants.AUTHENTICATION_REQUEST_CODE) {
 			if (status &&
-			    org.wso2.iot.agent.proxy.utils.Constants.Authenticator.AUTHENTICATOR_IN_USE.
-					    equals(org.wso2.iot.agent.proxy.utils.Constants.Authenticator.
-							           MUTUAL_SSL_AUTHENTICATOR)) {
+					org.wso2.iot.agent.proxy.utils.Constants.Authenticator.AUTHENTICATOR_IN_USE.
+							equals(org.wso2.iot.agent.proxy.utils.Constants.Authenticator.
+									MUTUAL_SSL_AUTHENTICATOR)) {
 				if(Constants.SKIP_LICENSE){
 					startDeviceAdminPrompt();
 				} else {

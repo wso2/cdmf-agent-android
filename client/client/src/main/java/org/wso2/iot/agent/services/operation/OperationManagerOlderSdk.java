@@ -438,16 +438,6 @@ public class OperationManagerOlderSdk extends OperationManager {
     public void enterpriseWipe(Operation operation) throws AndroidAgentException {
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
-
-        CommonUtils.disableAdmin(getContext());
-
-        Intent intent = new Intent(getContext(), ServerConfigsActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        getContext().startActivity(intent);
-        if (Constants.DEBUG_MODE_ENABLED) {
-            Log.d(TAG, "Started enterprise wipe");
-        }
     }
 
     @Override

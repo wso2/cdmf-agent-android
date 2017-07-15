@@ -17,6 +17,7 @@
 
 package org.wso2.iot.agent.services;
 
+import android.annotation.TargetApi;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -90,6 +91,9 @@ public class PolicyComplianceChecker {
                 return checkWifiPolicy(operation);
             case Constants.Operation.WORK_PROFILE:
                 return checkWorkProfilePolicy(operation);
+            case Constants.Operation.RUNTIME_PERMISSION_POLICY:
+                return checkRuntimePermissionPolicy(operation);
+            case Constants.Operation.COSU_PROFILE_POLICY:
             case Constants.Operation.DISALLOW_ADJUST_VOLUME:
             case Constants.Operation.DISALLOW_CONFIG_BLUETOOTH:
             case Constants.Operation.DISALLOW_CONFIG_CELL_BROADCASTS:
@@ -247,7 +251,6 @@ public class PolicyComplianceChecker {
                 appInstalled = true;
             }
         }
-
         return  appInstalled;
     }
 
@@ -432,6 +435,34 @@ public class PolicyComplianceChecker {
                         policy.setMessage(resources.getString(R.string.error_work_profile_policy));
                         return policy;
                     }
+                }
+            }
+        } catch (JSONException e) {
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+        policy.setCompliance(true);
+        return policy;
+    }
+
+    @TargetApi(23)
+    /**
+     * Checks Runtime Permission policy on the device (Particular runtime permission type in the policy should be enforced).
+     *
+     * @param operation - Operation object.
+     * @return policy - ComplianceFeature object.
+     */
+    private ComplianceFeature checkRuntimePermissionPolicy(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
+        int currentPermissionType;
+        int policyPermissionType;
+        try {
+            JSONObject runtimePermissionData = new JSONObject(operation.getPayLoad().toString());
+            if (!runtimePermissionData.isNull("defaultType")) {
+                policyPermissionType = Integer.parseInt(runtimePermissionData.get("defaultType").toString());
+                currentPermissionType = devicePolicyManager.getPermissionPolicy(deviceAdmin);
+                if(currentPermissionType != policyPermissionType){
+                    policy.setCompliance(false);
+                    policy.setMessage(resources.getString(R.string.error_runtime_permission_policy));
+                    return policy;
                 }
             }
         } catch (JSONException e) {

@@ -174,6 +174,9 @@
     <string name="policy_email_username">username</string>
     <string name="policy_email_password">password</string>
     <string name="policy_email_host">hostname</string>
+    <string name="policy_runtime_permission_default_permission_type">defaultType</string>
+    <string name="policy_runtime_permission_permitted_applications">permittedApplications</string>
+
 
     <!-- POLICY VIOLATION MESSAGES -->
     <string name="policy_violation_wifi">\nYou are not using company WIFI account, please change your WIFI configuration \n</string>
@@ -246,7 +249,7 @@
     <string name="error_app_uninstall_policy">\nFollowing apps are blacklisted by your IoT Admin, please remove them. \n</string>
     <string name="error_wifi_policy">\nYou are not using company WIFI account, please change your WIFI configuration \n</string>
     <string name="error_work_profile_policy">\nYour work-profile configurations are not adhering to the policy, please undo if any customizations have been done. \n</string>
-
+<string name="error_runtime_permission_policy">\n Your current runtime permission policy has been changed from what is requested by the administrator. \n</string>
     <!-- DIALOG TITLES AND MESSAGES -->
     <string name="dialog_authenticate">Authenticating</string>
     <string name="dialog_registering">Registering with %1$s</string>

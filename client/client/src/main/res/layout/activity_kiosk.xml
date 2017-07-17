@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_kiosk_enrollment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     android:keepScreenOn="true"
     android:background="@color/white"
     tools:context="org.wso2.iot.agent.KioskActivity">
-
+    <include
+        android:id="@+id/top_banner"
+        layout="@layout/top_banner_kiosk"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@+id/buttonStart"
+        />
     <Button
         android:text="Exit"
         android:layout_width="wrap_content"
@@ -53,12 +56,14 @@
         android:horizontalSpacing="10dp"
         android:stretchMode="columnWidth"
         android:gravity="center"
-        android:layout_alignParentTop="true"
-        android:layout_above="@+id/textViewKiosk"
-        android:layout_marginBottom="20dp"
         android:visibility="invisible"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
         android:listSelector="@android:color/transparent"
-        />
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/top_banner" />
 
     <TextView
         android:text="@string/wso2"
@@ -83,10 +88,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/colorPrimary"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
         android:id="@+id/textViewWipeData"
         android:text="@string/wipe_the_device"
-        android:visibility="invisible"/>
-
+        android:visibility="invisible"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@+id/buttonStart" />
 </RelativeLayout>

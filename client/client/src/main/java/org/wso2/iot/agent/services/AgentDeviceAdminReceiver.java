@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.PersistableBundle;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -34,6 +35,7 @@ import org.wso2.iot.agent.activities.AuthenticationActivity;
 import org.wso2.iot.agent.activities.EnableProfileActivity;
 import org.wso2.iot.agent.activities.SplashActivity;
 import org.wso2.iot.agent.beans.ServerConfig;
+import org.wso2.iot.agent.proxy.BuildConfig;
 import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
 import org.wso2.iot.agent.utils.CommonUtils;
@@ -158,8 +160,15 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onProfileProvisioningComplete(Context context, Intent intent) {
+            DevicePolicyManager devicePolicyManager1 =
+                    (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            if(devicePolicyManager1.isProfileOwnerApp(context.getPackageName())){
+                Constants.DEFAULT_OWNERSHIP = "COSU";
+            }
+
         if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
             DevicePolicyManager devicePolicyManager =
                     (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
@@ -193,17 +202,23 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
                 if (persistableBundle != null) {
                     if (org.wso2.iot.agent.proxy.utils.Constants.Authenticator.AUTHENTICATOR_IN_USE.
                             equals(org.wso2.iot.agent.proxy.utils.Constants.Authenticator.OAUTH_AUTHENTICATOR)) {
-                        String token = (String) persistableBundle.get("android.app.extra.token");
+                        String token = (String) persistableBundle.get(Constants.KIOSK_NFC_TOKEN);
                         if (token != null && !token.equals("")) {
                             launch = new Intent(context, AuthenticationActivity.class);
-                            launch.putExtra("android.app.extra.token", token);
+                            launch.putExtra(Constants.KIOSK_NFC_TOKEN, token);
                         }
                     }
 
-                    String appUrl = (String) persistableBundle.get("android.app.extra.appurl");
-                    if (appUrl != null && !appUrl.equals("")) {
-                        Preference.putString(context, Constants.KIOSK_APP_DOWNLOAD_URL, appUrl);
+                    String kioskAppURL = (String) persistableBundle.get(Constants.KIOSK_APP_URL);
+                    if (kioskAppURL != null && !kioskAppURL.equals("")) {
+                        Preference.putString(context, Constants.KIOSK_APP_DOWNLOAD_URL, kioskAppURL);
                     }
+
+                    String hostName = (String) persistableBundle.get(Constants.KIOSK_NFC_HOST);
+                    if (hostName != null && !hostName.equals("")) {
+                        Constants.DEFAULT_HOST = hostName;
+                    }
+
                 }
             }
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

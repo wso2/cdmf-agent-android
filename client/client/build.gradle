@@ -32,7 +32,7 @@ android {
         targetSdkVersion 25
         multiDexEnabled true
 
-        versionCode 333
+        versionCode 3010018
         versionName "3.1.18"
     }
     buildTypes {
@@ -60,7 +60,7 @@ android {
             buildConfigField "String", "DEFAULT_OWNERSHIP", "\"BYOD\""
             //DEFAULT_HOST - Hardcode the server host to avoid having the user type it during
             //enrollment. If the user must type the hostname/IP during enrollment, leave it as null.
-            buildConfigField "String", "DEFAULT_HOST", "\"null\""
+            buildConfigField "String", "DEFAULT_HOST", "\"https://gateway.api.cloud.wso2.com\""
             // APP_MANAGER_HOST: If the App store host is different from the DEFAULT_HOST
             // change this value.
             buildConfigField "String", "APP_MANAGER_HOST", "null"
@@ -181,7 +181,7 @@ android {
             buildConfigField "String", "DEFAULT_OWNERSHIP", "\"BYOD\""
             //DEFAULT_HOST - Hardcode the server host to avoid having the user type it during
             //enrollment. If the user must type the hostname/IP during enrollment, leave it as null.
-            buildConfigField "String", "DEFAULT_HOST", "null"
+            buildConfigField "String", "DEFAULT_HOST", "\"https://gateway.api.cloudstaging.wso2.com\""
             // APP_MANAGER_HOST: If the App store host is different from the DEFAULT_HOST
             // change this value.
             buildConfigField "String", "APP_MANAGER_HOST", "null"
@@ -410,6 +410,129 @@ android {
             buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "true"
             debuggable true
         }
+        standalone {
+            // DEBUG_MODE_ENABLED: Make the agent print the debug logs.
+            // Make this false in production.
+            buildConfigField "boolean", "DEBUG_MODE_ENABLED", "false"
+            // ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE: Setting this to true will make the
+            // App list response to the service to include system apps as well.
+            buildConfigField "boolean", "ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE", "false"
+            // Protocol used to communicate with the server. Valid values are http:// or https://
+            buildConfigField "String", "SERVER_PROTOCOL", "\"http://\""
+            buildConfigField "String", "API_SERVER_PORT", "\"80\""
+            //API version that supported by the server
+            buildConfigField "float", "SERVER_API_VERSION", "1.0f"
+            // Set DEFAULT_OWNERSHIP to null if no overriding is needed. Other possible values are,
+            // BYOD or COPE. If you are using the mutual SSL authentication
+            // This value must be set to a value other than null.
+            buildConfigField "String", "DEFAULT_OWNERSHIP", "\"BYOD\""
+            //DEFAULT_HOST - Hardcode the server host to avoid having the user type it during
+            //enrollment. If the user must type the hostname/IP during enrollment, leave it as null.
+            buildConfigField "String", "DEFAULT_HOST", "null"
+            // APP_MANAGER_HOST: If the App store host is different from the DEFAULT_HOST
+            // change this value.
+            buildConfigField "String", "APP_MANAGER_HOST", "null"
+            // CLOUD_MANAGER: If the App is pointed to cloud use cloud management host to resolve
+            // tenants of user. Otherwise set this to null
+            buildConfigField "String", "CLOUD_MANAGER", "null"
+            // SIGN_UP_URL: Set self registration link to sign up
+            buildConfigField "String", "SIGN_UP_URL", "null"
+            // AGENT_PACKAGE: If a modification of the agent's package name is done, this must be
+            // altered
+            buildConfigField "String", "AGENT_PACKAGE", "\"org.wso2.iot.agent\""
+            // FIRMWARE_UPGRADE_RETRY_COUNT: How many time the agent must retry if firmware upgrade
+            // fails.
+            buildConfigField "int", "FIRMWARE_UPGRADE_RETRY_COUNT", "5"
+            // CATALOG_APP_PACKAGE_NAME: If a modification of the catalog apps's package
+            // name is done, this must be altered.
+            buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
+            // System service specific configurations.
+            // SYSTEM_APP_ENABLED: This is to set if the system app will also be installed.
+            // If this is set org.wso2.emm.system.service must also be available in the device.
+            buildConfigField "boolean", "SYSTEM_APP_ENABLED", "false"
+            // SYSTEM_SERVICE_PACKAGE: If system service app is in use, the package name of it is
+            // defined here so that the agent knows the package name of the system service to
+            // contact.
+            buildConfigField "String", "SYSTEM_SERVICE_PACKAGE", "\"org.wso2.iot.system.service\""
+            // HIDE_UNREGISTER_BUTTON: Hide the unregister button after enrollment so that  the
+            // unenrollment can only be done remotely.
+            buildConfigField "boolean", "HIDE_UNREGISTER_BUTTON", "false"
+            // Auto enrollment specific configurations
+            // AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED: This is to specify if the enrollment
+            // will be done in a background service. This is typically related to mutual SSL based
+            // enrollments only.
+            buildConfigField "boolean", "AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED", "false"
+            // SKIP_LICENSE: Skip displaying the license policy during enrollment.
+            // This is recommended to be used in conjunction with
+            // AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED
+            buildConfigField "boolean", "SKIP_LICENSE", "false"
+            // HIDE_LOGIN_UI: Skip displaying the login screen during enrollment.
+            // This is recommended to be used in conjunction with
+            // AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED
+            buildConfigField "boolean", "HIDE_LOGIN_UI", "false"
+            // SKIP_WORK_PROFILE_CREATION: This will hide the work profile creation step from the
+            // user. This is recommended to be used in conjunction with
+            // AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED
+            buildConfigField "boolean", "SKIP_WORK_PROFILE_CREATION", "false"
+            // HIDE_ERROR_DIALOG: If this is set to true, agent will not show any error messages.
+            // This is only recommended to use when the enrollment happens in background, and no
+            // user interaction is needed. i.e in conjunction with
+            // AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED
+            buildConfigField "boolean", "HIDE_ERROR_DIALOG", "false"
+            //Data publishing related configurations.
+            // LOG_PUBLISHER_IN_USE: By default DAS_PUBLISHER or SPLUNK_PUBLISHER are the allowed
+            // values. This specifies the log publisher to be used. This can be extended to write
+            // custom publishers.
+            buildConfigField "String", "LOG_PUBLISHER_IN_USE", "\"<SET_PUBLISHER>\""
+            // LOG_LEVEL: When publishing log cat output to server, the log level tobe used.
+            buildConfigField "String", "LOG_LEVEL", "\"*:W\""
+            // NUMBER_OF_LOG_LINES: Number of log lines to be sent.
+            buildConfigField "int", "NUMBER_OF_LOG_LINES", "500"
+            //Splunk related configurations
+            buildConfigField "String", "SPLUNK_API_KEY", "\"<SET_PUBLISHER>\""
+            // HEC_TOKEN: Allowed values are MINT or HTTP
+            buildConfigField "String", "SPLUNK_DATA_COLLECTOR_TYPE", "\"MINT\""
+            buildConfigField "String", "HEC_TOKEN", "\"<SPLUNK_HEC_TOKEN>\""
+            buildConfigField "String", "HEC_MINT_ENDPOINT_URL", "\"<SPLUNK_HEC_MINT_ENDPOINT_URL>\""
+            //Event publishing related configurations.
+            // If set to true, registered events will be published to DAS. There are two event
+            // publisher available by default and custom event types can be written and publihed
+            // with the provided extension points.
+            buildConfigField "boolean", "EVENT_LISTENING_ENABLED", "false"
+            // Listening to application state changes such as an app getting installed, uninstalled,
+            // upgraded and data cleared. If set to true, events will be published.
+            buildConfigField "boolean", "APPLICATION_STATE_LISTENER", "false"
+            // This is to listen to Runtime information such as CPU. If set to true,
+            // events will be published.
+            buildConfigField "boolean", "RUNTIME_STATE_LISTENER", "false"
+            // The time the alarm should first go off, in milliseconds. The default value is 1000.
+            buildConfigField "long", "DEFAULT_START_TIME", "1000"
+            // The interval between subsequent repeats of the alarm, in milliseconds.
+            // The default value is 30000.
+            buildConfigField "long", "DEFAULT_INTERVAL", "30000"
+            buildConfigField "int", "DEFAULT_LISTENER_CODE", "10001"
+            // COSU related configurations.
+            // ALLOW_MULTIPLE_APPS_IN_COSU_MODE: Set to true to make all installed app in COSU mode
+            // accessible; if false only the last installation will be accessible.
+            buildConfigField "boolean", "ALLOW_MULTIPLE_APPS_IN_COSU_MODE", "true"
+            // By enabling this button, data wipe can be performed on a device without having to
+            // issue a remote wipe operation.
+            buildConfigField "boolean", "DISPLAY_WIPE_DEVICE_BUTTON", "true"
+            // Under COSU mode, this will enable an area in the screen to exit from screen pinned
+            // mode. This MUST be set to false in production, if COSU is used.
+            buildConfigField "boolean", "COSU_SECRET_EXIT", "true"
+            buildConfigField "String", "EULA_TITLE", "\"POLICY AGREEMENT\""
+            //Minimum Server API version that supported by the agent app
+            buildConfigField "float", "MIN_SERVER_API_VERSION", "1.0f"
+            //Maximum Server API version that supported by the agent app
+            buildConfigField "float", "MAX_SERVER_API_VERSION", "1.0f"
+            //Show notification to enable location if it is disabled
+            buildConfigField "boolean", "ASK_TO_ENABLE_LOCATION", "false"
+            //Publish location changes to server
+            buildConfigField "boolean", "LOCATION_PUBLISHING_ENABLED", "true"
+            //Collect WiFi scan results
+            buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "false"
+        }
         debug {
             // DEBUG_MODE_ENABLED: Make the agent print the debug logs.
             // Make this false in production.
@@ -430,7 +553,7 @@ android {
             //enrollment. If the user must type the hostname/IP during enrollment, leave it as null.
             buildConfigField "String", "DEFAULT_HOST", "null"
             // APP_MANAGER_HOST: If the App store host is different from the DEFAULT_HOST
-            // change this value
+            // change this value.
             buildConfigField "String", "APP_MANAGER_HOST", "null"
             // CLOUD_MANAGER: If the App is pointed to cloud use cloud management host to resolve
             // tenants of user. Otherwise set this to null
@@ -562,8 +685,8 @@ task checkAPIVersion(dependsOn: build) {
 dependencies {
     releaseCompile project(path: ':iDPProxy', configuration: 'release')
     stagingCompile project(path: ':iDPProxy', configuration: 'staging')
+    standaloneCompile project(path: ':iDPProxy', configuration: 'standalone')
     debugCopeCompile project(path: ':iDPProxy', configuration: 'debug')
-    //    debugCompile project(path: ':iDPProxy', configuration: 'staging')
     debugCompile project(path: ':iDPProxy', configuration: 'debug')
     compile('com.googlecode.json-simple:json-simple:1.1.1') {
         exclude module: 'junit'
@@ -577,7 +700,7 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind:2.6.0-rc3'
     compile 'com.fasterxml.jackson.core:jackson-annotations:2.6.0-rc3'
     compile 'org.bouncycastle:bcprov-jdk16:1.45'
-    compile 'com.google.code.gson:gson:2.6.2'
+    compile 'com.google.code.gson:gson:2.7'
     compile 'com.splunk.mint:mint:5.0.0'
 }
 

@@ -23,6 +23,7 @@ import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -438,16 +439,6 @@ public class OperationManagerOlderSdk extends OperationManager {
     public void enterpriseWipe(Operation operation) throws AndroidAgentException {
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
-
-        CommonUtils.disableAdmin(getContext());
-
-        Intent intent = new Intent(getContext(), ServerConfigsActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        getContext().startActivity(intent);
-        if (Constants.DEBUG_MODE_ENABLED) {
-            Log.d(TAG, "Started enterprise wipe");
-        }
     }
 
     @Override
@@ -633,6 +624,13 @@ public class OperationManagerOlderSdk extends OperationManager {
     }
 
     @Override
+    public void setRuntimePermissionPolicy(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
+    }
+
     public void setStatusBarDisabled(Operation operation) throws AndroidAgentException {
         operation.setStatus(getContextResources().getString(R.string.operation_value_error));
         operation.setOperationResponse("Operation not supported.");
@@ -656,5 +654,12 @@ public class OperationManagerOlderSdk extends OperationManager {
         Log.d(TAG, "Operation not supported.");
     }
 
+    @Override
+    public void configureCOSUProfile(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+        operation.setOperationResponse("Operation not supported.");
+        getResultBuilder().build(operation);
+        Log.d(TAG, "Operation not supported.");
+    }
 
 }

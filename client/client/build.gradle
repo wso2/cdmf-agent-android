@@ -60,7 +60,7 @@ android {
             buildConfigField "String", "DEFAULT_OWNERSHIP", "\"BYOD\""
             //DEFAULT_HOST - Hardcode the server host to avoid having the user type it during
             //enrollment. If the user must type the hostname/IP during enrollment, leave it as null.
-            buildConfigField "String", "DEFAULT_HOST", "\"https://gateway.api.cloud.wso2.com\""
+            buildConfigField "String", "DEFAULT_HOST", "\"null\""
             // APP_MANAGER_HOST: If the App store host is different from the DEFAULT_HOST
             // change this value.
             buildConfigField "String", "APP_MANAGER_HOST", "null"
@@ -181,7 +181,7 @@ android {
             buildConfigField "String", "DEFAULT_OWNERSHIP", "\"BYOD\""
             //DEFAULT_HOST - Hardcode the server host to avoid having the user type it during
             //enrollment. If the user must type the hostname/IP during enrollment, leave it as null.
-            buildConfigField "String", "DEFAULT_HOST", "\"https://gateway.api.cloudstaging.wso2.com\""
+            buildConfigField "String", "DEFAULT_HOST", "null"
             // APP_MANAGER_HOST: If the App store host is different from the DEFAULT_HOST
             // change this value.
             buildConfigField "String", "APP_MANAGER_HOST", "null"
@@ -425,12 +425,12 @@ android {
             // Set DEFAULT_OWNERSHIP to null if no overriding is needed. Other possible values are,
             // BYOD or COPE. If you are using the mutual SSL authentication
             // This value must be set to a value other than null.
-            buildConfigField "String", "DEFAULT_OWNERSHIP", "null"
+            buildConfigField "String", "DEFAULT_OWNERSHIP", "\"BYOD\""
             //DEFAULT_HOST - Hardcode the server host to avoid having the user type it during
             //enrollment. If the user must type the hostname/IP during enrollment, leave it as null.
             buildConfigField "String", "DEFAULT_HOST", "null"
             // APP_MANAGER_HOST: If the App store host is different from the DEFAULT_HOST
-            // change this value.
+            // change this value
             buildConfigField "String", "APP_MANAGER_HOST", "null"
             // CLOUD_MANAGER: If the App is pointed to cloud use cloud management host to resolve
             // tenants of user. Otherwise set this to null
@@ -563,6 +563,7 @@ dependencies {
     releaseCompile project(path: ':iDPProxy', configuration: 'release')
     stagingCompile project(path: ':iDPProxy', configuration: 'staging')
     debugCopeCompile project(path: ':iDPProxy', configuration: 'debug')
+    //    debugCompile project(path: ':iDPProxy', configuration: 'staging')
     debugCompile project(path: ':iDPProxy', configuration: 'debug')
     compile('com.googlecode.json-simple:json-simple:1.1.1') {
         exclude module: 'junit'

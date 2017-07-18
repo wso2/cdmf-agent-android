@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="runtime_permission_list_array">
+        <item>android.permission.READ_CALENDAR</item>
+        <item>android.permission.WRITE_CALENDAR</item>
+        <item>android.permission.CAMERA</item>
+        <item>android.permission.READ_CONTACTS</item>
+        <item>android.permission.WRITE_CONTACTS</item>
+        <item>android.permission.GET_ACCOUNTS</item>
+        <item>android.permission.ACCESS_FINE_LOCATION</item>
+        <item>android.permission.ACCESS_COARSE_LOCATION</item>
+        <item>android.permission.RECORD_AUDIO</item>
+        <item>android.permission.READ_PHONE_STATE</item>
+        <item>android.permission.CALL_PHONE</item>
+        <item>android.permission.READ_CALL_LOG</item>
+        <item>android.permission.WRITE_CALL_LOG</item>
+        <item>com.android.voicemail.permission.ADD_VOICEMAIL</item>
+        <item>android.permission.USE_SIP</item>
+        <item>android.permission.PROCESS_OUTGOING_CALLS</item>
+        <item>android.permission.BODY_SENSORS</item>
+        <item>android.permission.SEND_SMS</item>
+        <item>android.permission.RECEIVE_SMS</item>
+        <item>android.permission.RECEIVE_WAP_PUSH</item>
+        <item>android.permission.RECEIVE_MMS</item>
+        <item>android.permission.READ_EXTERNAL_STORAGE</item>
+        <item>android.permission.WRITE_EXTERNAL_STORAGE</item>
+    </string-array>
+</resources>

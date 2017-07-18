@@ -34,6 +34,7 @@ import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.activities.AuthenticationActivity;
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.activities.ServerConfigsActivity;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceInfo;
 import org.wso2.iot.agent.beans.AppInstallRequest;
@@ -68,6 +69,7 @@ public class MessageProcessor implements APIResultCallBack {
 	private boolean isRebootTriggered = false;
 	private boolean isUpgradeTriggered = false;
 	private boolean isShellCommandTriggered = false;
+	private boolean isEnterpriseWipeTriggered = false;
 	private static final String ERROR_STATE = "ERROR";
 	private String shellCommand = null;
 
@@ -159,6 +161,9 @@ public class MessageProcessor implements APIResultCallBack {
 					if (operation.getCode().equals(Constants.Operation.WIPE_DATA) && !operation.getStatus().
 							equals(ERROR_STATE)) {
 						isWipeTriggered = true;
+					}else if (operation.getCode().equals(Constants.Operation.ENTERPRISE_WIPE) && !operation.getStatus().
+							equals(ERROR_STATE)) {
+						isEnterpriseWipeTriggered = true;
 					} else if (operation.getCode().equals(Constants.Operation.REBOOT) && !operation.getStatus().
 							equals(ERROR_STATE)) {
 						isRebootTriggered = true;
@@ -300,6 +305,18 @@ public class MessageProcessor implements APIResultCallBack {
 					CommonUtils.callSystemApp(context, Constants.Operation.WIPE_DATA, null, null);
 				} else {
 					Log.i(TAG, "Not the device owner.");
+				}
+			}
+
+			if(isEnterpriseWipeTriggered) {
+				CommonUtils.disableAdmin(context);
+
+				Intent intentEnterpriseWipe = new Intent(context, ServerConfigsActivity.class);
+				intentEnterpriseWipe.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				intentEnterpriseWipe.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				context.startActivity(intentEnterpriseWipe);
+				if (Constants.DEBUG_MODE_ENABLED) {
+					Log.d(TAG, "Started enterprise wipe");
 				}
 			}
 

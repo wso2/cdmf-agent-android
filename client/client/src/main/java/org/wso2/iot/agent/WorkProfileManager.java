@@ -19,7 +19,9 @@ package org.wso2.iot.agent;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -34,15 +36,16 @@ public class WorkProfileManager extends Activity {
     private static final int REQUEST_PROVISION_MANAGED_PROFILE = 1;
     private static final String TAG = "WorkProfileManager";
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         provisionManagedProfile();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void provisionManagedProfile() {
         Activity activity = this;
-
         Intent intent = new Intent(ACTION_PROVISION_MANAGED_PROFILE);
         intent.putExtra(EXTRA_PROVISIONING_DEVICE_ADMIN_PACKAGE_NAME,
                 activity.getApplicationContext().getPackageName());

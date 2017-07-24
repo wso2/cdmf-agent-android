@@ -17,7 +17,6 @@
  */
 package org.wso2.iot.agent.activities;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -34,7 +33,6 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
@@ -52,6 +50,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -130,7 +129,11 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 		}
 
 		setContentView(R.layout.activity_authentication);
+		RelativeLayout relativeLayout=(RelativeLayout)this.findViewById(R.id.relavtiveLayoutAuthentication);
 
+		if(Constants.DEFAULT_OWNERSHIP.equals(Constants.OWNERSHIP_COSU)) {
+			relativeLayout.setVisibility(RelativeLayout.GONE);
+		}
 		deviceInfo = new DeviceInfo(context);
 		etDomain = (EditText) findViewById(R.id.etDomain);
 		etUsername = (EditText) findViewById(R.id.etUsername);
@@ -465,9 +468,9 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	 * Start device admin activation request.
 	 *
 	 */
-	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	private void startDeviceAdminPrompt() {
-		if (devicePolicyManager.isProfileOwnerApp(getPackageName())) {
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP &&
+				devicePolicyManager.isProfileOwnerApp(getPackageName())) {
 			checkManifestPermissions();
 			CommonUtils.callSystemApp(context, null, null, null);
 			Log.i("onActivityResult", "Administration enabled!");
@@ -589,8 +592,6 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	}
 
 
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == ACTIVATION_REQUEST) {
@@ -733,8 +734,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	/**
 	 * Retriever configurations from the server.
 	 */
-	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-	private void checkManifestPermissions(){
+	private void checkManifestPermissions() {
 		if (ActivityCompat.checkSelfPermission(AuthenticationActivity.this, android.Manifest.permission.READ_PHONE_STATE)
 				!= PackageManager.PERMISSION_GRANTED) {
 
@@ -744,14 +744,19 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 							android.Manifest.permission.ACCESS_FINE_LOCATION,
 							android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
 					110);
-		}else{
+		} else {
 			getConfigurationsFromServer();
 		}
 		//Since the agent in Work Profile already granted the Device Admin Permissions,
 		// the relevant preference flag is changed to True.
-		if (devicePolicyManager.isProfileOwnerApp(getApplicationContext().getPackageName())){
-			Preference.putBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE, true);
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+			if (devicePolicyManager.isProfileOwnerApp(getApplicationContext().getPackageName())) {
+				Preference.putBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE, true);
+			}
+		} else {
+			Log.e(TAG, "Phones running an SDK before lollipop, hence couldn't execute isProfileOwnerApp() method");
 		}
+
 	}
 
 	@Override

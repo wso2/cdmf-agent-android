@@ -58,6 +58,7 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
     /**
      * Called when this application is approved to be a device administrator.
      */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onEnabled(final Context context, Intent intent) {
         super.onEnabled(context, intent);
@@ -163,12 +164,6 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onProfileProvisioningComplete(Context context, Intent intent) {
-            DevicePolicyManager devicePolicyManager1 =
-                    (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
-            if(devicePolicyManager1.isProfileOwnerApp(context.getPackageName())){
-                Constants.DEFAULT_OWNERSHIP = "COSU";
-            }
-
         if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
             DevicePolicyManager devicePolicyManager =
                     (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
@@ -213,12 +208,6 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
                     if (kioskAppURL != null && !kioskAppURL.equals("")) {
                         Preference.putString(context, Constants.KIOSK_APP_DOWNLOAD_URL, kioskAppURL);
                     }
-
-                    String hostName = (String) persistableBundle.get(Constants.KIOSK_NFC_HOST);
-                    if (hostName != null && !hostName.equals("")) {
-                        Constants.DEFAULT_HOST = hostName;
-                    }
-
                 }
             }
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

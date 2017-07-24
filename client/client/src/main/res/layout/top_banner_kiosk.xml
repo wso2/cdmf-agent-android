@@ -42,10 +42,24 @@
         android:layout_alignBottom="@+id/imageViewBanner" />
 
     <TextView
-        android:id="@+id/textViewDescription"
+        android:id="@+id/textViewBattery"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_alignStart="@+id/textView"
+        android:layout_below="@+id/textView"
+        android:layout_marginTop="11dp"
+        android:fontFamily="sans-serif-smallcaps"
+        android:gravity="center"
+        android:text="Battery: 95%"
+        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large"
+        android:textColor="@android:color/white"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
         android:fontFamily="sans-serif-smallcaps"
         android:gravity="center"
         android:text="Date: 27/02/17"

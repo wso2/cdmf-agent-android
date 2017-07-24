@@ -51,9 +51,9 @@ public class ServerConfigsActivity extends AppCompatActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		if(!Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
-			setContentView(R.layout.activity_server_configs);
-		}
+
+		setContentView(R.layout.activity_server_configs);
+
 		context = this.getApplicationContext();
 		editTextServerIP = (EditText) findViewById(R.id.editTextServerIP);
 		btnStartRegistration = (Button) findViewById(R.id.btnStartRegistration);

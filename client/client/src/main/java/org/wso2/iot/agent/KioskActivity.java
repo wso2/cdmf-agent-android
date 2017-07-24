@@ -15,21 +15,31 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import org.wso2.iot.agent.adapters.AppDrawerAdapter;
 import org.wso2.iot.agent.api.ApplicationManager;
+import org.wso2.iot.agent.beans.Device;
 import org.wso2.iot.agent.events.EventRegistry;
 import org.wso2.iot.agent.events.listeners.KioskAppInstallationListener;
+import org.wso2.iot.agent.services.DeviceInfoPayload;
 import org.wso2.iot.agent.services.LocalNotification;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 public class KioskActivity extends Activity {
     private TextView textViewWipeData;
     private Context context;
     private TextView textViewKiosk;
     private TextView textViewNoApps;
+    private TextView textViewTime;
+    private TextView textViewInitializingMsg;
+    private TextView textViewBattery;
+    private ProgressBar progressBarDeviceInitializing;
     private int kioskExit;
     private GridView gridView;
     private AppDrawerAdapter appDrawerAdapter;
@@ -40,10 +50,16 @@ public class KioskActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_kiosk);
         context = this.getApplicationContext();
-
+        Preference.putBoolean(context,Constants.PreferenceFlag.DEVICE_INITIALIZED, false);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         Preference.putBoolean(getApplicationContext(), Constants.PreferenceFlag.DEVICE_ACTIVE, true);
         textViewKiosk = (TextView) findViewById(R.id.textViewKiosk);
+        textViewTime = (TextView) findViewById(R.id.textTime);
+        textViewBattery = (TextView) findViewById(R.id.textViewBattery);
+        textViewInitializingMsg = (TextView) findViewById(R.id.textViewInitializingMsg);
+        progressBarDeviceInitializing = (ProgressBar) findViewById(R.id.progressBarDeviceInitializing);
+
+        progressBarDeviceInitializing.setVisibility(View.VISIBLE);
         if (Constants.COSU_SECRET_EXIT) {
             textViewKiosk.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -112,6 +128,66 @@ public class KioskActivity extends Activity {
         if (Preference.getBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START)) {
             launchKioskAppIfExists();
         }
+        displayTime();
+        checkAndDisplayDeviceInitializing();
+    }
+
+    private void checkAndDisplayDeviceInitializing() {
+        Thread t = new Thread() {
+            String date;
+            @Override
+            public void run() {
+                try {
+                    while (!isInterrupted()) {
+                        Thread.sleep(1000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                date = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
+                                textViewTime.setText("Time: "+  date);
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+                }
+            }
+        };
+
+        t.start();
+
+        if (!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
+            textViewInitializingMsg.setVisibility(View.VISIBLE);
+            progressBarDeviceInitializing.setVisibility(View.VISIBLE);
+            textViewNoApps.setVisibility(View.GONE);
+        }
+        else {
+            textViewInitializingMsg.setVisibility(View.GONE);
+            progressBarDeviceInitializing.setVisibility(View.GONE);
+            textViewNoApps.setVisibility(View.VISIBLE);
+        }
+    }
+    private void displayTime() {
+        Thread t = new Thread() {
+            String date;
+            @Override
+            public void run() {
+                try {
+                    while (!isInterrupted()) {
+                        Thread.sleep(1000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                date = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
+                                textViewTime.setText("Time: "+  date);
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+                }
+            }
+        };
+
+        t.start();
     }
 
     @Override
@@ -152,7 +228,7 @@ public class KioskActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-
+        checkAndDisplayDeviceInitializing();
         refreshAppDrawer();
         startEvents();
         startPolling();
@@ -187,7 +263,9 @@ public class KioskActivity extends Activity {
         String appList = Preference.getString(context, Constants.KIOSK_APP_PACKAGE_NAME);
         if (appList == null) {
             gridView.setVisibility(View.INVISIBLE);
-            textViewNoApps.setVisibility(View.VISIBLE);
+            if(Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
+                textViewNoApps.setVisibility(View.VISIBLE);
+            }
         } else {
             appDrawerAdapter.setAppList();
             appDrawerAdapter.notifyDataSetChanged();

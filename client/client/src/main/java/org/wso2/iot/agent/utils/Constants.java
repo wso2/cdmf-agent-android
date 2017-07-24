@@ -40,10 +40,10 @@ public class Constants {
 	// Set DEFAULT_OWNERSHIP to null if no overriding is needed. Other possible values are,
 	// OWNERSHIP_BYOD or OWNERSHIP_COPE. If you are using the mutual SSL authentication
 	// This value must be set to a value other than null.
-	public static String DEFAULT_OWNERSHIP = BuildConfig.DEFAULT_OWNERSHIP;
+	public static final String DEFAULT_OWNERSHIP = BuildConfig.DEFAULT_OWNERSHIP;
 	// This is set to override the server host name retrieving screen. If overriding is not
 	// needed, set this to null.
-	public static String DEFAULT_HOST = BuildConfig.DEFAULT_HOST;
+	public static final String DEFAULT_HOST = BuildConfig.DEFAULT_HOST;
 	public static final String APP_MANAGER_HOST = BuildConfig.APP_MANAGER_HOST;
 	public static final String CLOUD_MANAGER = BuildConfig.CLOUD_MANAGER;
 	public static final String SIGN_UP_URL = BuildConfig.SIGN_UP_URL;
@@ -93,8 +93,6 @@ public class Constants {
 	public static final boolean ALLOW_MULTIPLE_APPS_IN_COSU_MODE = BuildConfig.ALLOW_MULTIPLE_APPS_IN_COSU_MODE;
 	public static final String KIOSK_NFC_TOKEN = "android.app.extra.token";
 	public static final String KIOSK_APP_URL = "android.app.extra.appurl";
-	public static final String KIOSK_NFC_HOST = "android.app.extra.host";
-
 	/**
 	 * Log publishers
 	 */
@@ -516,6 +514,7 @@ public class Constants {
 		public static final String LOCAL_NOTIFIER_INVOKED_PREF_KEY = "localNotificationInvoked";
 		public static final String DEVICE_ID_PREFERENCE_KEY = "deviceId";
 		public static final String LAST_SERVER_CALL = "lastServerCall";
+		public static final String DEVICE_INITIALIZED = "deviceInitialized";
 	}
 
 	public final class PreferenceCOSUProfile {

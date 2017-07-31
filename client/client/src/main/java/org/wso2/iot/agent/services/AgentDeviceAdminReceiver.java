@@ -210,6 +210,7 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
                     }
                 }
             }
+            Preference.putBoolean(context,Constants.PreferenceFlag.DEVICE_INITIALIZED, false);
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(launch);
         } else {

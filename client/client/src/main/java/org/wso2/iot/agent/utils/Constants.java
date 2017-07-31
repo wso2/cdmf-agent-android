@@ -514,7 +514,7 @@ public class Constants {
 		public static final String LOCAL_NOTIFIER_INVOKED_PREF_KEY = "localNotificationInvoked";
 		public static final String DEVICE_ID_PREFERENCE_KEY = "deviceId";
 		public static final String LAST_SERVER_CALL = "lastServerCall";
-		public static final String DEVICE_INITIALIZED = "deviceInitialized";
+		public static final String DEVICE_INITIALIZED = "false";
 	}
 
 	public final class PreferenceCOSUProfile {

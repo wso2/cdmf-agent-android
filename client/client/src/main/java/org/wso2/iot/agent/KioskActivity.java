@@ -20,7 +20,9 @@ import android.widget.TextView;
 
 import org.wso2.iot.agent.adapters.AppDrawerAdapter;
 import org.wso2.iot.agent.api.ApplicationManager;
+import org.wso2.iot.agent.api.DeviceState;
 import org.wso2.iot.agent.beans.Device;
+import org.wso2.iot.agent.beans.Power;
 import org.wso2.iot.agent.events.EventRegistry;
 import org.wso2.iot.agent.events.listeners.KioskAppInstallationListener;
 import org.wso2.iot.agent.services.DeviceInfoPayload;
@@ -50,7 +52,6 @@ public class KioskActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_kiosk);
         context = this.getApplicationContext();
-        Preference.putBoolean(context,Constants.PreferenceFlag.DEVICE_INITIALIZED, false);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         Preference.putBoolean(getApplicationContext(), Constants.PreferenceFlag.DEVICE_ACTIVE, true);
         textViewKiosk = (TextView) findViewById(R.id.textViewKiosk);
@@ -58,8 +59,6 @@ public class KioskActivity extends Activity {
         textViewBattery = (TextView) findViewById(R.id.textViewBattery);
         textViewInitializingMsg = (TextView) findViewById(R.id.textViewInitializingMsg);
         progressBarDeviceInitializing = (ProgressBar) findViewById(R.id.progressBarDeviceInitializing);
-
-        progressBarDeviceInitializing.setVisibility(View.VISIBLE);
         if (Constants.COSU_SECRET_EXIT) {
             textViewKiosk.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -134,17 +133,15 @@ public class KioskActivity extends Activity {
 
     private void checkAndDisplayDeviceInitializing() {
         Thread t = new Thread() {
-            String date;
             @Override
             public void run() {
                 try {
-                    while (!isInterrupted()) {
+                    while (!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
                         Thread.sleep(1000);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                date = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
-                                textViewTime.setText("Time: "+  date);
+                               checkDeviceInitialized();
                             }
                         });
                     }
@@ -154,19 +151,11 @@ public class KioskActivity extends Activity {
         };
 
         t.start();
-
-        if (!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
-            textViewInitializingMsg.setVisibility(View.VISIBLE);
-            progressBarDeviceInitializing.setVisibility(View.VISIBLE);
-            textViewNoApps.setVisibility(View.GONE);
-        }
-        else {
-            textViewInitializingMsg.setVisibility(View.GONE);
-            progressBarDeviceInitializing.setVisibility(View.GONE);
-            textViewNoApps.setVisibility(View.VISIBLE);
-        }
     }
     private void displayTime() {
+        DeviceState phoneState = new DeviceState(context);
+        final Power power = phoneState.getBatteryDetails();
+
         Thread t = new Thread() {
             String date;
             @Override
@@ -177,8 +166,9 @@ public class KioskActivity extends Activity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                date = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
-                                textViewTime.setText("Time: "+  date);
+                               date = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
+                               textViewTime.setText("Time: "+  date);
+                                textViewBattery.setText(power.getLevel());
                             }
                         });
                     }
@@ -228,10 +218,21 @@ public class KioskActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        checkAndDisplayDeviceInitializing();
         refreshAppDrawer();
         startEvents();
         startPolling();
+    }
+
+    private void checkDeviceInitialized() {
+        if (!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
+            //textViewInitializingMsg.setVisibility(View.VISIBLE);
+            //progressBarDeviceInitializing.setVisibility(View.VISIBLE);
+            //textViewNoApps.setVisibility(View.GONE);
+        }
+        else {
+            //textViewInitializingMsg.setVisibility(View.GONE);
+            //progressBarDeviceInitializing.setVisibility(View.GONE);
+        }
     }
 
     @Override

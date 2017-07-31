@@ -62,10 +62,8 @@
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
         android:listSelector="@android:color/transparent"
-        android:layout_alignBottom="@+id/top_banner"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="763dp"
-        android:layout_marginBottom="66dp" />
+        android:layout_below="@+id/top_banner" />
 
     <TextView
         android:text="@string/wso2"
@@ -90,19 +88,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/colorPrimary"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
         android:id="@+id/textViewWipeData"
         android:text="@string/wipe_the_device"
-        android:visibility="invisible"
-        android:layout_alignParentBottom="true"
-        android:layout_toEndOf="@+id/buttonStart" />
-
+        android:visibility="invisible"/>
     <ProgressBar
         android:id="@+id/progressBarDeviceInitializing"
         style="?android:attr/progressBarStyleInverse"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true" />
+        android:layout_centerVertical="true"
+        android:visibility="invisible"/>
 
     <TextView
         android:text="Your device is being initialized.\nThis may take several minutes."
@@ -113,7 +111,7 @@
         android:layout_centerVertical="true"
         android:layout_below="@id/progressBarDeviceInitializing"
         android:textColor="@color/colorPrimary"
-        android:id="@+id/textViewInitializingMsg" />
-
+        android:id="@+id/textViewInitializingMsg"
+        android:visibility="invisible"/>
 
 </RelativeLayout>

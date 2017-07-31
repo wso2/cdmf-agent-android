@@ -32,6 +32,8 @@ import org.wso2.iot.agent.api.WiFiConfig;
 import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.ComplianceFeature;
 import org.wso2.iot.agent.beans.DeviceAppInfo;
+import org.wso2.iot.agent.services.operation.OperationManager;
+import org.wso2.iot.agent.services.operation.OperationManagerFactory;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
@@ -53,6 +55,7 @@ public class PolicyComplianceChecker {
     private ComponentName deviceAdmin;
     private ComplianceFeature policy;
     private ApplicationManager applicationManager;
+    private OperationManager operationManager;
 
     public PolicyComplianceChecker(Context context) {
         this.context = context;
@@ -61,6 +64,8 @@ public class PolicyComplianceChecker {
                 (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
         this.deviceAdmin = new ComponentName(context, AgentDeviceAdminReceiver.class);
         this.applicationManager = new ApplicationManager(context.getApplicationContext());
+        OperationManagerFactory operationManagerFactory = new OperationManagerFactory(context);
+        operationManager = operationManagerFactory.getOperationManager();
     }
 
     /**
@@ -78,21 +83,21 @@ public class PolicyComplianceChecker {
         switch (operation.getCode()) {
 
             case Constants.Operation.CAMERA:
-                return checkCameraPolicy(operation);
+                return operationManager.checkCameraPolicy(operation, policy);
             case Constants.Operation.INSTALL_APPLICATION:
-                return checkInstallAppPolicy(operation);
+                return operationManager.checkInstallAppPolicy(operation, policy);
             case Constants.Operation.UNINSTALL_APPLICATION:
-                return checkUninstallAppPolicy(operation);
+                return operationManager.checkUninstallAppPolicy(operation, policy);
             case Constants.Operation.ENCRYPT_STORAGE:
-                return checkEncryptPolicy(operation);
+                return operationManager.checkEncryptPolicy(operation, policy);
             case Constants.Operation.PASSCODE_POLICY:
-                return checkPasswordPolicy();
+                return operationManager.checkPasswordPolicy(policy);
             case Constants.Operation.WIFI:
-                return checkWifiPolicy(operation);
+                return operationManager.checkWifiPolicy(operation, policy);
             case Constants.Operation.WORK_PROFILE:
-                return checkWorkProfilePolicy(operation);
+                return operationManager.checkWorkProfilePolicy(operation, policy);
             case Constants.Operation.RUNTIME_PERMISSION_POLICY:
-                return checkRuntimePermissionPolicy(operation);
+                return operationManager.checkRuntimePermissionPolicy(operation, policy);
             case Constants.Operation.COSU_PROFILE_POLICY:
             case Constants.Operation.DISALLOW_ADJUST_VOLUME:
             case Constants.Operation.DISALLOW_CONFIG_BLUETOOTH:
@@ -140,11 +145,12 @@ public class PolicyComplianceChecker {
                 policy.setCompliance(true);
                 return policy;
             case Constants.Operation.APP_RESTRICTION:
-                return checkAppRestrictionPolicy(operation);
+                return operationManager.checkAppRestrictionPolicy(operation, policy);
             default:
                 throw new AndroidAgentException("Invalid operation code received");
         }
     }
+
 
     /**
      * Checks camera policy on the device (camera enabled/disabled).
@@ -327,7 +333,6 @@ public class PolicyComplianceChecker {
      * @return - Compliance feature object
      * @throws AndroidAgentException
      */
-
     private ComplianceFeature checkAppRestrictionPolicy(
             org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
 

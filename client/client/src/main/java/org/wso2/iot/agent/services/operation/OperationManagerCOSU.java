@@ -35,6 +35,7 @@ import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.activities.ServerConfigsActivity;
 import org.wso2.iot.agent.beans.AppRestriction;
+import org.wso2.iot.agent.beans.ComplianceFeature;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.services.kiosk.KioskAlarmReceiver;
@@ -801,6 +802,36 @@ public class OperationManagerCOSU extends OperationManager {
             getResultBuilder().build(operation);
             throw new AndroidAgentException("Invalid JSON format.", e);
         }
+    }
+
+    @Override
+    public ComplianceFeature checkWorkProfilePolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+        policy.setCompliance(true);
+        return policy;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Override
+    public ComplianceFeature checkRuntimePermissionPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+        int currentPermissionType;
+        int policyPermissionType;
+        try {
+            JSONObject runtimePermissionData = new JSONObject(operation.getPayLoad().toString());
+            if (!runtimePermissionData.isNull("defaultType")) {
+                policyPermissionType = Integer.parseInt(runtimePermissionData.get("defaultType").toString());
+                currentPermissionType = getDevicePolicyManager().getPermissionPolicy(getCdmDeviceAdmin());
+                if(currentPermissionType != policyPermissionType){
+                    policy.setCompliance(false);
+                    policy.setMessage(getContextResources().getString(R.string.error_runtime_permission_policy));
+                    return policy;
+                }
+            }
+        } catch (JSONException e) {
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+        policy.setCompliance(true);
+        return policy;
+
     }
 
     private String getPermissionConstantValue(String key) {

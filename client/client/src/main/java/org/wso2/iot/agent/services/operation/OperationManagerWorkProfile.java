@@ -33,6 +33,7 @@ import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.beans.AppRestriction;
+import org.wso2.iot.agent.beans.ComplianceFeature;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.AppLockService;
 import org.wso2.iot.agent.utils.CommonUtils;
@@ -559,6 +560,60 @@ public class OperationManagerWorkProfile extends OperationManager {
         operation.setOperationResponse("Operation not supported.");
         getResultBuilder().build(operation);
         Log.d(TAG, "Operation not supported.");
+    }
+
+    @Override
+    public ComplianceFeature checkWorkProfilePolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+        String profileName;
+        String systemAppsData;
+        String googlePlayAppsData;
+        try {
+            JSONObject profileData = new JSONObject(operation.getPayLoad().toString());
+            if (!profileData.isNull(getContextResources().getString(R.string.intent_extra_profile_name))) {
+                profileName = (String) profileData.get(getContextResources().getString(
+                        R.string.intent_extra_profile_name));
+                //yet there is no method is given to get the current profile name.
+                //add a method to test whether profile name is set correctly once introduced.
+            }
+            if (!profileData.isNull(getContextResources().getString(R.string.intent_extra_enable_system_apps))) {
+                // generate the System app list which are configured by user and received to agent as a single String
+                // with packages separated by Commas.
+                systemAppsData = (String) profileData.get(getContextResources().getString(
+                        R.string.intent_extra_enable_system_apps));
+                List<String> systemAppList = Arrays.asList(systemAppsData.split(getContextResources().getString(
+                        R.string.split_delimiter)));
+                for (String packageName : systemAppList) {
+                    if(!getApplicationManager().isPackageInstalled(packageName)){
+                        policy.setCompliance(false);
+                        policy.setMessage(getContextResources().getString(R.string.error_work_profile_policy));
+                        return policy;
+                    }
+                }
+            }
+            if (!profileData.isNull(getContextResources().getString(R.string.intent_extra_enable_google_play_apps))) {
+                googlePlayAppsData = (String) profileData.get(getContextResources().getString(
+                        R.string.intent_extra_enable_google_play_apps));
+                List<String> playStoreAppList = Arrays.asList(googlePlayAppsData.split(getContextResources().getString(
+                        R.string.split_delimiter)));
+                for (String packageName : playStoreAppList) {
+                    if(!getApplicationManager().isPackageInstalled(packageName)){
+                        policy.setCompliance(false);
+                        policy.setMessage(getContextResources().getString(R.string.error_work_profile_policy));
+                        return policy;
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+        policy.setCompliance(true);
+        return policy;
+    }
+
+    @Override
+    public ComplianceFeature checkRuntimePermissionPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+        policy.setCompliance(true);
+        return policy;
     }
 
     private void enableGooglePlayApps(String packageName) {

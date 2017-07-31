@@ -113,7 +113,7 @@ public class KioskAppInstallationListener extends BroadcastReceiver {
         int permissionType;
 
         Log.d(TAG, "addIfPremissionEnforcementExist triggered.");
-
+        //todo: check if Preference is null.
         try {
             JSONArray permittedAppsData = new JSONArray(Preference.getString(context,Constants.RuntimePermissionPolicy.PERMITTED_APP_DATA).toString());
             for(int i = 0; i <permittedAppsData.length(); i++) {

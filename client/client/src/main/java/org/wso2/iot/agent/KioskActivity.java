@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.wso2.iot.agent;
 
 import android.app.Activity;
@@ -21,11 +38,9 @@ import android.widget.TextView;
 import org.wso2.iot.agent.adapters.AppDrawerAdapter;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceState;
-import org.wso2.iot.agent.beans.Device;
 import org.wso2.iot.agent.beans.Power;
 import org.wso2.iot.agent.events.EventRegistry;
 import org.wso2.iot.agent.events.listeners.KioskAppInstallationListener;
-import org.wso2.iot.agent.services.DeviceInfoPayload;
 import org.wso2.iot.agent.services.LocalNotification;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
@@ -39,6 +54,7 @@ public class KioskActivity extends Activity {
     private TextView textViewKiosk;
     private TextView textViewNoApps;
     private TextView textViewTime;
+    private TextView textViewDate;
     private TextView textViewInitializingMsg;
     private TextView textViewBattery;
     private ProgressBar progressBarDeviceInitializing;
@@ -56,6 +72,7 @@ public class KioskActivity extends Activity {
         Preference.putBoolean(getApplicationContext(), Constants.PreferenceFlag.DEVICE_ACTIVE, true);
         textViewKiosk = (TextView) findViewById(R.id.textViewKiosk);
         textViewTime = (TextView) findViewById(R.id.textTime);
+        textViewDate = (TextView) findViewById(R.id.textViewDate);
         textViewBattery = (TextView) findViewById(R.id.textViewBattery);
         textViewInitializingMsg = (TextView) findViewById(R.id.textViewInitializingMsg);
         progressBarDeviceInitializing = (ProgressBar) findViewById(R.id.progressBarDeviceInitializing);
@@ -123,12 +140,19 @@ public class KioskActivity extends Activity {
             }
         });
 
+        if(!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
+            textViewNoApps.setVisibility(View.INVISIBLE);
+            textViewInitializingMsg.setVisibility(View.VISIBLE);
+            progressBarDeviceInitializing.setVisibility(View.VISIBLE);
+            checkAndDisplayDeviceInitializing();
+        }
+
         installKioskApp();
         if (Preference.getBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START)) {
             launchKioskAppIfExists();
         }
-        displayTime();
-        checkAndDisplayDeviceInitializing();
+        displayDeviceInfo();
+
     }
 
     private void checkAndDisplayDeviceInitializing() {
@@ -138,13 +162,10 @@ public class KioskActivity extends Activity {
                 try {
                     while (!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
                         Thread.sleep(1000);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                               checkDeviceInitialized();
-                            }
-                        });
                     }
+                    textViewInitializingMsg.setVisibility(View.INVISIBLE);
+                    progressBarDeviceInitializing.setVisibility(View.INVISIBLE);
+                    //refreshAppDrawer();
                 } catch (InterruptedException e) {
                 }
             }
@@ -152,11 +173,11 @@ public class KioskActivity extends Activity {
 
         t.start();
     }
-    private void displayTime() {
-        DeviceState phoneState = new DeviceState(context);
-        final Power power = phoneState.getBatteryDetails();
-
+    private void displayDeviceInfo() {
         Thread t = new Thread() {
+            final DeviceState phoneState = new DeviceState(context);
+            Power power = phoneState.getBatteryDetails();
+            String time;
             String date;
             @Override
             public void run() {
@@ -166,9 +187,12 @@ public class KioskActivity extends Activity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                               date = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
-                               textViewTime.setText("Time: "+  date);
-                                textViewBattery.setText(power.getLevel());
+                                power = phoneState.getBatteryDetails();
+                               time = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
+                                date = new SimpleDateFormat("dd/MM/yy").format(Calendar.getInstance().getTime());
+                                textViewTime.setText("Time: "+  time);
+                                textViewDate.setText("Date: "+ date);
+                                textViewBattery.setText("Battery: " + String.valueOf(power.getLevel()) + "%");
                             }
                         });
                     }
@@ -176,7 +200,6 @@ public class KioskActivity extends Activity {
                 }
             }
         };
-
         t.start();
     }
 
@@ -223,18 +246,6 @@ public class KioskActivity extends Activity {
         startPolling();
     }
 
-    private void checkDeviceInitialized() {
-        if (!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
-            //textViewInitializingMsg.setVisibility(View.VISIBLE);
-            //progressBarDeviceInitializing.setVisibility(View.VISIBLE);
-            //textViewNoApps.setVisibility(View.GONE);
-        }
-        else {
-            //textViewInitializingMsg.setVisibility(View.GONE);
-            //progressBarDeviceInitializing.setVisibility(View.GONE);
-        }
-    }
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -263,8 +274,8 @@ public class KioskActivity extends Activity {
     private void refreshAppDrawer() {
         String appList = Preference.getString(context, Constants.KIOSK_APP_PACKAGE_NAME);
         if (appList == null) {
-            gridView.setVisibility(View.INVISIBLE);
-            if(Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
+            if(Preference.getBoolean(context,Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
+                gridView.setVisibility(View.INVISIBLE);
                 textViewNoApps.setVisibility(View.VISIBLE);
             }
         } else {

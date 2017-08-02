@@ -24,6 +24,14 @@ repositories {
 }
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'wso2carbon2'
+            keyPassword '123456'
+            storeFile file('/home/pasindu/Android/keystore/selfSigning.jks')
+            storePassword '123456'
+        }
+    }
     compileSdkVersion 25
     buildToolsVersion "25.0.3"
     defaultConfig {
@@ -178,7 +186,7 @@ android {
             // Set DEFAULT_OWNERSHIP to null if no overriding is needed. Other possible values are,
             // BYOD or COPE. If you are using the mutual SSL authentication
             // This value must be set to a value other than null.
-            buildConfigField "String", "DEFAULT_OWNERSHIP", "\"BYOD\""
+            buildConfigField "String", "DEFAULT_OWNERSHIP", "\"COSU\""
             //DEFAULT_HOST - Hardcode the server host to avoid having the user type it during
             //enrollment. If the user must type the hostname/IP during enrollment, leave it as null.
             buildConfigField "String", "DEFAULT_HOST", "\"https://gateway.api.cloudstaging.wso2.com\""
@@ -226,7 +234,7 @@ android {
             // SKIP_WORK_PROFILE_CREATION: This will hide the work profile creation step from the
             // user. This is recommended to be used in conjunction with
             // AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED
-            buildConfigField "boolean", "SKIP_WORK_PROFILE_CREATION", "true"
+            buildConfigField "boolean", "SKIP_WORK_PROFILE_CREATION", "false"
             // HIDE_ERROR_DIALOG: If this is set to true, agent will not show any error messages.
             // This is only recommended to use when the enrollment happens in background, and no
             // user interaction is needed. i.e in conjunction with
@@ -548,7 +556,7 @@ android {
             // Set DEFAULT_OWNERSHIP to null if no overriding is needed. Other possible values are,
             // BYOD or COPE. If you are using the mutual SSL authentication
             // This value must be set to a value other than null.
-            buildConfigField "String", "DEFAULT_OWNERSHIP", "\"COSU\""
+            buildConfigField "String", "DEFAULT_OWNERSHIP", "null"
             //DEFAULT_HOST - Hardcode the server host to avoid having the user type it during
             //enrollment. If the user must type the hostname/IP during enrollment, leave it as null.
             buildConfigField "String", "DEFAULT_HOST", "\"http://192.168.8.100:8280\""

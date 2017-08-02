@@ -157,11 +157,6 @@ public class MessageProcessor implements APIResultCallBack {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			if (replyPayload != null) {
-				if(Constants.DEFAULT_OWNERSHIP.equals(Constants.OWNERSHIP_COSU)) {
-					if(!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
-						Preference.putBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED, true);
-					}
-				}
 				for (Operation operation : replyPayload) {
 					if (operation.getCode().equals(Constants.Operation.WIPE_DATA) && !operation.getStatus().
 							equals(ERROR_STATE)) {
@@ -345,6 +340,11 @@ public class MessageProcessor implements APIResultCallBack {
 					if (response != null && !response.isEmpty()) {
 						if (Constants.DEBUG_MODE_ENABLED) {
 							Log.d(TAG, "Pending Operations List: " + response);
+						}
+						if(Constants.DEFAULT_OWNERSHIP.equals(Constants.OWNERSHIP_COSU)) {
+							if(!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
+								Preference.putBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED, true);
+							}
 						}
 						performOperation(response);
 					}

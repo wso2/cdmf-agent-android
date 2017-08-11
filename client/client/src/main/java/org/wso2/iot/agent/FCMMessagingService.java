@@ -17,9 +17,10 @@
  */
 
 package org.wso2.iot.agent;
-import android.content.Context;
 
+import android.content.Context;
 import android.util.Log;
+
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -46,9 +47,9 @@ public class FCMMessagingService extends FirebaseMessagingService {
 		}
 
 		if (Constants.SYSTEM_APP_ENABLED && Preference.getBoolean(context, context.getResources().
-				getString(R.string.firmware_upgrade_failed))) {
+				getString(R.string.firmware_upgrade_retry_pending))) {
 			Preference.putBoolean(context, context.getResources().
-					getString(R.string.firmware_upgrade_failed), false);
+					getString(R.string.firmware_upgrade_retry_pending), false);
 			CommonUtils.callSystemApp(context, Constants.Operation.UPGRADE_FIRMWARE, null, null);
 		}
 	}

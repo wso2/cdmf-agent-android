@@ -28,6 +28,7 @@ import android.util.Log;
 import com.splunk.mint.Mint;
 
 import org.wso2.iot.agent.services.EnrollmentService;
+import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 
 public class AgentApplication extends Application {
@@ -73,6 +74,10 @@ public class AgentApplication extends Application {
             }
             Mint.enableLogging(true);
             Mint.setLogging("*:D");
+        }
+
+        if (Constants.SYSTEM_APP_ENABLED) {
+            CommonUtils.registerSystemAppReceiver(this);
         }
     }
 }

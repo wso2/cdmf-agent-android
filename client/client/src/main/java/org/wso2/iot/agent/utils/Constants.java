@@ -75,10 +75,6 @@ public class Constants {
 	public static final boolean HIDE_UNREGISTER_BUTTON = BuildConfig.HIDE_UNREGISTER_BUTTON;
 	public static final boolean SKIP_WORK_PROFILE_CREATION = BuildConfig.SKIP_WORK_PROFILE_CREATION;
 	public static final boolean HIDE_ERROR_DIALOG = BuildConfig.HIDE_ERROR_DIALOG;
-	public static boolean ASK_TO_ENABLE_LOCATION = BuildConfig.ASK_TO_ENABLE_LOCATION;
-	public static boolean LOCATION_PUBLISHING_ENABLED = BuildConfig.LOCATION_PUBLISHING_ENABLED;
-	public static boolean WIFI_SCANNING_ENABLED = BuildConfig.WIFI_SCANNING_ENABLED;
-
 	//COSU Configurations
 	public static final String[] ANDROID_COSU_PERMISSIONS = {"android.permission.READ_PHONE_STATE",
 			"android.permission.READ_EXTERNAL_STORAGE", "android.permission.ACCESS_COARSE_LOCATION",
@@ -91,36 +87,6 @@ public class Constants {
 	public static final String KIOSK_APP_PACKAGE_NAME ="kioskAppPackageName";
 	public static final String AGENT_FRESH_START ="agentFreshStart";
 	public static final boolean ALLOW_MULTIPLE_APPS_IN_COSU_MODE = BuildConfig.ALLOW_MULTIPLE_APPS_IN_COSU_MODE;
-
-	/**
-	 * Log publishers
-	 */
-	public final class LogPublisher {
-		private LogPublisher(){
-			throw new AssertionError();
-		}
-		public static final String DAS_PUBLISHER = "DAS_PULISHER";
-		public static final String SPLUNK_PUBLISHER = "SPLUNK_PUBLISHER";
-		public static final String LOG_PUBLISHER_IN_USE = BuildConfig.LOG_PUBLISHER_IN_USE;
-		public static final String LOG_LEVEL = BuildConfig.LOG_LEVEL;
-		public static final int NUMBER_OF_LOG_LINES = BuildConfig.NUMBER_OF_LOG_LINES;
-	}
-
-	/**
-	 * Splunk configurations
-	 */
-	public final class SplunkConfigs {
-		private SplunkConfigs(){
-			throw new AssertionError();
-		}
-		public static final String API_KEY = BuildConfig.SPLUNK_API_KEY;
-		public static final String TYPE_HTTP = "HTTP";
-		public static final String TYPE_MINT = "MINT";
-		public static final String DATA_COLLECTOR_TYPE = BuildConfig.SPLUNK_DATA_COLLECTOR_TYPE;
-		public static final String HEC_TOKEN = BuildConfig.HEC_TOKEN;
-		public static final String HEC_MINT_ENDPOINT_URL = BuildConfig.HEC_MINT_ENDPOINT_URL;
-	}
-
 	public static final String SERVER_APP_ENDPOINT = AUTHENTICATOR_IN_USE.equals(MUTUAL_SSL_AUTHENTICATOR) ?
 			"/api/device-mgt/android/mssl/v" + SERVER_API_VERSION + "/"
 			: "/api/device-mgt/android/v" + SERVER_API_VERSION + "/";
@@ -148,7 +114,6 @@ public class Constants {
 	public static final String ACTION_RESPONSE = "org.wso2.iot.agent.MESSAGE_PROCESSED";
 	public static final String EVENT_ENDPOINT = SERVER_APP_ENDPOINT + "events/publish";
 	public static final String EULA_TITLE = BuildConfig.EULA_TITLE;
-
 	public static final String EMPTY_STRING = "";
 	public static final String STATUS_KEY = "status";
 	public static final String USERNAME = "username";
@@ -174,7 +139,6 @@ public class Constants {
 	public static final int SIGN_IN_NOTIFICATION_ID = 0;
 	public static final int PERMISSION_MISSING_NOTIFICATION_ID = 1;
 	public static final int LOCATION_DISABLED_NOTIFICATION_ID = 2;
-
 	/**
 	 * Device certificates.
 	 */
@@ -185,17 +149,13 @@ public class Constants {
 	public static final String DEVICE_KEY_TYPE = "RSA";
 	public static final String DEVICE_KEY_ALGO = "SHA256withRSA";
 	public static final String DEVICE_CSR_INFO = "CN=WSO2 Device";
-
-
 	public static final String APP_LOCK_SERVICE = "AppLockService";
-
 	/**
 	 * Permission Policy Types.
 	 */
 	public static final int PERMISSION_POLICY_PROMPT = 0;
 	public static final int PERMISSION_POLICY_AUTO_GRANT = 1;
 	public static final int PERMISSION_POLICY_AUTO_DENY = 2;
-
 	/**
 	 * Request codes.
 	 */
@@ -215,54 +175,87 @@ public class Constants {
 	public static final int APP_LIST_REQUEST_CODE = 313;
 	public static final int DYNAMIC_CLIENT_UNREGISTER_REQUEST_CODE = 314;
 	public static final int SCEP_REQUEST_CODE = 300;
-
 	/**
 	 * Tag used on log messages.
 	 */
 	public static final String TAG = "WSO2EMM";
+	public static final String MIME_TYPE = "text/html";
+	public static final String ENCODING_METHOD = "utf-8";
+	public static final int DEFAULT_REPEAT_COUNT = 0;
+	public static final int NOTIFIER_CHECK = 2;
+	public static final int DEFAULT_REQUEST_CODE = 0;
+	public static final String START_TIME = "startTime";
+	public static final String END_TIME = "endTime";
+	public static boolean ASK_TO_ENABLE_LOCATION = BuildConfig.ASK_TO_ENABLE_LOCATION;
+	public static boolean LOCATION_PUBLISHING_ENABLED = BuildConfig.LOCATION_PUBLISHING_ENABLED;
+	public static boolean WIFI_SCANNING_ENABLED = BuildConfig.WIFI_SCANNING_ENABLED;
+	public static int DEFAULT_INTERVAL = 30000;
+	public static int DEFAULT_START_INTERVAL = 10000;
+
+	/**
+	 * Log publishers
+	 */
+	public final class LogPublisher {
+		public static final String DAS_PUBLISHER = "DAS_PULISHER";
+		public static final String SPLUNK_PUBLISHER = "SPLUNK_PUBLISHER";
+		public static final String LOG_PUBLISHER_IN_USE = BuildConfig.LOG_PUBLISHER_IN_USE;
+		public static final String LOG_LEVEL = BuildConfig.LOG_LEVEL;
+		public static final int NUMBER_OF_LOG_LINES = BuildConfig.NUMBER_OF_LOG_LINES;
+
+		private LogPublisher() {
+			throw new AssertionError();
+		}
+	}
+
+	/**
+	 * Splunk configurations
+	 */
+	public final class SplunkConfigs {
+		public static final String API_KEY = BuildConfig.SPLUNK_API_KEY;
+		public static final String TYPE_HTTP = "HTTP";
+		public static final String TYPE_MINT = "MINT";
+		public static final String DATA_COLLECTOR_TYPE = BuildConfig.SPLUNK_DATA_COLLECTOR_TYPE;
+		public static final String HEC_TOKEN = BuildConfig.HEC_TOKEN;
+		public static final String HEC_MINT_ENDPOINT_URL = BuildConfig.HEC_MINT_ENDPOINT_URL;
+
+		private SplunkConfigs() {
+			throw new AssertionError();
+		}
+	}
 
 	/**
 	 * Status codes
 	 */
 	public final class Code {
-		private Code(){
-			throw new AssertionError();
-		}
 		public static final String SUCCESS = "200";
 		public static final String PENDING = "300";
 		public static final String FAILURE = "400";
+
+		private Code() {
+			throw new AssertionError();
+		}
 	}
 
 	/**
 	 * Sub Status codes
 	 */
 	public final class Status {
-		private Status(){
-			throw new AssertionError();
-		}
 		public static final String SUCCESSFUL = "200";
 		public static final String CREATED = "201";
 		public static final String ACCEPT = "202";
 		public static final String AUTHENTICATION_FAILED = "400";
 		public static final String UNAUTHORIZED = "401";
 		public static final String INTERNAL_SERVER_ERROR = "500";
-	}
 
-	public static final String MIME_TYPE = "text/html";
-	public static final String ENCODING_METHOD = "utf-8";
-	public static final int DEFAULT_REPEAT_COUNT = 0;
-	public static int DEFAULT_INTERVAL = 30000;
-	public static int DEFAULT_START_INTERVAL = 10000;
-	public static final int NOTIFIER_CHECK = 2;
-	public static final int DEFAULT_REQUEST_CODE = 0;
+		private Status() {
+			throw new AssertionError();
+		}
+	}
 
 	/**
 	 * Operation IDs
 	 */
 	public final class Operation {
-		private Operation(){
-			throw new AssertionError();
-		}
 		public static final String DEVICE_LOCK = "DEVICE_LOCK";
 		public static final String DEVICE_UNLOCK = "DEVICE_UNLOCK";
 		public static final String DEVICE_LOCATION = "DEVICE_LOCATION";
@@ -346,7 +339,9 @@ public class Constants {
 		public static final String GET_FIRMWARE_UPGRADE_PACKAGE_STATUS = "FIRMWARE_UPGRADE_PACKAGE_STATUS";
 		public static final String GET_FIRMWARE_UPGRADE_DOWNLOAD_PROGRESS = "FIRMWARE_UPGRADE_DOWNLOAD_PROGRESS";
 		public static final String FAILED_FIRMWARE_UPGRADE_NOTIFICATION = "FAILED_FIRMWARE_UPGRADE_NOTIFICATION";
+		public static final String FIRMWARE_UPGRADE_COMPLETE = "FIRMWARE_UPGRADE_COMPLETE";
 		public static final String FIRMWARE_UPGRADE_FAILURE = "FIRMWARE_UPGRADE_FAILURE";
+		public static final String FIRMWARE_INSTALLATION_CANCELED = "FIRMWARE_INSTALLATION_CANCELED";
 		public static final String GET_FIRMWARE_BUILD_DATE = "FIRMWARE_BUILD_DATE";
 		public static final String LOGCAT = "LOGCAT";
 		public static final String FIRMWARE_UPGRADE_AUTOMATIC_RETRY = "FIRMWARE_UPGRADE_AUTOMATIC_RETRY";
@@ -354,6 +349,10 @@ public class Constants {
 		public static final String RUNTIME_PERMISSION_POLICY = "RUNTIME_PERMISSION_POLICY";
 		public static final String COSU_PROFILE_POLICY = "COSU_PROFILE";
 		public static final String ENABLE_LOCK ="ENABLE_LOCK";
+
+		private Operation() {
+			throw new AssertionError();
+		}
 	}
 
 	/**
@@ -374,9 +373,6 @@ public class Constants {
 	 *  Device specific constants
 	 */
 	public final class Device {
-		private Device() {
-			throw new AssertionError();
-		}
 		public static final String SERIAL = "SERIAL";
 		public static final String IMEI = "IMEI";
 		public static final String MAC = "MAC";
@@ -427,13 +423,14 @@ public class Constants {
 		public static final String PID = "PID";
 		public static final String SHARED_DIRTY = "SHARED_DIRTY";
 		public static final String PHONE_NUMBER = "PHONE_NUMBER";
+
+		private Device() {
+			throw new AssertionError();
+		}
 	}
 
 	// sqlite database related tables
 	public final class NotificationTable {
-		private NotificationTable() {
-			throw new AssertionError();
-		}
 		public static final String NAME = "notification";
 		public static final String ID = "id";
 		public static final String MESSAGE_TITLE = "messageTitle";
@@ -441,12 +438,13 @@ public class Constants {
 		public static final String RECEIVED_TIME = "received_time";
 		public static final String RESPONSE_TIME = "response_time";
 		public static final String STATUS = "status";
+
+		private NotificationTable() {
+			throw new AssertionError();
+		}
 	}
 
 	public final class Location {
-		private Location() {
-			throw new AssertionError();
-		}
 		public static final String GEO_ENDPOINT = "http://nominatim.openstreetmap.org/reverse";
 		public static final String RESULT_FORMAT = "format=json";
 		public static final String LONGITUDE = "lon";
@@ -462,12 +460,13 @@ public class Constants {
 		public static final String STREET2 = "suburb";
 		public static final String STATE = "state";
 		public static final String LOCATION = "location";
+
+		private Location() {
+			throw new AssertionError();
+		}
 	}
 
 	public final class LocationInfo {
-		private LocationInfo() {
-			throw new AssertionError();
-		}
 		public static final String CITY = "city";
 		public static final String COUNTRY = "country";
 		public static final String ZIP = "zip";
@@ -477,12 +476,13 @@ public class Constants {
 		public static final String LONGITUDE = "longitude";
 		public static final String LATITUDE = "latitude";
 		public static final String TIME_STAMP = "timeStamp";
+
+		private LocationInfo() {
+			throw new AssertionError();
+		}
 	}
 
 	public final class EventListeners {
-		private EventListeners(){
-			throw new AssertionError();
-		}
 		public static final boolean EVENT_LISTENING_ENABLED = BuildConfig.EVENT_LISTENING_ENABLED;
 		public static final boolean APPLICATION_STATE_LISTENER =
 				BuildConfig.APPLICATION_STATE_LISTENER;
@@ -494,12 +494,13 @@ public class Constants {
 		public static final int DEFAULT_LISTENER_CODE = BuildConfig.DEFAULT_LISTENER_CODE;
 		public static final String REQUEST_CODE = "requestCode";
 		public static final String LOCATION_EVENT_TYPE = "location";
+
+		private EventListeners() {
+			throw new AssertionError();
+		}
 	}
 
 	public final class PreferenceFlag {
-		private PreferenceFlag() {
-			throw new AssertionError();
-		}
 		public static final String REG_ID = "regId";
 		public static final String REGISTERED = "registered";
 		public static final String IP = "ip";
@@ -513,54 +514,60 @@ public class Constants {
 		public static final String LOCAL_NOTIFIER_INVOKED_PREF_KEY = "localNotificationInvoked";
 		public static final String DEVICE_ID_PREFERENCE_KEY = "deviceId";
 		public static final String LAST_SERVER_CALL = "lastServerCall";
+
+		private PreferenceFlag() {
+			throw new AssertionError();
+		}
 	}
 
 	public final class PreferenceCOSUProfile {
-		private PreferenceCOSUProfile() {
-			throw new AssertionError();
-		}
 		public static final String FREEZE_TIME = "lockDownStartTime";
 		public static final String RELEASE_TIME = "lockDownEndTime";
 		public static final String ENABLE_LOCKDOWN = "false";
-	}
-	public final class AppRestriction {
-		private AppRestriction() {
+
+		private PreferenceCOSUProfile() {
 			throw new AssertionError();
 		}
+	}
 
+	public final class AppRestriction {
 		public static final String RESTRICTION_TYPE = "restriction-type";
 		public static final String RESTRICTED_APPLICATIONS = "restricted-applications";
 		public static final String WHITE_LIST = "white-list";
 		public static final String BLACK_LIST = "black-list";
 		public static final String PACKAGE_NAME = "packageName";
 		public static final String APP_LIST = "appList";
+
+		private AppRestriction() {
+			throw new AssertionError();
+		}
 	}
 
 	public final class AppRuntimePermission {
-		private AppRuntimePermission() { throw new AssertionError(); }
 		public static final String PERMISSION_TYPE = "permission-type";
 		public static final String PERMITTED_APPS = "permitted-applications";
 		public static final String APP_LIST = "appList";
 		public static final String PACKAGE_NAME = "packageName";
+
+		private AppRuntimePermission() {
+			throw new AssertionError(); }
 	}
 
 	public final class SystemUpdatePolicyType {
-		private SystemUpdatePolicyType() {
-			throw new AssertionError();
-		}
 		public static final String AUTOMATIC = "automatic";
 		public static final String WINDOWED = "windowed";
 		public static final String POSTPONE = "postpone";
+
+		private SystemUpdatePolicyType() {
+			throw new AssertionError();
+		}
 	}
 
-	public static final String START_TIME = "startTime";
-	public static final String END_TIME = "endTime";
-
 	public final class COSUProfilePolicy {
+		public static final String deviceReleaseTime = "cosuProfileRestrictionStartTime";
+		public static final String deviceFreezeTime = "cosuProfileRestrictionEndTime";
 		private COSUProfilePolicy() {
 			throw new AssertionError();
 		}
-		public static final String deviceReleaseTime = "cosuProfileRestrictionStartTime";
-		public static final String deviceFreezeTime = "cosuProfileRestrictionEndTime";
 	}
 }

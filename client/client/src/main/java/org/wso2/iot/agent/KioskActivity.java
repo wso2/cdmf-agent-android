@@ -155,12 +155,12 @@ public class KioskActivity extends Activity {
     }
 
     private void checkAndDisplayDeviceInitializing() {
-        Thread t = new Thread() {
+        Thread thread = new Thread() {
             @Override
             public void run() {
                 try {
                     while (!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
-                        Thread.sleep(1000);
+                        Thread.sleep(1000); //Check if the initialization is completed in every one second.
                     }
                     textViewInitializingMsg.setVisibility(View.INVISIBLE);
                     progressBarDeviceInitializing.setVisibility(View.INVISIBLE);
@@ -169,8 +169,7 @@ public class KioskActivity extends Activity {
                 }
             }
         };
-
-        t.start();
+        thread.start();
     }
     private void displayDeviceInfo() {
         Thread t = new Thread() {

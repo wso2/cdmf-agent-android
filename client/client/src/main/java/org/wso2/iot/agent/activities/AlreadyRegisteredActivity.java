@@ -310,8 +310,6 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 	 * Send unregistration request.
 	 */
 	private void startUnRegistration() {
-		devicePolicyManager.wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE |
-			DevicePolicyManager.WIPE_RESET_PROTECTION_DATA);
 		progressDialog = ProgressDialog.show(context,
 						getResources().getString(R.string.dialog_message_unregistering),
 						getResources().getString(R.string.dialog_message_please_wait),

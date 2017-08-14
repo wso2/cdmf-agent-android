@@ -429,6 +429,7 @@ public class OperationManagerDeviceOwner extends OperationManager {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void enterpriseWipe(Operation operation) throws AndroidAgentException {
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
@@ -612,6 +613,7 @@ public class OperationManagerDeviceOwner extends OperationManager {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void restrictAccessToApplications(Operation operation) throws AndroidAgentException {
 
@@ -624,12 +626,14 @@ public class OperationManagerDeviceOwner extends OperationManager {
             toBeHideApps.remove(Constants.SYSTEM_SERVICE_PACKAGE);
             toBeHideApps.remove(Constants.AGENT_PACKAGE);
             for (String packageName : toBeHideApps) {
-                CommonUtils.callSystemApp(getContext(), operation.getCode(), "false" , packageName);
+                //CommonUtils.callSystemApp(getContext(), operation.getCode(), "false" , packageName);
+                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, false);
             }
         } else if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
 
             for (String packageName : appRestriction.getRestrictedList()) {
-                CommonUtils.callSystemApp(getContext(), operation.getCode(), "false", packageName);
+                //CommonUtils.callSystemApp(getContext(), operation.getCode(), "false", packageName);
+                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
             }
         }
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));

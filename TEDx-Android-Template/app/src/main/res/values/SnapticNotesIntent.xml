@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+	The MIT License
+	
+	Copyright (c) 2010 Peter Ma
+	
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+	
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+	
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE.
+-->
+<resources>
+<string name="cancel_button">Cancel</string>
+<string name="upgrade_button">Upgrade</string>
+<string name="ok_button">OK</string>
+<string name="error_dialog_title">Error!</string>
+<string name="install_button">Install</string>
+<string name="install_notes_title">Install 3banana Notes?</string>
+<string name="install_notes_message">This feature requires 3banana Notes by Snaptic, the easiest way to take notes on the go!\n\n<i>\"Top 10 Apps All Android Users Should Try\"</i> - TechCrunch\n\nWould you like to install 3banana Notes?</string>
+<string name="notes_intent_error">Failed to launch the 3banana Notes intent.</string>
+<string name="upgrade_notes_title">Upgrade 3banana Notes?</string>
+<string name="upgrade_notes_message">This feature requires a newer version of 3banana Notes by Snaptic, the easiest way to take notes on the go!\n\n<i>\"Top 10 Apps All Android Users Should Try\"</i> - TechCrunch\n\nWould you like to upgrade 3banana Notes?</string>
+<string name="market_error_message">An error occurred while attempting to display the Android Market.</string>
+</resources>

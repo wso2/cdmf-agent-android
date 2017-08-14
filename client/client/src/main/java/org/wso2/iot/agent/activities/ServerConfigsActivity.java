@@ -52,6 +52,13 @@ public class ServerConfigsActivity extends AppCompatActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		if(Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
+			Intent intent = new Intent(ServerConfigsActivity.this, KioskActivity.class);
+			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(intent);
+			finish();
+		}
+
 		setContentView(R.layout.activity_server_configs);
 
 		context = this.getApplicationContext();

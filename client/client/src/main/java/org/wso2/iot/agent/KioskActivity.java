@@ -146,12 +146,11 @@ public class KioskActivity extends Activity {
             progressBarDeviceInitializing.setVisibility(View.VISIBLE);
             checkAndDisplayDeviceInitializing();
         }
-
+        displayDeviceInfo();
         installKioskApp();
         if (Preference.getBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START)) {
             launchKioskAppIfExists();
         }
-        displayDeviceInfo();
 
     }
 
@@ -165,7 +164,7 @@ public class KioskActivity extends Activity {
                     }
                     textViewInitializingMsg.setVisibility(View.INVISIBLE);
                     progressBarDeviceInitializing.setVisibility(View.INVISIBLE);
-                    //refreshAppDrawer();
+                    refreshAppDrawer();
                 } catch (InterruptedException e) {
                 }
             }

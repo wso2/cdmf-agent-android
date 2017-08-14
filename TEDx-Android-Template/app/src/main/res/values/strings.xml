@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+	The MIT License
+	
+	Copyright (c) 2010 Peter Ma
+	
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+	
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+	
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE.
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">TEDxAlcatraz</string>
+    <string name="eventdate">December 1, 2010</string>
+	<string name="notetag">"TEDxAlcatraz \n\n#tedx #TEDxAlcatraz"</string>
+    <string name="facebookurl">http://touch.facebook.com/#/tedxalcatraz</string>
+	<string name="twitterurl">http://www.twitter.com/TEDxAlcatraz</string>
+    <string name="registerurl"></string>
+    <string name="email_subject">Question about TEDxAlcatraz</string>
+    <string name="email_address">TEDxAlcatraz@gmail.com</string>
+    <string name="eventId">13</string>
+    <string name="event_address">540 Howard Street, San Francisco, California</string>
+	<string name="error_loading_title">Network issue</string>
+	<string name="error_loading_message">There was an issue contacting the server. Please try again later.</string>  
+    
+	<string name="WebServiceAddress">http://www.tedxapps.com/wsdl/tedxservice.svc/</string>
+    
+    <string name="attendeefacebook">http://touch.facebook.com/</string>
+    <string name="attendeetwitter">http://www.twitter.com/</string>
+    
+	<string name="create_simple_note_button">Create a Simple Note</string>
+	<string name="create_image_note_button">Create a Note with Image</string>
+	<string name="create_quick_note_button">Add a Quick Note</string>
+	<string name="create_location_note_button">Create a Location Tagged Note</string>
+	<string name="view_notes_button">View Notes</string>
+	<string name="cursor_positioning_button">Cursor Positioning Example</string>
+	<string name="toast_quick_note">Quick note added.</string>
+</resources>

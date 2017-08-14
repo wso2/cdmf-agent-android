@@ -226,7 +226,7 @@ android {
             // SKIP_WORK_PROFILE_CREATION: This will hide the work profile creation step from the
             // user. This is recommended to be used in conjunction with
             // AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED
-            buildConfigField "boolean", "SKIP_WORK_PROFILE_CREATION", "false"
+            buildConfigField "boolean", "SKIP_WORK_PROFILE_CREATION", "true"
             // HIDE_ERROR_DIALOG: If this is set to true, agent will not show any error messages.
             // This is only recommended to use when the enrollment happens in background, and no
             // user interaction is needed. i.e in conjunction with

@@ -69,13 +69,15 @@ public class KioskActivity extends Activity {
         setContentView(R.layout.activity_kiosk);
         context = this.getApplicationContext();
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        Preference.putBoolean(getApplicationContext(), Constants.PreferenceFlag.DEVICE_ACTIVE, true);
+        Preference.
+                putBoolean(getApplicationContext(), Constants.PreferenceFlag.DEVICE_ACTIVE, true);
         textViewKiosk = (TextView) findViewById(R.id.textViewKiosk);
         textViewTime = (TextView) findViewById(R.id.textTime);
         textViewDate = (TextView) findViewById(R.id.textViewDate);
         textViewBattery = (TextView) findViewById(R.id.textViewBattery);
         textViewInitializingMsg = (TextView) findViewById(R.id.textViewInitializingMsg);
-        progressBarDeviceInitializing = (ProgressBar) findViewById(R.id.progressBarDeviceInitializing);
+        progressBarDeviceInitializing =
+                (ProgressBar) findViewById(R.id.progressBarDeviceInitializing);
         if (Constants.COSU_SECRET_EXIT) {
             textViewKiosk.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -159,8 +161,10 @@ public class KioskActivity extends Activity {
             @Override
             public void run() {
                 try {
-                    while (!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
-                        Thread.sleep(1000); //Check if the initialization is completed in every one second.
+                    while (!Preference.
+                            getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
+                        //Check if the initialization is completed in every one second.
+                        Thread.sleep(1000);
                     }
                     textViewInitializingMsg.setVisibility(View.INVISIBLE);
                     progressBarDeviceInitializing.setVisibility(View.INVISIBLE);
@@ -172,7 +176,7 @@ public class KioskActivity extends Activity {
         thread.start();
     }
     private void displayDeviceInfo() {
-        Thread t = new Thread() {
+        Thread thread = new Thread() {
             final DeviceState phoneState = new DeviceState(context);
             Power power = phoneState.getBatteryDetails();
             String time;
@@ -186,11 +190,14 @@ public class KioskActivity extends Activity {
                             @Override
                             public void run() {
                                 power = phoneState.getBatteryDetails();
-                               time = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
-                                date = new SimpleDateFormat("dd/MM/yy").format(Calendar.getInstance().getTime());
+                               time = new SimpleDateFormat("HH:mm:ss").
+                                       format(Calendar.getInstance().getTime());
+                                date = new SimpleDateFormat("dd/MM/yy").
+                                        format(Calendar.getInstance().getTime());
                                 textViewTime.setText("Time: "+  time);
                                 textViewDate.setText("Date: "+ date);
-                                textViewBattery.setText("Battery: " + String.valueOf(power.getLevel()) + "%");
+                                textViewBattery.setText("Battery: " +
+                                        String.valueOf(power.getLevel()) + "%");
                             }
                         });
                     }
@@ -198,7 +205,7 @@ public class KioskActivity extends Activity {
                 }
             }
         };
-        t.start();
+        thread.start();
     }
 
     @Override

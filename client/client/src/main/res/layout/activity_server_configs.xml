@@ -67,6 +67,9 @@
                 android:enabled="false"
                 android:text="@string/txt_start_reg"
                 android:textColor="@color/black" />
+
+
+
         </LinearLayout>
     </ScrollView>
 </RelativeLayout>

@@ -336,10 +336,19 @@ public class MessageProcessor implements APIResultCallBack {
 			if (result != null) {
 				responseStatus = result.get(Constants.STATUS_KEY);
 				response = result.get(Constants.RESPONSE);
-				if (Constants.Status.SUCCESSFUL.equals(responseStatus) || Constants.Status.CREATED.equals(responseStatus)) {
+				if (Constants.Status.SUCCESSFUL.equals(responseStatus) ||
+						Constants.Status.CREATED.equals(responseStatus)) {
 					if (response != null && !response.isEmpty()) {
 						if (Constants.DEBUG_MODE_ENABLED) {
 							Log.d(TAG, "Pending Operations List: " + response);
+						}
+						if(Constants.DEFAULT_OWNERSHIP.equals(Constants.OWNERSHIP_COSU)) {
+							if(!Preference.
+									getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
+								Preference.
+										putBoolean(context,
+												Constants.PreferenceFlag.DEVICE_INITIALIZED, true);
+							}
 						}
 						performOperation(response);
 					}

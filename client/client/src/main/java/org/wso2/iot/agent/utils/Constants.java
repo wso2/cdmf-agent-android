@@ -91,7 +91,15 @@ public class Constants {
 	public static final String KIOSK_APP_PACKAGE_NAME ="kioskAppPackageName";
 	public static final String AGENT_FRESH_START ="agentFreshStart";
 	public static final boolean ALLOW_MULTIPLE_APPS_IN_COSU_MODE = BuildConfig.ALLOW_MULTIPLE_APPS_IN_COSU_MODE;
-
+	public static final String KIOSK_NFC_TOKEN = "android.app.extra.token";
+	public static final String KIOSK_APP_URL = "android.app.extra.appurl";
+	public static final String LAUNCHER_TIME_FORMAT = "HH:mm:ss";
+	public static final String LAUNCHER_DATE_FORMAT = "dd/MM/yy";
+	public static final String LAUNCHER_TIME_LABEL = "Time : ";
+	public static final String LAUNCHER_BATTERY_LABEL = "Battery :";
+	public static final String LAUNCHER_DATE_LABEL = "Date : ";
+	public static final String LAUNCHER_PERCENTAGE_MARK = "%";
+	public static final String DEVICE_LOCK_NOTICE = "Device is locked until next operation time!";
 	/**
 	 * Log publishers
 	 */
@@ -496,6 +504,15 @@ public class Constants {
 		public static final String LOCATION_EVENT_TYPE = "location";
 	}
 
+	public final class WorkProfile {
+		public static final String MESSAGE_FOR_UNINSTALLING_AGENT =
+				"When the work-profile is created, you can uninstall Agent in Personal Profile.";
+		public static final String MESSAGE_DEVICE_PROVISIONING_NOT_ENABLED =
+				"Device provisioning is not enabled. Stopping.";
+		public static final String PROVISIONING_DONE = "Provisioning Done.";
+		public static final String PROVISIONING_FAILED = "Provisioning Failed.";
+	}
+
 	public final class PreferenceFlag {
 		private PreferenceFlag() {
 			throw new AssertionError();
@@ -513,6 +530,7 @@ public class Constants {
 		public static final String LOCAL_NOTIFIER_INVOKED_PREF_KEY = "localNotificationInvoked";
 		public static final String DEVICE_ID_PREFERENCE_KEY = "deviceId";
 		public static final String LAST_SERVER_CALL = "lastServerCall";
+		public static final String DEVICE_INITIALIZED = "false";
 	}
 
 	public final class PreferenceCOSUProfile {

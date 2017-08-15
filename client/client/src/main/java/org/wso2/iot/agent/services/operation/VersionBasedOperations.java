@@ -18,6 +18,7 @@
 package org.wso2.iot.agent.services.operation;
 
 import org.wso2.iot.agent.AndroidAgentException;
+import org.wso2.iot.agent.beans.ComplianceFeature;
 import org.wso2.iot.agent.beans.Operation;
 
 /**
@@ -220,4 +221,21 @@ public interface VersionBasedOperations {
      */
     void configureCOSUProfile(Operation operation) throws AndroidAgentException;
 
+    /**
+     * Checks Work-Profile policy on the device (Particular work-profile configuration in the policy
+     * should be enforced).
+     * @param operation - Operation object.
+     * @return policy - ComplianceFeature object.
+     */
+    ComplianceFeature checkWorkProfilePolicy(Operation operation, ComplianceFeature policy)
+            throws AndroidAgentException;
+
+    /**
+     * Checks Runtime Permission policy on the device (Particular runtime permission type in the policy should be enforced).
+     *
+     * @param operation - Operation object.
+     * @return policy - ComplianceFeature object.
+     */
+    ComplianceFeature checkRuntimePermissionPolicy(Operation operation, ComplianceFeature policy)
+            throws AndroidAgentException;
 }

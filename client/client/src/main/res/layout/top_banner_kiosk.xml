@@ -9,7 +9,6 @@
         android:id="@+id/imageViewBanner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:contentDescription="Wasta Kiosk"
         android:scaleType="centerCrop"
         android:src="@drawable/banner"
         android:layout_alignParentTop="true"

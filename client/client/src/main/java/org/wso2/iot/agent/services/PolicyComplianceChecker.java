@@ -17,30 +17,15 @@
 
 package org.wso2.iot.agent.services;
 
-import android.annotation.TargetApi;
-import android.app.admin.DevicePolicyManager;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.res.Resources;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
-import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.api.ApplicationManager;
-import org.wso2.iot.agent.api.WiFiConfig;
-import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.ComplianceFeature;
-import org.wso2.iot.agent.beans.DeviceAppInfo;
 import org.wso2.iot.agent.services.operation.OperationManager;
 import org.wso2.iot.agent.services.operation.OperationManagerFactory;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
-import org.wso2.iot.agent.utils.Preference;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * This class is used to check device policy compliance by checking each policy
@@ -48,21 +33,13 @@ import java.util.List;
  */
 public class PolicyComplianceChecker {
 
-    private static final String TAG = PolicyOperationsMapper.class.getSimpleName();
     private Context context;
-    private DevicePolicyManager devicePolicyManager;
-    private Resources resources;
-    private ComponentName deviceAdmin;
     private ComplianceFeature policy;
     private ApplicationManager applicationManager;
     private OperationManager operationManager;
 
     public PolicyComplianceChecker(Context context) {
         this.context = context;
-        this.resources = context.getResources();
-        this.devicePolicyManager =
-                (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
-        this.deviceAdmin = new ComponentName(context, AgentDeviceAdminReceiver.class);
         this.applicationManager = new ApplicationManager(context.getApplicationContext());
         OperationManagerFactory operationManagerFactory = new OperationManagerFactory(context);
         operationManager = operationManagerFactory.getOperationManager();
@@ -110,7 +87,7 @@ public class PolicyComplianceChecker {
             case Constants.Operation.DISALLOW_APPS_CONTROL:
             case Constants.Operation.DISALLOW_CREATE_WINDOWS:
             case Constants.Operation.DISALLOW_CROSS_PROFILE_COPY_PASTE:
-            case Constants.Operation.DISALLOW_DEBUGGING_FEATURES:;
+            case Constants.Operation.DISALLOW_DEBUGGING_FEATURES:
             case Constants.Operation.DISALLOW_FACTORY_RESET:
             case Constants.Operation.DISALLOW_ADD_USER:
             case Constants.Operation.DISALLOW_INSTALL_APPS:
@@ -150,330 +127,5 @@ public class PolicyComplianceChecker {
                 throw new AndroidAgentException("Invalid operation code received");
         }
     }
-
-
-    /**
-     * Checks camera policy on the device (camera enabled/disabled).
-     *
-     * @param operation - Operation object.
-     * @return policy - ComplianceFeature object.
-     */
-    private ComplianceFeature checkCameraPolicy(org.wso2.iot.agent.beans.Operation operation) {
-
-        boolean cameraStatus = devicePolicyManager.getCameraDisabled(deviceAdmin);
-
-        if ((operation.isEnabled() && !cameraStatus) || (!operation.isEnabled() && cameraStatus)) {
-            policy.setCompliance(true);
-        } else {
-            policy.setCompliance(false);
-        }
-
-        return policy;
-    }
-
-    /**
-     * Checks install app policy on the device (Particular app in the policy should be installed).
-     *
-     * @param operation - Operation object.
-     * @return policy - ComplianceFeature object.
-     */
-    private ComplianceFeature checkInstallAppPolicy(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
-
-        String appIdentifier=null;
-        String name=null;
-
-        try {
-            JSONObject appData = new JSONObject(operation.getPayLoad().toString());
-
-            if (!appData.isNull(resources.getString(R.string.app_identifier))) {
-                appIdentifier = appData.getString(resources.getString(R.string.app_identifier));
-            }
-
-            if (!appData.isNull(resources.getString(R.string.app_identifier))) {
-                name = appData.getString(resources.getString(R.string.intent_extra_name));
-            }
-
-            if(isAppInstalled(appIdentifier)){
-                policy.setCompliance(true);
-            }else{
-                policy.setCompliance(false);
-                policy.setMessage(resources.getString(R.string.error_app_install_policy)+name);
-            }
-
-        } catch (JSONException e) {
-            policy.setCompliance(false);
-            throw new AndroidAgentException("Invalid JSON format.", e);
-        }
-        return policy;
-    }
-
-    /**
-     * Checks uninstall app policy on the device (Particular app in the policy should be removed).
-     *
-     * @param operation - Operation object.
-     * @return policy - ComplianceFeature object.
-     */
-    private ComplianceFeature checkUninstallAppPolicy(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
-
-        String appIdentifier=null;
-        String name=null;
-
-        try {
-            JSONObject appData = new JSONObject(operation.getPayLoad().toString());
-
-            if (!appData.isNull(resources.getString(R.string.app_identifier))) {
-                appIdentifier = appData.getString(resources.getString(R.string.app_identifier));
-            }
-
-            if (!appData.isNull(resources.getString(R.string.app_identifier))) {
-                name = appData.getString(resources.getString(R.string.intent_extra_name));
-            }
-
-            if(!isAppInstalled(appIdentifier)){
-                policy.setCompliance(true);
-            }else{
-                policy.setCompliance(false);
-                policy.setMessage(resources.getString(R.string.error_app_uninstall_policy)+name);
-            }
-
-        } catch (JSONException e) {
-            policy.setCompliance(false);
-            throw new AndroidAgentException("Invalid JSON format.", e);
-        }
-        return policy;
-    }
-
-    /**
-     * Checks if the app is already installed on the device.
-     *
-     * @param appIdentifier - App package name.
-     * @return appInstalled - App installed status.
-     */
-    private boolean isAppInstalled(String appIdentifier){
-        boolean appInstalled=false;
-        ArrayList<DeviceAppInfo> apps = new ArrayList<>(applicationManager.getInstalledApps().values());
-        for (DeviceAppInfo appInfo : apps) {
-            if(appIdentifier.trim().equals(appInfo.getPackagename())){
-                appInstalled = true;
-            }
-        }
-        return  appInstalled;
-    }
-
-    /**
-     * Checks device encrypt policy on the device (Device external storage encryption).
-     *
-     * @param operation - Operation object.
-     * @return policy - ComplianceFeature object.
-     */
-    private ComplianceFeature checkEncryptPolicy(org.wso2.iot.agent.beans.Operation operation) {
-
-        boolean encryptStatus = (devicePolicyManager.getStorageEncryptionStatus()!= devicePolicyManager.
-                ENCRYPTION_STATUS_UNSUPPORTED && devicePolicyManager.getStorageEncryptionStatus() != devicePolicyManager.
-                ENCRYPTION_STATUS_INACTIVE);
-
-        if ((operation.isEnabled() && encryptStatus) || (!operation.isEnabled() && !encryptStatus)) {
-            policy.setCompliance(true);
-        } else {
-            policy.setCompliance(false);
-            policy.setMessage(resources.getString(R.string.error_encrypt_policy));
-        }
-
-        return policy;
-    }
-
-    /**
-     * Checks screen lock password policy on the device.
-     *
-     * @return policy - ComplianceFeature object.
-     */
-    private ComplianceFeature checkPasswordPolicy() {
-
-        if(devicePolicyManager.isActivePasswordSufficient()){
-            policy.setCompliance(true);
-        }else{
-            policy.setCompliance(false);
-        }
-
-        return policy;
-    }
-
-    /**
-     * Checks Wifi policy on the device (Particular wifi configuration in the policy should be enforced).
-     *
-     * @param operation - Operation object.
-     * @return policy - ComplianceFeature object.
-     */
-    private ComplianceFeature checkWifiPolicy(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
-        String ssid = null;
-
-        try {
-            JSONObject wifiData = new JSONObject(operation.getPayLoad().toString());
-            if (!wifiData.isNull(resources.getString(R.string.intent_extra_ssid))) {
-                ssid = (String) wifiData.get(resources.getString(R.string.intent_extra_ssid));
-            }
-
-            WiFiConfig config = new WiFiConfig(context.getApplicationContext());
-            if(config.findWifiConfigurationBySsid(ssid)){
-                policy.setCompliance(true);
-            }else{
-                policy.setCompliance(false);
-                policy.setMessage(resources.getString(R.string.error_wifi_policy));
-            }
-        } catch (JSONException e) {
-            throw new AndroidAgentException("Invalid JSON format.", e);
-        }
-        return policy;
-    }
-
-	/**
-	 * Check the app restriction policy (black list or white list) for compliance
-     *
-     * @param operation - Operation object
-     * @return - Compliance feature object
-     * @throws AndroidAgentException
-     */
-    private ComplianceFeature checkAppRestrictionPolicy(
-            org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
-
-        AppRestriction appRestriction =
-                CommonUtils.getAppRestrictionTypeAndList(operation, null, null);
-
-        List<String> installedAppPackages = CommonUtils.getInstalledAppPackages(context);
-
-        String ownershipType = Preference.getString(context, Constants.DEVICE_TYPE);
-
-        if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
-
-            if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
-                List<String> commonApps = new ArrayList<>(installedAppPackages);
-                if (commonApps.retainAll(appRestriction.getRestrictedList())) {
-                    if (commonApps.size() > 0) {
-                        policy.setCompliance(false);
-                        policy.setMessage(commonApps.toString());
-                        return policy;
-                    }
-                }
-            } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
-                List<String> installedAppPackagesByUser = CommonUtils.getInstalledAppPackagesByUser(context);
-                List<String> remainApps = new ArrayList<>(installedAppPackagesByUser);
-                remainApps.remove(Constants.AGENT_PACKAGE);
-                remainApps.remove(Constants.SYSTEM_SERVICE_PACKAGE);
-                remainApps.removeAll(appRestriction.getRestrictedList());
-                if (remainApps.size() > 0) {
-                    policy.setCompliance(false);
-                    policy.setMessage(remainApps.toString());
-                    return policy;
-                }
-            }
-
-            policy.setCompliance(true);
-            return policy;
-
-        }
-        else if (Constants.OWNERSHIP_BYOD.equals(ownershipType)) {
-            if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
-                List<String> commonApps = new ArrayList<>(installedAppPackages);
-                if (commonApps.retainAll(appRestriction.getRestrictedList())) {
-                    if (commonApps.size() > 0) {
-                        policy.setCompliance(false);
-                        return policy;
-                    }
-                }
-            } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
-                List<String> remainApps = new ArrayList<>(installedAppPackages);
-                remainApps.removeAll(appRestriction.getRestrictedList());
-                if (remainApps.size() >0) {
-                    policy.setCompliance(false);
-                    return policy;
-                }
-            }
-            policy.setCompliance(true);
-            return policy;
-
-        }
-        policy.setCompliance(true);
-        return policy;
-     }
-
-    /**
-     * Checks Work-Profile policy on the device (Particular work-profile configuration in the policy should be enforced).
-     *
-     * @param operation - Operation object.
-     * @return policy - ComplianceFeature object.
-     */
-    private ComplianceFeature checkWorkProfilePolicy(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
-        String profileName;
-        String systemAppsData;
-        String googlePlayAppsData;
-        try {
-            JSONObject profileData = new JSONObject(operation.getPayLoad().toString());
-            if (!profileData.isNull(resources.getString(R.string.intent_extra_profile_name))) {
-                profileName = (String) profileData.get(resources.getString(
-                        R.string.intent_extra_profile_name));
-                    //yet there is no method is given to get the current profile name.
-                    //add a method to test whether profile name is set correctly once introduced.
-            }
-            if (!profileData.isNull(resources.getString(R.string.intent_extra_enable_system_apps))) {
-                // generate the System app list which are configured by user and received to agent as a single String
-                // with packages separated by Commas.
-                systemAppsData = (String) profileData.get(resources.getString(
-                        R.string.intent_extra_enable_system_apps));
-                List<String> systemAppList = Arrays.asList(systemAppsData.split(resources.getString(
-                        R.string.split_delimiter)));
-                for (String packageName : systemAppList) {
-                    if(!applicationManager.isPackageInstalled(packageName)){
-                        policy.setCompliance(false);
-                        policy.setMessage(resources.getString(R.string.error_work_profile_policy));
-                        return policy;
-                    }
-                }
-            }
-            if (!profileData.isNull(resources.getString(R.string.intent_extra_enable_google_play_apps))) {
-                googlePlayAppsData = (String) profileData.get(resources.getString(
-                        R.string.intent_extra_enable_google_play_apps));
-                List<String> playStoreAppList = Arrays.asList(googlePlayAppsData.split(resources.getString(
-                        R.string.split_delimiter)));
-                for (String packageName : playStoreAppList) {
-                    if(!applicationManager.isPackageInstalled(packageName)){
-                        policy.setCompliance(false);
-                        policy.setMessage(resources.getString(R.string.error_work_profile_policy));
-                        return policy;
-                    }
-                }
-            }
-        } catch (JSONException e) {
-            throw new AndroidAgentException("Invalid JSON format.", e);
-        }
-        policy.setCompliance(true);
-        return policy;
-    }
-
-    @TargetApi(23)
-    /**
-     * Checks Runtime Permission policy on the device (Particular runtime permission type in the policy should be enforced).
-     *
-     * @param operation - Operation object.
-     * @return policy - ComplianceFeature object.
-     */
-    private ComplianceFeature checkRuntimePermissionPolicy(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
-        int currentPermissionType;
-        int policyPermissionType;
-        try {
-            JSONObject runtimePermissionData = new JSONObject(operation.getPayLoad().toString());
-            if (!runtimePermissionData.isNull("defaultType")) {
-                policyPermissionType = Integer.parseInt(runtimePermissionData.get("defaultType").toString());
-                currentPermissionType = devicePolicyManager.getPermissionPolicy(deviceAdmin);
-                if(currentPermissionType != policyPermissionType){
-                    policy.setCompliance(false);
-                    policy.setMessage(resources.getString(R.string.error_runtime_permission_policy));
-                    return policy;
-                }
-            }
-        } catch (JSONException e) {
-            throw new AndroidAgentException("Invalid JSON format.", e);
-        }
-        policy.setCompliance(true);
-        return policy;
-    }
 }
+

@@ -47,11 +47,10 @@ import org.wso2.iot.agent.utils.Preference;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Locale;
 
 public class KioskActivity extends Activity {
-    private TextView textViewWipeData;
     private Context context;
-    private TextView textViewKiosk;
     private TextView textViewNoApps;
     private TextView textViewTime;
     private TextView textViewDate;
@@ -69,9 +68,9 @@ public class KioskActivity extends Activity {
         setContentView(R.layout.activity_kiosk);
         context = this.getApplicationContext();
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        Preference.
-                putBoolean(getApplicationContext(), Constants.PreferenceFlag.DEVICE_ACTIVE, true);
-        textViewKiosk = (TextView) findViewById(R.id.textViewKiosk);
+        Preference.putBoolean(getApplicationContext(),
+                Constants.PreferenceFlag.DEVICE_ACTIVE, true);
+        TextView textViewKiosk = (TextView) findViewById(R.id.textViewKiosk);
         textViewTime = (TextView) findViewById(R.id.textTime);
         textViewDate = (TextView) findViewById(R.id.textViewDate);
         textViewBattery = (TextView) findViewById(R.id.textViewBattery);
@@ -93,7 +92,8 @@ public class KioskActivity extends Activity {
             });
         }
 
-        ComponentName component = new ComponentName(KioskActivity.this, KioskAppInstallationListener.class);
+        ComponentName component =
+                new ComponentName(KioskActivity.this, KioskAppInstallationListener.class);
         getPackageManager()
                 .setComponentEnabledSetting(component,
                         PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
@@ -107,8 +107,9 @@ public class KioskActivity extends Activity {
             }
         }
 
-        textViewWipeData = (TextView) this.findViewById(R.id.textViewWipeData);
-        if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU && Constants.DISPLAY_WIPE_DEVICE_BUTTON) {
+        TextView textViewWipeData = (TextView) this.findViewById(R.id.textViewWipeData);
+        if (Constants.DEFAULT_OWNERSHIP.
+                equals(Constants.OWNERSHIP_COSU) && Constants.DISPLAY_WIPE_DEVICE_BUTTON) {
             textViewWipeData.setVisibility(View.VISIBLE);
             textViewWipeData.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -119,10 +120,14 @@ public class KioskActivity extends Activity {
                             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int whichButton) {
                                     DevicePolicyManager devicePolicyManager = (DevicePolicyManager)
-                                            getApplicationContext().getSystemService(Context.DEVICE_POLICY_SERVICE);
-                                    devicePolicyManager.
-                                            wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE |
-                                                    DevicePolicyManager.WIPE_RESET_PROTECTION_DATA);
+                                            getApplicationContext().
+                                                    getSystemService(Context.DEVICE_POLICY_SERVICE);
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                                        devicePolicyManager.
+                                                wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE |
+                                                        DevicePolicyManager.
+                                                                WIPE_RESET_PROTECTION_DATA);
+                                    }
                                 }
                             })
                             .setNegativeButton(android.R.string.no, null)
@@ -170,6 +175,7 @@ public class KioskActivity extends Activity {
                     progressBarDeviceInitializing.setVisibility(View.INVISIBLE);
                     refreshAppDrawer();
                 } catch (InterruptedException e) {
+                    Log.e(TAG,"Thread is interrupted");
                 }
             }
         };
@@ -190,18 +196,20 @@ public class KioskActivity extends Activity {
                             @Override
                             public void run() {
                                 power = phoneState.getBatteryDetails();
-                               time = new SimpleDateFormat("HH:mm:ss").
-                                       format(Calendar.getInstance().getTime());
-                                date = new SimpleDateFormat("dd/MM/yy").
-                                        format(Calendar.getInstance().getTime());
-                                textViewTime.setText("Time: "+  time);
-                                textViewDate.setText("Date: "+ date);
-                                textViewBattery.setText("Battery: " +
-                                        String.valueOf(power.getLevel()) + "%");
+                               time = new SimpleDateFormat(Constants.LAUNCHER_TIME_FORMAT,
+                                       Locale.ENGLISH).format(Calendar.getInstance().getTime());
+                                date = new SimpleDateFormat(Constants.LAUNCHER_DATE_FORMAT,
+                                        Locale.ENGLISH).format(Calendar.getInstance().getTime());
+                                textViewTime.setText(Constants.LAUNCHER_TIME_LABEL +  time);
+                                textViewDate.setText(Constants.LAUNCHER_DATE_LABEL + date);
+                                textViewBattery.setText(Constants.LAUNCHER_BATTERY_LABEL +
+                                        String.valueOf(power.getLevel()) +
+                                        Constants.LAUNCHER_PERCENTAGE_MARK);
                             }
                         });
                     }
                 } catch (InterruptedException e) {
+                    Log.e(TAG,"Thread is interrupted");
                 }
             }
         };
@@ -221,7 +229,8 @@ public class KioskActivity extends Activity {
     }
 
     private void startPolling() {
-        String notifier = Preference.getString(getApplicationContext(), Constants.PreferenceFlag.NOTIFIER_TYPE);
+        String notifier = Preference.
+                getString(getApplicationContext(), Constants.PreferenceFlag.NOTIFIER_TYPE);
         if(Constants.NOTIFIER_LOCAL.equals(notifier) &&
                 !Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED) {
             LocalNotification.startPolling(getApplicationContext());
@@ -231,7 +240,8 @@ public class KioskActivity extends Activity {
     /*Checks whether there is an already installed app and if exists the app will be launched*/
     private void launchKioskAppIfExists() {
         Preference.putBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START, false);
-        String appList = Preference.getString(context.getApplicationContext(), Constants.KIOSK_APP_PACKAGE_NAME);
+        String appList = Preference.
+                getString(context.getApplicationContext(), Constants.KIOSK_APP_PACKAGE_NAME);
         if (appList != null && !appList.equals("")) {
             String[] packageName = appList.split(context.getString(R.string.kiosk_application_package_split_regex));
             Intent launchIntent = getApplicationContext().getPackageManager()
@@ -257,10 +267,12 @@ public class KioskActivity extends Activity {
     }
 
     private void installKioskApp() {
-        String appUrl = Preference.getString(getApplicationContext(), Constants.KIOSK_APP_DOWNLOAD_URL);
+        String appUrl = Preference.
+                getString(getApplicationContext(), Constants.KIOSK_APP_DOWNLOAD_URL);
         if (appUrl != null) {
             Preference.removePreference(getApplicationContext(), Constants.KIOSK_APP_DOWNLOAD_URL);
-            ApplicationManager applicationManager = new ApplicationManager(context.getApplicationContext());
+            ApplicationManager applicationManager =
+                    new ApplicationManager(context.getApplicationContext());
             applicationManager.installApp(appUrl, null, null);
         }
     }

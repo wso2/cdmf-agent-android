@@ -35,7 +35,6 @@ import org.wso2.iot.agent.activities.AuthenticationActivity;
 import org.wso2.iot.agent.activities.EnableProfileActivity;
 import org.wso2.iot.agent.activities.SplashActivity;
 import org.wso2.iot.agent.beans.ServerConfig;
-import org.wso2.iot.agent.proxy.BuildConfig;
 import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
 import org.wso2.iot.agent.utils.CommonUtils;

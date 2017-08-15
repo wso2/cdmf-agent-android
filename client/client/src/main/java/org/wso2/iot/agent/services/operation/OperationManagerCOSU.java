@@ -80,8 +80,10 @@ public class OperationManagerCOSU extends OperationManager {
                 operation.setPayLoad(result.toString());
                 operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
                 getResultBuilder().build(operation);
-                getDevicePolicyManager().
-                        wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE | DevicePolicyManager.WIPE_RESET_PROTECTION_DATA);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                    getDevicePolicyManager().
+                            wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE | DevicePolicyManager.WIPE_RESET_PROTECTION_DATA);
+                }
                 if (Constants.DEBUG_MODE_ENABLED) {
                     Log.d(TAG, "Started to wipe data");
                 }

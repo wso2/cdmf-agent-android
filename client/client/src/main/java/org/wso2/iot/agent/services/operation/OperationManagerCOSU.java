@@ -723,12 +723,14 @@ public class OperationManagerCOSU extends OperationManager {
     }
 
     private void saveToPreferences(JSONArray array){
-        Preference.putString(getContext(),Constants.RuntimePermissionPolicy.PERMITTED_APP_DATA, array.toString());
+        Preference.putString(getContext(),
+                Constants.RuntimePermissionPolicy.PERMITTED_APP_DATA, array.toString());
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void setAppAllRuntimePermission(String packageName, int permissionType) {
-        String[] permissionList = getContextResources().getStringArray(R.array.runtime_permission_list_array);
+        String[] permissionList = getContextResources().
+                getStringArray(R.array.runtime_permission_list_array);
         for(String permission: permissionList){
             setAppRuntimePermission(packageName, permission, permissionType);
         }
@@ -788,11 +790,15 @@ public class OperationManagerCOSU extends OperationManager {
             freezeTime = Integer.
                     parseInt(payload.getString(Constants.COSUProfilePolicy.deviceFreezeTime));
 
-            Preference.putInt(getContext(), Constants.PreferenceCOSUProfile.FREEZE_TIME, freezeTime);
-            Preference.putInt(getContext(), Constants.PreferenceCOSUProfile.RELEASE_TIME, releaseTime);
+            Preference.putInt(getContext(),
+                    Constants.PreferenceCOSUProfile.FREEZE_TIME, freezeTime);
+            Preference.putInt(getContext(),
+                    Constants.PreferenceCOSUProfile.RELEASE_TIME, releaseTime);
 
-            if(!Preference.getBoolean(getContext(),Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN)) {
-                Preference.putBoolean(getContext(), Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN, true);
+            if(!Preference.getBoolean(getContext(),
+                    Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN)) {
+                Preference.putBoolean(getContext(),
+                        Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN, true);
                 KioskAlarmReceiver kioskAlarmReceiver = new KioskAlarmReceiver();
                 kioskAlarmReceiver.startAlarm(getContext());
             }
@@ -807,21 +813,28 @@ public class OperationManagerCOSU extends OperationManager {
     }
 
     @Override
-    public ComplianceFeature checkWorkProfilePolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+    public ComplianceFeature checkWorkProfilePolicy(Operation operation, ComplianceFeature policy)
+            throws AndroidAgentException {
         policy.setCompliance(true);
         return policy;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
-    public ComplianceFeature checkRuntimePermissionPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+    public ComplianceFeature checkRuntimePermissionPolicy(Operation operation, ComplianceFeature policy)
+            throws AndroidAgentException {
         int currentPermissionType;
         int policyPermissionType;
         try {
             JSONObject runtimePermissionData = new JSONObject(operation.getPayLoad().toString());
-            if (!runtimePermissionData.isNull("defaultType")) {
-                policyPermissionType = Integer.parseInt(runtimePermissionData.get("defaultType").toString());
-                currentPermissionType = getDevicePolicyManager().getPermissionPolicy(getCdmDeviceAdmin());
+            if (!runtimePermissionData.
+                    isNull(Constants.RuntimePermissionPolicy.DEFAULT_PERMISSION_TYPE)) {
+                policyPermissionType =
+                        Integer.parseInt(runtimePermissionData.
+                                get(Constants.RuntimePermissionPolicy.DEFAULT_PERMISSION_TYPE).
+                                toString());
+                currentPermissionType =
+                        getDevicePolicyManager().getPermissionPolicy(getCdmDeviceAdmin());
                 if(currentPermissionType != policyPermissionType){
                     policy.setCompliance(false);
                     policy.setMessage(getContextResources().getString(R.string.error_runtime_permission_policy));

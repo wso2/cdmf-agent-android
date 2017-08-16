@@ -85,7 +85,6 @@ public class KioskAlarmReceiver extends WakefulBroadcastReceiver{
         AlarmManager alarmManager;
         PendingIntent pendingIntent;
         Calendar calendar;
-        int separator;
         int currentTime;
         alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         if(Preference.getBoolean(context, Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN)) {
@@ -99,23 +98,17 @@ public class KioskAlarmReceiver extends WakefulBroadcastReceiver{
                 /* if releaseTime is after freezeTime, then needs to set unlock alarm in next day since
                  device operation time extends to next day as well. */
                 calendar = getCalendar(releaseTime, freezeTime > releaseTime);
-                //receiverIntent.setAction("unlock");
-                //separator = 75;
             }
             else if(isInitialRun) {
                 currentTime = getCurrentTimeInMinutes();
                 /* if currentTime is larger than freezeTime, that means freeze time of current day is
                 already passed. Therefore need to set alarm in next day. */
                 calendar = getCalendar(freezeTime, currentTime > freezeTime );
-                //receiverIntent.setAction("lock");
-                //separator = 50;
             }
             else {
                 /* if releaseTime is larger than freezeTime, that means the next freezeTime comes in
                 next day. Therefore need to set alarm in next day. */
                 calendar = getCalendar(freezeTime, releaseTime > freezeTime);
-                //receiverIntent.setAction("lock");
-                //separator = 50;
             }
             pendingIntent = PendingIntent.
                     getBroadcast(context, 55, receiverIntent, PendingIntent.FLAG_UPDATE_CURRENT);

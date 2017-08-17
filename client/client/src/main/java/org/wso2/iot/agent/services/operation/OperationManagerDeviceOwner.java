@@ -25,7 +25,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,6 +34,7 @@ import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.activities.ServerConfigsActivity;
 import org.wso2.iot.agent.beans.AppRestriction;
+import org.wso2.iot.agent.beans.ComplianceFeature;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.kiosk.KioskAlarmReceiver;
 import org.wso2.iot.agent.utils.CommonUtils;
@@ -428,6 +428,7 @@ public class OperationManagerDeviceOwner extends OperationManager {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void enterpriseWipe(Operation operation) throws AndroidAgentException {
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
@@ -611,6 +612,7 @@ public class OperationManagerDeviceOwner extends OperationManager {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void restrictAccessToApplications(Operation operation) throws AndroidAgentException {
 
@@ -623,12 +625,12 @@ public class OperationManagerDeviceOwner extends OperationManager {
             toBeHideApps.remove(Constants.SYSTEM_SERVICE_PACKAGE);
             toBeHideApps.remove(Constants.AGENT_PACKAGE);
             for (String packageName : toBeHideApps) {
-                CommonUtils.callSystemApp(getContext(), operation.getCode(), "false" , packageName);
+                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, false);
             }
         } else if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
 
             for (String packageName : appRestriction.getRestrictedList()) {
-                CommonUtils.callSystemApp(getContext(), operation.getCode(), "false", packageName);
+                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
             }
         }
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
@@ -668,9 +670,12 @@ public class OperationManagerDeviceOwner extends OperationManager {
                         Constants.RuntimePermissionPolicy.PERMITTED_APPS);
                 for(int i = 0; i <permittedApplicationsPayload.length(); i++) {
                     restrictionAppData = new JSONObject(permittedApplicationsPayload.getString(i));
-                    permissionName = restrictionAppData.getString(Constants.RuntimePermissionPolicy.PERMISSION_NAME);
-                    permissionType = Integer.parseInt(restrictionAppData.getString(Constants.RuntimePermissionPolicy.PERMISSION_TYPE));
-                    packageName = restrictionAppData.getString(Constants.RuntimePermissionPolicy.PACKAGE_NAME);
+                    permissionName = restrictionAppData.
+                            getString(Constants.RuntimePermissionPolicy.PERMISSION_NAME);
+                    permissionType = Integer.parseInt(restrictionAppData.
+                            getString(Constants.RuntimePermissionPolicy.PERMISSION_TYPE));
+                    packageName = restrictionAppData.
+                            getString(Constants.RuntimePermissionPolicy.PACKAGE_NAME);
 
                     if(!permissionName.equals(Constants.RuntimePermissionPolicy.ALL_PERMISSIONS)){
                         setAppRuntimePermission(packageName, permissionName, permissionType);
@@ -690,13 +695,15 @@ public class OperationManagerDeviceOwner extends OperationManager {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void setAppRuntimePermission(String packageName, String permission, int permissionType) {
-        getDevicePolicyManager().setPermissionGrantState(getCdmDeviceAdmin(),packageName,permission,permissionType);
+        getDevicePolicyManager().
+                setPermissionGrantState(getCdmDeviceAdmin(),packageName,permission,permissionType);
         Log.d(TAG,"App Permission Changed"+ packageName + " : " + permission );
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void setAppAllRuntimePermission(String packageName, int permissionType) {
-        String[] permissionList = getContextResources().getStringArray(R.array.runtime_permission_list_array);
+        String[] permissionList = getContextResources().
+                getStringArray(R.array.runtime_permission_list_array);
         for(String permission: permissionList){
             setAppRuntimePermission(packageName, permission, permissionType);
         }
@@ -756,8 +763,10 @@ public class OperationManagerDeviceOwner extends OperationManager {
             freezeTime = Integer.
                     parseInt(payload.getString(Constants.COSUProfilePolicy.deviceFreezeTime));
 
-            Preference.putInt(getContext(), Constants.PreferenceCOSUProfile.FREEZE_TIME, freezeTime);
-            Preference.putInt(getContext(), Constants.PreferenceCOSUProfile.RELEASE_TIME, releaseTime);
+            Preference.
+                    putInt(getContext(), Constants.PreferenceCOSUProfile.FREEZE_TIME, freezeTime);
+            Preference.
+                    putInt(getContext(), Constants.PreferenceCOSUProfile.RELEASE_TIME, releaseTime);
 
             if(!Preference.getBoolean(getContext(),Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN)) {
                 Preference.putBoolean(getContext(), Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN, true);
@@ -774,6 +783,35 @@ public class OperationManagerDeviceOwner extends OperationManager {
             getResultBuilder().build(operation);
             throw new AndroidAgentException("Invalid JSON format.", e);
         }
+    }
+
+    @Override
+    public ComplianceFeature checkWorkProfilePolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+        policy.setCompliance(true);
+        return policy;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Override
+    public ComplianceFeature checkRuntimePermissionPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+        int currentPermissionType;
+        int policyPermissionType;
+        try {
+            JSONObject runtimePermissionData = new JSONObject(operation.getPayLoad().toString());
+            if (!runtimePermissionData.isNull("defaultType")) {
+                policyPermissionType = Integer.parseInt(runtimePermissionData.get("defaultType").toString());
+                currentPermissionType = getDevicePolicyManager().getPermissionPolicy(getCdmDeviceAdmin());
+                if(currentPermissionType != policyPermissionType){
+                    policy.setCompliance(false);
+                    policy.setMessage(getContextResources().getString(R.string.error_runtime_permission_policy));
+                    return policy;
+                }
+            }
+        } catch (JSONException e) {
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+        policy.setCompliance(true);
+        return policy;
     }
 
 }

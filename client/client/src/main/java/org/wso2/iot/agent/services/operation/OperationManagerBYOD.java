@@ -35,7 +35,9 @@ import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.activities.ServerConfigsActivity;
+import org.wso2.iot.agent.api.WiFiConfig;
 import org.wso2.iot.agent.beans.AppRestriction;
+import org.wso2.iot.agent.beans.ComplianceFeature;
 import org.wso2.iot.agent.beans.DeviceAppInfo;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.AppLockService;
@@ -44,6 +46,7 @@ import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -667,4 +670,15 @@ public class OperationManagerBYOD extends OperationManager {
         Log.d(TAG, "Operation not supported.");
     }
 
+    @Override
+    public ComplianceFeature checkWorkProfilePolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+        policy.setCompliance(true);
+        return policy;
+    }
+
+    @Override
+    public ComplianceFeature checkRuntimePermissionPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+        policy.setCompliance(true);
+        return policy;
+    }
 }

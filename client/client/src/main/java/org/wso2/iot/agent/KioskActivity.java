@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.wso2.iot.agent;
 
 import android.app.Activity;
@@ -15,21 +32,31 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import org.wso2.iot.agent.adapters.AppDrawerAdapter;
 import org.wso2.iot.agent.api.ApplicationManager;
+import org.wso2.iot.agent.api.DeviceState;
+import org.wso2.iot.agent.beans.Power;
 import org.wso2.iot.agent.events.EventRegistry;
 import org.wso2.iot.agent.events.listeners.KioskAppInstallationListener;
 import org.wso2.iot.agent.services.LocalNotification;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
+
 public class KioskActivity extends Activity {
-    private TextView textViewWipeData;
     private Context context;
-    private TextView textViewKiosk;
     private TextView textViewNoApps;
+    private TextView textViewTime;
+    private TextView textViewDate;
+    private TextView textViewInitializingMsg;
+    private TextView textViewBattery;
+    private ProgressBar progressBarDeviceInitializing;
     private int kioskExit;
     private GridView gridView;
     private AppDrawerAdapter appDrawerAdapter;
@@ -40,10 +67,16 @@ public class KioskActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_kiosk);
         context = this.getApplicationContext();
-
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        Preference.putBoolean(getApplicationContext(), Constants.PreferenceFlag.DEVICE_ACTIVE, true);
-        textViewKiosk = (TextView) findViewById(R.id.textViewKiosk);
+        Preference.putBoolean(getApplicationContext(),
+                Constants.PreferenceFlag.DEVICE_ACTIVE, true);
+        TextView textViewKiosk = (TextView) findViewById(R.id.textViewKiosk);
+        textViewTime = (TextView) findViewById(R.id.textTime);
+        textViewDate = (TextView) findViewById(R.id.textViewDate);
+        textViewBattery = (TextView) findViewById(R.id.textViewBattery);
+        textViewInitializingMsg = (TextView) findViewById(R.id.textViewInitializingMsg);
+        progressBarDeviceInitializing =
+                (ProgressBar) findViewById(R.id.progressBarDeviceInitializing);
         if (Constants.COSU_SECRET_EXIT) {
             textViewKiosk.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -59,7 +92,8 @@ public class KioskActivity extends Activity {
             });
         }
 
-        ComponentName component = new ComponentName(KioskActivity.this, KioskAppInstallationListener.class);
+        ComponentName component =
+                new ComponentName(KioskActivity.this, KioskAppInstallationListener.class);
         getPackageManager()
                 .setComponentEnabledSetting(component,
                         PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
@@ -73,8 +107,9 @@ public class KioskActivity extends Activity {
             }
         }
 
-        textViewWipeData = (TextView) this.findViewById(R.id.textViewWipeData);
-        if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU && Constants.DISPLAY_WIPE_DEVICE_BUTTON) {
+        TextView textViewWipeData = (TextView) this.findViewById(R.id.textViewWipeData);
+        if (Constants.DEFAULT_OWNERSHIP.
+                equals(Constants.OWNERSHIP_COSU) && Constants.DISPLAY_WIPE_DEVICE_BUTTON) {
             textViewWipeData.setVisibility(View.VISIBLE);
             textViewWipeData.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -85,10 +120,14 @@ public class KioskActivity extends Activity {
                             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int whichButton) {
                                     DevicePolicyManager devicePolicyManager = (DevicePolicyManager)
-                                            getApplicationContext().getSystemService(Context.DEVICE_POLICY_SERVICE);
-                                    devicePolicyManager.
-                                            wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE |
-                                                    DevicePolicyManager.WIPE_RESET_PROTECTION_DATA);
+                                            getApplicationContext().
+                                                    getSystemService(Context.DEVICE_POLICY_SERVICE);
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                                        devicePolicyManager.
+                                                wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE |
+                                                        DevicePolicyManager.
+                                                                WIPE_RESET_PROTECTION_DATA);
+                                    }
                                 }
                             })
                             .setNegativeButton(android.R.string.no, null)
@@ -108,10 +147,73 @@ public class KioskActivity extends Activity {
             }
         });
 
+        if(!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
+            textViewNoApps.setVisibility(View.INVISIBLE);
+            textViewInitializingMsg.setVisibility(View.VISIBLE);
+            progressBarDeviceInitializing.setVisibility(View.VISIBLE);
+            checkAndDisplayDeviceInitializing();
+        }
+        displayDeviceInfo();
         installKioskApp();
         if (Preference.getBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START)) {
             launchKioskAppIfExists();
         }
+
+    }
+
+    private void checkAndDisplayDeviceInitializing() {
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    while (!Preference.
+                            getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
+                        //Check if the initialization is completed in every one second.
+                        Thread.sleep(1000);
+                    }
+                    textViewInitializingMsg.setVisibility(View.INVISIBLE);
+                    progressBarDeviceInitializing.setVisibility(View.INVISIBLE);
+                    refreshAppDrawer();
+                } catch (InterruptedException e) {
+                    Log.e(TAG,"Thread is interrupted");
+                }
+            }
+        };
+        thread.start();
+    }
+    private void displayDeviceInfo() {
+        Thread thread = new Thread() {
+            final DeviceState phoneState = new DeviceState(context);
+            Power power = phoneState.getBatteryDetails();
+            String time;
+            String date;
+            @Override
+            public void run() {
+                try {
+                    while (!isInterrupted()) {
+                        Thread.sleep(1000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                power = phoneState.getBatteryDetails();
+                               time = new SimpleDateFormat(Constants.LAUNCHER_TIME_FORMAT,
+                                       Locale.ENGLISH).format(Calendar.getInstance().getTime());
+                                date = new SimpleDateFormat(Constants.LAUNCHER_DATE_FORMAT,
+                                        Locale.ENGLISH).format(Calendar.getInstance().getTime());
+                                textViewTime.setText(Constants.LAUNCHER_TIME_LABEL +  time);
+                                textViewDate.setText(Constants.LAUNCHER_DATE_LABEL + date);
+                                textViewBattery.setText(Constants.LAUNCHER_BATTERY_LABEL +
+                                        String.valueOf(power.getLevel()) +
+                                        Constants.LAUNCHER_PERCENTAGE_MARK);
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    Log.e(TAG,"Thread is interrupted");
+                }
+            }
+        };
+        thread.start();
     }
 
     @Override
@@ -127,7 +229,8 @@ public class KioskActivity extends Activity {
     }
 
     private void startPolling() {
-        String notifier = Preference.getString(getApplicationContext(), Constants.PreferenceFlag.NOTIFIER_TYPE);
+        String notifier = Preference.
+                getString(getApplicationContext(), Constants.PreferenceFlag.NOTIFIER_TYPE);
         if(Constants.NOTIFIER_LOCAL.equals(notifier) &&
                 !Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED) {
             LocalNotification.startPolling(getApplicationContext());
@@ -137,7 +240,8 @@ public class KioskActivity extends Activity {
     /*Checks whether there is an already installed app and if exists the app will be launched*/
     private void launchKioskAppIfExists() {
         Preference.putBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START, false);
-        String appList = Preference.getString(context.getApplicationContext(), Constants.KIOSK_APP_PACKAGE_NAME);
+        String appList = Preference.
+                getString(context.getApplicationContext(), Constants.KIOSK_APP_PACKAGE_NAME);
         if (appList != null && !appList.equals("")) {
             String[] packageName = appList.split(context.getString(R.string.kiosk_application_package_split_regex));
             Intent launchIntent = getApplicationContext().getPackageManager()
@@ -152,7 +256,6 @@ public class KioskActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-
         refreshAppDrawer();
         startEvents();
         startPolling();
@@ -164,10 +267,12 @@ public class KioskActivity extends Activity {
     }
 
     private void installKioskApp() {
-        String appUrl = Preference.getString(getApplicationContext(), Constants.KIOSK_APP_DOWNLOAD_URL);
+        String appUrl = Preference.
+                getString(getApplicationContext(), Constants.KIOSK_APP_DOWNLOAD_URL);
         if (appUrl != null) {
             Preference.removePreference(getApplicationContext(), Constants.KIOSK_APP_DOWNLOAD_URL);
-            ApplicationManager applicationManager = new ApplicationManager(context.getApplicationContext());
+            ApplicationManager applicationManager =
+                    new ApplicationManager(context.getApplicationContext());
             applicationManager.installApp(appUrl, null, null);
         }
     }
@@ -186,8 +291,10 @@ public class KioskActivity extends Activity {
     private void refreshAppDrawer() {
         String appList = Preference.getString(context, Constants.KIOSK_APP_PACKAGE_NAME);
         if (appList == null) {
-            gridView.setVisibility(View.INVISIBLE);
-            textViewNoApps.setVisibility(View.VISIBLE);
+            if(Preference.getBoolean(context,Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
+                gridView.setVisibility(View.INVISIBLE);
+                textViewNoApps.setVisibility(View.VISIBLE);
+            }
         } else {
             appDrawerAdapter.setAppList();
             appDrawerAdapter.notifyDataSetChanged();

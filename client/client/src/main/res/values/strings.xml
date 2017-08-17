@@ -35,6 +35,7 @@
     <string name="options_register">Register</string>
     <string name="options_unregister">Unregister</string>
     <string name="string_content">Image</string>
+    <string name="kiosk_enrolling">Kiosk is being enrolled.</string>
     <string name="options_clear">Clear</string>
     <string name="options_exit">Exit</string>
     <string name="app_name">WSO2 Device Management Agent</string>

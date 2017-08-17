@@ -32,8 +32,8 @@ import com.google.gson.Gson;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
-import org.wso2.iot.agent.activities.AuthenticationActivity;
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.activities.AuthenticationActivity;
 import org.wso2.iot.agent.activities.ServerConfigsActivity;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceInfo;
@@ -59,10 +59,11 @@ import java.util.Map;
  */
 public class MessageProcessor implements APIResultCallBack {
 
+	private static final String ERROR_STATE = "ERROR";
+	private static List<Operation> replyPayload;
 	private String TAG = MessageProcessor.class.getSimpleName();
 	private Context context;
 	private String deviceId;
-	private static List<Operation> replyPayload;
 	private OperationProcessor operationProcessor;
 	private ObjectMapper mapper;
 	private boolean isWipeTriggered = false;
@@ -70,7 +71,6 @@ public class MessageProcessor implements APIResultCallBack {
 	private boolean isUpgradeTriggered = false;
 	private boolean isShellCommandTriggered = false;
 	private boolean isEnterpriseWipeTriggered = false;
-	private static final String ERROR_STATE = "ERROR";
 	private String shellCommand = null;
 
 	/**
@@ -183,24 +183,40 @@ public class MessageProcessor implements APIResultCallBack {
 					}
 				}
 			}
-			String firmwareOperationMessage = Preference.getString(context, context.getResources().getString(
-					R.string.firmware_upgrade_failed_message));
 			int firmwareOperationId = Preference.getInt(context, context.getResources().getString(
-					R.string.firmware_upgrade_failed_id));
-			if (firmwareOperationMessage != null && firmwareOperationId != 0) {
+					R.string.firmware_upgrade_response_id));
+			if (firmwareOperationId != 0) {
 				Operation firmwareOperation = new Operation();
 				firmwareOperation.setId(firmwareOperationId);
 				firmwareOperation.setCode(Constants.Operation.UPGRADE_FIRMWARE);
-				firmwareOperation.setStatus(context.getResources().getString(R.string.operation_value_error));
-				firmwareOperation.setOperationResponse(firmwareOperationMessage);
+				firmwareOperation.setStatus(Preference.getString(context, context.getResources().getString(
+						R.string.firmware_upgrade_response_status)));
+				boolean isRetryPending = Preference.getBoolean(context, context.getResources().
+						getString(R.string.firmware_upgrade_retry_pending));
+				if (isRetryPending) {
+					isUpgradeTriggered = true;
+					int retryCount = Preference.getInt(context, context.getResources().
+							getString(R.string.firmware_upgrade_retries));
+					firmwareOperation.setOperationResponse("Attempt " + retryCount +
+							" has failed due to: " + Preference.getString(context, context.getResources().getString(
+							R.string.firmware_upgrade_response_message)));
+				} else {
+					firmwareOperation.setOperationResponse(Preference.getString(context, context.getResources().getString(
+							R.string.firmware_upgrade_response_message)));
+				}
 				if (replyPayload != null) {
 					replyPayload.add(firmwareOperation);
 				} else {
 					replyPayload = new ArrayList<>();
 					replyPayload.add(firmwareOperation);
 				}
+				Preference.putInt(context, context.getResources().getString(
+						R.string.firmware_upgrade_response_id), 0);
 				Preference.putString(context, context.getResources().getString(
-						R.string.firmware_upgrade_failed_message), null);
+						R.string.firmware_upgrade_response_status), context.getResources().getString(
+						R.string.operation_value_error));
+				Preference.putString(context, context.getResources().getString(
+						R.string.firmware_upgrade_response_message), null);
 			}
 
 			int applicationOperationId = Preference.getInt(context, context.getResources().getString(

@@ -182,7 +182,6 @@ public class Constants {
 	public static final int SIGN_IN_NOTIFICATION_ID = 0;
 	public static final int PERMISSION_MISSING_NOTIFICATION_ID = 1;
 	public static final int LOCATION_DISABLED_NOTIFICATION_ID = 2;
-
 	/**
 	 * Device certificates.
 	 */
@@ -193,8 +192,6 @@ public class Constants {
 	public static final String DEVICE_KEY_TYPE = "RSA";
 	public static final String DEVICE_KEY_ALGO = "SHA256withRSA";
 	public static final String DEVICE_CSR_INFO = "CN=WSO2 Device";
-
-
 	public static final String APP_LOCK_SERVICE = "AppLockService";
 
 	/**
@@ -354,7 +351,9 @@ public class Constants {
 		public static final String GET_FIRMWARE_UPGRADE_PACKAGE_STATUS = "FIRMWARE_UPGRADE_PACKAGE_STATUS";
 		public static final String GET_FIRMWARE_UPGRADE_DOWNLOAD_PROGRESS = "FIRMWARE_UPGRADE_DOWNLOAD_PROGRESS";
 		public static final String FAILED_FIRMWARE_UPGRADE_NOTIFICATION = "FAILED_FIRMWARE_UPGRADE_NOTIFICATION";
+		public static final String FIRMWARE_UPGRADE_COMPLETE = "FIRMWARE_UPGRADE_COMPLETE";
 		public static final String FIRMWARE_UPGRADE_FAILURE = "FIRMWARE_UPGRADE_FAILURE";
+		public static final String FIRMWARE_INSTALLATION_CANCELED = "FIRMWARE_INSTALLATION_CANCELED";
 		public static final String GET_FIRMWARE_BUILD_DATE = "FIRMWARE_BUILD_DATE";
 		public static final String LOGCAT = "LOGCAT";
 		public static final String FIRMWARE_UPGRADE_AUTOMATIC_RETRY = "FIRMWARE_UPGRADE_AUTOMATIC_RETRY";

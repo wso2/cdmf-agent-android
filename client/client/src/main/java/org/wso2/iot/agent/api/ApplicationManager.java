@@ -39,6 +39,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.Browser;
+import android.support.v4.content.FileProvider;
 import android.util.Base64;
 import android.util.Log;
 
@@ -133,8 +134,20 @@ public class ApplicationManager {
                     }
                     Preference.putString(context, context.getResources().getString(R.string.shared_pref_installed_file),
                                          resources.getString(R.string.download_mgr_download_file_name));
-                    triggerInstallation(Uri.fromFile(new File(downloadDirectoryPath + File.separator +
-                                                              resources.getString(R.string.download_mgr_download_file_name))));
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        Uri apkURI = FileProvider.getUriForFile(
+                                context,
+                                context.getApplicationContext()
+                                        .getPackageName() + ".provider", new File(downloadDirectoryPath + File.separator +
+                                        resources.getString(R.string.download_mgr_download_file_name)));
+                        triggerInstallation(apkURI);
+
+                    } else {
+                        triggerInstallation(Uri.fromFile(new File(downloadDirectoryPath + File.separator +
+                                resources.getString(R.string.download_mgr_download_file_name))));
+                    }
+
                 } else {
                     Preference.putString(context, context.getResources().getString(
                             R.string.app_install_status), context.getResources().getString(
@@ -303,10 +316,20 @@ public class ApplicationManager {
         if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
             installPackage(fileUri);
         }else{
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(fileUri, resources.getString(R.string.application_mgr_mime));
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+                intent.setDataAndType(fileUri, resources.getString(R.string.application_mgr_mime));
+                intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                context.startActivity(intent);
+
+            } else {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(fileUri, resources.getString(R.string.application_mgr_mime));
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+            }
+
         }
     }
 
@@ -735,7 +758,19 @@ public class ApplicationManager {
                             Preference.putString(context, context.getResources().getString(
                                     R.string.app_install_status), context.getResources().getString(
                                     R.string.app_status_value_download_completed));
-                            triggerInstallation(Uri.fromFile(new File(filePath)));
+
+                            //android 7 and later versions require file URIs from a provider
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                Uri apkURI = FileProvider.getUriForFile(
+                                        context,
+                                        context.getApplicationContext()
+                                                .getPackageName() + ".provider", new File(filePath));
+                                triggerInstallation(apkURI);
+
+                            } else {
+                                triggerInstallation(Uri.fromFile(new File(filePath)));
+                            }
+
                         } catch (IOException e) {
                             String error = "File download/save failure in AppUpdator.";
                             Log.e(TAG, error, e);

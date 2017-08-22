@@ -140,7 +140,8 @@
                 <data android:scheme="package" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".events.listeners.KioskAppInstallationListener"
+        <receiver
+            android:name=".events.listeners.KioskAppInstallationListener"
             android:enabled="false">
             <intent-filter>
                 <action android:name="android.intent.action.PACKAGE_ADDED" />

@@ -583,23 +583,16 @@ public class OperationManagerBYOD extends OperationManager {
         String ownershipType = Preference.getString(getContext(), Constants.DEVICE_TYPE);
 
         if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
-            ArrayList applist = (ArrayList)appRestriction.getRestrictedList();
-            JSONArray whiteListApps = new JSONArray();
-            for(int i = 0; i <applist.size(); i++) {
-                JSONObject app = new JSONObject();
-                try {
-                    app.put(Constants.AppRestriction.PACKAGE_NAME,applist.get(i).toString());
-                    app.put(Constants.AppRestriction.RESTRICTION_TYPE, Constants.AppRestriction.WHITE_LIST);
-                    whiteListApps.put(app);
-                } catch (JSONException e) {
-                    operation.setStatus(getContextResources().getString(R.string.operation_value_error));
-                    operation.setOperationResponse("Error in parsing app white-list payload.");
-                    getResultBuilder().build(operation);
-                    throw new AndroidAgentException("Invalid JSON format for app white-list bundle.", e);
+            if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
+
+                List<String> installedAppPackages = CommonUtils.getInstalledAppPackages(getContext());
+
+                List<String> toBeHideApps = new ArrayList<>(installedAppPackages);
+                toBeHideApps.removeAll(appRestriction.getRestrictedList());
+                for (String packageName : toBeHideApps) {
+                    CommonUtils.callSystemApp(getContext(), operation.getCode(), "false" , packageName);
                 }
             }
-            Preference.putString(getContext(),
-                    Constants.AppRestriction.WHITE_LIST_APPS, whiteListApps.toString());
         }
         else if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
             if (Constants.OWNERSHIP_BYOD.equals(ownershipType)) {
@@ -628,6 +621,7 @@ public class OperationManagerBYOD extends OperationManager {
         }
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
+
     }
 
     @Override

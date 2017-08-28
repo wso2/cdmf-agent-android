@@ -26,6 +26,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
+import android.webkit.WebHistoryItem;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -420,7 +421,6 @@ public class OperationManagerWorkProfile extends OperationManager {
     @Override
     public void restrictAccessToApplications(Operation operation) throws AndroidAgentException {
         AppRestriction appRestriction = CommonUtils.getAppRestrictionTypeAndList(operation, getResultBuilder(), getContextResources());
-
         if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
             Intent restrictionIntent = new Intent(getContext(), AppLockService.class);
             restrictionIntent.setAction(Constants.APP_LOCK_SERVICE);
@@ -438,6 +438,25 @@ public class OperationManagerWorkProfile extends OperationManager {
 
             getContext().startService(restrictionIntent);
 
+        }
+        else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
+            ArrayList appList = (ArrayList)appRestriction.getRestrictedList();
+            JSONArray whiteListApps = new JSONArray();
+            for (Object appObj: appList) {
+                JSONObject app = new JSONObject();
+                try {
+                    app.put(Constants.AppRestriction.PACKAGE_NAME,appObj.toString());
+                    app.put(Constants.AppRestriction.RESTRICTION_TYPE, Constants.AppRestriction.WHITE_LIST);
+                    whiteListApps.put(app);
+                } catch (JSONException e) {
+                    operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+                    operation.setOperationResponse("Error in parsing app white-list payload.");
+                    getResultBuilder().build(operation);
+                    throw new AndroidAgentException("Invalid JSON format for app white-list bundle.", e);
+                }
+            }
+            Preference.putString(getContext(),
+                    Constants.AppRestriction.WHITE_LIST_APPS, whiteListApps.toString());
         }
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
@@ -477,7 +496,6 @@ public class OperationManagerWorkProfile extends OperationManager {
         String permissionName;
         int permissionType;
         String packageName;
-
 
         try {
             restrictionPolicyData = new JSONObject(operation.getPayLoad().toString());

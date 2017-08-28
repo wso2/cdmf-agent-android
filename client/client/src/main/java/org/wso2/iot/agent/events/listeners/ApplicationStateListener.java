@@ -18,18 +18,31 @@
 
 package org.wso2.iot.agent.events.listeners;
 
+import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.widget.Toast;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
+import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.events.EventRegistry;
 import org.wso2.iot.agent.events.beans.ApplicationStatus;
 import org.wso2.iot.agent.events.beans.EventPayload;
 import org.wso2.iot.agent.events.publisher.HttpDataPublisher;
+import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
+import org.wso2.iot.agent.utils.Preference;
+
+import java.util.Objects;
 
 /**
  * Listening to application state changes such as an app getting installed, uninstalled,
@@ -37,6 +50,9 @@ import org.wso2.iot.agent.utils.Constants;
  */
 public class ApplicationStateListener extends BroadcastReceiver implements AlertEventListener {
     private static final String TAG = ApplicationStateListener.class.getName();
+    private Context context;
+    private DevicePolicyManager devicePolicyManager;
+    private ComponentName cdmfDeviceAdmin;
 
     @Override
     public void startListening() {
@@ -69,13 +85,18 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onReceive(Context context, final Intent intent) {
         String status = null;
         ApplicationStatus applicationState;
+        this.context = context;
         switch (intent.getAction()) {
             case Intent.ACTION_PACKAGE_ADDED:
                 status = "added";
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    applyEnforcement(intent.getData().getEncodedSchemeSpecificPart());
+                }
                 break;
             case Intent.ACTION_PACKAGE_REMOVED:
                 status = "removed";
@@ -107,6 +128,41 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
                 Intent broadcastIntent = new Intent();
                 broadcastIntent.setAction(Constants.AGENT_UPDATED_BROADCAST_ACTION);
                 context.sendBroadcast(broadcastIntent);
+            }
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void applyEnforcement(String packageName) {
+        devicePolicyManager =
+                (DevicePolicyManager) context.getApplicationContext().getSystemService(Context.DEVICE_POLICY_SERVICE);
+        cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(context.getApplicationContext());
+        if(devicePolicyManager.isProfileOwnerApp(cdmfDeviceAdmin.getPackageName())) {
+            String permittedPackageName;
+            JSONObject permittedApp;
+            String permissionName;
+            Boolean isAllowed = false;
+            try {
+                JSONArray whiteListApps = new JSONArray(Preference.getString(context, Constants.AppRestriction.WHITE_LIST_APPS));
+                if (!whiteListApps.equals(null)) {
+                    for (int i = 0; i < whiteListApps.length(); i++) {                     //since foreach cannot be applied to JSONArray
+                        permittedApp = new JSONObject(whiteListApps.getString(i));
+                        permittedPackageName = permittedApp.getString(Constants.AppRestriction.PACKAGE_NAME);
+                        if (Objects.equals(permittedPackageName, packageName)) {
+                            permissionName = permittedApp.getString(Constants.AppRestriction.RESTRICTION_TYPE);
+                            if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
+                                isAllowed = true;
+                                Toast.makeText(context,"YES!!", Toast.LENGTH_SHORT).show();
+                                break;
+                            }
+                        }
+                    }
+                }
+                if(!isAllowed) {
+                    devicePolicyManager.setApplicationHidden(cdmfDeviceAdmin, packageName, true);
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "Invalid JSON format..");
             }
         }
     }

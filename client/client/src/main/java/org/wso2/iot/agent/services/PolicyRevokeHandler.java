@@ -251,6 +251,7 @@ public class PolicyRevokeHandler {
      * @param operation - Operation object
      * @throws AndroidAgentException
      */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void revokeAppRestrictionPolicy(org.wso2.iot.agent.beans.Operation operation)
             throws AndroidAgentException {
 
@@ -266,7 +267,13 @@ public class PolicyRevokeHandler {
             List<String> toBeUnHideApps = new ArrayList<>(installedAppPackages);
             toBeUnHideApps.removeAll(appRestriction.getRestrictedList());
             for (String packageName : toBeUnHideApps) {
-                CommonUtils.callSystemApp(context, operation.getCode(), "true", packageName);
+                if (devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)){
+                    Preference.putString(this.context,
+                            Constants.AppRestriction.WHITE_LIST_APPS, "");
+                    }
+                    else {
+                    CommonUtils.callSystemApp(context, operation.getCode(), "true", packageName);
+                }
             }
         }
 

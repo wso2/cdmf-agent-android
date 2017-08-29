@@ -1205,7 +1205,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
 
         AppRestriction appRestriction =
                 CommonUtils.getAppRestrictionTypeAndList(operation, null, null);
-
         List<String> installedAppPackages = CommonUtils.getInstalledAppPackages(getContext());
 
         if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {

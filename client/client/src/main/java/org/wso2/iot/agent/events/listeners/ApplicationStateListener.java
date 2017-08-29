@@ -121,7 +121,8 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
             } catch (AndroidAgentException e) {
                 Log.e(TAG, "Could not convert to JSON");
             }
-            if (Intent.ACTION_PACKAGE_REPLACED.equals(intent.getAction()) && Constants.AGENT_PACKAGE.equals(packageName)){
+            if (Intent.ACTION_PACKAGE_REPLACED.equals(intent.getAction()) &&
+                    Constants.AGENT_PACKAGE.equals(packageName)){
                 Intent broadcastIntent = new Intent();
                 broadcastIntent.setAction(Constants.AGENT_UPDATED_BROADCAST_ACTION);
                 context.sendBroadcast(broadcastIntent);
@@ -137,27 +138,29 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
         DevicePolicyManager devicePolicyManager;
         ComponentName cdmfDeviceAdmin;
         devicePolicyManager =
-                (DevicePolicyManager) context.getApplicationContext().getSystemService(Context.DEVICE_POLICY_SERVICE);
+                (DevicePolicyManager) context.getApplicationContext().
+                        getSystemService(Context.DEVICE_POLICY_SERVICE);
         cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(context.getApplicationContext());
         if(devicePolicyManager.isProfileOwnerApp(cdmfDeviceAdmin.getPackageName())) {
             String permittedPackageName;
             JSONObject permittedApp;
             String permissionName;
             Boolean isAllowed = false;
-            String whiteListAppsPref = Preference.getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
+            String whiteListAppsPref = Preference.
+                    getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
             if(whiteListAppsPref != null) {
                 try {
                     JSONArray whiteListApps = new JSONArray(whiteListAppsPref);
-                    if (whiteListApps != null) {
-                        for (int i = 0; i < whiteListApps.length(); i++) {                     //since foreach cannot be applied to JSONArray
-                            permittedApp = new JSONObject(whiteListApps.getString(i));
-                            permittedPackageName = permittedApp.getString(Constants.AppRestriction.PACKAGE_NAME);
-                            if (Objects.equals(permittedPackageName, packageName)) {
-                                permissionName = permittedApp.getString(Constants.AppRestriction.RESTRICTION_TYPE);
-                                if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
-                                    isAllowed = true;
-                                    break;
-                                }
+                    for (int i = 0; i < whiteListApps.length(); i++) {
+                        permittedApp = new JSONObject(whiteListApps.getString(i));
+                        permittedPackageName = permittedApp.
+                                getString(Constants.AppRestriction.PACKAGE_NAME);
+                        if (Objects.equals(permittedPackageName, packageName)) {
+                            permissionName = permittedApp.
+                                    getString(Constants.AppRestriction.RESTRICTION_TYPE);
+                            if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
+                                isAllowed = true;
+                                break;
                             }
                         }
                     }
@@ -167,8 +170,10 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
                         disallowedApps = disallowedApps +
                                 context.getString(R.string.whitelist_package_split_regex) +
                                 packageName;
-                        Preference.putString(context, Constants.AppRestriction.DISALLOWED_APPS, disallowedApps);
-                        devicePolicyManager.setApplicationHidden(cdmfDeviceAdmin, packageName, true);
+                        Preference.putString(context, Constants.
+                                AppRestriction.DISALLOWED_APPS, disallowedApps);
+                        devicePolicyManager.
+                                setApplicationHidden(cdmfDeviceAdmin, packageName, true);
                     }
                 } catch (JSONException e) {
                     Log.e(TAG, "Invalid JSON format..");

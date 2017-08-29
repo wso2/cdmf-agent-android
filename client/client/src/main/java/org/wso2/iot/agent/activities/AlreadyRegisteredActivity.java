@@ -290,7 +290,6 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 	}
 
 	private DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-		@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 		@Override
 		public void onClick(DialogInterface dialog, int which) {
 			switch (which) {

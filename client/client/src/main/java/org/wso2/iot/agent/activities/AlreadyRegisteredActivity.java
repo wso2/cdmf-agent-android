@@ -290,6 +290,7 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 	}
 
 	private DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+		@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 		@Override
 		public void onClick(DialogInterface dialog, int which) {
 			switch (which) {
@@ -309,6 +310,7 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 	/**
 	 * Send unregistration request.
 	 */
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	private void startUnRegistration() {
 		progressDialog = ProgressDialog.show(context,
 						getResources().getString(R.string.dialog_message_unregistering),
@@ -332,6 +334,11 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 					                           HTTP_METHODS.DELETE,
 					                           null, AlreadyRegisteredActivity.this,
 					                           Constants.UNREGISTER_REQUEST_CODE);
+
+					if (devicePolicyManager.isProfileOwnerApp(cdmDeviceAdmin.getPackageName())) {
+						devicePolicyManager.wipeData(0);
+					}
+
 				} else {
 					Log.e(TAG, "There is no valid IP to contact the server");
 					CommonDialogUtils.stopProgressDialog(progressDialog);

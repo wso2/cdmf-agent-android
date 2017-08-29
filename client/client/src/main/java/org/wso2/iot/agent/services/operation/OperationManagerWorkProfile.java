@@ -475,7 +475,7 @@ public class OperationManagerWorkProfile extends OperationManager {
             if (whiteListApps != null) {
                 for (String packageName: alreadyInstalledApps) {
                     if(!packageName.equals(getCdmDeviceAdmin().getPackageName())) {     //Skip agent app.
-                        for (int i = 0; i < whiteListApps.length(); i++) {              //todo:foreach
+                        for (int i = 0; i < whiteListApps.length(); i++) {
                             permittedApp = new JSONObject(whiteListApps.getString(i));
                             permittedPackageName = permittedApp.getString(Constants.AppRestriction.PACKAGE_NAME);
                             if (Objects.equals(permittedPackageName, packageName)) {

@@ -268,7 +268,8 @@ public class PolicyRevokeHandler {
                             getString(context, Constants.AppRestriction.DISALLOWED_APPS);
                     if (disallowedApps != null) {
                         String[] disallowedAppsArray =
-                                disallowedApps.split(context.getString(R.string.whitelist_package_split_regex));
+                                disallowedApps.split(context.
+                                        getString(R.string.whitelist_package_split_regex));
                         for (String appName : disallowedAppsArray) {
                             //Enabling previously hidden apps due to App white-list restriction.
                             devicePolicyManager.setApplicationHidden(deviceAdmin, appName, false);

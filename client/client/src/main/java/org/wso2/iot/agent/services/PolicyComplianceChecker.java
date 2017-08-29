@@ -124,7 +124,7 @@ public class PolicyComplianceChecker {
                 policy.setCompliance(true);
                 return policy;
             case Constants.Operation.APP_RESTRICTION:
-                    return operationManager.checkAppRestrictionPolicy(operation, policy);
+                return operationManager.checkAppRestrictionPolicy(operation, policy);
             default:
                 throw new AndroidAgentException("Invalid operation code received");
         }

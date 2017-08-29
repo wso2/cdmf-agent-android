@@ -310,7 +310,6 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 	/**
 	 * Send unregistration request.
 	 */
-	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	private void startUnRegistration() {
 		progressDialog = ProgressDialog.show(context,
 						getResources().getString(R.string.dialog_message_unregistering),
@@ -335,8 +334,10 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 					                           null, AlreadyRegisteredActivity.this,
 					                           Constants.UNREGISTER_REQUEST_CODE);
 
-					if (devicePolicyManager.isProfileOwnerApp(cdmDeviceAdmin.getPackageName())) {
-						devicePolicyManager.wipeData(0);
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+						if (devicePolicyManager.isProfileOwnerApp(cdmDeviceAdmin.getPackageName())) {
+							devicePolicyManager.wipeData(0);
+						}
 					}
 
 				} else {

@@ -82,7 +82,6 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onReceive(Context context, final Intent intent) {
         String status = null;
@@ -91,7 +90,7 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
         switch (intent.getAction()) {
             case Intent.ACTION_PACKAGE_ADDED:
                 status = "added";
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     applyEnforcement(intent.getData().getEncodedSchemeSpecificPart());
                 }
                 break;

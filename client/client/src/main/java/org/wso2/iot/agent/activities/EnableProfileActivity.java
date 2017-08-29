@@ -34,6 +34,7 @@ import org.wso2.iot.agent.utils.Constants;
  */
 public class EnableProfileActivity extends Activity {
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -556,7 +556,7 @@ public class Constants {
 		public static final String PACKAGE_NAME = "packageName";
 		public static final String APP_LIST = "appList";
 		public static final String WHITE_LIST_APPS = "whiteListApps";
-
+		public static final String DISALLOWED_APPS = "disallowedApps";
 		private AppRestriction() {
 			throw new AssertionError();
 		}

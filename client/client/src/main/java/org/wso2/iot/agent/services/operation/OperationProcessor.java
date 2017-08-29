@@ -46,7 +46,6 @@ public class OperationProcessor {
 
 	private static final String TAG = OperationProcessor.class.getSimpleName();
 
-
 	public OperationProcessor(Context context) {
 		this.context = context;
 

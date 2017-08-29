@@ -22,6 +22,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -46,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 
 public class OperationManagerWorkProfile extends OperationManager {
 
@@ -418,6 +420,7 @@ public class OperationManagerWorkProfile extends OperationManager {
         Log.d(TAG, "Operation not supported.");
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void restrictAccessToApplications(Operation operation) throws AndroidAgentException {
         AppRestriction appRestriction = CommonUtils.getAppRestrictionTypeAndList(operation, getResultBuilder(), getContextResources());
@@ -457,9 +460,52 @@ public class OperationManagerWorkProfile extends OperationManager {
             }
             Preference.putString(getContext(),
                     Constants.AppRestriction.WHITE_LIST_APPS, whiteListApps.toString());
+            validateInstalledApps();
         }
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void validateInstalledApps() {
+        List<String> alreadyInstalledApps = CommonUtils.getInstalledAppPackagesByUser(getContext());
+        JSONObject permittedApp;
+        String permissionName;
+        Boolean isAllowed = false;
+        String permittedPackageName;
+        JSONArray whiteListApps;
+        try {
+            whiteListApps = new JSONArray(Preference.getString(getContext(), Constants.AppRestriction.WHITE_LIST_APPS));
+            if (whiteListApps != null) {
+                for (String packageName: alreadyInstalledApps) {
+                    if(!packageName.equals(getCdmDeviceAdmin().getPackageName())) {     //Skip agent app.
+                        for (int i = 0; i < whiteListApps.length(); i++) {              //todo:foreach
+                            permittedApp = new JSONObject(whiteListApps.getString(i));
+                            permittedPackageName = permittedApp.getString(Constants.AppRestriction.PACKAGE_NAME);
+                            if (Objects.equals(permittedPackageName, packageName)) {
+                                permissionName = permittedApp.getString(Constants.AppRestriction.RESTRICTION_TYPE);
+                                if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
+                                    isAllowed = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if(!isAllowed) {
+                                String disallowedApps = Preference.
+                                        getString(getContext(), Constants.AppRestriction.DISALLOWED_APPS);
+                                disallowedApps = disallowedApps +
+                                        getContext().getString(R.string.whitelist_package_split_regex) +
+                                        packageName;
+                                Preference.putString(getContext(), Constants.AppRestriction.DISALLOWED_APPS, disallowedApps);
+                                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
+                        }
+                        isAllowed = false;
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Invalid JSON format..");
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)

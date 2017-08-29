@@ -27,7 +27,6 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -51,8 +50,6 @@ import java.util.Objects;
 public class ApplicationStateListener extends BroadcastReceiver implements AlertEventListener {
     private static final String TAG = ApplicationStateListener.class.getName();
     private Context context;
-    private DevicePolicyManager devicePolicyManager;
-    private ComponentName cdmfDeviceAdmin;
 
     @Override
     public void startListening() {
@@ -132,8 +129,13 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
         }
     }
 
+    /**
+     * This method will check if the app just installed is allowed if a app white-listing policy is enforced.
+     */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void applyEnforcement(String packageName) {
+        DevicePolicyManager devicePolicyManager;
+        ComponentName cdmfDeviceAdmin;
         devicePolicyManager =
                 (DevicePolicyManager) context.getApplicationContext().getSystemService(Context.DEVICE_POLICY_SERVICE);
         cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(context.getApplicationContext());
@@ -142,27 +144,35 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
             JSONObject permittedApp;
             String permissionName;
             Boolean isAllowed = false;
-            try {
-                JSONArray whiteListApps = new JSONArray(Preference.getString(context, Constants.AppRestriction.WHITE_LIST_APPS));
-                if (!whiteListApps.equals(null)) {
-                    for (int i = 0; i < whiteListApps.length(); i++) {                     //since foreach cannot be applied to JSONArray
-                        permittedApp = new JSONObject(whiteListApps.getString(i));
-                        permittedPackageName = permittedApp.getString(Constants.AppRestriction.PACKAGE_NAME);
-                        if (Objects.equals(permittedPackageName, packageName)) {
-                            permissionName = permittedApp.getString(Constants.AppRestriction.RESTRICTION_TYPE);
-                            if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
-                                isAllowed = true;
-                                Toast.makeText(context,"YES!!", Toast.LENGTH_SHORT).show();
-                                break;
+            String whiteListAppsPref = Preference.getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
+            if(whiteListAppsPref != null) {
+                try {
+                    JSONArray whiteListApps = new JSONArray(whiteListAppsPref);
+                    if (whiteListApps != null) {
+                        for (int i = 0; i < whiteListApps.length(); i++) {                     //since foreach cannot be applied to JSONArray
+                            permittedApp = new JSONObject(whiteListApps.getString(i));
+                            permittedPackageName = permittedApp.getString(Constants.AppRestriction.PACKAGE_NAME);
+                            if (Objects.equals(permittedPackageName, packageName)) {
+                                permissionName = permittedApp.getString(Constants.AppRestriction.RESTRICTION_TYPE);
+                                if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
+                                    isAllowed = true;
+                                    break;
+                                }
                             }
                         }
                     }
+                    if (!isAllowed) {
+                        String disallowedApps = Preference.
+                                getString(context, Constants.AppRestriction.DISALLOWED_APPS);
+                        disallowedApps = disallowedApps +
+                                context.getString(R.string.whitelist_package_split_regex) +
+                                packageName;
+                        Preference.putString(context, Constants.AppRestriction.DISALLOWED_APPS, disallowedApps);
+                        devicePolicyManager.setApplicationHidden(cdmfDeviceAdmin, packageName, true);
+                    }
+                } catch (JSONException e) {
+                    Log.e(TAG, "Invalid JSON format..");
                 }
-                if(!isAllowed) {
-                    devicePolicyManager.setApplicationHidden(cdmfDeviceAdmin, packageName, true);
-                }
-            } catch (JSONException e) {
-                Log.e(TAG, "Invalid JSON format..");
             }
         }
     }

@@ -19,6 +19,8 @@ package org.wso2.iot.agent.services;
 
 import android.content.Context;
 
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.beans.ComplianceFeature;
@@ -51,6 +53,7 @@ public class PolicyComplianceChecker {
      * @param operation - Operation object.
      * @return policy - ComplianceFeature object.
      */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public ComplianceFeature checkPolicyState(org.wso2.iot.agent.beans.Operation operation)
             throws AndroidAgentException {
 

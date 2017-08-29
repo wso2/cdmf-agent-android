@@ -1200,6 +1200,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @return - Compliance feature object
      * @throws AndroidAgentException
      */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public ComplianceFeature checkAppRestrictionPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
 
         AppRestriction appRestriction =
@@ -1216,11 +1217,17 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 }
             }
         } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
-            List<String> remainApps = new ArrayList<>(installedAppPackages);
-            remainApps.removeAll(appRestriction.getRestrictedList());
-            if (remainApps.size() >0) {
-                policy.setCompliance(false);
-                return policy;
+            if(devicePolicyManager.isProfileOwnerApp(cdmDeviceAdmin.getPackageName())) {
+                List<String> remainApps = new ArrayList<>(installedAppPackages);
+
+            }
+            else {
+                List<String> remainApps = new ArrayList<>(installedAppPackages);
+                remainApps.removeAll(appRestriction.getRestrictedList());
+                if (remainApps.size() > 0) {
+                    policy.setCompliance(false);
+                    return policy;
+                }
             }
         }
         policy.setCompliance(true);

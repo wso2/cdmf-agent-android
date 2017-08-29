@@ -124,9 +124,7 @@ public class PolicyComplianceChecker {
                 policy.setCompliance(true);
                 return policy;
             case Constants.Operation.APP_RESTRICTION:
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     return operationManager.checkAppRestrictionPolicy(operation, policy);
-                }
             default:
                 throw new AndroidAgentException("Invalid operation code received");
         }

@@ -438,8 +438,7 @@ public class OperationManagerWorkProfile extends OperationManager {
 
             getContext().startService(restrictionIntent);
 
-        }
-        else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
+        } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
             ArrayList appList = (ArrayList)appRestriction.getRestrictedList();
             JSONArray whiteListApps = new JSONArray();
             for (Object appObj: appList) {

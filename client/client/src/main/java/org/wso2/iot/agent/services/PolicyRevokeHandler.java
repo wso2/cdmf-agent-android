@@ -262,9 +262,10 @@ public class PolicyRevokeHandler {
                 CommonUtils.callSystemApp(context, operation.getCode(), "true", packageName);
             }
         } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                if (devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
-                    String disallowedApps = Preference.getString(context, Constants.AppRestriction.DISALLOWED_APPS);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
+                        devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
+                    String disallowedApps = Preference.
+                            getString(context, Constants.AppRestriction.DISALLOWED_APPS);
                     if (disallowedApps != null) {
                         String[] disallowedAppsArray =
                                 disallowedApps.split(context.getString(R.string.whitelist_package_split_regex));
@@ -285,7 +286,6 @@ public class PolicyRevokeHandler {
                         CommonUtils.callSystemApp(context, operation.getCode(), "true", packageName);
                     }
                 }
-            }
         }
     }
 

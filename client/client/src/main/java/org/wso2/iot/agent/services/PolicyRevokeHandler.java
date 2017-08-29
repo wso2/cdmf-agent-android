@@ -262,8 +262,9 @@ public class PolicyRevokeHandler {
                 CommonUtils.callSystemApp(context, operation.getCode(), "true", packageName);
             }
         } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
-                        devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && (
+                        devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE) ||
+                                devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE))) {
                     String disallowedApps = Preference.
                             getString(context, Constants.AppRestriction.DISALLOWED_APPS);
                     if (disallowedApps != null) {

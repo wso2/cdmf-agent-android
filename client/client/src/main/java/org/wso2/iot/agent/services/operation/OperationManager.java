@@ -1217,7 +1217,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             }
         } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
-                        devicePolicyManager.isProfileOwnerApp(cdmDeviceAdmin.getPackageName())) {
+                        (devicePolicyManager.isProfileOwnerApp(cdmDeviceAdmin.getPackageName()) ||
+                        devicePolicyManager.isDeviceOwnerApp(cdmDeviceAdmin.getPackageName()))) {
                     List<String> remainApps = new ArrayList<>
                             (CommonUtils.getInstalledAppPackagesByUser(getContext()));
                     String permittedPackageName;

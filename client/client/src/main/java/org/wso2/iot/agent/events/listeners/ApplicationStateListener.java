@@ -140,7 +140,8 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
                 (DevicePolicyManager) context.getApplicationContext().
                         getSystemService(Context.DEVICE_POLICY_SERVICE);
         cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(context.getApplicationContext());
-        if(devicePolicyManager.isProfileOwnerApp(cdmfDeviceAdmin.getPackageName())) {
+        if(devicePolicyManager.isProfileOwnerApp(cdmfDeviceAdmin.getPackageName()) ||
+                devicePolicyManager.isDeviceOwnerApp(cdmfDeviceAdmin.getPackageName())) {
             String permittedPackageName;
             JSONObject permittedApp;
             String permissionName;
@@ -178,6 +179,8 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
                     Log.e(TAG, "Invalid JSON format..");
                 }
             }
+        } else if (CommonUtils.isSystemAppInstalled(context)) {
+            //todo: write for System Servcice App COPE
         }
     }
 }

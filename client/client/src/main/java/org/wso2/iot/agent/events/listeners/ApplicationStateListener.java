@@ -18,18 +18,30 @@
 
 package org.wso2.iot.agent.events.listeners;
 
+import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
+import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.events.EventRegistry;
 import org.wso2.iot.agent.events.beans.ApplicationStatus;
 import org.wso2.iot.agent.events.beans.EventPayload;
 import org.wso2.iot.agent.events.publisher.HttpDataPublisher;
+import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
+import org.wso2.iot.agent.utils.Preference;
+
+import java.util.Objects;
 
 /**
  * Listening to application state changes such as an app getting installed, uninstalled,
@@ -37,6 +49,7 @@ import org.wso2.iot.agent.utils.Constants;
  */
 public class ApplicationStateListener extends BroadcastReceiver implements AlertEventListener {
     private static final String TAG = ApplicationStateListener.class.getName();
+    private Context context;
 
     @Override
     public void startListening() {
@@ -73,9 +86,13 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
     public void onReceive(Context context, final Intent intent) {
         String status = null;
         ApplicationStatus applicationState;
+        this.context = context;
         switch (intent.getAction()) {
             case Intent.ACTION_PACKAGE_ADDED:
                 status = "added";
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    applyEnforcement(intent.getData().getEncodedSchemeSpecificPart());
+                }
                 break;
             case Intent.ACTION_PACKAGE_REMOVED:
                 status = "removed";
@@ -103,10 +120,63 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
             } catch (AndroidAgentException e) {
                 Log.e(TAG, "Could not convert to JSON");
             }
-            if (Intent.ACTION_PACKAGE_REPLACED.equals(intent.getAction()) && Constants.AGENT_PACKAGE.equals(packageName)){
+            if (Intent.ACTION_PACKAGE_REPLACED.equals(intent.getAction()) &&
+                    Constants.AGENT_PACKAGE.equals(packageName)){
                 Intent broadcastIntent = new Intent();
                 broadcastIntent.setAction(Constants.AGENT_UPDATED_BROADCAST_ACTION);
                 context.sendBroadcast(broadcastIntent);
+            }
+        }
+    }
+
+    /**
+     * This method will check if the app just installed is allowed if a app white-listing policy is enforced.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void applyEnforcement(String packageName) {
+        DevicePolicyManager devicePolicyManager;
+        ComponentName cdmfDeviceAdmin;
+        devicePolicyManager =
+                (DevicePolicyManager) context.getApplicationContext().
+                        getSystemService(Context.DEVICE_POLICY_SERVICE);
+        cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(context.getApplicationContext());
+        if(devicePolicyManager.isProfileOwnerApp(cdmfDeviceAdmin.getPackageName())) {
+            String permittedPackageName;
+            JSONObject permittedApp;
+            String permissionName;
+            Boolean isAllowed = false;
+            String whiteListAppsPref = Preference.
+                    getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
+            if(whiteListAppsPref != null) {
+                try {
+                    JSONArray whiteListApps = new JSONArray(whiteListAppsPref);
+                    for (int i = 0; i < whiteListApps.length(); i++) {
+                        permittedApp = new JSONObject(whiteListApps.getString(i));
+                        permittedPackageName = permittedApp.
+                                getString(Constants.AppRestriction.PACKAGE_NAME);
+                        if (Objects.equals(permittedPackageName, packageName)) {
+                            permissionName = permittedApp.
+                                    getString(Constants.AppRestriction.RESTRICTION_TYPE);
+                            if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
+                                isAllowed = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!isAllowed) {
+                        String disallowedApps = Preference.
+                                getString(context, Constants.AppRestriction.DISALLOWED_APPS);
+                        disallowedApps = disallowedApps +
+                                context.getString(R.string.whitelist_package_split_regex) +
+                                packageName;
+                        Preference.putString(context, Constants.
+                                AppRestriction.DISALLOWED_APPS, disallowedApps);
+                        devicePolicyManager.
+                                setApplicationHidden(cdmfDeviceAdmin, packageName, true);
+                    }
+                } catch (JSONException e) {
+                    Log.e(TAG, "Invalid JSON format..");
+                }
             }
         }
     }

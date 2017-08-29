@@ -612,16 +612,13 @@ public class OperationManagerBYOD extends OperationManager {
 
                 getContext().startService(restrictionIntent);
             } else if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
-
                 for (String packageName : appRestriction.getRestrictedList()) {
                     CommonUtils.callSystemApp(getContext(), operation.getCode(), "false", packageName);
                 }
             }
-
         }
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
-
     }
 
     @Override

@@ -262,14 +262,32 @@ public class PolicyRevokeHandler {
                 CommonUtils.callSystemApp(context, operation.getCode(), "true", packageName);
             }
         } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
-            List<String> installedAppPackages = CommonUtils.getAppsOfUser(context);
-            List<String> toBeUnHideApps = new ArrayList<>(installedAppPackages);
-            toBeUnHideApps.removeAll(appRestriction.getRestrictedList());
-            for (String packageName : toBeUnHideApps) {
-                CommonUtils.callSystemApp(context, operation.getCode(), "true", packageName);
-            }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
+                        devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
+                    String disallowedApps = Preference.
+                            getString(context, Constants.AppRestriction.DISALLOWED_APPS);
+                    if (disallowedApps != null) {
+                        String[] disallowedAppsArray =
+                                disallowedApps.split(context.
+                                        getString(R.string.whitelist_package_split_regex));
+                        for (String appName : disallowedAppsArray) {
+                            //Enabling previously hidden apps due to App white-list restriction.
+                            devicePolicyManager.setApplicationHidden(deviceAdmin, appName, false);
+                        }
+                    }
+                    Preference.putString(this.context,
+                            Constants.AppRestriction.DISALLOWED_APPS, "");
+                    Preference.putString(this.context,
+                            Constants.AppRestriction.WHITE_LIST_APPS, "");
+                } else {
+                    List<String> installedAppPackages = CommonUtils.getAppsOfUser(context);
+                    List<String> toBeUnHideApps = new ArrayList<>(installedAppPackages);
+                    toBeUnHideApps.removeAll(appRestriction.getRestrictedList());
+                    for (String packageName : toBeUnHideApps) {
+                        CommonUtils.callSystemApp(context, operation.getCode(), "true", packageName);
+                    }
+                }
         }
-
     }
 
     /**

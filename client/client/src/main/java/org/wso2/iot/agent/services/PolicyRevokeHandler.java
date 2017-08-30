@@ -256,7 +256,7 @@ public class PolicyRevokeHandler {
 
         AppRestriction appRestriction =
                 CommonUtils.getAppRestrictionTypeAndList(operation, null, null);
-
+        String ownershipType = Preference.getString(context, Constants.DEVICE_TYPE);
         if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
             for (String packageName : appRestriction.getRestrictedList()) {
                 CommonUtils.callSystemApp(context, operation.getCode(), "true", packageName);
@@ -275,7 +275,7 @@ public class PolicyRevokeHandler {
                     for (String appName : disallowedAppsArray) {
                             devicePolicyManager.setApplicationHidden(deviceAdmin, appName, false);
                     }
-                } else {
+                } else if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
                     for (String appName : disallowedAppsArray) {
                         CommonUtils.callSystemApp(context, operation.getCode(), "true", appName);
                     }

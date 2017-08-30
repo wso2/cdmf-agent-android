@@ -140,15 +140,17 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
                 (DevicePolicyManager) context.getApplicationContext().
                         getSystemService(Context.DEVICE_POLICY_SERVICE);
         cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(context.getApplicationContext());
+        String ownershipType = Preference.getString(context, Constants.DEVICE_TYPE);
         if(devicePolicyManager.isProfileOwnerApp(cdmfDeviceAdmin.getPackageName()) ||
-                devicePolicyManager.isDeviceOwnerApp(cdmfDeviceAdmin.getPackageName())) {
+                devicePolicyManager.isDeviceOwnerApp(cdmfDeviceAdmin.getPackageName()) ||
+                Constants.OWNERSHIP_COPE.equals(ownershipType)) {
             String permittedPackageName;
             JSONObject permittedApp;
             String permissionName;
             Boolean isAllowed = false;
             String whiteListAppsPref = Preference.
                     getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
-            if(whiteListAppsPref != null) {
+            if(!whiteListAppsPref.equals("") && whiteListAppsPref != null) {
                 try {
                     JSONArray whiteListApps = new JSONArray(whiteListAppsPref);
                     for (int i = 0; i < whiteListApps.length(); i++) {
@@ -172,14 +174,19 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
                                 packageName;
                         Preference.putString(context, Constants.
                                 AppRestriction.DISALLOWED_APPS, disallowedApps);
-                        devicePolicyManager.
-                                setApplicationHidden(cdmfDeviceAdmin, packageName, true);
+                        if(!Constants.OWNERSHIP_COPE.equals(ownershipType)) {
+                            devicePolicyManager.
+                                    setApplicationHidden(cdmfDeviceAdmin, packageName, true);
+                        } else {
+                            CommonUtils.callSystemApp(context,
+                                    Constants.Operation.APP_RESTRICTION, "false" , packageName);
+                        }
                     }
                 } catch (JSONException e) {
                     Log.e(TAG, "Invalid JSON format..");
                 }
             }
-        } else if (CommonUtils.isSystemAppInstalled(context)) {
+        } else {
             //todo: write for System Servcice App COPE
         }
     }

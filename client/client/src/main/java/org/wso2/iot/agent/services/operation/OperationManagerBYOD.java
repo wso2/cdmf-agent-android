@@ -579,19 +579,35 @@ public class OperationManagerBYOD extends OperationManager {
     public void restrictAccessToApplications(Operation operation) throws AndroidAgentException {
 
         AppRestriction appRestriction = CommonUtils.getAppRestrictionTypeAndList(operation, getResultBuilder(), getContextResources());
-
         String ownershipType = Preference.getString(getContext(), Constants.DEVICE_TYPE);
 
         if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
             if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
-
+                ArrayList appList = (ArrayList)appRestriction.getRestrictedList();
+                //Removing existing non-white-listed apps.
                 List<String> installedAppPackages = CommonUtils.getInstalledAppPackages(getContext());
-
                 List<String> toBeHideApps = new ArrayList<>(installedAppPackages);
-                toBeHideApps.removeAll(appRestriction.getRestrictedList());
+                toBeHideApps.removeAll(appList);
                 for (String packageName : toBeHideApps) {
                     CommonUtils.callSystemApp(getContext(), operation.getCode(), "false" , packageName);
                 }
+                //Persisting white-listed app list.
+                JSONArray whiteListApps = new JSONArray();
+                for (Object appObj: appList) {
+                    JSONObject app = new JSONObject();
+                    try {
+                        app.put(Constants.AppRestriction.PACKAGE_NAME,appObj.toString());
+                        app.put(Constants.AppRestriction.RESTRICTION_TYPE, Constants.AppRestriction.WHITE_LIST);
+                        whiteListApps.put(app);
+                    } catch (JSONException e) {
+                        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+                        operation.setOperationResponse("Error in parsing app white-list payload.");
+                        getResultBuilder().build(operation);
+                        throw new AndroidAgentException("Invalid JSON format for app white-list bundle.", e);
+                    }
+                }
+                Preference.putString(getContext(),
+                        Constants.AppRestriction.WHITE_LIST_APPS, whiteListApps.toString());
             }
         }
         else if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {

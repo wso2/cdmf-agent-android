@@ -1216,43 +1216,32 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 }
             }
         } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
-                        (devicePolicyManager.isProfileOwnerApp(cdmDeviceAdmin.getPackageName()) ||
-                        devicePolicyManager.isDeviceOwnerApp(cdmDeviceAdmin.getPackageName()))) {
-                    List<String> remainApps = new ArrayList<>
-                            (CommonUtils.getInstalledAppPackagesByUser(getContext()));
-                    String permittedPackageName;
-                    JSONObject permittedApp;
-                    String whiteListAppsPref;
-                    for (String packageName: remainApps) {
-                        whiteListAppsPref = Preference.
-                                getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
-                        if(whiteListAppsPref != null) {
-                            try {
-                                JSONArray whiteListApps = new JSONArray(whiteListAppsPref);
-                                for (int i = 0; i < whiteListApps.length(); i++) {
-                                    permittedApp = new JSONObject(whiteListApps.getString(i));
-                                    permittedPackageName = permittedApp.
-                                            getString(Constants.AppRestriction.PACKAGE_NAME);
-                                    if (!Objects.equals(permittedPackageName, packageName)) {
-                                        policy.setCompliance(false);
-                                        return policy;
-                                    }
-                                }
-                            } catch (JSONException e) {
-                                Log.e(TAG, "Invalid JSON format..");
+            List<String> remainApps = new ArrayList<>
+                    (CommonUtils.getInstalledAppPackagesByUser(getContext()));
+            String permittedPackageName;
+            JSONObject permittedApp;
+            String whiteListAppsPref;
+            for (String packageName: remainApps) {
+                whiteListAppsPref = Preference.
+                        getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
+                if(whiteListAppsPref != null) {
+                    try {
+                        JSONArray whiteListApps = new JSONArray(whiteListAppsPref);
+                        for (int i = 0; i < whiteListApps.length(); i++) {
+                            permittedApp = new JSONObject(whiteListApps.getString(i));
+                            permittedPackageName = permittedApp.
+                                    getString(Constants.AppRestriction.PACKAGE_NAME);
+                            if (!permittedPackageName.equals(packageName)) {
+                                policy.setCompliance(false);
+                                return policy;
                             }
                         }
-                    }
-                } else {
-                    List<String> remainApps = new ArrayList<>(installedAppPackages);
-                    remainApps.removeAll(appRestriction.getRestrictedList());
-                    if (remainApps.size() > 0) {
-                        policy.setCompliance(false);
-                        return policy;
+                    } catch (JSONException e) {
+                                Log.e(TAG, "Invalid JSON format..");
                     }
                 }
             }
+        }
         policy.setCompliance(true);
         return policy;
     }

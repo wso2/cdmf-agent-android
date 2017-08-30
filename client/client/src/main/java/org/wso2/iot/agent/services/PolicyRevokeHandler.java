@@ -256,37 +256,34 @@ public class PolicyRevokeHandler {
 
         AppRestriction appRestriction =
                 CommonUtils.getAppRestrictionTypeAndList(operation, null, null);
-
+        String ownershipType = Preference.getString(context, Constants.DEVICE_TYPE);
         if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
             for (String packageName : appRestriction.getRestrictedList()) {
                 CommonUtils.callSystemApp(context, operation.getCode(), "true", packageName);
             }
         } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
-                        devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
-                    String disallowedApps = Preference.
-                            getString(context, Constants.AppRestriction.DISALLOWED_APPS);
-                    if (disallowedApps != null) {
-                        String[] disallowedAppsArray =
-                                disallowedApps.split(context.
-                                        getString(R.string.whitelist_package_split_regex));
-                        for (String appName : disallowedAppsArray) {
-                            //Enabling previously hidden apps due to App white-list restriction.
+            String disallowedApps = Preference.
+                    getString(context, Constants.AppRestriction.DISALLOWED_APPS);
+            if (disallowedApps != null) {
+                String[] disallowedAppsArray =
+                        disallowedApps.split(context.
+                                getString(R.string.whitelist_package_split_regex));
+                //Enabling previously hidden apps due to App white-list restriction.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && (
+                        devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE) ||
+                                devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE))) {
+                    for (String appName : disallowedAppsArray) {
                             devicePolicyManager.setApplicationHidden(deviceAdmin, appName, false);
-                        }
                     }
-                    Preference.putString(this.context,
-                            Constants.AppRestriction.DISALLOWED_APPS, "");
-                    Preference.putString(this.context,
-                            Constants.AppRestriction.WHITE_LIST_APPS, "");
-                } else {
-                    List<String> installedAppPackages = CommonUtils.getAppsOfUser(context);
-                    List<String> toBeUnHideApps = new ArrayList<>(installedAppPackages);
-                    toBeUnHideApps.removeAll(appRestriction.getRestrictedList());
-                    for (String packageName : toBeUnHideApps) {
-                        CommonUtils.callSystemApp(context, operation.getCode(), "true", packageName);
+                } else if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
+                    for (String appName : disallowedAppsArray) {
+                        CommonUtils.callSystemApp(context, operation.getCode(), "true", appName);
                     }
                 }
+                //Clean persisted app lists.
+                Preference.putString(this.context, Constants.AppRestriction.DISALLOWED_APPS, "");
+                Preference.putString(this.context, Constants.AppRestriction.WHITE_LIST_APPS, "");
+            }
         }
     }
 

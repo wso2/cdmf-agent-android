@@ -43,6 +43,7 @@ import org.wso2.iot.agent.utils.Preference;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class OperationManagerDeviceOwner extends OperationManager {
     private static final String TAG = OperationManagerDeviceOwner.class.getSimpleName();
@@ -615,27 +616,84 @@ public class OperationManagerDeviceOwner extends OperationManager {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void restrictAccessToApplications(Operation operation) throws AndroidAgentException {
-
-        AppRestriction appRestriction = CommonUtils.getAppRestrictionTypeAndList(operation, getResultBuilder(), getContextResources());
+        AppRestriction appRestriction = CommonUtils.
+                getAppRestrictionTypeAndList(operation, getResultBuilder(), getContextResources());
 
         if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
-            List<String> installedAppPackagesByUser = CommonUtils.getInstalledAppPackagesByUser(getContext());
-            List<String> toBeHideApps = new ArrayList<>(installedAppPackagesByUser);
-            toBeHideApps.removeAll(appRestriction.getRestrictedList());
-            toBeHideApps.remove(Constants.SYSTEM_SERVICE_PACKAGE);
-            toBeHideApps.remove(Constants.AGENT_PACKAGE);
-            for (String packageName : toBeHideApps) {
-                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, false);
+            ArrayList appList = (ArrayList)appRestriction.getRestrictedList();
+            JSONArray whiteListApps = new JSONArray();
+            for (Object appObj: appList) {
+                JSONObject app = new JSONObject();
+                try {
+                    app.put(Constants.AppRestriction.PACKAGE_NAME,appObj.toString());
+                    app.put(Constants.AppRestriction.
+                            RESTRICTION_TYPE, Constants.AppRestriction.WHITE_LIST);
+                    whiteListApps.put(app);
+                } catch (JSONException e) {
+                    operation.setStatus(getContextResources().
+                            getString(R.string.operation_value_error));
+                    operation.setOperationResponse("Error in parsing app white-list payload.");
+                    getResultBuilder().build(operation);
+                    throw new AndroidAgentException("Invalid JSON format for app white-list bundle.", e);
+                }
             }
+            Preference.putString(getContext(),
+                    Constants.AppRestriction.WHITE_LIST_APPS, whiteListApps.toString());
+            validateInstalledApps();
         } else if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
-
             for (String packageName : appRestriction.getRestrictedList()) {
                 getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
             }
         }
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
+    }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void validateInstalledApps() {
+        List<String> alreadyInstalledApps = CommonUtils.getInstalledAppPackagesByUser(getContext());
+        JSONObject permittedApp;
+        String permissionName;
+        Boolean isAllowed = false;
+        String permittedPackageName;
+        JSONArray whiteListApps;
+        try {
+            whiteListApps = new JSONArray(Preference.getString(getContext(),
+                    Constants.AppRestriction.WHITE_LIST_APPS));
+            if (whiteListApps != null) {
+                for (String packageName: alreadyInstalledApps) {
+                    if(!packageName.equals(getCdmDeviceAdmin().getPackageName())) {     //Skip agent app.
+                        for (int i = 0; i < whiteListApps.length(); i++) {
+                            permittedApp = new JSONObject(whiteListApps.getString(i));
+                            permittedPackageName = permittedApp.
+                                    getString(Constants.AppRestriction.PACKAGE_NAME);
+                            if (Objects.equals(permittedPackageName, packageName)) {
+                                permissionName = permittedApp.
+                                        getString(Constants.AppRestriction.RESTRICTION_TYPE);
+                                if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
+                                    isAllowed = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if(!isAllowed) {
+                            String disallowedApps = Preference.
+                                    getString(getContext(), Constants.AppRestriction.DISALLOWED_APPS);
+                            disallowedApps = disallowedApps +
+                                    getContext().getString(R.string.whitelist_package_split_regex) +
+                                    packageName;
+                            Preference.putString(getContext(),
+                                    Constants.AppRestriction.DISALLOWED_APPS, disallowedApps);
+                            getDevicePolicyManager().
+                                    setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
+                        }
+                        isAllowed = false;
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Invalid JSON format..");
+        }
     }
 
     @Override

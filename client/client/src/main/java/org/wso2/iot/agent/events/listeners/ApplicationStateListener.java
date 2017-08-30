@@ -25,7 +25,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
 import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -40,8 +39,6 @@ import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
-
-import java.util.Objects;
 
 /**
  * Listening to application state changes such as an app getting installed, uninstalled,
@@ -90,9 +87,7 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
         switch (intent.getAction()) {
             case Intent.ACTION_PACKAGE_ADDED:
                 status = "added";
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     applyEnforcement(intent.getData().getEncodedSchemeSpecificPart());
-                }
                 break;
             case Intent.ACTION_PACKAGE_REMOVED:
                 status = "removed";
@@ -132,7 +127,6 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
     /**
      * This method will check if the app just installed is allowed if a app white-listing policy is enforced.
      */
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void applyEnforcement(String packageName) {
         DevicePolicyManager devicePolicyManager;
         ComponentName cdmfDeviceAdmin;
@@ -140,43 +134,51 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
                 (DevicePolicyManager) context.getApplicationContext().
                         getSystemService(Context.DEVICE_POLICY_SERVICE);
         cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(context.getApplicationContext());
-        if(devicePolicyManager.isProfileOwnerApp(cdmfDeviceAdmin.getPackageName())) {
-            String permittedPackageName;
-            JSONObject permittedApp;
-            String permissionName;
-            Boolean isAllowed = false;
-            String whiteListAppsPref = Preference.
+        String permittedPackageName;
+        JSONObject permittedApp;
+        String permissionName;
+        Boolean isAllowed = false;
+        String whiteListAppsPref = Preference.
                     getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
-            if(whiteListAppsPref != null) {
-                try {
-                    JSONArray whiteListApps = new JSONArray(whiteListAppsPref);
-                    for (int i = 0; i < whiteListApps.length(); i++) {
-                        permittedApp = new JSONObject(whiteListApps.getString(i));
-                        permittedPackageName = permittedApp.
-                                getString(Constants.AppRestriction.PACKAGE_NAME);
-                        if (Objects.equals(permittedPackageName, packageName)) {
-                            permissionName = permittedApp.
-                                    getString(Constants.AppRestriction.RESTRICTION_TYPE);
-                            if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
-                                isAllowed = true;
-                                break;
-                            }
+        String ownershipType = Preference.getString(context, Constants.DEVICE_TYPE);
+        if(!whiteListAppsPref.equals("")) {
+            try {
+                JSONArray whiteListApps = new JSONArray(whiteListAppsPref);
+                for (int i = 0; i < whiteListApps.length(); i++) {
+                    permittedApp = new JSONObject(whiteListApps.getString(i));
+                    permittedPackageName = permittedApp.
+                            getString(Constants.AppRestriction.PACKAGE_NAME);
+                    if (permittedPackageName.equals(packageName)) {
+                        permissionName = permittedApp.
+                                getString(Constants.AppRestriction.RESTRICTION_TYPE);
+                        if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
+                            isAllowed = true;
+                            break;
                         }
                     }
-                    if (!isAllowed) {
-                        String disallowedApps = Preference.
-                                getString(context, Constants.AppRestriction.DISALLOWED_APPS);
-                        disallowedApps = disallowedApps +
-                                context.getString(R.string.whitelist_package_split_regex) +
-                                packageName;
-                        Preference.putString(context, Constants.
-                                AppRestriction.DISALLOWED_APPS, disallowedApps);
-                        devicePolicyManager.
-                                setApplicationHidden(cdmfDeviceAdmin, packageName, true);
-                    }
-                } catch (JSONException e) {
-                    Log.e(TAG, "Invalid JSON format..");
                 }
+                if (!isAllowed) {
+                    String disallowedApps = Preference.
+                            getString(context, Constants.AppRestriction.DISALLOWED_APPS);
+                    disallowedApps = disallowedApps +
+                            context.getString(R.string.whitelist_package_split_regex) + packageName;
+                    Preference.putString(context, Constants.
+                            AppRestriction.DISALLOWED_APPS, disallowedApps);
+                        //Calls devicePolicyManager if the agent is profile-owner or device-owner.
+                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
+                            (devicePolicyManager.
+                                    isProfileOwnerApp(cdmfDeviceAdmin.getPackageName()) ||
+                                    devicePolicyManager.
+                                            isDeviceOwnerApp(cdmfDeviceAdmin.getPackageName()))) {
+                            devicePolicyManager.
+                                    setApplicationHidden(cdmfDeviceAdmin, packageName, true);
+                    } else if(Constants.OWNERSHIP_COPE.equals(ownershipType)){
+                        CommonUtils.callSystemApp(context,
+                                Constants.Operation.APP_RESTRICTION, "false" , packageName);
+                    }
+                }
+            } catch (JSONException e) {
+                    Log.e(TAG, "Invalid JSON format..");
             }
         }
     }

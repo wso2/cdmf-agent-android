@@ -28,13 +28,10 @@ import android.widget.Toast;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.utils.Constants;
 
-import static android.app.admin.DevicePolicyManager.ACTION_PROVISION_MANAGED_PROFILE;
-import static android.app.admin.DevicePolicyManager.EXTRA_PROVISIONING_DEVICE_ADMIN_PACKAGE_NAME;
-
 public class WorkProfileManager extends Activity {
 
     private static final int REQUEST_PROVISION_MANAGED_PROFILE = 1;
-    private static final String TAG = "WorkProfileManager";
+    private static final String TAG = WorkProfileManager.class.getSimpleName();
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -46,8 +43,10 @@ public class WorkProfileManager extends Activity {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void provisionManagedProfile() {
         Activity activity = this;
-        Intent intent = new Intent(ACTION_PROVISION_MANAGED_PROFILE);
-        intent.putExtra(EXTRA_PROVISIONING_DEVICE_ADMIN_PACKAGE_NAME,
+        Intent intent =
+                new Intent(android.app.admin.DevicePolicyManager.ACTION_PROVISION_MANAGED_PROFILE);
+        intent.putExtra(android.app.admin.
+                        DevicePolicyManager.EXTRA_PROVISIONING_DEVICE_ADMIN_PACKAGE_NAME,
                 activity.getApplicationContext().getPackageName());
         // Once the provisioning is done, user is prompted to uninstall the agent in personal profile.
         ApplicationManager applicationManager = new ApplicationManager(this.getApplicationContext());
@@ -62,10 +61,12 @@ public class WorkProfileManager extends Activity {
                 Log.e(TAG,"Thread is interrupted");
             }
             Toast.makeText(this,
-                    "When the work-profile is created, you can uninstall Agent in Personal Profile.",
+                    Constants.WorkProfile.MESSAGE_FOR_UNINSTALLING_AGENT,
                     Toast.LENGTH_LONG).show();
         } else {
-            Toast.makeText(activity, "Device provisioning is not enabled. Stopping.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity,
+                    Constants.WorkProfile.
+                            MESSAGE_DEVICE_PROVISIONING_NOT_ENABLED, Toast.LENGTH_SHORT).show();
         }
         finish();
     }
@@ -74,9 +75,9 @@ public class WorkProfileManager extends Activity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_PROVISION_MANAGED_PROFILE) {
             if (resultCode == Activity.RESULT_OK) {
-                Toast.makeText(this, "Provisioning done.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Constants.WorkProfile.PROVISIONING_DONE, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, "Provisioning failed.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Constants.WorkProfile.PROVISIONING_FAILED, Toast.LENGTH_SHORT).show();
             }
             return;
         }

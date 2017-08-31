@@ -113,26 +113,27 @@ public class KioskAppInstallationListener extends BroadcastReceiver {
         int permissionType;
 
         Log.d(TAG, "addIfPremissionEnforcementExist triggered.");
-
         try {
             JSONArray permittedAppsData = new JSONArray(Preference.getString(context,Constants.RuntimePermissionPolicy.PERMITTED_APP_DATA).toString());
-            for(int i = 0; i <permittedAppsData.length(); i++) {
-                permittedApp = new JSONObject(permittedAppsData.getString(i));
-                permittedPackageName = permittedApp.getString(Constants.RuntimePermissionPolicy.PACKAGE_NAME);
-                Log.d(TAG,permittedPackageName +" <-> " +installedPackageName);
-                if(Objects.equals(permittedPackageName, installedPackageName)) {
-                    Log.d(TAG, "packageName found of payload.");
-                    permissionName = permittedApp.getString(Constants.RuntimePermissionPolicy.PERMISSION_NAME);
-                    permissionType = Integer.parseInt(permittedApp.getString(Constants.RuntimePermissionPolicy.PERMISSION_TYPE));
+            if(!permittedAppsData.equals(null)) {
+                for (int i = 0; i < permittedAppsData.length(); i++) {
+                    permittedApp = new JSONObject(permittedAppsData.getString(i));
+                    permittedPackageName = permittedApp.getString(Constants.RuntimePermissionPolicy.PACKAGE_NAME);
+                    Log.d(TAG, permittedPackageName + " <-> " + installedPackageName);
+                    if (Objects.equals(permittedPackageName, installedPackageName)) {
+                        Log.d(TAG, "packageName found of payload.");
+                        permissionName = permittedApp.getString(Constants.RuntimePermissionPolicy.PERMISSION_NAME);
+                        permissionType = Integer.parseInt(permittedApp.getString(Constants.RuntimePermissionPolicy.PERMISSION_TYPE));
 
-                    if(permissionName.equals(Constants.RuntimePermissionPolicy.ALL_PERMISSIONS)){
-                        String[] permissionList = context.getResources().getStringArray(R.array.runtime_permission_list_array);
-                        for(String permission: permissionList){
-                            devicePolicyManager.setPermissionGrantState(cdmfDeviceAdmin, permittedPackageName, permission, permissionType);
+                        if (permissionName.equals(Constants.RuntimePermissionPolicy.ALL_PERMISSIONS)) {
+                            String[] permissionList = context.getResources().getStringArray(R.array.runtime_permission_list_array);
+                            for (String permission : permissionList) {
+                                devicePolicyManager.setPermissionGrantState(cdmfDeviceAdmin, permittedPackageName, permission, permissionType);
+                            }
                         }
+                        devicePolicyManager.setPermissionGrantState(cdmfDeviceAdmin, permittedPackageName, permissionName, permissionType);
+                        break;
                     }
-                    devicePolicyManager.setPermissionGrantState(cdmfDeviceAdmin, permittedPackageName, permissionName, permissionType);
-                    break;
                 }
             }
         } catch (JSONException e) {

@@ -24,19 +24,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.support.annotation.RequiresApi;
-import android.text.format.DateUtils;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.utils.Constants;
-import org.wso2.iot.agent.utils.Preference;
 
-import java.util.Calendar;
-import java.util.Date;
 /**
  * This class handles device lock-down functionality.
  */
@@ -51,14 +46,14 @@ public class KioskRestrictionActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_kiosk_lock_down);
         textViewLaunch = (TextView) findViewById(R.id.textViewLaunch);
-        textViewLaunch.setText("Device is locked until next operation time!");
+        textViewLaunch.setText(Constants.DEVICE_LOCK_NOTICE);
         textViewKiosk = (TextView) findViewById(R.id.textViewKiosk);
         if(Constants.COSU_SECRET_EXIT){
             textViewKiosk.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     kioskExit++;
-                    Toast.makeText(getApplicationContext(),"Device is locked till next Operation Time",Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),Constants.DEVICE_LOCK_NOTICE,Toast.LENGTH_LONG).show();
                     if(kioskExit == 6){
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             stopLockTask();
@@ -86,9 +81,11 @@ public class KioskRestrictionActivity extends Activity {
                                 public void onClick(DialogInterface dialog, int whichButton) {
                                     DevicePolicyManager devicePolicyManager = (DevicePolicyManager)
                                             getApplicationContext().getSystemService(Context.DEVICE_POLICY_SERVICE);
-                                    devicePolicyManager.
-                                            wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE |
-                                                    DevicePolicyManager.WIPE_RESET_PROTECTION_DATA);
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                                        devicePolicyManager.
+                                                wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE |
+                                                        DevicePolicyManager.WIPE_RESET_PROTECTION_DATA);
+                                    }
                                 }})
                             .setNegativeButton(android.R.string.no, null)
                             .show();

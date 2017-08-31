@@ -122,7 +122,7 @@ public class NetworkInfoService extends Service {
         info = getNetworkInfo();
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         telephonyManager.listen(deviceNetworkStatusListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
-        wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         if (Constants.WIFI_SCANNING_ENABLED) {
             // Register broadcast receiver
             // Broadcast receiver will automatically call when number of wifi connections changed

@@ -35,7 +35,9 @@ import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.activities.ServerConfigsActivity;
+import org.wso2.iot.agent.api.WiFiConfig;
 import org.wso2.iot.agent.beans.AppRestriction;
+import org.wso2.iot.agent.beans.ComplianceFeature;
 import org.wso2.iot.agent.beans.DeviceAppInfo;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.AppLockService;
@@ -44,6 +46,7 @@ import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -574,24 +577,39 @@ public class OperationManagerBYOD extends OperationManager {
 
     @Override
     public void restrictAccessToApplications(Operation operation) throws AndroidAgentException {
-
         AppRestriction appRestriction = CommonUtils.getAppRestrictionTypeAndList(operation, getResultBuilder(), getContextResources());
-
         String ownershipType = Preference.getString(getContext(), Constants.DEVICE_TYPE);
 
         if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
-            if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
-
-                List<String> installedAppPackages = CommonUtils.getInstalledAppPackages(getContext());
-
-                List<String> toBeHideApps = new ArrayList<>(installedAppPackages);
-                toBeHideApps.removeAll(appRestriction.getRestrictedList());
-                for (String packageName : toBeHideApps) {
-                    CommonUtils.callSystemApp(getContext(), operation.getCode(), "false" , packageName);
+            //Persisting white-listed app list.
+            JSONArray whiteListApps = new JSONArray();
+            ArrayList appList = (ArrayList) appRestriction.getRestrictedList();
+            for (Object appObj : appList) {
+                JSONObject app = new JSONObject();
+                try {
+                    app.put(Constants.AppRestriction.PACKAGE_NAME, appObj.toString());
+                    app.put(Constants.AppRestriction.RESTRICTION_TYPE, Constants.AppRestriction.WHITE_LIST);
+                    whiteListApps.put(app);
+                } catch (JSONException e) {
+                    operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+                    operation.setOperationResponse("Error in parsing app white-list payload.");
+                    getResultBuilder().build(operation);
+                    throw new AndroidAgentException("Invalid JSON format for app white-list bundle.", e);
                 }
             }
-        }
-        else if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
+            if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
+                //Removing existing non-white-listed apps.
+                List<String> installedAppPackages = CommonUtils.getInstalledAppPackages(getContext());
+                List<String> toBeHideApps = new ArrayList<>(installedAppPackages);
+                toBeHideApps.removeAll(appList);
+                for (String packageName : toBeHideApps) {
+                    CommonUtils.callSystemApp(getContext(), operation.getCode(), "false", packageName);
+                }
+            }
+            Preference.putString(getContext(),
+                    Constants.AppRestriction.WHITE_LIST_APPS, whiteListApps.toString());
+
+        } else if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
             if (Constants.OWNERSHIP_BYOD.equals(ownershipType)) {
                 Intent restrictionIntent = new Intent(getContext(), AppLockService.class);
                 restrictionIntent.setAction(Constants.APP_LOCK_SERVICE);
@@ -609,16 +627,13 @@ public class OperationManagerBYOD extends OperationManager {
 
                 getContext().startService(restrictionIntent);
             } else if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
-
                 for (String packageName : appRestriction.getRestrictedList()) {
                     CommonUtils.callSystemApp(getContext(), operation.getCode(), "false", packageName);
                 }
             }
-
         }
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
-
     }
 
     @Override
@@ -667,4 +682,15 @@ public class OperationManagerBYOD extends OperationManager {
         Log.d(TAG, "Operation not supported.");
     }
 
+    @Override
+    public ComplianceFeature checkWorkProfilePolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+        policy.setCompliance(true);
+        return policy;
+    }
+
+    @Override
+    public ComplianceFeature checkRuntimePermissionPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+        policy.setCompliance(true);
+        return policy;
+    }
 }

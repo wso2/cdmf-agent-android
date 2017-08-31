@@ -28,6 +28,8 @@ import android.content.res.Resources;
 import android.location.Location;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -50,6 +52,7 @@ import org.wso2.iot.agent.api.DeviceInfo;
 import org.wso2.iot.agent.api.RuntimeInfo;
 import org.wso2.iot.agent.api.WiFiConfig;
 import org.wso2.iot.agent.beans.Address;
+import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.Application;
 import org.wso2.iot.agent.beans.ComplianceFeature;
 import org.wso2.iot.agent.beans.DeviceAppInfo;
@@ -79,9 +82,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public abstract class OperationManager implements APIResultCallBack, VersionBasedOperations {
 
@@ -1026,6 +1031,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
     }
 
     /**
+<<<<<<< HEAD
      * Connect to remote session
      *
      * @param operation Operation received to start session
@@ -1203,8 +1209,229 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         context.startActivity(intent);
 
         if (Constants.DEBUG_MODE_ENABLED) {
-            Log.d(TAG, "Ringing is activated on the device");
+            Log.d(TAG, "Screen capture is activated on the device");
         }
+    }
+
+    /**
+     * Checks camera policy on the device (camera enabled/disabled).
+     *
+     * @param operation - Operation object.
+     * @return policy - ComplianceFeature object.
+     */
+    public ComplianceFeature checkCameraPolicy(Operation operation, ComplianceFeature policy) {
+        boolean cameraStatus = getDevicePolicyManager().getCameraDisabled(getCdmDeviceAdmin());
+
+        if ((operation.isEnabled() && !cameraStatus) || (!operation.isEnabled() && cameraStatus)) {
+            policy.setCompliance(true);
+        } else {
+            policy.setCompliance(false);
+        }
+
+        return policy;
+    }
+
+    /**
+     * Checks install app policy on the device (Particular app in the policy should be installed).
+     *
+     * @param operation - Operation object.
+     * @return policy - ComplianceFeature object.
+     */
+    public ComplianceFeature checkInstallAppPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+        String appIdentifier=null;
+        String name=null;
+
+        try {
+            JSONObject appData = new JSONObject(operation.getPayLoad().toString());
+
+            if (!appData.isNull(getContextResources().getString(R.string.app_identifier))) {
+                appIdentifier = appData.getString(getContextResources().getString(R.string.app_identifier));
+            }
+
+            if (!appData.isNull(getContextResources().getString(R.string.app_identifier))) {
+                name = appData.getString(getContextResources().getString(R.string.intent_extra_name));
+            }
+
+            if(isAppInstalled(appIdentifier)){
+                policy.setCompliance(true);
+            }else{
+                policy.setCompliance(false);
+                policy.setMessage(getContextResources().getString(R.string.error_app_install_policy)+name);
+            }
+
+        } catch (JSONException e) {
+            policy.setCompliance(false);
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+        return policy;
+    }
+
+    /**
+     * Checks uninstall app policy on the device (Particular app in the policy should be removed).
+     *
+     * @param operation - Operation object.
+     * @return policy - ComplianceFeature object.
+     */
+    public ComplianceFeature checkUninstallAppPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+        String appIdentifier=null;
+        String name=null;
+
+        try {
+            JSONObject appData = new JSONObject(operation.getPayLoad().toString());
+
+            if (!appData.isNull(getContextResources().getString(R.string.app_identifier))) {
+                appIdentifier = appData.getString(getContextResources().getString(R.string.app_identifier));
+            }
+
+            if (!appData.isNull(getContextResources().getString(R.string.app_identifier))) {
+                name = appData.getString(getContextResources().getString(R.string.intent_extra_name));
+            }
+
+            if(!isAppInstalled(appIdentifier)){
+                policy.setCompliance(true);
+            }else{
+                policy.setCompliance(false);
+                policy.setMessage(getContextResources().getString(R.string.error_app_uninstall_policy)+name);
+            }
+
+        } catch (JSONException e) {
+            policy.setCompliance(false);
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+        return policy;
+    }
+
+    /**
+     * Checks if the app is already installed on the device.
+     *
+     * @param appIdentifier - App package name.
+     * @return appInstalled - App installed status.
+     */
+    private boolean isAppInstalled(String appIdentifier) {
+        boolean appInstalled=false;
+        ArrayList<DeviceAppInfo> apps = new ArrayList<>(getApplicationManager().getInstalledApps().values());
+        for (DeviceAppInfo appInfo : apps) {
+            if(appIdentifier.trim().equals(appInfo.getPackagename())){
+                appInstalled = true;
+            }
+        }
+        return  appInstalled;
+    }
+
+    /**
+     * Checks device encrypt policy on the device (Device external storage encryption).
+     *
+     * @param operation - Operation object.
+     * @return policy - ComplianceFeature object.
+     */
+    public ComplianceFeature checkEncryptPolicy(Operation operation, ComplianceFeature policy) {
+        boolean encryptStatus = (getDevicePolicyManager().getStorageEncryptionStatus()!= getDevicePolicyManager().
+                ENCRYPTION_STATUS_UNSUPPORTED && getDevicePolicyManager().
+                getStorageEncryptionStatus() != getDevicePolicyManager().ENCRYPTION_STATUS_INACTIVE);
+
+        if ((operation.isEnabled() && encryptStatus) || (!operation.isEnabled() && !encryptStatus)) {
+            policy.setCompliance(true);
+        } else {
+            policy.setCompliance(false);
+            policy.setMessage(getContextResources().getString(R.string.error_encrypt_policy));
+        }
+
+        return policy;
+    }
+
+    /**
+     * Checks screen lock password policy on the device.
+     *
+     * @return policy - ComplianceFeature object.
+     */
+    public ComplianceFeature checkPasswordPolicy(ComplianceFeature policy) {
+        if(getDevicePolicyManager().isActivePasswordSufficient()){
+            policy.setCompliance(true);
+        }else{
+            policy.setCompliance(false);
+        }
+
+        return policy;
+    }
+
+    /**
+     * Checks Wifi policy on the device (Particular wifi configuration in the policy should be enforced).
+     *
+     * @param operation - Operation object.
+     * @return policy - ComplianceFeature object.
+     */
+    public ComplianceFeature checkWifiPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+        String ssid = null;
+
+        try {
+            JSONObject wifiData = new JSONObject(operation.getPayLoad().toString());
+            if (!wifiData.isNull(getContextResources().getString(R.string.intent_extra_ssid))) {
+                ssid = (String) wifiData.get(getContextResources().getString(R.string.intent_extra_ssid));
+            }
+
+            WiFiConfig config = new WiFiConfig(getContext().getApplicationContext());
+            if(config.findWifiConfigurationBySsid(ssid)){
+                policy.setCompliance(true);
+            }else{
+                policy.setCompliance(false);
+                policy.setMessage(getContextResources().getString(R.string.error_wifi_policy));
+            }
+        } catch (JSONException e) {
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+        return policy;
+    }
+
+    /**
+     * Check the app restriction policy (black list or white list) for compliance
+     *
+     * @param operation - Operation object
+     * @return - Compliance feature object
+     * @throws AndroidAgentException
+     */
+    public ComplianceFeature checkAppRestrictionPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+
+        AppRestriction appRestriction =
+                CommonUtils.getAppRestrictionTypeAndList(operation, null, null);
+        List<String> installedAppPackages = CommonUtils.getInstalledAppPackages(getContext());
+
+        if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
+            List<String> commonApps = new ArrayList<>(installedAppPackages);
+            if (commonApps.retainAll(appRestriction.getRestrictedList())) {
+                if (commonApps.size() > 0) {
+                    policy.setCompliance(false);
+                    return policy;
+                }
+            }
+        } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
+            List<String> remainApps = new ArrayList<>
+                    (CommonUtils.getInstalledAppPackagesByUser(getContext()));
+            String permittedPackageName;
+            JSONObject permittedApp;
+            String whiteListAppsPref;
+            for (String packageName: remainApps) {
+                whiteListAppsPref = Preference.
+                        getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
+                if(whiteListAppsPref != null) {
+                    try {
+                        JSONArray whiteListApps = new JSONArray(whiteListAppsPref);
+                        for (int i = 0; i < whiteListApps.length(); i++) {
+                            permittedApp = new JSONObject(whiteListApps.getString(i));
+                            permittedPackageName = permittedApp.
+                                    getString(Constants.AppRestriction.PACKAGE_NAME);
+                            if (!permittedPackageName.equals(packageName)) {
+                                policy.setCompliance(false);
+                                return policy;
+                            }
+                        }
+                    } catch (JSONException e) {
+                                Log.e(TAG, "Invalid JSON format..");
+                    }
+                }
+            }
+        }
+        policy.setCompliance(true);
+        return policy;
     }
 
     /**

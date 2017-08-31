@@ -31,8 +31,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
-import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.beans.AppRestriction;
+import org.wso2.iot.agent.beans.ComplianceFeature;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.AppLockService;
 import org.wso2.iot.agent.utils.CommonUtils;
@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 
 public class OperationManagerWorkProfile extends OperationManager {
 
@@ -416,10 +417,10 @@ public class OperationManagerWorkProfile extends OperationManager {
         Log.d(TAG, "Operation not supported.");
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void restrictAccessToApplications(Operation operation) throws AndroidAgentException {
         AppRestriction appRestriction = CommonUtils.getAppRestrictionTypeAndList(operation, getResultBuilder(), getContextResources());
-
         if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
             Intent restrictionIntent = new Intent(getContext(), AppLockService.class);
             restrictionIntent.setAction(Constants.APP_LOCK_SERVICE);
@@ -437,9 +438,70 @@ public class OperationManagerWorkProfile extends OperationManager {
 
             getContext().startService(restrictionIntent);
 
+        } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
+            ArrayList appList = (ArrayList)appRestriction.getRestrictedList();
+            JSONArray whiteListApps = new JSONArray();
+            for (Object appObj: appList) {
+                JSONObject app = new JSONObject();
+                try {
+                    app.put(Constants.AppRestriction.PACKAGE_NAME,appObj.toString());
+                    app.put(Constants.AppRestriction.RESTRICTION_TYPE, Constants.AppRestriction.WHITE_LIST);
+                    whiteListApps.put(app);
+                } catch (JSONException e) {
+                    operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+                    operation.setOperationResponse("Error in parsing app white-list payload.");
+                    getResultBuilder().build(operation);
+                    throw new AndroidAgentException("Invalid JSON format for app white-list bundle.", e);
+                }
+            }
+            Preference.putString(getContext(),
+                    Constants.AppRestriction.WHITE_LIST_APPS, whiteListApps.toString());
+            validateInstalledApps();
         }
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void validateInstalledApps() {
+        List<String> alreadyInstalledApps = CommonUtils.getInstalledAppPackagesByUser(getContext());
+        JSONObject permittedApp;
+        String permissionName;
+        Boolean isAllowed = false;
+        String permittedPackageName;
+        JSONArray whiteListApps;
+        try {
+            whiteListApps = new JSONArray(Preference.getString(getContext(), Constants.AppRestriction.WHITE_LIST_APPS));
+            if (whiteListApps != null) {
+                for (String packageName: alreadyInstalledApps) {
+                    if(!packageName.equals(getCdmDeviceAdmin().getPackageName())) {     //Skip agent app.
+                        for (int i = 0; i < whiteListApps.length(); i++) {
+                            permittedApp = new JSONObject(whiteListApps.getString(i));
+                            permittedPackageName = permittedApp.getString(Constants.AppRestriction.PACKAGE_NAME);
+                            if (Objects.equals(permittedPackageName, packageName)) {
+                                permissionName = permittedApp.getString(Constants.AppRestriction.RESTRICTION_TYPE);
+                                if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
+                                    isAllowed = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if(!isAllowed) {
+                                String disallowedApps = Preference.
+                                        getString(getContext(), Constants.AppRestriction.DISALLOWED_APPS);
+                                disallowedApps = disallowedApps +
+                                        getContext().getString(R.string.whitelist_package_split_regex) +
+                                        packageName;
+                                Preference.putString(getContext(), Constants.AppRestriction.DISALLOWED_APPS, disallowedApps);
+                                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
+                        }
+                        isAllowed = false;
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Invalid JSON format..");
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -476,7 +538,6 @@ public class OperationManagerWorkProfile extends OperationManager {
         String permissionName;
         int permissionType;
         String packageName;
-
 
         try {
             restrictionPolicyData = new JSONObject(operation.getPayLoad().toString());
@@ -559,6 +620,60 @@ public class OperationManagerWorkProfile extends OperationManager {
         operation.setOperationResponse("Operation not supported.");
         getResultBuilder().build(operation);
         Log.d(TAG, "Operation not supported.");
+    }
+
+    @Override
+    public ComplianceFeature checkWorkProfilePolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+        String profileName;
+        String systemAppsData;
+        String googlePlayAppsData;
+        try {
+            JSONObject profileData = new JSONObject(operation.getPayLoad().toString());
+            if (!profileData.isNull(getContextResources().getString(R.string.intent_extra_profile_name))) {
+                profileName = (String) profileData.get(getContextResources().getString(
+                        R.string.intent_extra_profile_name));
+                //yet there is no method is given to get the current profile name.
+                //add a method to test whether profile name is set correctly once introduced.
+            }
+            if (!profileData.isNull(getContextResources().getString(R.string.intent_extra_enable_system_apps))) {
+                // generate the System app list which are configured by user and received to agent as a single String
+                // with packages separated by Commas.
+                systemAppsData = (String) profileData.get(getContextResources().getString(
+                        R.string.intent_extra_enable_system_apps));
+                List<String> systemAppList = Arrays.asList(systemAppsData.split(getContextResources().getString(
+                        R.string.split_delimiter)));
+                for (String packageName : systemAppList) {
+                    if(!getApplicationManager().isPackageInstalled(packageName)){
+                        policy.setCompliance(false);
+                        policy.setMessage(getContextResources().getString(R.string.error_work_profile_policy));
+                        return policy;
+                    }
+                }
+            }
+            if (!profileData.isNull(getContextResources().getString(R.string.intent_extra_enable_google_play_apps))) {
+                googlePlayAppsData = (String) profileData.get(getContextResources().getString(
+                        R.string.intent_extra_enable_google_play_apps));
+                List<String> playStoreAppList = Arrays.asList(googlePlayAppsData.split(getContextResources().getString(
+                        R.string.split_delimiter)));
+                for (String packageName : playStoreAppList) {
+                    if(!getApplicationManager().isPackageInstalled(packageName)){
+                        policy.setCompliance(false);
+                        policy.setMessage(getContextResources().getString(R.string.error_work_profile_policy));
+                        return policy;
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+        policy.setCompliance(true);
+        return policy;
+    }
+
+    @Override
+    public ComplianceFeature checkRuntimePermissionPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
+        policy.setCompliance(true);
+        return policy;
     }
 
     private void enableGooglePlayApps(String packageName) {

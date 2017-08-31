@@ -141,7 +141,8 @@
                 <data android:scheme="package" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".events.listeners.KioskAppInstallationListener"
+        <receiver
+            android:name=".events.listeners.KioskAppInstallationListener"
             android:enabled="false">
             <intent-filter>
                 <action android:name="android.intent.action.PACKAGE_ADDED" />
@@ -197,9 +198,10 @@
         <activity
             android:name=".AuthenticationErrorActivity"
             android:screenOrientation="portrait" />
+        <activity android:name=".activities.ServerConfigsActivity" />
         <activity
-            android:name=".activities.ServerConfigsActivity"
-            android:windowSoftInputMode="stateVisible|adjustResize" />
+            android:name=".activities.DisclaimerActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
         <activity
             android:name=".activities.PinCodeActivity"
             android:windowSoftInputMode="stateVisible|adjustResize" />
@@ -260,7 +262,8 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".activities.KioskRestrictionActivity"
+        <activity
+            android:name=".activities.KioskRestrictionActivity"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
 
         <receiver
@@ -273,6 +276,17 @@
         </receiver>
             <receiver android:name=".services.kiosk.KioskAlarmReceiver">
         </receiver>
+
+       <!--android 7 requirement-->
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
     </application>
 
 </manifest>

@@ -332,6 +332,13 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 					                           HTTP_METHODS.DELETE,
 					                           null, AlreadyRegisteredActivity.this,
 					                           Constants.UNREGISTER_REQUEST_CODE);
+
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+						if (devicePolicyManager.isProfileOwnerApp(cdmDeviceAdmin.getPackageName())) {
+							devicePolicyManager.wipeData(0);
+						}
+					}
+
 				} else {
 					Log.e(TAG, "There is no valid IP to contact the server");
 					CommonDialogUtils.stopProgressDialog(progressDialog);

@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.PersistableBundle;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -56,6 +57,7 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
     /**
      * Called when this application is approved to be a device administrator.
      */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onEnabled(final Context context, Intent intent) {
         super.onEnabled(context, intent);
@@ -158,6 +160,7 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onProfileProvisioningComplete(Context context, Intent intent) {
         if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
@@ -193,19 +196,20 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
                 if (persistableBundle != null) {
                     if (org.wso2.iot.agent.proxy.utils.Constants.Authenticator.AUTHENTICATOR_IN_USE.
                             equals(org.wso2.iot.agent.proxy.utils.Constants.Authenticator.OAUTH_AUTHENTICATOR)) {
-                        String token = (String) persistableBundle.get("android.app.extra.token");
+                        String token = (String) persistableBundle.get(Constants.KIOSK_NFC_TOKEN);
                         if (token != null && !token.equals("")) {
                             launch = new Intent(context, AuthenticationActivity.class);
-                            launch.putExtra("android.app.extra.token", token);
+                            launch.putExtra(Constants.KIOSK_NFC_TOKEN, token);
                         }
                     }
 
-                    String appUrl = (String) persistableBundle.get("android.app.extra.appurl");
-                    if (appUrl != null && !appUrl.equals("")) {
-                        Preference.putString(context, Constants.KIOSK_APP_DOWNLOAD_URL, appUrl);
+                    String kioskAppURL = (String) persistableBundle.get(Constants.KIOSK_APP_URL);
+                    if (kioskAppURL != null && !kioskAppURL.equals("")) {
+                        Preference.putString(context, Constants.KIOSK_APP_DOWNLOAD_URL, kioskAppURL);
                     }
                 }
             }
+            Preference.putBoolean(context,Constants.PreferenceFlag.DEVICE_INITIALIZED, false);
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(launch);
         } else {

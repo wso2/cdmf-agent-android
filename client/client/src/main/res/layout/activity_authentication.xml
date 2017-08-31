@@ -23,7 +23,8 @@
     android:layout_height="match_parent"
     android:background="?android:attr/colorBackground"
     android:orientation="vertical"
-    tools:context=".activities.AuthenticationActivity">
+    tools:context=".activities.AuthenticationActivity"
+    android:id="@+id/relavtiveLayoutAuthentication">
 
     <include
         android:id="@+id/top_banner"

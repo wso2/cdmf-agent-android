@@ -35,6 +35,7 @@
     <string name="options_register">Register</string>
     <string name="options_unregister">Unregister</string>
     <string name="string_content">Image</string>
+    <string name="kiosk_enrolling">Kiosk is being enrolled.</string>
     <string name="options_clear">Clear</string>
     <string name="options_exit">Exit</string>
     <string name="app_name">WSO2 Device Management Agent</string>
@@ -85,7 +86,7 @@
     <string name="alarm_schedule">schedule</string>
     <string name="alert_message">Message</string>
     <string name="kiosk_application_package_split_regex">_</string>
-
+    <string name="whitelist_package_split_regex">_</string>
     <!-- TEXT FIELD HINTS -->
     <string name="hint_new_pin">New PIN Code</string>
 
@@ -249,7 +250,7 @@
     <string name="error_app_uninstall_policy">\nFollowing apps are blacklisted by your IoT Admin, please remove them. \n</string>
     <string name="error_wifi_policy">\nYou are not using company WIFI account, please change your WIFI configuration \n</string>
     <string name="error_work_profile_policy">\nYour work-profile configurations are not adhering to the policy, please undo if any customizations have been done. \n</string>
-<string name="error_runtime_permission_policy">\n Your current runtime permission policy has been changed from what is requested by the administrator. \n</string>
+    <string name="error_runtime_permission_policy">\n Your current runtime permission policy has been changed from what is requested by the administrator. \n</string>
     <!-- DIALOG TITLES AND MESSAGES -->
     <string name="dialog_authenticate">Authenticating</string>
     <string name="dialog_registering">Registering with %1$s</string>
@@ -306,6 +307,8 @@
 
     <!-- UI TITLES -->
     <string name="button_ok">OK</string>
+    <string name="button_continue">Continue</string>
+    <string name="button_exit">Exit</string>
     <string name="txt_message_title">WSO2 Device Management</string>
     <string name="btn_sign_in">Sign In</string>
     <string name="button_sign_up">Sign Up</string>
@@ -346,6 +349,22 @@
     <string name="txt_sign_up">Don\'t have an account? Sign up for free with Device cloud and try it out!</string>
     <string name="txt_sign_up_linkify">Sign up</string>
     <string name="txt_lblpin">This PIN code will be used to authorize critical remote operations (ex: remote device wipe) performed against the device by administrators.</string>
+    <string name="txt_disclaimer_title">Disclaimer</string>
+    <string name="txt_disclaimer">
+        This WSO2 Device Management Agent app requires access to certain administrator functions on your device. Here is a list of those administrator functions and why access is required for each of them:
+\n\n- Erase All Data: This permission is required to enable you to  remotely use the factory data reset option.
+\n\n- Change the Screen Lock: This permission is required to allow you to remotely change your screen lock type.
+\n\n- Set password rules: This permission  is required to allow you to remotely set password rules to your device.
+\n\n- Monitor screen unlock attempts: This permission is required to allow you to detect unlock attempts on your device with incorrect passwords and to  enable factory resetting of your device if  the number of unlock attempts are exceeded.
+\n\n- Lock Screen: This permission is required to allow you to remotely lock the screen of your device.
+\n\n- Set screen lock password expiration: This permission is required to allow you to remotely set an expiration time for your screen lock password.
+\n\n- Set storage encryption: This permission is required to allow remote encryption of your device storage.
+\n\n- Disable cameras: This is required to for you to remotely allow/disallow camera usage on your device.
+\n\nYou will be prompted to Activate Device Admin after registering your device with WSO2 Device cloud and by clicking "Activate" you consent to this App having access to the above administrator functions on your device.
+\n\nYou can revoke your consent at anytime by opening WSO2 Device Management Agent app and clicking on "Unregister" or by going to Settings \-\>Security \-\> Device Administrators and Deactivating WSO2 Device Management Agent.
+\n\nAll remote operations can only be triggered from the Device Management Console in the WSO2 Device Cloud and can only be performed by authorized user.
+\n\nAll data sent to the WSO2 Device cloud is only accessible to the authorized user and can be permanently removed if needed.
+    </string>
     <string name="hint_retype_pin">Retype PIN Code</string>
     <string name="lbl_pin_title">Please enter PIN code</string>
     <string name="button_unregister_text">"You have successfully enrolled your device! If you want to unregister, tap Unregister."</string>
@@ -384,10 +403,11 @@
     <string name="operation_id">id</string>
     <string name="operation_status">status</string>
     <string name="app_download_progress">app_progress</string>
-    <string name="firmware_upgrade_failed">firmwareUpgradeFailed</string>
+    <string name="firmware_upgrade_retry_pending">firmwareUpgradeRetryPending</string>
     <string name="firmware_upgrade_retries">firmwareUpgradeRetries</string>
-    <string name="firmware_upgrade_failed_message">firmwareUpgradeFailedMessage</string>
-    <string name="firmware_upgrade_failed_id">firmwareUpgradeFailedId</string>
+    <string name="firmware_upgrade_response_message">firmwareUpgradeResponseMessage</string>
+    <string name="firmware_upgrade_response_id">firmwareUpgradeResponseId</string>
+    <string name="firmware_upgrade_response_status">firmwareUpgradeResponseStatus</string>
     <string name="is_automatic_firmware_upgrade">isAutomaticFirmwareUpgrade</string>
     <string name="firmware_upgrade_automatic_retry">autoRetry</string>
     <string name="app_install_failed_message">appInstallFailedMessage</string>

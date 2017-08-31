@@ -29,7 +29,7 @@ import static org.wso2.iot.agent.proxy.utils.Constants.Authenticator.MUTUAL_SSL_
 public class Constants {
 
 	public static final boolean DEBUG_MODE_ENABLED = BuildConfig.DEBUG_MODE_ENABLED;
-	public static final boolean SYSTEM_APP_ENABLED = BuildConfig.SYSTEM_APP_ENABLED;
+	public static final boolean SYSTEM_APP_ENABLED = true;
 	public static final boolean AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED =
 			BuildConfig.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED;
 	public static final boolean ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE =
@@ -354,6 +354,13 @@ public class Constants {
 		public static final String RUNTIME_PERMISSION_POLICY = "RUNTIME_PERMISSION_POLICY";
 		public static final String COSU_PROFILE_POLICY = "COSU_PROFILE";
 		public static final String ENABLE_LOCK ="ENABLE_LOCK";
+
+		// Remote session based operations
+		public static final String REMOTE_CONNECT = "REMOTE_CONNECT";
+		public static final String REMOTE_SHELL = "REMOTE_SHELL";
+		public static final String REMOTE_LOGCAT = "REMOTE_LOGCAT";
+		public static final String REMOTE_SCREEN = "REMOTE_SCREEN";
+		public static final String REMOTE_INPUT = "REMOTE_INPUT";
 	}
 
 	/**
@@ -563,4 +570,8 @@ public class Constants {
 		public static final String deviceReleaseTime = "cosuProfileRestrictionStartTime";
 		public static final String deviceFreezeTime = "cosuProfileRestrictionEndTime";
 	}
+
+	//Remote Session related Constants
+	public static final String REMOTE_SESSION_DEVICE_ENDPOINT_CONTEXT = "/remote/session/devices/android";
+
 }

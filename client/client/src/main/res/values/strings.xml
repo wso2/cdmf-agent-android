@@ -505,4 +505,7 @@
     <string name="DISALLOW_UNMUTE_MICROPHONE">no_unmute_microphone</string>
     <string name="ALLOW_PARENT_PROFILE_APP_LINKING">allow_parent_profile_app_linking</string>
     <string name="DISALLOW_CONFIG_TETHERING">no_config_tethering</string>
+
+    <!-- Screen sharing-->
+    <string name="intent_extra_screen_share">screenShare</string>
 </resources>

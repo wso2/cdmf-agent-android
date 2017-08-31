@@ -119,6 +119,7 @@ public class Constants {
 		public static final String FIRMWARE_INSTALLATION_CANCELED = "FIRMWARE_INSTALLATION_CANCELED";
 		public static final String FIRMWARE_UPGRADE_AUTOMATIC_RETRY = "FIRMWARE_UPGRADE_AUTOMATIC_RETRY";
 		public static final String LOGCAT = "LOGCAT";
+		public static final String REMOTE_INPUT = "REMOTE_INPUT";
 	}
 
 	/**

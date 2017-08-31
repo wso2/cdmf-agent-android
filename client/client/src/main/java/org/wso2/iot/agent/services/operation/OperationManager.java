@@ -44,6 +44,7 @@ import org.json.JSONObject;
 import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.activities.ScreenShareActivity;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceInfo;
 import org.wso2.iot.agent.api.RuntimeInfo;
@@ -66,12 +67,16 @@ import org.wso2.iot.agent.services.PolicyComplianceChecker;
 import org.wso2.iot.agent.services.PolicyOperationsMapper;
 import org.wso2.iot.agent.services.ResultPayload;
 import org.wso2.iot.agent.services.location.DeviceLocation;
+import org.wso2.iot.agent.transport.exception.TransportHandlerException;
+import org.wso2.iot.agent.transport.websocket.WebSocketSessionHandler;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -120,7 +125,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         AUTHORIZED_PINNING_APPS = new String[]{AGENT_PACKAGE_NAME};
         applicationManager = new ApplicationManager(context);
         notificationService = NotificationService.getInstance(context.getApplicationContext());
-        if(Constants.DEBUG_MODE_ENABLED) {
+        if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "New OperationManager created.");
         }
     }
@@ -197,7 +202,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         operation.setOperationResponse(replyPayload);
         operation.setStatus(resources.getString(R.string.operation_value_completed));
         resultBuilder.build(operation);
-        if(Constants.DEBUG_MODE_ENABLED) {
+        if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "getDeviceInfo executed.");
         }
     }
@@ -252,7 +257,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             resultBuilder.build(operation);
             throw new AndroidAgentException("Invalid JSON format.", e);
         }
-        if(Constants.DEBUG_MODE_ENABLED) {
+        if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "getLocationInfo executed.");
         }
     }
@@ -306,11 +311,11 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         resultBuilder.build(operation);
         Intent intent = new Intent(context, AlertActivity.class);
         intent.putExtra(resources.getString(R.string.intent_extra_type),
-                        resources.getString(R.string.intent_extra_ring));
+                resources.getString(R.string.intent_extra_ring));
         intent.putExtra(resources.getString(R.string.intent_extra_message_text),
-                        resources.getString(R.string.intent_extra_stop_ringing));
+                resources.getString(R.string.intent_extra_stop_ringing));
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                        Intent.FLAG_ACTIVITY_NEW_TASK);
+                Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
 
         if (Constants.DEBUG_MODE_ENABLED) {
@@ -365,7 +370,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             if (!wifiData.isNull(WifiProfile.CACERTNAME)) {
                 wifiProfile.setCaCertName(wifiData.getString(WifiProfile.CACERTNAME));
             }
-            
+
         } catch (JSONException e) {
             operation.setStatus(resources.getString(R.string.operation_value_error));
             operation.setOperationResponse("Error in parsing WIFI payload.");
@@ -402,7 +407,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             }
         });
 
-        if(Constants.DEBUG_MODE_ENABLED) {
+        if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "configureWifi executed.");
         }
     }
@@ -522,7 +527,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 List<org.wso2.iot.agent.beans.Operation> operations = mapper.readValue(
                         payload,
                         mapper.getTypeFactory().constructCollectionType(List.class,
-                                                                        org.wso2.iot.agent.beans.Operation.class));
+                                org.wso2.iot.agent.beans.Operation.class));
                 for (org.wso2.iot.agent.beans.Operation op : operations) {
                     op = operationsMapper.getOperation(op);
                     result.add(policyChecker.checkPolicyState(op));
@@ -638,7 +643,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 }
             } else {
                 Toast.makeText(context, resources.getString(R.string.toast_message_reboot_failed),
-                               Toast.LENGTH_LONG).show();
+                        Toast.LENGTH_LONG).show();
                 operation.setStatus(resources.getString(R.string.operation_value_error));
                 operation.setOperationResponse(resources.getString(R.string.toast_message_reboot_failed));
                 resultBuilder.build(operation);
@@ -763,13 +768,13 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         } else {
             operation.setStatus(resources.getString(R.string.operation_value_completed));
             resultBuilder.build(operation);
-            NotificationCompat.Builder mBuilder =   new NotificationCompat.Builder(context)
+            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                     .setSmallIcon(R.drawable.ic_launcher)
                     .setContentTitle(context.getString(R.string.alert_message))
                     .setContentText(message)
                     .setAutoCancel(true)
                     .setContentIntent(PendingIntent.getActivity(context, 0, new Intent(), 0));
-            NotificationManager notificationManager= (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.notify(0, mBuilder.build());
             devicePolicyManager.lockNow();
         }
@@ -894,7 +899,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      */
     public void getLogcat(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
         String logLevel = Constants.LogPublisher.LOG_LEVEL;
-        if (Constants.SYSTEM_APP_ENABLED){
+        if (Constants.SYSTEM_APP_ENABLED) {
             try {
                 JSONObject commandObj = new JSONObject();
                 commandObj.put("operation_id", operation.getId());
@@ -1017,6 +1022,188 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             operation.setOperationResponse("Error in parsing NOTIFICATION payload.");
             getResultBuilder().build(operation);
             throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+    }
+
+    /**
+     * Connect to remote session
+     *
+     * @param operation Operation received to start session
+     * @throws AndroidAgentException
+     */
+    public void connectToRemoteSession(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
+        try {
+            operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
+            if (operation.getPayLoad() != null) {
+                JSONObject payload = new JSONObject(operation.getPayLoad().toString());
+                Object serverUrl = payload.get("serverUrl");
+                if (serverUrl != null) {
+                    WebSocketSessionHandler.getInstance(context).initializeSession(serverUrl.toString(), operation.getId());
+                    operation.setStatus(resources.getString(R.string.operation_value_completed));
+
+                } else {
+                    operation.setStatus(resources.getString(R.string.operation_value_error));
+                    operation.setOperationResponse("Server url cannot be found");
+                }
+            } else {
+                operation.setStatus(resources.getString(R.string.operation_value_error));
+                operation.setOperationResponse("Request operation payload cannot be found");
+            }
+
+            getResultBuilder().build(operation);
+        } catch (Exception e) {
+            operation.setOperationResponse("Error connecting to websocket session.");
+            getResultBuilder().build(operation);
+            throw new AndroidAgentException("Connection Error.", e);
+        }
+    }
+
+
+    /**
+     * Process shell command
+     *
+     * @param operation
+     * @throws AndroidAgentException
+     */
+    public void processRemoteShell(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException {
+
+        Process process = null;
+        InputStream inputStream = null;
+        InputStream errorStream = null;
+        ByteArrayOutputStream baosInput = new ByteArrayOutputStream();
+        ByteArrayOutputStream baosError = new ByteArrayOutputStream();
+        String[] command = null;
+
+        try {
+            if (operation.getCode().equals(Constants.Operation.REMOTE_LOGCAT)) {
+                command = new String[]{"logcat", "-d", "-v", "time", "Error"};
+            } else {
+                if (operation.getPayLoad() != null) {
+                    command = new String[]{"sh", "-c", operation.getPayLoad().toString()};
+                } else {
+                    operation.setOperationResponse("Message payload is missing");
+                    WebSocketSessionHandler.getInstance(context).sendMessage(operation);
+                }
+            }
+            if (command != null) {
+                process = Runtime.getRuntime().exec(command);
+                inputStream = process.getInputStream();
+                errorStream = process.getErrorStream();
+
+                int messageMaxSize = 2;
+                int maxMessagesPerOperation = 3;
+                byte[] buffer = new byte[1024];
+                int length;
+                int sentCount = 0, sizeCount = 0;
+                while ((length = inputStream.read(buffer)) != -1) {
+                    baosInput.write(buffer, 0, length);
+                    if (sizeCount >= messageMaxSize) {
+                        operation.setOperationResponse(new String(baosInput.toByteArray()));
+                        WebSocketSessionHandler.getInstance(context).sendMessage(operation);
+                        baosInput.reset();
+                        sizeCount = 0;
+                        sentCount++;
+
+                    } else {
+                        sizeCount++;
+                    }
+
+                    if (sentCount >= maxMessagesPerOperation) {
+                        break;
+                    }
+                }
+                if (sentCount < maxMessagesPerOperation) {
+                    byte[] bytes = baosInput.toByteArray();
+                    if (bytes != null && bytes.length > 0) {
+                        operation.setOperationResponse(new String(baosInput.toByteArray()));
+                        WebSocketSessionHandler.getInstance(context).sendMessage(operation);
+                        sentCount++;
+                    }
+                    sizeCount = 0;
+                    while ((length = errorStream.read(buffer)) != -1) {
+                        baosError.write(buffer, 0, length);
+                        if (sizeCount >= messageMaxSize) {
+                            operation.setOperationResponse(new String(baosError.toByteArray()));
+                            WebSocketSessionHandler.getInstance(context).sendMessage(operation);
+                            baosError.reset();
+                            sizeCount = 0;
+                            sentCount++;
+                        } else {
+                            sizeCount++;
+                        }
+                        if (sentCount > maxMessagesPerOperation) {
+                            break;
+                        }
+                    }
+                    bytes = baosError.toByteArray();
+                    if (bytes != null && bytes.length > 0) {
+                        operation.setOperationResponse(new String(baosError.toByteArray()));
+                        WebSocketSessionHandler.getInstance(context).sendMessage(operation);
+                    }
+                }
+                operation.setStatus("COMPLETED");
+                operation.setOperationResponse("");
+                WebSocketSessionHandler.getInstance(context).sendMessage(operation);
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Error occurred while sending remote session message");
+            operation.setStatus("ERROR");
+            operation.setOperationResponse("Error occured due to IO");
+            WebSocketSessionHandler.getInstance(context).sendMessage(operation);
+        } finally {
+            if (process != null) {
+                try {
+                    process.destroy();
+                } catch (Exception e) {
+                    Log.e(TAG, "Error occurred while destroying the process for command " + command + e.getMessage());
+                }
+            }
+            Log.e(TAG, "Process killed");
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "Error occurred while closing data input stream");
+                }
+            }
+
+            if (errorStream != null) {
+                try {
+                    errorStream.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "Error occurred while closing data error stream");
+                }
+            }
+            try {
+                baosInput.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Error occurred while closing buffer input stream");
+            }
+            try {
+                baosError.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Error occurred while closing buffer error stream");
+            }
+        }
+    }
+
+    /**
+     * manage screen sharing operations
+     *
+     * @param operation Operation
+     * @throws TransportHandlerException
+     */
+    public void screenCapture(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException {
+
+        Intent intent = new Intent(context, ScreenShareActivity.class);
+        intent.putExtra(resources.getString(R.string.intent_extra_type),
+                "screenShare");
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+
+        if (Constants.DEBUG_MODE_ENABLED) {
+            Log.d(TAG, "Ringing is activated on the device");
         }
     }
 

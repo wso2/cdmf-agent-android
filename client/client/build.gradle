@@ -702,6 +702,7 @@ dependencies {
     compile 'org.bouncycastle:bcprov-jdk16:1.45'
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.splunk.mint:mint:5.0.0'
+    compile 'com.jcraft:jsch:0.1.54'
 }
 
 

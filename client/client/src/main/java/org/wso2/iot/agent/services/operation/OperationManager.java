@@ -38,6 +38,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.Gson;
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SftpException;
 
 import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.json.JSONArray;
@@ -73,8 +79,12 @@ import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,6 +92,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public abstract class OperationManager implements APIResultCallBack, VersionBasedOperations {
 
@@ -320,6 +332,159 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
 
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Ringing is activated on the device");
+        }
+    }
+
+    /**
+     * Download the file to the device.
+     *
+     * @param operation - Operation object.
+     */
+    void downloadFile(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
+        String fileName = null;
+        String message = null;
+        int serverPort = 22;
+        JSch jsch = new JSch();
+        Session session = null;
+        Channel channel;
+        ChannelSftp sftpChannel = null;
+        BufferedInputStream bis = null;
+        BufferedOutputStream bos = null;
+        try {
+            JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
+            String fileURL = inputData.getString("fileURL");
+            String ftpPassword = inputData.getString("ftpPassword");
+            String savingLocation = inputData.getString("savingDirectory");
+
+            String ftpUserName = null;
+            fileName = null;
+            String host = null;
+            String protocol;
+            String fileDirectory = null;
+            String[] splittedStrings;
+
+            Pattern p = Pattern.compile("://");
+            Matcher m = p.matcher(fileURL);
+            if (m.find()) {
+                splittedStrings = fileURL.split("://", 2);
+                protocol = splittedStrings[0];
+                if (protocol == "ftp") {
+                    serverPort = 21;
+                }
+                p = Pattern.compile(":");
+                if (p.matcher(splittedStrings[1]).find()) {
+                    splittedStrings = splittedStrings[1].split("/", 2);
+                    String string = splittedStrings[0].split(":", 2)[0];
+                    serverPort = Integer.parseInt(splittedStrings[0].split(":", 2)[1]);
+                    ftpUserName = string.substring(0, string.lastIndexOf("@"));
+                    host = string.substring(string.lastIndexOf("@") + 1);
+                    fileName = splittedStrings[1].substring(splittedStrings[1].lastIndexOf("/") + 1);
+                    fileDirectory = splittedStrings[1].substring(0, splittedStrings[1].lastIndexOf("/"));
+                } else {
+                    String str = splittedStrings[1].split("/", 2)[0];
+                    ftpUserName = str.substring(0, str.lastIndexOf("@"));
+                    host = str.substring(str.lastIndexOf("@") + 1);
+                    str = splittedStrings[1].split("/", 2)[1];
+                    fileName = str.substring(str.lastIndexOf("/") + 1);
+                    fileDirectory = str.substring(0, str.lastIndexOf("/"));
+                }
+            }
+            fileDirectory = "/" + fileDirectory;
+
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "FTP User Name: " + ftpUserName);
+                Log.d(TAG, "FTP host address: " + host);
+                Log.d(TAG, "FTP server port: " + serverPort);
+                Log.d(TAG, "FTP file name to download: " + fileName);
+                Log.d(TAG, "FTP file directory: " + fileDirectory);
+                Log.d(TAG, "Local location in device to save file: " + savingLocation);
+            }
+
+            session = jsch.getSession(ftpUserName, host, serverPort);
+            session.setConfig("StrictHostKeyChecking", "no");
+            session.setPassword(ftpPassword);
+            session.connect();
+            channel = session.openChannel("sftp");
+            channel.connect();
+            sftpChannel = (ChannelSftp) channel;
+            sftpChannel.cd(fileDirectory); //cd to dir that contains file
+
+            byte[] buffer = new byte[1024];
+            bis = new BufferedInputStream(sftpChannel.get(fileName));
+            File newFile = new File(savingLocation + "/" + fileName);
+            OutputStream os = new FileOutputStream(newFile);
+            bos = new BufferedOutputStream(os);
+            int readCount;
+            while ((readCount = bis.read(buffer)) > 0) {
+                bos.write(buffer, 0, readCount);
+            }
+            if (Constants.DEBUG_MODE_ENABLED) {
+                if (newFile.exists()) {
+                    Log.d("", "File exists in the device");
+                } else {
+                    Log.d("", "File does not exists in the device");
+                }
+            }
+            operation.setStatus(resources.getString(R.string.operation_value_completed));
+            message = fileName + " uploaded to the device successfully!";
+        } catch (JSchException e) {
+            if (e.getCause() != null) {
+                message = fileName + " upload to the device failed. Error :- " + e.getCause().getMessage();
+            } else {
+                message = fileName + " upload to the device failed. Error :- " + e.getLocalizedMessage();
+            }
+            operation.setStatus(resources.getString(R.string.operation_value_error));
+            throw new AndroidAgentException(message, e);
+        } catch (SftpException e) {
+            if (e.getCause() != null) {
+                message = fileName + " upload to the device failed. Error :- " + e.getCause().getMessage();
+            } else {
+                message = fileName + " upload to the device failed. Error :- " + e.getLocalizedMessage();
+            }
+            operation.setStatus(resources.getString(R.string.operation_value_error));
+            throw new AndroidAgentException(message, e);
+        } catch (IOException e) {
+            if (e.getCause() != null) {
+                message = fileName + " upload to the device failed. Error :- " + e.getCause().getMessage();
+            } else {
+                message = fileName + " upload to the device failed. Error :- " + e.getLocalizedMessage();
+            }
+            operation.setStatus(resources.getString(R.string.operation_value_error));
+            throw new AndroidAgentException(message, e);
+        } catch (JSONException e) {
+            if (e.getCause() != null) {
+                message = fileName + " upload to the device failed. Error :- " + e.getCause().getMessage();
+            } else {
+                message = fileName + " upload to the device failed. Error :- " + e.getLocalizedMessage();
+            }
+            operation.setStatus(resources.getString(R.string.operation_value_error));
+            throw new AndroidAgentException(message, e);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            if (e.getCause() != null) {
+                message = fileName + " upload to the device failed. Error :- " + e.getCause().getMessage();
+            } else {
+                message = fileName + " upload to the device failed. Error :- " + e.getLocalizedMessage();
+            }
+            operation.setStatus(resources.getString(R.string.operation_value_error));
+            throw new AndroidAgentException(message, e);
+        } finally {
+            try {
+                if (bis != null) {
+                    bis.close();
+                }
+                if (bos != null) {
+                    bos.close();
+                }
+            } catch (IOException ignored) {
+            }
+            if (sftpChannel != null) {
+                sftpChannel.exit();
+            }
+            if (session != null) {
+                session.disconnect();
+            }
+            operation.setOperationResponse(message);
+            resultBuilder.build(operation);
         }
     }
 

@@ -264,6 +264,7 @@ public class Constants {
 	 * Operation IDs
 	 */
 	public final class Operation {
+		public static final String FILE_DOWNLOAD = "FILE_TRANSFER";
 		public static final String DEVICE_LOCK = "DEVICE_LOCK";
 		public static final String DEVICE_UNLOCK = "DEVICE_UNLOCK";
 		public static final String DEVICE_LOCATION = "DEVICE_LOCATION";

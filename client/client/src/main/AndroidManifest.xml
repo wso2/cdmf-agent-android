@@ -46,7 +46,7 @@
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="18" />
 
-    <permission android:name="android.permission.REBOOT"/>
+    <permission android:name="android.permission.REBOOT" />
     <permission android:name="android.permission.READ_LOGS" />
     <permission
         android:name="org.wso2.iot.agent.permission.ACCESS"
@@ -260,10 +260,9 @@
                 <action android:name="org.ws2.iot.agent.LOCATION_UPDATE" />
             </intent-filter>
         </receiver>
-            <receiver android:name=".services.kiosk.KioskAlarmReceiver">
-        </receiver>
+        <receiver android:name=".services.kiosk.KioskAlarmReceiver"></receiver>
 
-       <!--android 7 requirement-->
+        <!--android 7 requirement-->
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -271,7 +270,7 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/provider_paths"/>
+                android:resource="@xml/provider_paths" />
         </provider>
     </application>
 

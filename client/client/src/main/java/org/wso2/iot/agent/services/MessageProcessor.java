@@ -17,8 +17,10 @@
  */
 package org.wso2.iot.agent.services;
 
+import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -42,6 +44,7 @@ import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.beans.ServerConfig;
 import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
+import org.wso2.iot.agent.services.operation.OperationManagerDeviceOwner;
 import org.wso2.iot.agent.services.operation.OperationProcessor;
 import org.wso2.iot.agent.utils.AppInstallRequestUtil;
 import org.wso2.iot.agent.utils.CommonUtils;
@@ -156,16 +159,47 @@ public class MessageProcessor implements APIResultCallBack {
 		String requestParams;
 		ObjectMapper mapper = new ObjectMapper();
 		try {
+			String rebootStatus = Preference.getString(context, context.getResources()
+					.getString(R.string.shared_pref_reboot_status));
+			if (rebootStatus != null) {
+				if (replyPayload == null) {
+					replyPayload = new ArrayList<>();
+				}
+				int lastRebootOperationId = Preference.getInt(context, context.getResources()
+						.getString(R.string.shared_pref_reboot_op_id));
+                for (Operation operation : replyPayload) {
+					if (lastRebootOperationId == operation.getId()) {
+						replyPayload.remove(operation);
+						break;
+					}
+				}
+
+                Operation rebootOperation = new Operation();
+				rebootOperation.setId(lastRebootOperationId);
+				rebootOperation.setCode(Constants.Operation.REBOOT);
+				rebootOperation.setOperationResponse(Preference.getString(context,
+						context.getResources().getString(R.string.shared_pref_reboot_result)));
+				rebootOperation.setStatus(rebootStatus);
+				replyPayload.add(rebootOperation);
+
+				Preference.removePreference(context, context.getResources()
+						.getString(R.string.shared_pref_reboot_status));
+				Preference.removePreference(context, context.getResources()
+						.getString(R.string.shared_pref_reboot_result));
+				Preference.removePreference(context, context.getResources()
+						.getString(R.string.shared_pref_reboot_op_id));
+            }
 			if (replyPayload != null) {
 				for (Operation operation : replyPayload) {
 					if (operation.getCode().equals(Constants.Operation.WIPE_DATA) && !operation.getStatus().
 							equals(ERROR_STATE)) {
 						isWipeTriggered = true;
-					}else if (operation.getCode().equals(Constants.Operation.ENTERPRISE_WIPE) && !operation.getStatus().
+					} else if (operation.getCode().equals(Constants.Operation.ENTERPRISE_WIPE) && !operation.getStatus().
 							equals(ERROR_STATE)) {
-						isEnterpriseWipeTriggered = true;
-					} else if (operation.getCode().equals(Constants.Operation.REBOOT) && !operation.getStatus().
-							equals(ERROR_STATE)) {
+                        isEnterpriseWipeTriggered = true;
+                    } else if (operation.getCode().equals(Constants.Operation.REBOOT) && operation.getStatus().
+                            equals(context.getResources().getString(R.string.operation_value_pending))) {
+                        operation.setStatus(context.getResources().getString(R.string.operation_value_progress));
 						isRebootTriggered = true;
 					} else if (operation.getCode().equals(Constants.Operation.UPGRADE_FIRMWARE) && !operation.getStatus().
 							equals(ERROR_STATE)) {
@@ -337,7 +371,26 @@ public class MessageProcessor implements APIResultCallBack {
 			}
 
 			if (isRebootTriggered) {
-				CommonUtils.callSystemApp(context, Constants.Operation.REBOOT, null, null);
+                if (Constants.SYSTEM_APP_ENABLED) {
+                    CommonUtils.callSystemApp(context, Constants.Operation.REBOOT, null, null);
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+                        && operationProcessor.getOperationManager() instanceof OperationManagerDeviceOwner) {
+                    DevicePolicyManager devicePolicyManager = (DevicePolicyManager)
+                            context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+                    devicePolicyManager.reboot(AgentDeviceAdminReceiver.getComponentName(context));
+                } else {
+                    try {
+                        Process proc = Runtime.getRuntime().exec(new String[] { "su", "-c", "reboot" });
+                        proc.waitFor();
+                    } catch (Exception ex) {
+						String msg = "Could not reboot.";
+                        Log.e(TAG, msg, ex);
+						Preference.putString(context, context.getResources().getString(R.string.shared_pref_reboot_status),
+								context.getResources().getString(R.string.operation_value_error));
+						Preference.putString(context, context.getResources().getString(R.string.shared_pref_reboot_result),
+								msg + " " + ex.getMessage());
+                    }
+                }
 			}
 
 			if (isUpgradeTriggered) {

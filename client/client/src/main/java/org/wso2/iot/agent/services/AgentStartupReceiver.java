@@ -50,6 +50,7 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 	public static final int DEFAULT_INT_VALUE = 0;
 	public static final int DEFAULT_ID = -1;
 	private static final String TAG = AgentStartupReceiver.class.getSimpleName();
+	private Resources resources;
 
 	@Override
 	public void onReceive(final Context context, Intent intent) {
@@ -64,6 +65,14 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 		if (!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE)) {
 			Log.e(TAG, "Device is not active");
 			return;
+		}
+		this.resources = context.getApplicationContext().getResources();
+		int lastRebootOperationId = Preference.getInt(context, resources.getString(R.string.shared_pref_reboot_op_id));
+		if (lastRebootOperationId != 0) {
+			Preference.putString(context, resources.getString(R.string.shared_pref_reboot_status),
+					context.getResources().getString(R.string.operation_value_completed));
+			Preference.putString(context, resources.getString(R.string.shared_pref_reboot_result),
+					context.getResources().getString(R.string.operation_value_completed));
 		}
 		setRecurringAlarm(context.getApplicationContext());
 		if(!EventRegistry.eventListeningStarted) {
@@ -106,7 +115,6 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 	 * @param context - Application context.
 	 */
 	private void setRecurringAlarm(Context context) {
-		Resources resources = context.getApplicationContext().getResources();
 		String mode = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
 		boolean isLocked = Preference.getBoolean(context, Constants.IS_LOCKED);
 		String lockMessage = Preference.getString(context, Constants.LOCK_MESSAGE);

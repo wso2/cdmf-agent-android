@@ -55,6 +55,15 @@ public class OperationProcessor {
 	}
 
 	/**
+	 * Get device operation manager
+	 *
+	 * @return instance of OperationManager
+	 */
+	public OperationManager getOperationManager(){
+		return operationManager;
+	}
+
+	/**
 	 * Executes device management operations on the device.
 	 *
 	 * @param operation - Operation object.

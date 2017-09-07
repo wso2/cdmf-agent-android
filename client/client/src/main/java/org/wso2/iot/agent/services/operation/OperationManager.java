@@ -364,16 +364,22 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             String fileDirectory = null;
             String[] splittedStrings;
 
-            Pattern p = Pattern.compile("://");
-            Matcher m = p.matcher(fileURL);
-            if (m.find()) {
+            Pattern pattern = Pattern.compile("://");
+            Matcher matcher = pattern.matcher(fileURL);
+            // e.g:- fileURL = sftp://nirothipan@wso2.com-ftpclient@ftp.support.wso2.com/home/nirothipan@wso2.com-ftpclient/test/1.png
+            // here protocol - sftp, FTP User Name = nirothipan@wso2.com-ftpclient@ftp.support.wso2.com
+            // FTP folder of file = /home/nirothipan@wso2.com-ftpclient/test
+            // file Name = 1.png
+            // if port address is defined, fileURL = sftp://nirothipan@wso2.com-ftpclient@ftp.support.wso2.com:22/home/nirothipan@wso2.com-ftpclient/test/1.png
+            // server port = 22
+            if (matcher.find()) {
                 splittedStrings = fileURL.split("://", 2);
                 protocol = splittedStrings[0];
                 if (protocol == "ftp") {
                     serverPort = 21;
                 }
-                p = Pattern.compile(":");
-                if (p.matcher(splittedStrings[1]).find()) {
+                pattern = Pattern.compile(":");
+                if (pattern.matcher(splittedStrings[1]).find()) {
                     splittedStrings = splittedStrings[1].split("/", 2);
                     String string = splittedStrings[0].split(":", 2)[0];
                     serverPort = Integer.parseInt(splittedStrings[0].split(":", 2)[1]);
@@ -428,44 +434,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             }
             operation.setStatus(resources.getString(R.string.operation_value_completed));
             message = fileName + " uploaded to the device successfully!";
-        } catch (JSchException e) {
-            if (e.getCause() != null) {
-                message = fileName + " upload to the device failed. Error :- " + e.getCause().getMessage();
-            } else {
-                message = fileName + " upload to the device failed. Error :- " + e.getLocalizedMessage();
-            }
-            operation.setStatus(resources.getString(R.string.operation_value_error));
-            throw new AndroidAgentException(message, e);
-        } catch (SftpException e) {
-            if (e.getCause() != null) {
-                message = fileName + " upload to the device failed. Error :- " + e.getCause().getMessage();
-            } else {
-                message = fileName + " upload to the device failed. Error :- " + e.getLocalizedMessage();
-            }
-            operation.setStatus(resources.getString(R.string.operation_value_error));
-            throw new AndroidAgentException(message, e);
-        } catch (IOException e) {
-            if (e.getCause() != null) {
-                message = fileName + " upload to the device failed. Error :- " + e.getCause().getMessage();
-            } else {
-                message = fileName + " upload to the device failed. Error :- " + e.getLocalizedMessage();
-            }
-            operation.setStatus(resources.getString(R.string.operation_value_error));
-            throw new AndroidAgentException(message, e);
-        } catch (JSONException e) {
-            if (e.getCause() != null) {
-                message = fileName + " upload to the device failed. Error :- " + e.getCause().getMessage();
-            } else {
-                message = fileName + " upload to the device failed. Error :- " + e.getLocalizedMessage();
-            }
-            operation.setStatus(resources.getString(R.string.operation_value_error));
-            throw new AndroidAgentException(message, e);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            if (e.getCause() != null) {
-                message = fileName + " upload to the device failed. Error :- " + e.getCause().getMessage();
-            } else {
-                message = fileName + " upload to the device failed. Error :- " + e.getLocalizedMessage();
-            }
+        }  catch (ArrayIndexOutOfBoundsException | JSchException | IOException | SftpException | JSONException e) {
+            message = downloadFileExceptionHandler(e, fileName);
             operation.setStatus(resources.getString(R.string.operation_value_error));
             throw new AndroidAgentException(message, e);
         } finally {
@@ -487,6 +457,16 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             operation.setOperationResponse(message);
             resultBuilder.build(operation);
         }
+    }
+
+    private String downloadFileExceptionHandler(Exception e, String fileName) {
+        String message;
+        if (e.getCause() != null) {
+            message = fileName + " upload to the device failed. Error :- " + e.getCause().getMessage();
+        } else {
+            message = fileName + " upload to the device failed. Error :- " + e.getLocalizedMessage();
+        }
+        return message;
     }
 
     /**

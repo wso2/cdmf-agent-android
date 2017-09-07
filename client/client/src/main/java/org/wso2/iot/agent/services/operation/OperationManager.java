@@ -366,16 +366,16 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
 
             Pattern pattern = Pattern.compile("://");
             Matcher matcher = pattern.matcher(fileURL);
-            // e.g:- fileURL = sftp://nirothipan@wso2.com-ftpclient@ftp.support.wso2.com/home/nirothipan@wso2.com-ftpclient/test/1.png
-            // here protocol - sftp, FTP User Name = nirothipan@wso2.com-ftpclient@ftp.support.wso2.com
-            // FTP folder of file = /home/nirothipan@wso2.com-ftpclient/test
-            // file Name = 1.png
-            // if port address is defined, fileURL = sftp://nirothipan@wso2.com-ftpclient@ftp.support.wso2.com:22/home/nirothipan@wso2.com-ftpclient/test/1.png
-            // server port = 22
+            /** e.g:- fileURL = sftp://nirothipan@wso2.com-ftpclient@ftp.support.wso2.com/home/nirothipan@wso2.com-ftpclient/test/1.png
+             here protocol - sftp, FTP User Name = nirothipan@wso2.com-ftpclient@ftp.support.wso2.com
+             FTP folder of file = /home/nirothipan@wso2.com-ftpclient/test
+             file Name = 1.png
+             if port address is defined, fileURL = sftp://nirothipan@wso2.com-ftpclient@ftp.support.wso2.com:22/home/nirothipan@wso2.com-ftpclient/test/1.png
+             server port = 22 **/
             if (matcher.find()) {
                 splittedStrings = fileURL.split("://", 2);
                 protocol = splittedStrings[0];
-                if (protocol == "ftp") {
+                if (protocol.equals("ftp")) {
                     serverPort = 21;
                 }
                 pattern = Pattern.compile(":");

@@ -41,23 +41,19 @@
     <uses-permission android:name="android.permission.GET_TASKS" />
     <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
     <uses-permission android:name="org.wso2.iot.system.service.permission.ACCESS" />
+    <uses-permission android:name="org.wso2.iot.agent.permission.ACCESS" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="18" />
 
+    <permission android:name="android.permission.REBOOT" />
     <permission android:name="android.permission.READ_LOGS" />
     <permission
         android:name="org.wso2.iot.agent.permission.ACCESS"
         android:protectionLevel="signature" />
-
-    <uses-permission android:name="org.wso2.iot.agent.permission.ACCESS" />
-
     <permission
         android:name="org.wso2.iot.agent.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
-
-    <uses-permission android:name="android.permission.WAKE_LOCK"></uses-permission>
-
-    <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="18" />
 
     <application
         android:name=".AgentApplication"
@@ -264,10 +260,9 @@
                 <action android:name="org.ws2.iot.agent.LOCATION_UPDATE" />
             </intent-filter>
         </receiver>
-            <receiver android:name=".services.kiosk.KioskAlarmReceiver">
-        </receiver>
+        <receiver android:name=".services.kiosk.KioskAlarmReceiver"></receiver>
 
-       <!--android 7 requirement-->
+        <!--android 7 requirement-->
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -275,7 +270,7 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/provider_paths"/>
+                android:resource="@xml/provider_paths" />
         </provider>
     </application>
 

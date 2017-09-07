@@ -366,7 +366,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
 
             Pattern pattern = Pattern.compile("://");
             Matcher matcher = pattern.matcher(fileURL);
-            /** e.g:- fileURL = sftp://nirothipan@wso2.com-ftpclient@ftp.support.wso2.com/home/nirothipan@wso2.com-ftpclient/test/1.png
+            /** e.g:- fileURL = sftp://nirothipan@wso2.com-ftpclient@ftp.support.wso2.com:/home/nirothipan@wso2.com-ftpclient/test/1.png
              here protocol - sftp, FTP User Name = nirothipan@wso2.com-ftpclient@ftp.support.wso2.com
              FTP folder of file = /home/nirothipan@wso2.com-ftpclient/test
              file Name = 1.png
@@ -443,6 +443,9 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 if (bis != null) {
                     bis.close();
                 }
+            } catch (IOException ignored) {
+            }
+            try {
                 if (bos != null) {
                     bos.close();
                 }

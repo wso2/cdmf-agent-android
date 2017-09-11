@@ -29,6 +29,7 @@ import android.location.Location;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -83,9 +84,13 @@ import org.wso2.iot.agent.utils.Preference;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -337,16 +342,15 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
     }
 
     /**
-     * Download the file to the device.
+     * Download the file to the device from the FTP server.
      *
      * @param operation - Operation object.
      */
     void downloadFile(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
-        String fileName = null;
+
         String message = null;
-        int serverPort = 22;
-        JSch jsch = new JSch();
         Session session = null;
+        String fileName = null;
         Channel channel;
         ChannelSftp sftpChannel = null;
         BufferedInputStream bis = null;
@@ -355,48 +359,15 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
             String fileURL = inputData.getString("fileURL");
             String ftpPassword = inputData.getString("ftpPassword");
-            String savingLocation = inputData.getString("savingDirectory");
+            String savingLocation = inputData.getString("fileLocation");
 
-            String ftpUserName = null;
-            fileName = null;
-            String host = null;
-            String protocol;
-            String fileDirectory = null;
-            String[] splittedStrings;
-
-            Pattern pattern = Pattern.compile("://");
-            Matcher matcher = pattern.matcher(fileURL);
-            /** e.g:- fileURL = sftp://nirothipan@wso2.com-ftpclient@ftp.support.wso2.com:/home/nirothipan@wso2.com-ftpclient/test/1.png
-             here protocol - sftp, FTP User Name = nirothipan@wso2.com-ftpclient@ftp.support.wso2.com
-             FTP folder of file = /home/nirothipan@wso2.com-ftpclient/test
-             file Name = 1.png
-             if port address is defined, fileURL = sftp://nirothipan@wso2.com-ftpclient@ftp.support.wso2.com:22/home/nirothipan@wso2.com-ftpclient/test/1.png
-             server port = 22 **/
-            if (matcher.find()) {
-                splittedStrings = fileURL.split("://", 2);
-                protocol = splittedStrings[0];
-                if (protocol.equals("ftp")) {
-                    serverPort = 21;
-                }
-                pattern = Pattern.compile(":");
-                if (pattern.matcher(splittedStrings[1]).find()) {
-                    splittedStrings = splittedStrings[1].split("/", 2);
-                    String string = splittedStrings[0].split(":", 2)[0];
-                    serverPort = Integer.parseInt(splittedStrings[0].split(":", 2)[1]);
-                    ftpUserName = string.substring(0, string.lastIndexOf("@"));
-                    host = string.substring(string.lastIndexOf("@") + 1);
-                    fileName = splittedStrings[1].substring(splittedStrings[1].lastIndexOf("/") + 1);
-                    fileDirectory = splittedStrings[1].substring(0, splittedStrings[1].lastIndexOf("/"));
-                } else {
-                    String str = splittedStrings[1].split("/", 2)[0];
-                    ftpUserName = str.substring(0, str.lastIndexOf("@"));
-                    host = str.substring(str.lastIndexOf("@") + 1);
-                    str = splittedStrings[1].split("/", 2)[1];
-                    fileName = str.substring(str.lastIndexOf("/") + 1);
-                    fileDirectory = str.substring(0, str.lastIndexOf("/"));
-                }
-            }
-            fileDirectory = "/" + fileDirectory;
+            String[] userInfo = urlSplitter(fileURL, false);
+            String ftpUserName = userInfo[0];
+            String fileDirectory = userInfo[1];
+            String host = userInfo[2];
+            int serverPort = Integer.parseInt(userInfo[3]);
+            String protocol = userInfo[4];
+            fileName = userInfo[5];
 
             if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "FTP User Name: " + ftpUserName);
@@ -407,17 +378,22 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 Log.d(TAG, "Local location in device to save file: " + savingLocation);
             }
 
+            JSch jsch = new JSch();
             session = jsch.getSession(ftpUserName, host, serverPort);
             session.setConfig("StrictHostKeyChecking", "no");
             session.setPassword(ftpPassword);
             session.connect();
-            channel = session.openChannel("sftp");
+            channel = session.openChannel(protocol);
             channel.connect();
             sftpChannel = (ChannelSftp) channel;
             sftpChannel.cd(fileDirectory); //cd to dir that contains file
 
             byte[] buffer = new byte[1024];
             bis = new BufferedInputStream(sftpChannel.get(fileName));
+            if (savingLocation.equals("")) {
+                savingLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                        .toString();
+            }
             File newFile = new File(savingLocation + "/" + fileName);
             OutputStream os = new FileOutputStream(newFile);
             bos = new BufferedOutputStream(os);
@@ -433,9 +409,9 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 }
             }
             operation.setStatus(resources.getString(R.string.operation_value_completed));
-            message = fileName + " uploaded to the device successfully!";
-        }  catch (ArrayIndexOutOfBoundsException | JSchException | IOException | SftpException | JSONException e) {
-            message = downloadFileExceptionHandler(e, fileName);
+            message = "File uploaded to the device successfully!";
+        } catch (ArrayIndexOutOfBoundsException | JSchException | IOException | SftpException | JSONException | URISyntaxException e) {
+            message = fileTransferExceptionHandler(e, fileName);
             operation.setStatus(resources.getString(R.string.operation_value_error));
             throw new AndroidAgentException(message, e);
         } finally {
@@ -462,14 +438,120 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         }
     }
 
-    private String downloadFileExceptionHandler(Exception e, String fileName) {
+    /**
+     * This method handles the excetions formed by downloadFile and uploadFile classes.
+     *
+     * @param e        - Excepion object.
+     * @param fileName - name of the file which caused exception.
+     * @return - the error/cause for the exception.
+     */
+    private String fileTransferExceptionHandler(Exception e, String fileName) {
         String message;
         if (e.getCause() != null) {
-            message = fileName + " upload to the device failed. Error :- " + e.getCause().getMessage();
+            message = fileName + " upload failed. Error :- " + e.getCause().getMessage();
         } else {
-            message = fileName + " upload to the device failed. Error :- " + e.getLocalizedMessage();
+            message = fileName + " upload failed. Error :- " + e.getLocalizedMessage();
         }
         return message;
+    }
+
+    /**
+     * This method splits the provided URL to get user information for downlaodFile
+     * and uploadFile methods.
+     *
+     * @param fileURL  - URL to split.
+     * @param isUpload - fileURL corresponds to uploadFile or downloadFile operation.
+     * @return - an array of ftpUserName, fileDirectory, host, serverPort, protocol &
+     * fileName ( optional for isUpload = false ).
+     * @throws URISyntaxException - Malformed URL.
+     */
+    private static String[] urlSplitter(String fileURL, boolean isUpload) throws URISyntaxException {
+        String serverPort = "22";
+        URI url = new URI(fileURL);
+        String protocol = url.getScheme();
+        String host = null;
+        String ftpUserName = null;
+        if (url.getAuthority() != null) {
+            String[] authority = url.getAuthority().split("@"); //provides username@hostname
+            host = authority[authority.length - 1];             // Since hostname cannot contain any '@' signs, it should be last element.
+            ftpUserName = url.getAuthority().substring(0, url.getAuthority().lastIndexOf(host) - 1);
+        }
+        if (host != null && host.contains(":")) {
+            serverPort = String.valueOf(host.split(":")[1]);
+            host = host.split(":")[0];
+        }
+        if (isUpload) {
+            return new String[]{ftpUserName, url.getPath(), host, serverPort, protocol};
+        } else {
+            File file = new File(url.getPath());
+            return new String[]{ftpUserName, file.getParent(), host, serverPort, protocol, file.getName()};
+        }
+    }
+
+    /**
+     * Upload file to the FTP server from the device.
+     *
+     * @param operation - Operation object.
+     */
+    void uploadFile(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
+        Session session = null;
+        Channel channel = null;
+        ChannelSftp channelSftp = null;
+        String message = null;
+        String fileName = "Unknown";
+        try {
+            JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
+            String fileURL = inputData.getString("fileURL");
+            String ftpPassword = inputData.getString("ftpPassword");
+            String fileLocation = inputData.getString("fileLocation");
+
+            String[] userInfo = urlSplitter(fileURL, true);
+            String ftpUserName = userInfo[0];
+            String fileDirectory = userInfo[1];
+            String host = userInfo[2];
+            int serverPort = Integer.parseInt(userInfo[3]);
+            String protocol = userInfo[4];
+
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "FTP User Name: " + ftpUserName);
+                Log.d(TAG, "FTP host address: " + host);
+                Log.d(TAG, "FTP server port: " + serverPort);
+                Log.d(TAG, "FTP file directory to upload: " + fileDirectory);
+            }
+
+            JSch jsch = new JSch();
+            session = jsch.getSession(ftpUserName, host, serverPort);
+            session.setPassword(ftpPassword);
+            java.util.Properties config = new java.util.Properties();
+            config.put("StrictHostKeyChecking", "no");
+            session.setConfig(config);
+            session.connect();
+            channel = session.openChannel(protocol);
+            channel.connect();
+            channelSftp = (ChannelSftp) channel;
+            channelSftp.cd(fileDirectory);
+            File file = new File(fileLocation);
+            channelSftp.put(new FileInputStream(file), file.getName());
+            fileName = file.getName();
+            operation.setStatus(resources.getString(R.string.operation_value_completed));
+            message = "File uploaded from the device successfully";
+        } catch (JSONException | URISyntaxException | JSchException | SftpException | FileNotFoundException e) {
+            message = fileTransferExceptionHandler(e, fileName);
+            operation.setStatus(resources.getString(R.string.operation_value_error));
+            throw new AndroidAgentException(message, e);
+        } finally {
+            if (channelSftp != null) {
+                channelSftp.exit();
+            }
+            if (channel != null) {
+                channel.disconnect();
+            }
+            if (session != null) {
+                session.disconnect();
+            }
+            operation.setOperationResponse(message);
+            resultBuilder.build(operation);
+        }
     }
 
     /**

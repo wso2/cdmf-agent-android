@@ -57,6 +57,9 @@ public class ServerConfigsActivity extends AppCompatActivity {
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(intent);
 			finish();
+		} else if (Constants.DEFAULT_HOST != null) {
+			startAuthenticationActivity();
+			finish();
 		}
 
 		setContentView(R.layout.activity_server_configs);
@@ -171,11 +174,9 @@ public class ServerConfigsActivity extends AppCompatActivity {
 	 * This method is called to open AuthenticationActivity.
 	 */
 	private void startAuthenticationActivity() {
-		if (!Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED) {
-			Intent intent = new Intent(ServerConfigsActivity.this, AuthenticationActivity.class);
-			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			startActivity(intent);
-		}
+		Intent intent = new Intent(ServerConfigsActivity.this, AuthenticationActivity.class);
+		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		startActivity(intent);
 	}
 
 	@Override

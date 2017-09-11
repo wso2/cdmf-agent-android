@@ -391,8 +391,14 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             byte[] buffer = new byte[1024];
             bis = new BufferedInputStream(sftpChannel.get(fileName));
             if (savingLocation.equals("")) {
-                savingLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                        .toString();
+                if (Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).exists()) {
+                    savingLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                            .toString();
+                } else {
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).mkdirs();
+                    savingLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                            .toString();
+                }
             }
             File newFile = new File(savingLocation + "/" + fileName);
             OutputStream os = new FileOutputStream(newFile);

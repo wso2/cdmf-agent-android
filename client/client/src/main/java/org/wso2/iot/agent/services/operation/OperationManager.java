@@ -395,9 +395,10 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                     savingLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                             .toString();
                 } else {
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).mkdirs();
-                    savingLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                            .toString();
+                    if (Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).mkdirs()) {
+                        savingLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                                .toString();
+                    }
                 }
             }
             File newFile = new File(savingLocation + "/" + fileName);

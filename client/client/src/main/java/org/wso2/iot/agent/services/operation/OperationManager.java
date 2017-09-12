@@ -346,7 +346,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      *
      * @param operation - Operation object.
      */
-    void downloadFile(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
+    public void downloadFile(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
 
         String message = null;
         Session session = null;
@@ -500,7 +500,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      *
      * @param operation - Operation object.
      */
-    void uploadFile(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
+    public void uploadFile(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
         Session session = null;
         Channel channel = null;
         ChannelSftp channelSftp = null;

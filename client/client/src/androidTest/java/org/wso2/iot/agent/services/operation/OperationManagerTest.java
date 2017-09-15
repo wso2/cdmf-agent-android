@@ -46,7 +46,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * Test class for OperationManager.java .
+ */
 @RunWith(AndroidJUnit4.class)
 public class OperationManagerTest {
 

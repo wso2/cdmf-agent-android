@@ -24,7 +24,9 @@ import org.wso2.iot.agent.beans.ComplianceFeature;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.operation.OperationManager;
 
-
+/**
+ * Class extending OperationManager for testing purposes since it is abstract.
+ */
 public class MockOperationManager extends OperationManager {
 
     public MockOperationManager(Context context) {

@@ -21,6 +21,9 @@ package org.wso2.iot.agent.services.operation;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
+/**
+ * Test suite to run all test classes at once.
+ */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({OperationManagerTest.class})
 public class UnitTestSuite {

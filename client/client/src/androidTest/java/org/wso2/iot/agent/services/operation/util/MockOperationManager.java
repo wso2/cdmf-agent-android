@@ -25,8 +25,7 @@ import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.operation.OperationManager;
 
 
-
-public class MockOperationManager extends OperationManager{
+public class MockOperationManager extends OperationManager {
 
     public MockOperationManager(Context context) {
         super(context);

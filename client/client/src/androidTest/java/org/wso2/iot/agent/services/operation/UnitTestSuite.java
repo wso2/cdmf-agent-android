@@ -23,4 +23,5 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({OperationManagerTest.class})
-public class UnitTestSuite {}
+public class UnitTestSuite {
+}

@@ -60,8 +60,8 @@ public class OperationManagerTest {
 
         File file = new File(ftpDirectory + File.separator + "testFile.txt");
 
-        if(file.createNewFile()) { //Create the file
-            if (!file.exists()){
+        if (file.createNewFile()) { //Create the file
+            if (!file.exists()) {
                 Assert.fail("File creation in device failed.");
             }
         }

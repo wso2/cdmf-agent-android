@@ -80,9 +80,9 @@ public class OperationManagerTest {
     public void setupFTPServer() {
         createNewFile(FTP_DIRECTORY + File.separator + DOWNLOAD_FILE_NAME);
         createNewFile(DEVICE_DOWNLOAD_DIRECTORY + File.separator + UPLOAD_FILE_NAME);
-        TEST_FTP_SERVER = new FTPServer(USER_NAME, PASSWORD, FTP_DIRECTORY,FTP_PORT);
+        TEST_FTP_SERVER = new FTPServer(USER_NAME, PASSWORD, FTP_DIRECTORY, FTP_PORT);
         TEST_FTP_SERVER.startFTP();
-        TEST_SFTP_SERVER = new SFTPServer(USER_NAME, PASSWORD, SFTP_DIRECTORY,SFTP_PORT);
+        TEST_SFTP_SERVER = new SFTPServer(USER_NAME, PASSWORD, SFTP_DIRECTORY, SFTP_PORT);
         TEST_SFTP_SERVER.startSFTP();
     }
 

@@ -45,14 +45,14 @@ public class SFTPServer {
     private String SFTP_DIRECTORY;
     private int PORT;
 
-    public SFTPServer(String userName,String password,String homeDirectory,int port){
+    public SFTPServer(String userName, String password, String homeDirectory, int port) {
         this.USER_NAME = userName;
         this.PASSWORD = password;
         this.SFTP_DIRECTORY = homeDirectory;
         this.PORT = port;
     }
 
-    public void startSFTP(){
+    public void startSFTP() {
         Log.d(TAG, "Starting SFTP server.");
         SFTP_SERVER = SshServer.setUpDefaultServer();
         SFTP_SERVER.setFileSystemFactory(new VirtualFileSystemFactory(SFTP_DIRECTORY));
@@ -68,11 +68,11 @@ public class SFTPServer {
         try {
             SFTP_SERVER.start();
         } catch (IOException e) {
-            Log.e(TAG,"SFTP sever starting exception.");
+            Log.e(TAG, "SFTP sever starting exception.");
         }
     }
 
-    public void stopSFTP(){
+    public void stopSFTP() {
         try {
             if (SFTP_SERVER != null) {
                 SFTP_SERVER.stop();

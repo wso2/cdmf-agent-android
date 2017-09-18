@@ -44,7 +44,7 @@ public class FTPServer {
     private FtpServer FTP_SERVER;
     private int PORT;
 
-    public FTPServer(String userName, String password, String homeDirectory,int port) {
+    public FTPServer(String userName, String password, String homeDirectory, int port) {
         this.USER_NAME = userName;
         this.PASSWORD = password;
         this.FTP_DIRECTORY = homeDirectory;
@@ -80,7 +80,7 @@ public class FTPServer {
             FTP_SERVER.start();
             Log.d(TAG, "Test FTP Server started.");
         } catch (FtpException e) {
-            Log.e(TAG,"FTP server starting exception");
+            Log.e(TAG, "FTP server starting exception");
         }
     }
 

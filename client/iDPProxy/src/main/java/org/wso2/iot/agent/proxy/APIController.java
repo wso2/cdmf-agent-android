@@ -421,6 +421,12 @@ public class APIController implements TokenCallBack {
 			token.setExpiresOn(new Date(expiresOn));
 			token.setRefreshToken(refreshToken);
 			token.setAccessToken(accessToken);
+			if (Constants.DEBUG_ENABLED) {
+				Log.d(TAG, "Token loaded from prefs");
+			}
+		}
+		if (Constants.DEBUG_ENABLED) {
+			Log.d(TAG, "Retrieved token expires on:" + token.getExpiresOn().toString());
 		}
 		return token;
 	}

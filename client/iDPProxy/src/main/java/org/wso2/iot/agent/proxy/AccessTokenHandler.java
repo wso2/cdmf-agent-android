@@ -181,7 +181,8 @@ public class AccessTokenHandler {
                     refreshToken = response.getString(Constants.REFRESH_TOKEN);
                     timeToExpireSecond = Long.parseLong(response.getString(Constants.EXPIRE_LABEL));
                     Token token = new Token();
-                    long expiresOn = new Date().getTime() + (timeToExpireSecond * 1000) - Constants.HttpClient.DEFAULT_TOKEN_TIME_OUT * 5;
+                    long expiresOn = new Date().getTime()
+                            + (timeToExpireSecond - Constants.HttpClient.TOKEN_VALIDITY_PERCENTAGE * timeToExpireSecond / 100) * 1000;
                     token.setExpiresOn(new Date(expiresOn));
                     token.setRefreshToken(refreshToken);
                     token.setAccessToken(accessToken);
@@ -195,6 +196,10 @@ public class AccessTokenHandler {
                     editor.putString(USERNAME_LABEL, info.getUsername());
                     editor.putLong(Constants.EXPIRE_TIME, expiresOn);
                     editor.apply();
+
+                    if (Constants.DEBUG_ENABLED) {
+                        Log.d(TAG, "Token expires on:" + token.getExpiresOn().toString());
+                    }
 
                     identityProxy.receiveAccessToken(responseCode, Constants.SUCCESS_RESPONSE, token);
                 } catch (JSONException e) {

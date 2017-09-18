@@ -694,6 +694,7 @@ task checkAPIVersion(dependsOn: build) {
 dependencies {
     testCompile 'junit:junit:4.12'
     androidTestCompile 'org.apache.ftpserver:ftpserver-core:1.1.1'
+    androidTestCompile 'org.apache.sshd:sshd-sftp:0.11.0'
     androidTestCompile 'org.apache.ftpserver:ftplet-api:1.1.1'
     androidTestCompile 'com.android.support:support-annotations:25.3.1'
     androidTestCompile 'com.android.support.test:runner:0.5'

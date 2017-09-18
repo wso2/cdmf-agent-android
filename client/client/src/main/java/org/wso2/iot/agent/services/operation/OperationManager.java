@@ -30,6 +30,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -45,10 +46,8 @@ import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
 
 import org.apache.commons.io.input.ReversedLinesFileReader;
-import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPConnectionClosedException;
-import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPSClient;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -93,7 +92,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
@@ -102,7 +100,6 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
-import javax.net.ssl.SSLException;
 
 public abstract class OperationManager implements APIResultCallBack, VersionBasedOperations {
 
@@ -133,7 +130,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
     private static final long DAY_MILLISECONDS_MULTIPLIER = 24 * 60 * 60 * 1000;
     private static String[] AUTHORIZED_PINNING_APPS;
     private static String AGENT_PACKAGE_NAME;
-    private static String OPERATION_RESPONSE = null;
+    private static String OPERATION_RESPONSE;
 
     public OperationManager(Context context) {
         this.context = context;
@@ -350,11 +347,12 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      *
      * @param operation - Operation object.
      */
-    public void downloadFile(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
+    @VisibleForTesting
+    void downloadFile(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
 
         String fileName = null;
         if (operation.getPayLoad() == null) {
-            OPERATION_RESPONSE = "Invalid operation response";
+            OPERATION_RESPONSE = "Operation payload null.";
             operation.setOperationResponse(OPERATION_RESPONSE);
             operation.setStatus(resources.getString(R.string.operation_value_error));
             resultBuilder.build(operation);
@@ -382,23 +380,27 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                     Log.d(TAG, "FTP file directory: " + fileDirectory);
                     Log.d(TAG, "Local location in device to save file: " + savingLocation);
                 }
-
-                if (protocol.equals("sftp")) {
-                    downloadFileUsingSFTPClient(operation, host, ftpUserName, ftpPassword,
-                            savingLocation, fileName, serverPort, fileDirectory);
-                } else if (protocol.equals("ftp")) {
-                    downloadFileUsingFTPClient(operation, host, ftpUserName, ftpPassword,
-                            savingLocation, fileName, serverPort, fileDirectory);
-                } else {
-                    OPERATION_RESPONSE = "Protocol(" + protocol + ") not supported.";
-                    operation.setStatus(resources.getString(R.string.operation_value_error));
-                    throw new AndroidAgentException(OPERATION_RESPONSE);
+                switch (protocol) {
+                    case "sftp":
+                        downloadFileUsingSFTPClient(operation, host, ftpUserName, ftpPassword,
+                                savingLocation, fileName, serverPort, fileDirectory);
+                        break;
+                    case "ftp":
+                        downloadFileUsingFTPClient(operation, host, ftpUserName, ftpPassword,
+                                savingLocation, fileName, serverPort, fileDirectory);
+                        break;
+                    default:
+                        OPERATION_RESPONSE = "Protocol(" + protocol + ") not supported.";
+                        operation.setStatus(resources.getString(R.string.operation_value_error));
+                        Log.d(TAG, OPERATION_RESPONSE);
+                        throw new AndroidAgentException(OPERATION_RESPONSE);
                 }
             } catch (ArrayIndexOutOfBoundsException | JSONException | URISyntaxException e) {
                 fileTransferExceptionHandler(e, fileName);
                 operation.setStatus(resources.getString(R.string.operation_value_error));
                 throw new AndroidAgentException(OPERATION_RESPONSE, e);
             } finally {
+                Log.d(TAG, OPERATION_RESPONSE);
                 operation.setOperationResponse(OPERATION_RESPONSE);
                 resultBuilder.build(operation);
             }
@@ -425,8 +427,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         Channel channel;
         Session session = null;
         ChannelSftp sftpChannel = null;
-        BufferedInputStream bis = null;
-        BufferedOutputStream bos = null;
+        BufferedInputStream bufferedInputStream = null;
+        BufferedOutputStream bufferedOutputStream = null;
         try {
             JSch jsch = new JSch();
             session = jsch.getSession(ftpUserName, host, serverPort);
@@ -436,14 +438,16 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             channel = session.openChannel("sftp");
             channel.connect();
             sftpChannel = (ChannelSftp) channel;
-            sftpChannel.cd(fileDirectory); //cd to dir that contains file
+            if (!fileDirectory.equals(File.separator)) {
+                sftpChannel.cd(fileDirectory); //cd to dir that contains file
+            }
 
             byte[] buffer = new byte[1024];
-            bis = new BufferedInputStream(sftpChannel.get(fileName));
+            bufferedInputStream = new BufferedInputStream(sftpChannel.get(fileName));
             if (savingLocation.equals("")) {
                 if (Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).exists()) {
-                    savingLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                            .toString();
+                    savingLocation = Environment.getExternalStoragePublicDirectory(Environment.
+                            DIRECTORY_DOWNLOADS).toString();
                 } else {
                     OPERATION_RESPONSE = "Default Download directory doesn't exist." +
                             "Please specify a location to save file in device";
@@ -452,11 +456,11 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 }
             }
             File newFile = new File(savingLocation + File.separator + fileName);
-            OutputStream os = new FileOutputStream(newFile);
-            bos = new BufferedOutputStream(os);
+            OutputStream outputStream = new FileOutputStream(newFile);
+            bufferedOutputStream = new BufferedOutputStream(outputStream);
             int readCount;
-            while ((readCount = bis.read(buffer)) > 0) {
-                bos.write(buffer, 0, readCount);
+            while ((readCount = bufferedInputStream.read(buffer)) > 0) {
+                bufferedOutputStream.write(buffer, 0, readCount);
             }
             if (Constants.DEBUG_MODE_ENABLED) {
                 if (newFile.exists()) {
@@ -473,14 +477,14 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             throw new AndroidAgentException(OPERATION_RESPONSE, e);
         } finally {
             try {
-                if (bis != null) {
-                    bis.close();
+                if (bufferedInputStream != null) {
+                    bufferedInputStream.close();
                 }
             } catch (IOException ignored) {
             }
             try {
-                if (bos != null) {
-                    bos.close();
+                if (bufferedOutputStream != null) {
+                    bufferedOutputStream.close();
                 }
             } catch (IOException ignored) {
             }
@@ -516,33 +520,33 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         OutputStream outputStream = null;
         try {
             ftpClient.connect(host, serverPort);
-            ftpClient.enterLocalPassiveMode();
-            ftpClient.login(ftpUserName, ftpPassword);
-            ftpClient.enterLocalPassiveMode();
-            //  ftpClient.execPBSZ(0);
-            //  ftpClient.execPROT("P");
-            // ftpClient.type(FTP.BINARY_FILE_TYPE);
-            if (savingLocation.equals("")) {
-                if (Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).exists()) {
-                    savingLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                            .toString();
-                } else {
-                    OPERATION_RESPONSE = "Default Download directory doesn't exist." +
-                            "Please specify a location to save file in device";
-                    operation.setStatus(resources.getString(R.string.operation_value_error));
-                    throw new AndroidAgentException(OPERATION_RESPONSE);
+            if (ftpClient.login(ftpUserName, ftpPassword)) {
+                ftpClient.enterLocalPassiveMode();
+                if (savingLocation.equals("")) {
+                    if (Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).exists()) {
+                        savingLocation = Environment.getExternalStoragePublicDirectory(Environment.
+                                DIRECTORY_DOWNLOADS).toString();
+                    } else {
+                        OPERATION_RESPONSE = "Default Download directory doesn't exist." +
+                                "Please specify a location to save file in device";
+                        operation.setStatus(resources.getString(R.string.operation_value_error));
+                        throw new AndroidAgentException(OPERATION_RESPONSE);
+                    }
                 }
-            }
-            fileOutputStream = new FileOutputStream(savingLocation + File.separator + fileName);
-            outputStream = new BufferedOutputStream(fileOutputStream);
-            ftpClient.changeWorkingDirectory(fileDirectory);
-            boolean done = ftpClient.retrieveFile(fileName, outputStream);
-            if (done) {
-                OPERATION_RESPONSE = "File uploaded to the device successfully!";
-                operation.setStatus(resources.getString(R.string.operation_value_completed));
+                fileOutputStream = new FileOutputStream(savingLocation + File.separator + fileName);
+                outputStream = new BufferedOutputStream(fileOutputStream);
+                ftpClient.changeWorkingDirectory(fileDirectory);
+                boolean done = ftpClient.retrieveFile(fileName, outputStream);
+                if (done) {
+                    OPERATION_RESPONSE = "File uploaded to the device successfully!";
+                    operation.setStatus(resources.getString(R.string.operation_value_completed));
+                } else {
+                    OPERATION_RESPONSE = "File uploaded to the device not completed.";
+                    operation.setStatus(resources.getString(R.string.operation_value_error));
+                }
             } else {
-                OPERATION_RESPONSE = "File uploaded to the device not completed.";
-                operation.setStatus(resources.getString(R.string.operation_value_error));
+                downloadFileUsingFTPSClient(operation, host, ftpUserName, ftpPassword,
+                        savingLocation, fileName, serverPort, fileDirectory);
             }
         } catch (FTPConnectionClosedException e) {
             downloadFileUsingFTPSClient(operation, host, ftpUserName, ftpPassword,
@@ -595,46 +599,41 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         FTPSClient ftpsClient = new FTPSClient();
         FileOutputStream fileOutputStream = null;
         OutputStream outputStream = null;
-        Boolean loginResult = false;
         try {
             ftpsClient.connect(host, serverPort);
-            ftpsClient.enterLocalPassiveMode();
-            loginResult = ftpsClient.login(ftpUserName, ftpPassword);
-            ftpsClient.enterLocalPassiveMode();
-            //  ftpClient.execPBSZ(0);
-            ftpsClient.execPROT("P");
-            // ftpClient.type(FTP.BINARY_FILE_TYPE);
+            if (ftpsClient.login(ftpUserName, ftpPassword)) {
+                ftpsClient.enterLocalPassiveMode();
+                ftpsClient.execPROT("P");
 
-            if (savingLocation.equals("")) {
-                if (Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).exists()) {
-                    savingLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                            .toString();
-                } else {
-                    OPERATION_RESPONSE = "Default Download directory doesn't exist." +
-                            "Please specify a location to save file in device";
-                    operation.setStatus(resources.getString(R.string.operation_value_error));
-                    throw new AndroidAgentException(OPERATION_RESPONSE);
+                if (savingLocation.equals("")) {
+                    if (Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).exists()) {
+                        savingLocation = Environment.getExternalStoragePublicDirectory(Environment.
+                                DIRECTORY_DOWNLOADS).toString();
+                    } else {
+                        OPERATION_RESPONSE = "Default Download directory doesn't exist." +
+                                "Please specify a location to save file in device";
+                        operation.setStatus(resources.getString(R.string.operation_value_error));
+                        throw new AndroidAgentException(OPERATION_RESPONSE);
+                    }
                 }
-            }
+                fileOutputStream = new FileOutputStream(savingLocation + File.separator + fileName);
+                outputStream = new BufferedOutputStream(fileOutputStream);
+                ftpsClient.changeWorkingDirectory(fileDirectory);
+                boolean done = ftpsClient.retrieveFile(fileName, outputStream);
 
-            fileOutputStream = new FileOutputStream(savingLocation + File.separator + fileName);
-            outputStream = new BufferedOutputStream(fileOutputStream);
-            ftpsClient.changeWorkingDirectory(fileDirectory);
-            boolean done = ftpsClient.retrieveFile(fileName, outputStream);
-
-            if (done) {
-                OPERATION_RESPONSE = "File uploaded to the device successfully!";
-                operation.setStatus(resources.getString(R.string.operation_value_completed));
+                if (done) {
+                    OPERATION_RESPONSE = "File uploaded to the device successfully!";
+                    operation.setStatus(resources.getString(R.string.operation_value_completed));
+                } else {
+                    OPERATION_RESPONSE = "File uploaded to the device not completed.";
+                    operation.setStatus(resources.getString(R.string.operation_value_error));
+                }
             } else {
-                OPERATION_RESPONSE = "File uploaded to the device not completed.";
+                OPERATION_RESPONSE = "FTP login failed.";
                 operation.setStatus(resources.getString(R.string.operation_value_error));
             }
         } catch (IOException e) {
-            if (!loginResult) {
-                OPERATION_RESPONSE = "FTP login failed.";
-            } else {
-                fileTransferExceptionHandler(e, fileName);
-            }
+            fileTransferExceptionHandler(e, fileName);
             e.printStackTrace();
             operation.setStatus(resources.getString(R.string.operation_value_error));
             throw new AndroidAgentException(OPERATION_RESPONSE, e);
@@ -662,11 +661,10 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
     }
 
     /**
-     * This method handles the excetions formed by downloadFile and uploadFile classes.
+     * This method handles the exceptions formed by downloadFile and uploadFile classes.
      *
-     * @param e        - Excepion object.
+     * @param e        - Exception object.
      * @param fileName - name of the file which caused exception.
-     * @return - the error/cause for the exception.
      */
     private void fileTransferExceptionHandler(Exception e, String fileName) {
         if (e.getCause() != null) {
@@ -677,7 +675,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
     }
 
     /**
-     * This method splits the provided URL to get user information for downlaodFile
+     * This method splits the provided URL to get user information for downloadFile
      * and uploadFile methods.
      *
      * @param fileURL  - URL to split.
@@ -717,11 +715,12 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      *
      * @param operation - Operation object.
      */
-    public void uploadFile(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
+    @VisibleForTesting
+     void uploadFile(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
 
         String fileName = "Unknown";
         if (operation.getPayLoad() == null) {
-            OPERATION_RESPONSE = "Invalid operation response";
+            OPERATION_RESPONSE = "Operation payload null.";
             operation.setOperationResponse(OPERATION_RESPONSE);
             operation.setStatus(resources.getString(R.string.operation_value_error));
             resultBuilder.build(operation);
@@ -749,22 +748,27 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                     Log.d(TAG, "File to upload: " + fileName);
                 }
 
-                if (protocol.equals("sftp")) {
-                    uploadFileUsingSFTPClient(operation, host, ftpUserName, ftpPassword,
-                            uploadDirectory, fileLocation, serverPort);
-                } else if (protocol.equals("ftp")) {
-                    uploadFileUsingFTPClient(operation, host, ftpUserName, ftpPassword,
-                            uploadDirectory, fileLocation, serverPort);
-                } else {
-                    OPERATION_RESPONSE = "Protocol ( " + protocol + " ) not supported.";
-                    operation.setStatus(resources.getString(R.string.operation_value_error));
-                    throw new AndroidAgentException(OPERATION_RESPONSE);
+                switch (protocol) {
+                    case "sftp":
+                        uploadFileUsingSFTPClient(operation, host, ftpUserName, ftpPassword,
+                                uploadDirectory, fileLocation, serverPort);
+                        break;
+                    case "ftp":
+                        uploadFileUsingFTPClient(operation, host, ftpUserName, ftpPassword,
+                                uploadDirectory, fileLocation, serverPort);
+                        break;
+                    default:
+                        OPERATION_RESPONSE = "Protocol ( " + protocol + " ) not supported.";
+                        operation.setStatus(resources.getString(R.string.operation_value_error));
+                        Log.d(TAG, OPERATION_RESPONSE);
+                        throw new AndroidAgentException(OPERATION_RESPONSE);
                 }
             } catch (JSONException | URISyntaxException e) {
                 fileTransferExceptionHandler(e, fileName);
                 operation.setStatus(resources.getString(R.string.operation_value_error));
                 throw new AndroidAgentException(OPERATION_RESPONSE, e);
             } finally {
+                Log.d(TAG, OPERATION_RESPONSE);
                 operation.setOperationResponse(OPERATION_RESPONSE);
                 resultBuilder.build(operation);
             }
@@ -799,11 +803,9 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             inputStream = new FileInputStream(file);
             ftpClient.changeWorkingDirectory(uploadDirectory);
             boolean done = ftpClient.storeFile(file.getName(), inputStream);
-            //showServerReply(ftpClient);
             if (done) {
                 OPERATION_RESPONSE = "File uploaded from the device completed.";
                 operation.setStatus(resources.getString(R.string.operation_value_completed));
-                System.out.println("The file uploaded successfully.");
             } else {
                 OPERATION_RESPONSE = "File uploaded from the device not completed.";
                 operation.setStatus(resources.getString(R.string.operation_value_error));
@@ -821,14 +823,12 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 try {
                     ftpClient.logout();
                 } catch (IOException ignored) {
-
                 }
             }
             if (ftpClient.isConnected()) {
                 try {
                     ftpClient.disconnect();
                 } catch (IOException ignored) {
-
                 }
             }
             try {
@@ -836,7 +836,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                     inputStream.close();
                 }
             } catch (IOException ignored) {
-
             }
         }
     }
@@ -867,9 +866,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             ftpsClient.connect(host, serverPort);
             ftpsClient.enterLocalPassiveMode();
             loginResult = ftpsClient.login(ftpUserName, ftpPassword);
-            //  ftpClient.execPBSZ(0);
             ftpsClient.execPROT("P");
-            // ftpClient.type(FTP.BINARY_FILE_TYPE);
             inputStream = new FileInputStream(file);
             ftpsClient.changeWorkingDirectory(uploadDirectory);
             boolean done = ftpsClient.storeFile(fileName, inputStream);

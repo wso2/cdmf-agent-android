@@ -106,7 +106,6 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 	 * @param context - Application context.
 	 */
 	private void setRecurringAlarm(Context context) {
-		Resources resources = context.getApplicationContext().getResources();
 		String mode = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
 		boolean isLocked = Preference.getBoolean(context, Constants.IS_LOCKED);
 		String lockMessage = Preference.getString(context, Constants.LOCK_MESSAGE);

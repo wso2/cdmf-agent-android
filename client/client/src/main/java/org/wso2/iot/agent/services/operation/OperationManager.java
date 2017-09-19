@@ -553,7 +553,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                     savingLocation, fileName, serverPort, fileDirectory);
         } catch (IOException e) {
             fileTransferExceptionHandler(e, fileName);
-            e.printStackTrace();
             operation.setStatus(resources.getString(R.string.operation_value_error));
             throw new AndroidAgentException(OPERATION_RESPONSE, e);
         } finally {
@@ -634,7 +633,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             }
         } catch (IOException e) {
             fileTransferExceptionHandler(e, fileName);
-            e.printStackTrace();
             operation.setStatus(resources.getString(R.string.operation_value_error));
             throw new AndroidAgentException(OPERATION_RESPONSE, e);
         } finally {
@@ -716,7 +714,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @param operation - Operation object.
      */
     @VisibleForTesting
-     void uploadFile(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
+    void uploadFile(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
 
         String fileName = "Unknown";
         if (operation.getPayLoad() == null) {
@@ -760,7 +758,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                     default:
                         OPERATION_RESPONSE = "Protocol ( " + protocol + " ) not supported.";
                         operation.setStatus(resources.getString(R.string.operation_value_error));
-                        Log.d(TAG, OPERATION_RESPONSE);
                         throw new AndroidAgentException(OPERATION_RESPONSE);
                 }
             } catch (JSONException | URISyntaxException e) {
@@ -814,7 +811,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             uploadFileUsingFTPSClient(operation, host, ftpUserName, ftpPassword,
                     uploadDirectory, fileLocation, serverPort);
         } catch (IOException e) {
-            e.printStackTrace();
             fileTransferExceptionHandler(e, fileName);
             operation.setStatus(resources.getString(R.string.operation_value_error));
             throw new AndroidAgentException(OPERATION_RESPONSE, e);
@@ -884,7 +880,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             } else {
                 fileTransferExceptionHandler(e, fileName);
             }
-            e.printStackTrace();
             operation.setStatus(resources.getString(R.string.operation_value_error));
             throw new AndroidAgentException(OPERATION_RESPONSE, e);
         } finally {
@@ -942,7 +937,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             OPERATION_RESPONSE = "File uploaded from the device successfully";
             operation.setStatus(resources.getString(R.string.operation_value_completed));
         } catch (JSchException | FileNotFoundException | SftpException e) {
-            e.printStackTrace();
             fileTransferExceptionHandler(e, fileName);
             operation.setStatus(resources.getString(R.string.operation_value_error));
             throw new AndroidAgentException(OPERATION_RESPONSE, e);

@@ -74,7 +74,7 @@ public class OperationManagerTest {
                 }
             }
         } catch (IOException e) {
-            Log.d(TAG, "Test file creation failed. " + e.getLocalizedMessage());
+            Log.e(TAG, "Test file creation failed. " + e.getLocalizedMessage());
             Assert.fail("Test file creation in device failed due to IO exception. " + e.getLocalizedMessage());
         }
     }
@@ -97,7 +97,7 @@ public class OperationManagerTest {
         TEST_SFTP_SERVER.startSFTP();
     }
 
-    public JSONObject preparePayload(String fileUrl, String password, String fileLocation) {
+    public JSONObject generatePayload(String fileUrl, String password, String fileLocation) {
         JSONObject payload = new JSONObject();
         try {
             payload.put("fileURL", fileUrl);
@@ -111,26 +111,26 @@ public class OperationManagerTest {
 
     @Test
     public void testDownloadFileFTPClientFileLocationSpecified() {
-        String fileUrl = FTP_SCHEME + USER_NAME + LOCAL_HOST + FTP_PORT + "/" + DOWNLOAD_FILE_NAME;
-        testDownloadFile(preparePayload(fileUrl, PASSWORD, DEVICE_DOWNLOAD_DIRECTORY));
+        String fileUrl = FTP_SCHEME + USER_NAME + LOCAL_HOST + FTP_PORT + File.separator + DOWNLOAD_FILE_NAME;
+        testDownloadFile(generatePayload(fileUrl, PASSWORD, DEVICE_DOWNLOAD_DIRECTORY));
     }
 
     @Test
     public void testDownloadFileFTPClientFileLocationNotSpecified() {
-        String fileUrl = FTP_SCHEME + USER_NAME + LOCAL_HOST + FTP_PORT + "/" + DOWNLOAD_FILE_NAME;
-        testDownloadFile(preparePayload(fileUrl, PASSWORD, ""));
+        String fileUrl = FTP_SCHEME + USER_NAME + LOCAL_HOST + FTP_PORT + File.separator + DOWNLOAD_FILE_NAME;
+        testDownloadFile(generatePayload(fileUrl, PASSWORD, ""));
     }
 
     @Test
     public void testDownloadFileSFTPClientFileLocationSpecified() {
-        String fileUrl = SFTP_SCHEME + USER_NAME + LOCAL_HOST + SFTP_PORT + "/" + DOWNLOAD_FILE_NAME;
-        testDownloadFile(preparePayload(fileUrl, PASSWORD, DEVICE_DOWNLOAD_DIRECTORY));
+        String fileUrl = SFTP_SCHEME + USER_NAME + LOCAL_HOST + SFTP_PORT + File.separator + DOWNLOAD_FILE_NAME;
+        testDownloadFile(generatePayload(fileUrl, PASSWORD, DEVICE_DOWNLOAD_DIRECTORY));
     }
 
     @Test
     public void testDownloadFileSFTPClientFileLocationNotSpecified() {
-        String fileUrl = SFTP_SCHEME + USER_NAME + LOCAL_HOST + SFTP_PORT + "/" + DOWNLOAD_FILE_NAME;
-        testDownloadFile(preparePayload(fileUrl, PASSWORD, ""));
+        String fileUrl = SFTP_SCHEME + USER_NAME + LOCAL_HOST + SFTP_PORT + File.separator + DOWNLOAD_FILE_NAME;
+        testDownloadFile(generatePayload(fileUrl, PASSWORD, ""));
     }
 
     public void testDownloadFile(JSONObject payload) {
@@ -150,16 +150,16 @@ public class OperationManagerTest {
 
     @Test
     public void testUploadFileFTPClient() {
-        String fileUrl = FTP_SCHEME + USER_NAME + LOCAL_HOST + FTP_PORT + "/";
+        String fileUrl = FTP_SCHEME + USER_NAME + LOCAL_HOST + FTP_PORT + File.separator;
         String fileLocation = DEVICE_DOWNLOAD_DIRECTORY + File.separator + UPLOAD_FILE_NAME;
-        testUploadFile(preparePayload(fileUrl, PASSWORD, fileLocation));
+        testUploadFile(generatePayload(fileUrl, PASSWORD, fileLocation));
     }
 
     @Test
     public void testUploadFileSFTPClient() {
-        String fileUrl = SFTP_SCHEME + USER_NAME + LOCAL_HOST + SFTP_PORT + "/";
+        String fileUrl = SFTP_SCHEME + USER_NAME + LOCAL_HOST + SFTP_PORT + File.separator;
         String fileLocation = DEVICE_DOWNLOAD_DIRECTORY + File.separator + UPLOAD_FILE_NAME;
-        testUploadFile(preparePayload(fileUrl, PASSWORD, fileLocation));
+        testUploadFile(generatePayload(fileUrl, PASSWORD, fileLocation));
     }
 
 

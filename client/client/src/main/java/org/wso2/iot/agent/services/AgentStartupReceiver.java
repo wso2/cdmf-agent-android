@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- * 
+ *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -50,6 +50,7 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 	public static final int DEFAULT_INT_VALUE = 0;
 	public static final int DEFAULT_ID = -1;
 	private static final String TAG = AgentStartupReceiver.class.getSimpleName();
+	private Resources resources;
 
 	@Override
 	public void onReceive(final Context context, Intent intent) {
@@ -65,8 +66,16 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 			Log.e(TAG, "Device is not active");
 			return;
 		}
+		this.resources = context.getApplicationContext().getResources();
+		int lastRebootOperationId = Preference.getInt(context, resources.getString(R.string.shared_pref_reboot_op_id));
+		if (lastRebootOperationId != 0) {
+			Preference.putString(context, resources.getString(R.string.shared_pref_reboot_status),
+					context.getResources().getString(R.string.operation_value_completed));
+			Preference.putString(context, resources.getString(R.string.shared_pref_reboot_result),
+					context.getResources().getString(R.string.operation_value_completed));
+		}
 		setRecurringAlarm(context.getApplicationContext());
-		if(!EventRegistry.eventListeningStarted) {
+		if (!EventRegistry.eventListeningStarted) {
 			EventRegistry registerEvent = new EventRegistry(context.getApplicationContext());
 			registerEvent.register();
 		}
@@ -84,9 +93,9 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 		}
 	}
 
-	private boolean isNetworkConnected(Context context, Intent intent){
+	private boolean isNetworkConnected(Context context, Intent intent) {
 		if (intent.getExtras() != null) {
-			final ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+			final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 			final NetworkInfo ni = connectivityManager.getActiveNetworkInfo();
 
 			if (ni != null && ni.isConnectedOrConnecting()) {
@@ -103,6 +112,7 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 
 	/**
 	 * Initiates device notifier on device startup.
+	 *
 	 * @param context - Application context.
 	 */
 	private void setRecurringAlarm(Context context) {
@@ -115,7 +125,7 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 		}
 
 		if (isLocked) {
-            Operation lockOperation = new Operation();
+			Operation lockOperation = new Operation();
 			lockOperation.setId(DEFAULT_ID);
 			lockOperation.setCode(Constants.Operation.DEVICE_LOCK);
 			try {
@@ -124,20 +134,20 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 				payload.put(Constants.IS_HARD_LOCK_ENABLED, true);
 				lockOperation.setPayLoad(payload.toString());
 				OperationProcessor operationProcessor = new OperationProcessor(context);
-                operationProcessor.doTask(lockOperation);
-            } catch (AndroidAgentException e) {
-                Log.e(TAG, "Error occurred while executing hard lock operation at the device startup");
-            } catch (JSONException e) {
+				operationProcessor.doTask(lockOperation);
+			} catch (AndroidAgentException e) {
+				Log.e(TAG, "Error occurred while executing hard lock operation at the device startup");
+			} catch (JSONException e) {
 				Log.e(TAG, "Error occurred while building hard lock operation payload");
 			}
 		}
 
 		int interval = Preference.getInt(context, context.getResources().getString(R.string.shared_pref_frequency));
-		if(interval == DEFAULT_INT_VALUE){
+		if (interval == DEFAULT_INT_VALUE) {
 			interval = Constants.DEFAULT_INTERVAL;
 		}
 
-		if(mode == null) {
+		if (mode == null) {
 			mode = Constants.NOTIFIER_LOCAL;
 		}
 
@@ -147,13 +157,13 @@ public class AgentStartupReceiver extends BroadcastReceiver {
 			Intent alarmIntent = new Intent(context, AlarmReceiver.class);
 			PendingIntent recurringAlarmIntent =
 					PendingIntent.getBroadcast(context,
-					                           Constants.DEFAULT_REQUEST_CODE,
-					                           alarmIntent,
-					                           PendingIntent.FLAG_CANCEL_CURRENT);
+							Constants.DEFAULT_REQUEST_CODE,
+							alarmIntent,
+							PendingIntent.FLAG_CANCEL_CURRENT);
 			AlarmManager alarmManager =
 					(AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Constants.DEFAULT_START_INTERVAL,
-			                          interval, recurringAlarmIntent);
+					interval, recurringAlarmIntent);
 			Log.i(TAG, "Setting up alarm manager for polling every " + interval + " milliseconds.");
 		}
 	}

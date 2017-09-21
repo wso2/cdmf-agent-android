@@ -93,6 +93,8 @@ public class PolicyOperationsMapper {
 				return buildKioskOperation(operation);
 			case Constants.Operation.RUNTIME_PERMISSION_POLICY:
 				return buildRunTimePermissionPolicyOperation(operation);
+			case Constants.Operation.VPN:
+				return operation;
 			default:
 				throw new AndroidAgentException("Invalid operation code received");
 		}

@@ -889,9 +889,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             intent.putExtra(resources.getString(R.string.intent_extra_payload), operation.getPayLoad().toString());
             intent.putExtra(resources.getString(R.string.intent_extra_type),
                     Constants.Operation.VPN);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                    Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             context.startActivity(intent);
         }
 
@@ -1028,7 +1027,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "Notification received");
             }
-        } catch (JSONException e) {
+        } catch (JSONException | NullPointerException e) {
             operation.setStatus(getContextResources().getString(R.string.operation_value_error));
             operation.setOperationResponse("Error in parsing NOTIFICATION payload.");
             getResultBuilder().build(operation);

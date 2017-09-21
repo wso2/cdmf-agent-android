@@ -35,16 +35,16 @@ import java.util.List;
 /**
  * Creates an FTP server for testing.
  */
-public class FTPServer {
+public class FTPTestServer {
 
-    private static final String TAG = FTPServer.class.getSimpleName();
+    private static final String TAG = FTPTestServer.class.getSimpleName();
     private String ftpDirectory;
     private String userName;
     private String password;
     private FtpServer ftpServer;
     private int port;
 
-    public FTPServer(String userName, String password, String homeDirectory, int port) {
+    public FTPTestServer(String userName, String password, String homeDirectory, int port) {
         this.userName = userName;
         this.password = password;
         this.ftpDirectory = homeDirectory;

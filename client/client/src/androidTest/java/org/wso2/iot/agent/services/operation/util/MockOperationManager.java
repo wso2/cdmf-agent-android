@@ -157,4 +157,5 @@ public class MockOperationManager extends OperationManager {
     public ComplianceFeature checkRuntimePermissionPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
         return null;
     }
+
 }

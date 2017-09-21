@@ -30,9 +30,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.beans.Operation;
-import org.wso2.iot.agent.services.operation.util.FTPServer;
+import org.wso2.iot.agent.services.operation.util.FTPTestServer;
 import org.wso2.iot.agent.services.operation.util.MockOperationManager;
-import org.wso2.iot.agent.services.operation.util.SFTPServer;
+import org.wso2.iot.agent.services.operation.util.SFTPTestServer;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,8 +49,8 @@ public class OperationManagerTest {
     private Context context = getTargetContext();
     private String ftpDirectory = context.getFilesDir().toString();
     private String sftpDirectory = context.getFilesDir().toString();
-    private FTPServer testFtpServer;
-    private SFTPServer testSftpServer;
+    private FTPTestServer testFtpServer;
+    private SFTPTestServer testSftpServer;
 
     public void createNewFile(String location) {
         Log.d(TAG, "Creating new file (" + location + ") for testing .");
@@ -83,18 +83,18 @@ public class OperationManagerTest {
 
     @Before
     public void setupFTPServer() {
-        testFtpServer = new FTPServer(Constants.USER_NAME, Constants.PASSWORD, ftpDirectory, Constants.FTP_PORT);
+        testFtpServer = new FTPTestServer(Constants.USER_NAME, Constants.PASSWORD, ftpDirectory, Constants.FTP_PORT);
         testFtpServer.startFTP();
-        testSftpServer = new SFTPServer(Constants.USER_NAME, Constants.PASSWORD, sftpDirectory, Constants.SFTP_PORT);
+        testSftpServer = new SFTPTestServer(Constants.USER_NAME, Constants.PASSWORD, sftpDirectory, Constants.SFTP_PORT);
         testSftpServer.startSFTP();
     }
 
     public JSONObject generatePayload(String fileUrl, String password, String fileLocation) {
         JSONObject payload = new JSONObject();
         try {
-            payload.put("fileURL", fileUrl);
-            payload.put("ftpPassword", password);
-            payload.put("fileLocation", fileLocation);
+            payload.put(org.wso2.iot.agent.utils.Constants.FileTransfer.FILE_URL, fileUrl);
+            payload.put(org.wso2.iot.agent.utils.Constants.FileTransfer.FTP_PASSWORD, password);
+            payload.put(org.wso2.iot.agent.utils.Constants.FileTransfer.FILE_LOCATION, fileLocation);
         } catch (JSONException e) {
             Log.e(TAG, "JSON Exception in preparing payload. " + e.getLocalizedMessage());
         }

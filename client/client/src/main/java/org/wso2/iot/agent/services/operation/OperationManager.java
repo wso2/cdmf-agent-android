@@ -373,14 +373,14 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         } else {
             try {
                 JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
-                final String fileURL = inputData.getString("fileURL");
-                final String ftpPassword = inputData.getString("ftpPassword");
-                final String location = inputData.getString("fileLocation");
+                final String fileURL = inputData.getString(Constants.FileTransfer.FILE_URL);
+                final String ftpPassword = inputData.getString(Constants.FileTransfer.FTP_PASSWORD);
+                final String location = inputData.getString(Constants.FileTransfer.FILE_LOCATION);
                 String savingLocation;
                 if (location.isEmpty()) {
                     savingLocation = getSavingLocation();
                     if (savingLocation == null) {
-                        handleOperationError(operation, "Error in default saving location.");
+                        handleOperationError(operation, "Error in default saving location.", null);
                     }
                 } else {
                     savingLocation = location;
@@ -426,7 +426,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                         savingLocation, fileName, serverPort, fileDirectory);
                 break;
             default:
-                handleOperationError(operation, "Protocol(" + protocol + ") not supported.");
+                handleOperationError(operation, "Protocol(" + protocol + ") not supported.", null);
         }
 
     }
@@ -439,18 +439,15 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         throw new AndroidAgentException(response);
     }
 
-    private void handleOperationError(Operation operation, String message)
-            throws AndroidAgentException {
-        operation.setStatus(resources.getString(R.string.operation_value_error));
-        operation.setOperationResponse(message);
-        throw new AndroidAgentException(message);
-    }
-
     private void handleOperationError(Operation operation, String message, Exception exception)
             throws AndroidAgentException {
         operation.setStatus(resources.getString(R.string.operation_value_error));
         operation.setOperationResponse(message);
-        throw new AndroidAgentException(message, exception);
+        if (exception != null) {
+            throw new AndroidAgentException(message, exception);
+        } else {
+            throw new AndroidAgentException(message);
+        }
     }
 
     private void printLogs(String ftpUserName, String host, String fileName,
@@ -489,47 +486,24 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 fileOutputStream.write(buffer, 0, length);
             }
             operation.setStatus(resources.getString(R.string.operation_value_completed));
-            operation.setOperationResponse("File uploaded to the device successfully!");
+            operation.setOperationResponse("File uploaded to the device successfully ( " + fileName + " ).");
         } catch (IOException e) {
             handleOperationError(operation, fileTransferExceptionHandler(e, fileName), e);
         } finally {
-            cleanupStreams(inputStream);
-            cleanupStreams(fileOutputStream, dataInputStream);
+            cleanupStreams(inputStream, null, null, fileOutputStream, null, null, dataInputStream);
         }
     }
 
-    private void cleanupStreams(FileOutputStream fileOutputStream, DataInputStream dataInputStream) {
-        if (fileOutputStream != null) {
+    private void cleanupStreams(InputStream inputStream, OutputStream outputStream,
+                                FileInputStream fileInputStream, FileOutputStream fileOutputStream,
+                                BufferedInputStream bufferedInputStream,
+                                BufferedOutputStream bufferedOutputStream, DataInputStream dataInputStream) {
+        if (inputStream != null) {
             try {
-                fileOutputStream.close();
+                inputStream.close();
             } catch (IOException ignored) {
             }
         }
-        if (dataInputStream != null) {
-            try {
-                dataInputStream.close();
-            } catch (IOException ignored) {
-            }
-        }
-    }
-
-    private void cleanupStreams(BufferedInputStream bufferedInputStream,
-                                BufferedOutputStream bufferedOutputStream) {
-        if (bufferedInputStream != null) {
-            try {
-                bufferedInputStream.close();
-            } catch (IOException ignored) {
-            }
-        }
-        if (bufferedOutputStream != null) {
-            try {
-                bufferedOutputStream.close();
-            } catch (IOException ignored) {
-            }
-        }
-    }
-
-    private void cleanupStreams(OutputStream outputStream, FileOutputStream fileOutputStream) {
         if (outputStream != null) {
             try {
                 outputStream.close();
@@ -542,21 +516,27 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             } catch (IOException ignored) {
             }
         }
-    }
-
-    private void cleanupStreams(InputStream inputStream) {
-        if (inputStream != null) {
+        if (bufferedInputStream != null) {
             try {
-                inputStream.close();
+                bufferedInputStream.close();
             } catch (IOException ignored) {
             }
         }
-    }
-
-    private void cleanupStreams(FileInputStream fileInputStream) {
+        if (bufferedOutputStream != null) {
+            try {
+                bufferedOutputStream.close();
+            } catch (IOException ignored) {
+            }
+        }
         if (fileInputStream != null) {
             try {
                 fileInputStream.close();
+            } catch (IOException ignored) {
+            }
+        }
+        if (dataInputStream != null) {
+            try {
+                dataInputStream.close();
             } catch (IOException ignored) {
             }
         }
@@ -614,7 +594,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 bufferedOutputStream.write(buffer, 0, readCount);
             }
             operation.setStatus(resources.getString(R.string.operation_value_completed));
-            operation.setOperationResponse("File uploaded to the device successfully!");
+            operation.setOperationResponse("File uploaded to the device successfully ( " + fileName + " ).");
         } catch (IOException | JSchException | SftpException e) {
             handleOperationError(operation, fileTransferExceptionHandler(e, fileName), e);
         } finally {
@@ -624,7 +604,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             if (session != null) {
                 session.disconnect();
             }
-            cleanupStreams(bufferedInputStream, bufferedOutputStream);
+            cleanupStreams(null, null, null, null, bufferedInputStream, bufferedOutputStream, null);
         }
     }
 
@@ -658,10 +638,10 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 outputStream = new BufferedOutputStream(fileOutputStream);
                 ftpClient.changeWorkingDirectory(fileDirectory);
                 if (ftpClient.retrieveFile(fileName, outputStream)) {
-                    response = "File uploaded to the device successfully!";
+                    response = "File uploaded to the device successfully ( " + fileName + " ).";
                     operation.setStatus(resources.getString(R.string.operation_value_completed));
                 } else {
-                    response = "File uploaded to the device not completed.";
+                    response = "File uploaded to the device not completed ( " + fileName + " ).";
                     operation.setStatus(resources.getString(R.string.operation_value_error));
                 }
                 operation.setOperationResponse(response);
@@ -682,7 +662,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 }
             } catch (IOException ignored) {
             }
-            cleanupStreams(outputStream, fileOutputStream);
+            cleanupStreams(null, outputStream, null, fileOutputStream, null, null, null);
         }
     }
 
@@ -716,14 +696,14 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 outputStream = new BufferedOutputStream(fileOutputStream);
                 ftpsClient.changeWorkingDirectory(fileDirectory);
                 if (ftpsClient.retrieveFile(fileName, outputStream)) {
-                    response = "File uploaded to the device successfully!";
+                    response = "File uploaded to the device successfully ( " + fileName + " ).";
                     operation.setStatus(resources.getString(R.string.operation_value_completed));
                 } else {
-                    response = "File uploaded to the device not completed.";
+                    response = "File uploaded to the device not completed ( " + fileName + " ).";
                     operation.setStatus(resources.getString(R.string.operation_value_error));
                 }
             } else {
-                response = "FTP login failed.";
+                response = ftpUserName + " - FTP login failed.";
                 operation.setStatus(resources.getString(R.string.operation_value_error));
             }
             operation.setOperationResponse(response);
@@ -737,7 +717,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 }
             } catch (IOException ignored) {
             }
-            cleanupStreams(outputStream, fileOutputStream);
+            cleanupStreams(null, outputStream, null, fileOutputStream, null, null, null);
         }
     }
 
@@ -780,7 +760,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             }
             if (url.getAuthority() != null) {
                 String[] authority = url.getAuthority().split("@"); //provides username@hostname
-                host = authority[authority.length - 1];             // Since hostname cannot contain any '@' signs, it should be last element.
+                // Since hostname cannot contain any '@' signs, it should be last element.
+                host = authority[authority.length - 1];
                 if (authority.length > 1) {
                     ftpUserName = url.getAuthority().substring(0, url.getAuthority().lastIndexOf(host) - 1);
                 } else {
@@ -792,7 +773,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 host = host.split(":")[0];
             }
         } else {
-            handleOperationError(operation, "Invalid URL");
+            handleOperationError(operation, "Invalid URL", null);
         }
         if (isUpload) {
             return new String[]{ftpUserName, url.getPath(), host, serverPort, protocol};
@@ -814,9 +795,9 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         } else {
             try {
                 JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
-                String fileURL = inputData.getString("fileURL");
-                String ftpPassword = inputData.getString("ftpPassword");
-                String fileLocation = inputData.getString("fileLocation");
+                final String fileURL = inputData.getString(Constants.FileTransfer.FILE_URL);
+                final String ftpPassword = inputData.getString(Constants.FileTransfer.FTP_PASSWORD);
+                final String fileLocation = inputData.getString(Constants.FileTransfer.FILE_LOCATION);
                 String[] userInfo = urlSplitter(operation, fileURL, true);
                 String ftpUserName = userInfo[0];
                 String uploadDirectory = userInfo[1];
@@ -855,7 +836,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                         uploadDirectory, fileLocation, serverPort);
                 break;
             default:
-                handleOperationError(operation, "Protocol ( " + protocol + " ) not supported.");
+                handleOperationError(operation, "Protocol ( " + protocol + " ) not supported.", null);
         }
     }
 
@@ -888,10 +869,10 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             inputStream = new FileInputStream(file);
             ftpClient.changeWorkingDirectory(uploadDirectory);
             if (ftpClient.storeFile(file.getName(), inputStream)) {
-                response = "File uploaded from the device completed.";
+                response = "File uploaded from the device completed ( " + fileName + " ).";
                 operation.setStatus(resources.getString(R.string.operation_value_completed));
             } else {
-                response = "File uploaded from the device not completed.";
+                response = "File uploaded from the device not completed ( " + fileName + " ).";
                 operation.setStatus(resources.getString(R.string.operation_value_error));
             }
             operation.setOperationResponse(response);
@@ -913,7 +894,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 } catch (IOException ignored) {
                 }
             }
-            cleanupStreams(inputStream);
+            cleanupStreams(inputStream, null, null, null, null, null, null);
         }
     }
 
@@ -948,16 +929,16 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             inputStream = new FileInputStream(file);
             ftpsClient.changeWorkingDirectory(uploadDirectory);
             if (ftpsClient.storeFile(fileName, inputStream)) {
-                response = "File uploaded from the device completed.";
+                response = "File uploaded from the device completed ( " + fileName + " ).";
                 operation.setStatus(resources.getString(R.string.operation_value_completed));
             } else {
-                response = "File uploaded from the device not completed.";
+                response = "File uploaded from the device not completed ( " + fileName + " ).";
                 operation.setStatus(resources.getString(R.string.operation_value_error));
             }
             operation.setOperationResponse(response);
         } catch (IOException e) {
             if (!loginResult) {
-                response = "FTP login failed.";
+                response = ftpUserName + " - FTP login failed.";
             } else {
                 response = fileTransferExceptionHandler(e, fileName);
             }
@@ -970,7 +951,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 }
             } catch (IOException ignored) {
             }
-            cleanupStreams(inputStream);
+            cleanupStreams(inputStream, null, null, null, null, null, null);
         }
     }
 
@@ -1012,11 +993,11 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             fileInputStream = new FileInputStream(file);
             channelSftp.put(fileInputStream, fileName);
             operation.setStatus(resources.getString(R.string.operation_value_completed));
-            operation.setOperationResponse("File uploaded from the device successfully");
+            operation.setOperationResponse("File uploaded from the device successfully ( " + fileName + " ).");
         } catch (JSchException | FileNotFoundException | SftpException e) {
             handleOperationError(operation, fileTransferExceptionHandler(e, fileName), e);
         } finally {
-            cleanupStreams(fileInputStream);
+            cleanupStreams(null, null, fileInputStream, null, null, null, null);
             if (channelSftp != null) {
                 channelSftp.exit();
             }
@@ -1659,7 +1640,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             while ((line = reversedLinesFileReader.readLine()) != null) {
                 publisherBuilder.insert(0, "\n");
                 publisherBuilder.insert(0, line);
-                //operationResponse filed in the DM_DEVICE_OPERATION_RESPONSE is declared as a blob and hence can only hold 64Kb.
+                //OPERATION_RESPONSE filed in the DM_DEVICE_OPERATION_RESPONSE is declared as a blob and hence can only hold 64Kb.
                 //So we don't want to throw exceptions in the server. Limiting the response in here to limit the server traffic also.
                 if (emmBuilder.length() < Character.MAX_VALUE - 8192) { //Keeping 8kB for rest of the response payload.
                     emmBuilder.insert(0, "\n");

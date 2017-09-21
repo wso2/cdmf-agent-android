@@ -380,6 +380,15 @@ public class Constants {
 	}
 
 	/**
+	 * File transfer uploadFile/downloadFile specific constants.
+	 */
+	public final class FileTransfer {
+		public static final String FILE_URL = "fileURL";
+		public static final String FTP_PASSWORD = "ftpPassword";
+		public static final String FILE_LOCATION = "fileLocation";
+	}
+
+	/**
 	 *  Device specific constants
 	 */
 	public final class Device {

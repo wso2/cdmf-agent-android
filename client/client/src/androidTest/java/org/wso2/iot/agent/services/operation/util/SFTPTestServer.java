@@ -36,16 +36,16 @@ import java.util.Collections;
 /**
  * Creates a SFTP server for testing.
  */
-public class SFTPServer {
+public class SFTPTestServer {
 
-    private static final String TAG = SFTPServer.class.getSimpleName();
+    private static final String TAG = SFTPTestServer.class.getSimpleName();
     private SshServer sftpServer;
     private String sftpUserName;
     private String sftpPassword;
     private String sftpHomeDirectory;
     private int port;
 
-    public SFTPServer(String userName, String password, String homeDirectory, int port) {
+    public SFTPTestServer(String userName, String password, String homeDirectory, int port) {
         this.sftpUserName = userName;
         this.sftpPassword = password;
         this.sftpHomeDirectory = homeDirectory;

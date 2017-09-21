@@ -387,22 +387,21 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 if (fileURL.startsWith(Protocol.HTTP.getValue())) {
                     downloadFileUsingHTTPClient(operation, fileURL, savingLocation);
                 } else {
-                    String[] userInfo = urlSplitter(fileURL, false);
+                    String[] userInfo = urlSplitter(operation, fileURL, false);
                     String ftpUserName = userInfo[0];
                     String fileDirectory = userInfo[1];
                     String host = userInfo[2];
-                    int serverPort = Integer.parseInt(userInfo[3]);
+                    int serverPort = 0;
+                    if (userInfo[3] != null) {
+                        serverPort = Integer.parseInt(userInfo[3]);
+                    }
                     String protocol = userInfo[4];
                     fileName = userInfo[5];
                     if (Constants.DEBUG_MODE_ENABLED) {
                         printLogs(ftpUserName, host, fileName, fileDirectory, savingLocation, serverPort);
                     }
-                    if (protocol != null) {
-                        selectDownloadClient(protocol, operation, host, ftpUserName, ftpPassword,
-                                savingLocation, fileName, serverPort, fileDirectory);
-                    } else {
-                        handleOperationError(operation, "Invalid URL");
-                    }
+                    selectDownloadClient(protocol, operation, host, ftpUserName, ftpPassword,
+                            savingLocation, fileName, serverPort, fileDirectory);
                 }
             } catch (ArrayIndexOutOfBoundsException | JSONException | URISyntaxException e) {
                 handleOperationError(operation, fileTransferExceptionHandler(e, fileName), e);
@@ -757,7 +756,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * fileName ( optional for isUpload = false ).
      * @throws URISyntaxException - Malformed URL.
      */
-    private String[] urlSplitter(String fileURL, boolean isUpload) throws URISyntaxException {
+    private String[] urlSplitter(Operation operation, String fileURL, boolean isUpload)
+            throws URISyntaxException, AndroidAgentException {
         String serverPort = null;
         URI url = new URI(fileURL);
         String protocol = url.getScheme();
@@ -769,19 +769,21 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             } else if (protocol.equals(Protocol.SFTP.getValue())) {
                 serverPort = String.valueOf(22);
             }
-        }
-        if (url.getAuthority() != null) {
-            String[] authority = url.getAuthority().split("@"); //provides username@hostname
-            host = authority[authority.length - 1];             // Since hostname cannot contain any '@' signs, it should be last element.
-            if (authority.length > 1) {
-                ftpUserName = url.getAuthority().substring(0, url.getAuthority().lastIndexOf(host) - 1);
-            } else {
-                ftpUserName = "anonymous"; // for anonymous FTP login.
+            if (url.getAuthority() != null) {
+                String[] authority = url.getAuthority().split("@"); //provides username@hostname
+                host = authority[authority.length - 1];             // Since hostname cannot contain any '@' signs, it should be last element.
+                if (authority.length > 1) {
+                    ftpUserName = url.getAuthority().substring(0, url.getAuthority().lastIndexOf(host) - 1);
+                } else {
+                    ftpUserName = "anonymous"; // for anonymous FTP login.
+                }
             }
-        }
-        if (host != null && host.contains(":")) {
-            serverPort = String.valueOf(host.split(":")[1]);
-            host = host.split(":")[0];
+            if (host != null && host.contains(":")) {
+                serverPort = String.valueOf(host.split(":")[1]);
+                host = host.split(":")[0];
+            }
+        } else {
+            handleOperationError(operation, "Invalid URL");
         }
         if (isUpload) {
             return new String[]{ftpUserName, url.getPath(), host, serverPort, protocol};
@@ -806,23 +808,22 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 String fileURL = inputData.getString("fileURL");
                 String ftpPassword = inputData.getString("ftpPassword");
                 String fileLocation = inputData.getString("fileLocation");
-                String[] userInfo = urlSplitter(fileURL, true);
+                String[] userInfo = urlSplitter(operation, fileURL, true);
                 String ftpUserName = userInfo[0];
                 String uploadDirectory = userInfo[1];
                 String host = userInfo[2];
-                int serverPort = Integer.parseInt(userInfo[3]);
+                int serverPort = 0;
+                if (userInfo[3] != null) {
+                    serverPort = Integer.parseInt(userInfo[3]);
+                }
                 String protocol = userInfo[4];
                 File file = new File(fileLocation);
                 fileName = file.getName();
                 if (Constants.DEBUG_MODE_ENABLED) {
                     printLogs(ftpUserName, host, fileName, file.getParent(), uploadDirectory, serverPort);
                 }
-                if (protocol != null) {
-                    selectUploadClient(protocol, operation, host, ftpUserName, ftpPassword,
-                            uploadDirectory, fileLocation, serverPort);
-                } else {
-                    handleOperationError(operation, "Invalid URL");
-                }
+                selectUploadClient(protocol, operation, host, ftpUserName, ftpPassword,
+                        uploadDirectory, fileLocation, serverPort);
             } catch (JSONException | URISyntaxException e) {
                 handleOperationError(operation, fileTransferExceptionHandler(e, fileName), e);
             } finally {

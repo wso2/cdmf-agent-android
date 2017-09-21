@@ -25,14 +25,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.Path;
 import android.location.Location;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -104,7 +101,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
-
 
 public abstract class OperationManager implements APIResultCallBack, VersionBasedOperations {
 
@@ -346,21 +342,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         }
     }
 
-    private enum Protocol {
-        HTTP("http"),
-        FTP("ftp"),
-        SFTP("sftp");
-        private final String type;
-
-        Protocol(String type) {
-            this.type = type;
-        }
-
-        public String getValue() {
-            return this.type;
-        }
-    }
-
     /**
      * Download the file to the device from the FTP server.
      *
@@ -385,7 +366,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 } else {
                     savingLocation = location;
                 }
-                if (fileURL.startsWith(Protocol.HTTP.getValue())) {
+                if (fileURL.startsWith(Constants.FileTransfer.HTTP)) {
                     downloadFileUsingHTTPClient(operation, fileURL, savingLocation);
                 } else {
                     String[] userInfo = urlSplitter(operation, fileURL, false);
@@ -417,11 +398,11 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                                       String ftpPassword, String savingLocation, String fileName,
                                       int serverPort, String fileDirectory) throws AndroidAgentException {
         switch (protocol) {
-            case "sftp":
+            case Constants.FileTransfer.SFTP:
                 downloadFileUsingSFTPClient(operation, host, ftpUserName, ftpPassword,
                         savingLocation, fileName, serverPort, fileDirectory);
                 break;
-            case "ftp":
+            case Constants.FileTransfer.FTP:
                 downloadFileUsingFTPClient(operation, host, ftpUserName, ftpPassword,
                         savingLocation, fileName, serverPort, fileDirectory);
                 break;
@@ -578,7 +559,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             session.setConfig("StrictHostKeyChecking", "no");
             session.setPassword(ftpPassword);
             session.connect();
-            channel = session.openChannel(Protocol.SFTP.getValue());
+            channel = session.openChannel(Constants.FileTransfer.SFTP);
             channel.connect();
             sftpChannel = (ChannelSftp) channel;
             if (!fileDirectory.equals(File.separator)) {
@@ -753,9 +734,9 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         String host = null;
         String ftpUserName = null;  // for anonymous FTP login.
         if (protocol != null) {
-            if (protocol.equals(Protocol.FTP.getValue())) {
+            if (protocol.equals(Constants.FileTransfer.FTP)) {
                 serverPort = String.valueOf(21);
-            } else if (protocol.equals(Protocol.SFTP.getValue())) {
+            } else if (protocol.equals(Constants.FileTransfer.SFTP)) {
                 serverPort = String.valueOf(22);
             }
             if (url.getAuthority() != null) {
@@ -827,11 +808,11 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                                     String ftpPassword, String uploadDirectory, String fileLocation,
                                     int serverPort) throws AndroidAgentException {
         switch (protocol) {
-            case "sftp":
+            case Constants.FileTransfer.SFTP:
                 uploadFileUsingSFTPClient(operation, host, ftpUserName, ftpPassword,
                         uploadDirectory, fileLocation, serverPort);
                 break;
-            case "ftp":
+            case Constants.FileTransfer.FTP:
                 uploadFileUsingFTPClient(operation, host, ftpUserName, ftpPassword,
                         uploadDirectory, fileLocation, serverPort);
                 break;
@@ -984,7 +965,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             config.put("StrictHostKeyChecking", "no");
             session.setConfig(config);
             session.connect();
-            channel = session.openChannel(Protocol.SFTP.getValue());
+            channel = session.openChannel(Constants.FileTransfer.SFTP);
             channel.connect();
             channelSftp = (ChannelSftp) channel;
             channelSftp.cd(uploadDirectory);

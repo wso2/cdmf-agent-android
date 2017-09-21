@@ -386,7 +386,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                             savingLocation, fileName, serverPort, fileDirectory);
                 }
             } catch (ArrayIndexOutOfBoundsException | JSONException | URISyntaxException e) {
-                handleOperationError(operation, fileTransferExceptionHandler(e, fileName), e);
+                handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
             } finally {
                 Log.d(TAG, operation.getStatus());
                 resultBuilder.build(operation);
@@ -469,7 +469,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             operation.setStatus(resources.getString(R.string.operation_value_completed));
             operation.setOperationResponse("File uploaded to the device successfully ( " + fileName + " ).");
         } catch (IOException e) {
-            handleOperationError(operation, fileTransferExceptionHandler(e, fileName), e);
+            handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
         } finally {
             cleanupStreams(inputStream, null, null, fileOutputStream, null, null, dataInputStream);
         }
@@ -577,7 +577,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             operation.setStatus(resources.getString(R.string.operation_value_completed));
             operation.setOperationResponse("File uploaded to the device successfully ( " + fileName + " ).");
         } catch (IOException | JSchException | SftpException e) {
-            handleOperationError(operation, fileTransferExceptionHandler(e, fileName), e);
+            handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
         } finally {
             if (sftpChannel != null) {
                 sftpChannel.exit();
@@ -634,7 +634,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             downloadFileUsingFTPSClient(operation, host, ftpUserName, ftpPassword,
                     savingLocation, fileName, serverPort, fileDirectory);
         } catch (IOException e) {
-            handleOperationError(operation, fileTransferExceptionHandler(e, fileName), e);
+            handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
         } finally {
             try {
                 if (ftpClient.isConnected()) {
@@ -689,7 +689,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             }
             operation.setOperationResponse(response);
         } catch (IOException e) {
-            handleOperationError(operation, fileTransferExceptionHandler(e, fileName), e);
+            handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
         } finally {
             try {
                 if (ftpsClient.isConnected()) {
@@ -703,16 +703,17 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
     }
 
     /**
-     * This method handles the exceptions formed by downloadFile and uploadFile classes.
+     * This method returns the cause of the exception.
      *
-     * @param e        - Exception object.
+     * @param ex       - Exception object.
      * @param fileName - name of the file which caused exception.
+     * @return - Exception cause.
      */
-    private String fileTransferExceptionHandler(Exception e, String fileName) {
-        if (e.getCause() != null) {
-            return fileName + " upload failed. Error :- " + e.getCause().getMessage();
+    private String fileTransferExceptionCause(Exception ex, String fileName) {
+        if (ex.getCause() != null) {
+            return fileName + " upload failed. Error :- " + ex.getCause().getMessage();
         } else {
-            return fileName + " upload failed. Error :- " + e.getLocalizedMessage();
+            return fileName + " upload failed. Error :- " + ex.getLocalizedMessage();
         }
     }
 
@@ -796,7 +797,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 selectUploadClient(protocol, operation, host, ftpUserName, ftpPassword,
                         uploadDirectory, fileLocation, serverPort);
             } catch (JSONException | URISyntaxException e) {
-                handleOperationError(operation, fileTransferExceptionHandler(e, fileName), e);
+                handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
             } finally {
                 Log.d(TAG, operation.getStatus());
                 resultBuilder.build(operation);
@@ -861,7 +862,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             uploadFileUsingFTPSClient(operation, host, ftpUserName, ftpPassword,
                     uploadDirectory, fileLocation, serverPort);
         } catch (IOException e) {
-            handleOperationError(operation, fileTransferExceptionHandler(e, fileName), e);
+            handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
         } finally {
             if (ftpClient.isConnected()) {
                 try {
@@ -921,7 +922,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             if (!loginResult) {
                 response = ftpUserName + " - FTP login failed.";
             } else {
-                response = fileTransferExceptionHandler(e, fileName);
+                response = fileTransferExceptionCause(e, fileName);
             }
             handleOperationError(operation, response, e);
         } finally {
@@ -976,7 +977,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             operation.setStatus(resources.getString(R.string.operation_value_completed));
             operation.setOperationResponse("File uploaded from the device successfully ( " + fileName + " ).");
         } catch (JSchException | FileNotFoundException | SftpException e) {
-            handleOperationError(operation, fileTransferExceptionHandler(e, fileName), e);
+            handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
         } finally {
             cleanupStreams(null, null, fileInputStream, null, null, null, null);
             if (channelSftp != null) {

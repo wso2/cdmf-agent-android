@@ -18,7 +18,6 @@
 package org.wso2.iot.agent.services.operation;
 
 import android.content.Context;
-import android.os.Environment;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
@@ -45,24 +44,13 @@ import static android.support.test.InstrumentationRegistry.getTargetContext;
  */
 @RunWith(AndroidJUnit4.class)
 public class OperationManagerTest {
+
     private static final String TAG = OperationManagerTest.class.getSimpleName();
-    private String DEVICE_DOWNLOAD_DIRECTORY = Environment.getExternalStoragePublicDirectory
-            (Environment.DIRECTORY_DOWNLOADS).toString();
-    private String DOWNLOAD_FILE_NAME = "DownloadTestFile.txt";
-    private String UPLOAD_FILE_NAME = "UploadTestFile.txt";
-    private Context CONTEXT = getTargetContext();
-    private String FTP_DIRECTORY = CONTEXT.getFilesDir().toString();
-    private String SFTP_DIRECTORY = CONTEXT.getFilesDir().toString();
-    private String USER_NAME = "test";
-    private String PASSWORD = "test";
-    private String STATUS_COMPLETED = "COMPLETED";
-    private FTPServer TEST_FTP_SERVER;
-    private SFTPServer TEST_SFTP_SERVER;
-    private int FTP_PORT = 2221;
-    private int SFTP_PORT = 2223;
-    private String FTP_SCHEME = "ftp://";
-    private String SFTP_SCHEME = "sftp://";
-    private String LOCAL_HOST = "@localhost:";
+    private Context context = getTargetContext();
+    private String ftpDirectory = context.getFilesDir().toString();
+    private String sftpDirectory = context.getFilesDir().toString();
+    private FTPServer testFtpServer;
+    private SFTPServer testSftpServer;
 
     public void createNewFile(String location) {
         Log.d(TAG, "Creating new file (" + location + ") for testing .");
@@ -88,13 +76,17 @@ public class OperationManagerTest {
     }
 
     @Before
+    public void createFiles() {
+        createNewFile(ftpDirectory + File.separator + Constants.DOWNLOAD_FILE_NAME);
+        createNewFile(Constants.DEVICE_DOWNLOAD_DIRECTORY + File.separator + Constants.UPLOAD_FILE_NAME);
+    }
+
+    @Before
     public void setupFTPServer() {
-        createNewFile(FTP_DIRECTORY + File.separator + DOWNLOAD_FILE_NAME);
-        createNewFile(DEVICE_DOWNLOAD_DIRECTORY + File.separator + UPLOAD_FILE_NAME);
-        TEST_FTP_SERVER = new FTPServer(USER_NAME, PASSWORD, FTP_DIRECTORY, FTP_PORT);
-        TEST_FTP_SERVER.startFTP();
-        TEST_SFTP_SERVER = new SFTPServer(USER_NAME, PASSWORD, SFTP_DIRECTORY, SFTP_PORT);
-        TEST_SFTP_SERVER.startSFTP();
+        testFtpServer = new FTPServer(Constants.USER_NAME, Constants.PASSWORD, ftpDirectory, Constants.FTP_PORT);
+        testFtpServer.startFTP();
+        testSftpServer = new SFTPServer(Constants.USER_NAME, Constants.PASSWORD, sftpDirectory, Constants.SFTP_PORT);
+        testSftpServer.startSFTP();
     }
 
     public JSONObject generatePayload(String fileUrl, String password, String fileLocation) {
@@ -111,31 +103,35 @@ public class OperationManagerTest {
 
     @Test
     public void testDownloadFileFTPClientFileLocationSpecified() {
-        String fileUrl = FTP_SCHEME + USER_NAME + LOCAL_HOST + FTP_PORT + File.separator + DOWNLOAD_FILE_NAME;
-        testDownloadFile(generatePayload(fileUrl, PASSWORD, DEVICE_DOWNLOAD_DIRECTORY));
+        String fileUrl = Constants.FTP_SCHEME + Constants.USER_NAME + Constants.LOCAL_HOST +
+                Constants.FTP_PORT + File.separator + Constants.DOWNLOAD_FILE_NAME;
+        testDownloadFile(generatePayload(fileUrl, Constants.PASSWORD, Constants.DEVICE_DOWNLOAD_DIRECTORY));
     }
 
     @Test
     public void testDownloadFileFTPClientFileLocationNotSpecified() {
-        String fileUrl = FTP_SCHEME + USER_NAME + LOCAL_HOST + FTP_PORT + File.separator + DOWNLOAD_FILE_NAME;
-        testDownloadFile(generatePayload(fileUrl, PASSWORD, ""));
+        String fileUrl = Constants.FTP_SCHEME + Constants.USER_NAME + Constants.LOCAL_HOST + Constants.FTP_PORT
+                + File.separator + Constants.DOWNLOAD_FILE_NAME;
+        testDownloadFile(generatePayload(fileUrl, Constants.PASSWORD, ""));
     }
 
     @Test
     public void testDownloadFileSFTPClientFileLocationSpecified() {
-        String fileUrl = SFTP_SCHEME + USER_NAME + LOCAL_HOST + SFTP_PORT + File.separator + DOWNLOAD_FILE_NAME;
-        testDownloadFile(generatePayload(fileUrl, PASSWORD, DEVICE_DOWNLOAD_DIRECTORY));
+        String fileUrl = Constants.SFTP_SCHEME + Constants.USER_NAME + Constants.LOCAL_HOST
+                + Constants.SFTP_PORT + File.separator + Constants.DOWNLOAD_FILE_NAME;
+        testDownloadFile(generatePayload(fileUrl, Constants.PASSWORD, Constants.DEVICE_DOWNLOAD_DIRECTORY));
     }
 
     @Test
     public void testDownloadFileSFTPClientFileLocationNotSpecified() {
-        String fileUrl = SFTP_SCHEME + USER_NAME + LOCAL_HOST + SFTP_PORT + File.separator + DOWNLOAD_FILE_NAME;
-        testDownloadFile(generatePayload(fileUrl, PASSWORD, ""));
+        String fileUrl = Constants.SFTP_SCHEME + Constants.USER_NAME + Constants.LOCAL_HOST +
+                Constants.SFTP_PORT + File.separator + Constants.DOWNLOAD_FILE_NAME;
+        testDownloadFile(generatePayload(fileUrl, Constants.PASSWORD, ""));
     }
 
     public void testDownloadFile(JSONObject payload) {
         Log.d(TAG, "Testing for payload: " + payload);
-        OperationManager operationManager = new MockOperationManager(CONTEXT);
+        OperationManager operationManager = new MockOperationManager(context);
         Operation operation = new Operation();
         operation.setPayLoad(payload);
         try {
@@ -145,27 +141,29 @@ public class OperationManagerTest {
         }
         Log.d(TAG, "Operation status: \"" + operation.getStatus() + "\". Operation response: "
                 + operation.getOperationResponse());
-        Assert.assertEquals(operation.getOperationResponse(), STATUS_COMPLETED, operation.getStatus());
+        Assert.assertEquals(operation.getOperationResponse(), Constants.STATUS_COMPLETED, operation.getStatus());
     }
 
     @Test
     public void testUploadFileFTPClient() {
-        String fileUrl = FTP_SCHEME + USER_NAME + LOCAL_HOST + FTP_PORT + File.separator;
-        String fileLocation = DEVICE_DOWNLOAD_DIRECTORY + File.separator + UPLOAD_FILE_NAME;
-        testUploadFile(generatePayload(fileUrl, PASSWORD, fileLocation));
+        String fileUrl = Constants.FTP_SCHEME + Constants.USER_NAME + Constants.LOCAL_HOST +
+                Constants.FTP_PORT + File.separator;
+        String fileLocation = Constants.DEVICE_DOWNLOAD_DIRECTORY + File.separator + Constants.UPLOAD_FILE_NAME;
+        testUploadFile(generatePayload(fileUrl, Constants.PASSWORD, fileLocation));
     }
 
     @Test
     public void testUploadFileSFTPClient() {
-        String fileUrl = SFTP_SCHEME + USER_NAME + LOCAL_HOST + SFTP_PORT + File.separator;
-        String fileLocation = DEVICE_DOWNLOAD_DIRECTORY + File.separator + UPLOAD_FILE_NAME;
-        testUploadFile(generatePayload(fileUrl, PASSWORD, fileLocation));
+        String fileUrl = Constants.SFTP_SCHEME + Constants.USER_NAME + Constants.LOCAL_HOST +
+                Constants.SFTP_PORT + File.separator;
+        String fileLocation = Constants.DEVICE_DOWNLOAD_DIRECTORY + File.separator + Constants.UPLOAD_FILE_NAME;
+        testUploadFile(generatePayload(fileUrl, Constants.PASSWORD, fileLocation));
     }
 
 
     public void testUploadFile(JSONObject payload) {
         Log.d(TAG, "Testing for payload: " + payload);
-        OperationManager operationManager = new MockOperationManager(CONTEXT);
+        OperationManager operationManager = new MockOperationManager(context);
         Operation operation = new Operation();
         operation.setPayLoad(payload);
         try {
@@ -175,18 +173,18 @@ public class OperationManagerTest {
         }
         Log.d(TAG, "Operation status: \"" + operation.getStatus() + "\". Operation response: "
                 + operation.getOperationResponse());
-        Assert.assertEquals(operation.getOperationResponse(), STATUS_COMPLETED, operation.getStatus());
+        Assert.assertEquals(operation.getOperationResponse(), Constants.STATUS_COMPLETED, operation.getStatus());
     }
 
     @After
     public void stopServers() {
-        if (TEST_FTP_SERVER != null) {
-            TEST_FTP_SERVER.stopFTP();
+        if (testFtpServer != null) {
+            testFtpServer.stopFTP();
         }
-        if (TEST_SFTP_SERVER != null) {
-            TEST_SFTP_SERVER.stopSFTP();
+        if (testSftpServer != null) {
+            testSftpServer.stopSFTP();
         }
-        deleteFile(FTP_DIRECTORY + File.separator + DOWNLOAD_FILE_NAME);
-        deleteFile(DEVICE_DOWNLOAD_DIRECTORY + File.separator + UPLOAD_FILE_NAME);
+        deleteFile(ftpDirectory + File.separator + Constants.DOWNLOAD_FILE_NAME);
+        deleteFile(Constants.DEVICE_DOWNLOAD_DIRECTORY + File.separator + Constants.UPLOAD_FILE_NAME);
     }
 }

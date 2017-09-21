@@ -39,43 +39,44 @@ import java.util.Collections;
 public class SFTPServer {
 
     private static final String TAG = SFTPServer.class.getSimpleName();
-    private SshServer SFTP_SERVER;
-    private String USER_NAME;
-    private String PASSWORD;
-    private String SFTP_DIRECTORY;
-    private int PORT;
+    private SshServer sftpServer;
+    private String sftpUserName;
+    private String sftpPassword;
+    private String sftpHomeDirectory;
+    private int port;
 
     public SFTPServer(String userName, String password, String homeDirectory, int port) {
-        this.USER_NAME = userName;
-        this.PASSWORD = password;
-        this.SFTP_DIRECTORY = homeDirectory;
-        this.PORT = port;
+        this.sftpUserName = userName;
+        this.sftpPassword = password;
+        this.sftpHomeDirectory = homeDirectory;
+        this.port = port;
     }
 
     public void startSFTP() {
+
         Log.d(TAG, "Starting SFTP server.");
-        SFTP_SERVER = SshServer.setUpDefaultServer();
-        SFTP_SERVER.setFileSystemFactory(new VirtualFileSystemFactory(SFTP_DIRECTORY));
-        SFTP_SERVER.setPort(PORT);
-        SFTP_SERVER.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
-        SFTP_SERVER.setCommandFactory(new ScpCommandFactory());
-        SFTP_SERVER.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File(SFTP_DIRECTORY).getAbsolutePath()));
-        SFTP_SERVER.setPasswordAuthenticator(new PasswordAuthenticator() {
+        sftpServer = SshServer.setUpDefaultServer();
+        sftpServer.setFileSystemFactory(new VirtualFileSystemFactory(sftpHomeDirectory));
+        sftpServer.setPort(port);
+        sftpServer.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
+        sftpServer.setCommandFactory(new ScpCommandFactory());
+        sftpServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File(sftpHomeDirectory).getAbsolutePath()));
+        sftpServer.setPasswordAuthenticator(new PasswordAuthenticator() {
             public boolean authenticate(final String username, final String password, final ServerSession session) {
-                return username.equals(USER_NAME) && password.equals(PASSWORD);
+                return username.equals(sftpUserName) && password.equals(sftpPassword);
             }
         });
         try {
-            SFTP_SERVER.start();
+            sftpServer.start();
         } catch (IOException e) {
-            Log.e(TAG, "SFTP sever starting exception.");
+            Log.e(TAG, "SFTP sever starting exception " + e.getLocalizedMessage());
         }
     }
 
     public void stopSFTP() {
         try {
-            if (SFTP_SERVER != null) {
-                SFTP_SERVER.stop();
+            if (sftpServer != null) {
+                sftpServer.stop();
                 Log.d(TAG, "Test SFTP Server stopped.");
             }
         } catch (InterruptedException ignored) {

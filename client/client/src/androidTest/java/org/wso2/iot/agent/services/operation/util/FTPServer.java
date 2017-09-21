@@ -38,17 +38,17 @@ import java.util.List;
 public class FTPServer {
 
     private static final String TAG = FTPServer.class.getSimpleName();
-    private String FTP_DIRECTORY;
-    private String USER_NAME;
-    private String PASSWORD;
-    private FtpServer FTP_SERVER;
-    private int PORT;
+    private String ftpDirectory;
+    private String userName;
+    private String password;
+    private FtpServer ftpServer;
+    private int port;
 
     public FTPServer(String userName, String password, String homeDirectory, int port) {
-        this.USER_NAME = userName;
-        this.PASSWORD = password;
-        this.FTP_DIRECTORY = homeDirectory;
-        this.PORT = port;
+        this.userName = userName;
+        this.password = password;
+        this.ftpDirectory = homeDirectory;
+        this.port = port;
     }
 
     public void startFTP() {
@@ -56,37 +56,30 @@ public class FTPServer {
         PropertiesUserManagerFactory userManagerFactory = new PropertiesUserManagerFactory();
         UserManager userManager = userManagerFactory.createUserManager();
         BaseUser user = new BaseUser();
-        user.setName(USER_NAME);
-        user.setPassword(PASSWORD);
+        user.setName(userName);
+        user.setPassword(password);
         List<Authority> authorities = new ArrayList<>();
         authorities.add(new WritePermission());
         user.setAuthorities(authorities);
-        user.setHomeDirectory(FTP_DIRECTORY);
-
+        user.setHomeDirectory(ftpDirectory);
         try {
             userManager.save(user);
-        } catch (FtpException e) {
-            Log.e(TAG, "Exception in saving user info.");
-        }
-
-        ListenerFactory listenerFactory = new ListenerFactory();
-        listenerFactory.setPort(PORT);
-        FtpServerFactory factory = new FtpServerFactory();
-        factory.setUserManager(userManager);
-        factory.addListener("default", listenerFactory.createListener());
-        FTP_SERVER = factory.createServer();
-
-        try {
-            FTP_SERVER.start();
+            ListenerFactory listenerFactory = new ListenerFactory();
+            listenerFactory.setPort(port);
+            FtpServerFactory factory = new FtpServerFactory();
+            factory.setUserManager(userManager);
+            factory.addListener("default", listenerFactory.createListener());
+            ftpServer = factory.createServer();
+            ftpServer.start();
             Log.d(TAG, "Test FTP Server started.");
         } catch (FtpException e) {
-            Log.e(TAG, "FTP server starting exception");
+            Log.e(TAG, "FTP server starting exception " + e.getLocalizedMessage());
         }
     }
 
     public void stopFTP() {
-        if (FTP_SERVER != null) {
-            FTP_SERVER.stop();
+        if (ftpServer != null) {
+            ftpServer.stop();
             Log.d(TAG, "Test FTP Server stopped.");
         }
     }

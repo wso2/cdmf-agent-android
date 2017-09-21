@@ -188,3 +188,4 @@ public class OperationManagerTest {
         deleteFile(Constants.DEVICE_DOWNLOAD_DIRECTORY + File.separator + Constants.UPLOAD_FILE_NAME);
     }
 }
+

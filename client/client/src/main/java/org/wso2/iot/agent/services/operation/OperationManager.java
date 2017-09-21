@@ -95,6 +95,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -552,6 +553,14 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         }
     }
 
+    private void cleanupStreams(FileInputStream fileInputStream) {
+        if (fileInputStream != null) {
+            try {
+                fileInputStream.close();
+            } catch (IOException ignored) {
+            }
+        }
+    }
 
     private String getSavingLocation() {
         if (Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).exists()) {
@@ -660,7 +669,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 downloadFileUsingFTPSClient(operation, host, ftpUserName, ftpPassword,
                         savingLocation, fileName, serverPort, fileDirectory);
             }
-        } catch (FTPConnectionClosedException e) {
+        } catch (FTPConnectionClosedException | ConnectException e) {
             downloadFileUsingFTPSClient(operation, host, ftpUserName, ftpPassword,
                     savingLocation, fileName, serverPort, fileDirectory);
         } catch (IOException e) {
@@ -985,6 +994,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         Channel channel = null;
         ChannelSftp channelSftp = null;
         String fileName = null;
+        FileInputStream fileInputStream = null;
         try {
             JSch jsch = new JSch();
             session = jsch.getSession(ftpUserName, host, serverPort);
@@ -999,12 +1009,14 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             channelSftp.cd(uploadDirectory);
             File file = new File(fileLocation);
             fileName = file.getName();
-            channelSftp.put(new FileInputStream(file), fileName);
+            fileInputStream = new FileInputStream(file);
+            channelSftp.put(fileInputStream, fileName);
             operation.setStatus(resources.getString(R.string.operation_value_completed));
             operation.setOperationResponse("File uploaded from the device successfully");
         } catch (JSchException | FileNotFoundException | SftpException e) {
             handleOperationError(operation, fileTransferExceptionHandler(e, fileName), e);
         } finally {
+            cleanupStreams(fileInputStream);
             if (channelSftp != null) {
                 channelSftp.exit();
             }

@@ -24,8 +24,6 @@ public class Constants {
     static final String FTP_SCHEME = "ftp://";
     static final String SFTP_SCHEME = "sftp://";
     static final String LOCAL_HOST = "@localhost:";
-    static final String DEVICE_DOWNLOAD_DIRECTORY = Environment.getExternalStoragePublicDirectory
-            (Environment.DIRECTORY_DOWNLOADS).toString();
     static final String DOWNLOAD_FILE_NAME = "DownloadTestFile.txt";
     static final String UPLOAD_FILE_NAME = "UploadTestFile.txt";
     static final String USER_NAME = "test";

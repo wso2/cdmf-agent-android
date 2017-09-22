@@ -524,11 +524,13 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
     }
 
     private String getSavingLocation() {
-        if (Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).exists()) {
-            return Environment.getExternalStoragePublicDirectory(Environment.
-                    DIRECTORY_DOWNLOADS).toString();
+        if (!Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).
+                exists() && !Environment.getExternalStoragePublicDirectory
+                (Environment.DIRECTORY_DOWNLOADS).mkdirs()) {
+            return null;
         }
-        return null;
+        return Environment.getExternalStoragePublicDirectory(Environment.
+                DIRECTORY_DOWNLOADS).toString();
     }
 
     /**

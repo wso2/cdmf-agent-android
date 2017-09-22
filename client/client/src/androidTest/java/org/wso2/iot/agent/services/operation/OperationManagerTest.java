@@ -52,6 +52,9 @@ public class OperationManagerTest {
     private FTPTestServer testFtpServer;
     private SFTPTestServer testSftpServer;
 
+    private String downloadDirectory = context.getFilesDir().toString() + File.separator
+            + "Download";
+
     public void createNewFile(String location) {
         Log.d(TAG, "Creating new file (" + location + ") for testing .");
         File file = new File(location);
@@ -78,14 +81,22 @@ public class OperationManagerTest {
     @Before
     public void createFiles() {
         createNewFile(ftpDirectory + File.separator + Constants.DOWNLOAD_FILE_NAME);
-        createNewFile(Constants.DEVICE_DOWNLOAD_DIRECTORY + File.separator + Constants.UPLOAD_FILE_NAME);
+        if (!new File(downloadDirectory).exists()) {
+            if (!new File(downloadDirectory).mkdirs()) {
+                Assert.fail("Test failed since no default download directory " +
+                        "and unable to create it.");
+            }
+        }
+        createNewFile(downloadDirectory + File.separator + Constants.UPLOAD_FILE_NAME);
     }
 
     @Before
     public void setupFTPServer() {
-        testFtpServer = new FTPTestServer(Constants.USER_NAME, Constants.PASSWORD, ftpDirectory, Constants.FTP_PORT);
+        testFtpServer = new FTPTestServer(Constants.USER_NAME, Constants.PASSWORD, ftpDirectory,
+                Constants.FTP_PORT);
         testFtpServer.startFTP();
-        testSftpServer = new SFTPTestServer(Constants.USER_NAME, Constants.PASSWORD, sftpDirectory, Constants.SFTP_PORT);
+        testSftpServer = new SFTPTestServer(Constants.USER_NAME, Constants.PASSWORD, sftpDirectory,
+                Constants.SFTP_PORT);
         testSftpServer.startSFTP();
     }
 
@@ -105,12 +116,13 @@ public class OperationManagerTest {
     public void testDownloadFileFTPClientFileLocationSpecified() {
         String fileUrl = Constants.FTP_SCHEME + Constants.USER_NAME + Constants.LOCAL_HOST +
                 Constants.FTP_PORT + File.separator + Constants.DOWNLOAD_FILE_NAME;
-        testDownloadFile(generatePayload(fileUrl, Constants.PASSWORD, Constants.DEVICE_DOWNLOAD_DIRECTORY));
+        testDownloadFile(generatePayload(fileUrl, Constants.PASSWORD, downloadDirectory));
     }
 
     @Test
     public void testDownloadFileFTPClientFileLocationNotSpecified() {
-        String fileUrl = Constants.FTP_SCHEME + Constants.USER_NAME + Constants.LOCAL_HOST + Constants.FTP_PORT
+        String fileUrl = Constants.FTP_SCHEME + Constants.USER_NAME + Constants.LOCAL_HOST +
+                Constants.FTP_PORT
                 + File.separator + Constants.DOWNLOAD_FILE_NAME;
         testDownloadFile(generatePayload(fileUrl, Constants.PASSWORD, ""));
     }
@@ -119,7 +131,7 @@ public class OperationManagerTest {
     public void testDownloadFileSFTPClientFileLocationSpecified() {
         String fileUrl = Constants.SFTP_SCHEME + Constants.USER_NAME + Constants.LOCAL_HOST
                 + Constants.SFTP_PORT + File.separator + Constants.DOWNLOAD_FILE_NAME;
-        testDownloadFile(generatePayload(fileUrl, Constants.PASSWORD, Constants.DEVICE_DOWNLOAD_DIRECTORY));
+        testDownloadFile(generatePayload(fileUrl, Constants.PASSWORD, downloadDirectory));
     }
 
     @Test
@@ -141,14 +153,15 @@ public class OperationManagerTest {
         }
         Log.d(TAG, "Operation status: \"" + operation.getStatus() + "\". Operation response: "
                 + operation.getOperationResponse());
-        Assert.assertEquals(operation.getOperationResponse(), Constants.STATUS_COMPLETED, operation.getStatus());
+        Assert.assertEquals(operation.getOperationResponse(), Constants.STATUS_COMPLETED,
+                operation.getStatus());
     }
 
     @Test
     public void testUploadFileFTPClient() {
         String fileUrl = Constants.FTP_SCHEME + Constants.USER_NAME + Constants.LOCAL_HOST +
                 Constants.FTP_PORT + File.separator;
-        String fileLocation = Constants.DEVICE_DOWNLOAD_DIRECTORY + File.separator + Constants.UPLOAD_FILE_NAME;
+        String fileLocation = downloadDirectory + File.separator + Constants.UPLOAD_FILE_NAME;
         testUploadFile(generatePayload(fileUrl, Constants.PASSWORD, fileLocation));
     }
 
@@ -156,7 +169,7 @@ public class OperationManagerTest {
     public void testUploadFileSFTPClient() {
         String fileUrl = Constants.SFTP_SCHEME + Constants.USER_NAME + Constants.LOCAL_HOST +
                 Constants.SFTP_PORT + File.separator;
-        String fileLocation = Constants.DEVICE_DOWNLOAD_DIRECTORY + File.separator + Constants.UPLOAD_FILE_NAME;
+        String fileLocation = downloadDirectory + File.separator + Constants.UPLOAD_FILE_NAME;
         testUploadFile(generatePayload(fileUrl, Constants.PASSWORD, fileLocation));
     }
 
@@ -173,7 +186,8 @@ public class OperationManagerTest {
         }
         Log.d(TAG, "Operation status: \"" + operation.getStatus() + "\". Operation response: "
                 + operation.getOperationResponse());
-        Assert.assertEquals(operation.getOperationResponse(), Constants.STATUS_COMPLETED, operation.getStatus());
+        Assert.assertEquals(operation.getOperationResponse(), Constants.STATUS_COMPLETED,
+                operation.getStatus());
     }
 
     @After
@@ -185,7 +199,7 @@ public class OperationManagerTest {
             testSftpServer.stopSFTP();
         }
         deleteFile(ftpDirectory + File.separator + Constants.DOWNLOAD_FILE_NAME);
-        deleteFile(Constants.DEVICE_DOWNLOAD_DIRECTORY + File.separator + Constants.UPLOAD_FILE_NAME);
+        deleteFile(downloadDirectory + File.separator + Constants.UPLOAD_FILE_NAME);
     }
 }
 

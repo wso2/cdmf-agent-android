@@ -56,8 +56,8 @@ public class LocationService extends Service implements LocationListener {
 
     private LocationManager locationManager = null;
     private Context context;
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1000; //If more than 1Km
-    private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 5; //If more than 5 minutes
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; //If more than 1Km
+    private static final long MIN_TIME_BW_UPDATES = 1000 * 5; //If more than 5 minutes
     private List<String> providers = new ArrayList<>();
     private boolean isUpdateRequested = false;
     private final IBinder mBinder = new LocalBinder();
@@ -251,25 +251,21 @@ public class LocationService extends Service implements LocationListener {
         if (!Constants.LOCATION_PUBLISHING_ENABLED) {
             return;
         }
-        if (EventRegistry.eventListeningStarted) {
-            String locationPayload = getLocationPayload(location);
-            if (lastPublishedLocationTime < location.getTime()) {
-                EventPayload eventPayload = new EventPayload();
-                eventPayload.setPayload(locationPayload);
-                eventPayload.setType(Constants.EventListeners.LOCATION_EVENT_TYPE);
-                HttpDataPublisher httpDataPublisher = new HttpDataPublisher();
-                httpDataPublisher.publish(eventPayload);
-                lastPublishedLocationTime = location.getTime();
-                if (Constants.DEBUG_MODE_ENABLED) {
-                    Log.d(TAG, "Location Event is published.");
-                }
-            } else {
-                if (Constants.DEBUG_MODE_ENABLED) {
-                    Log.d(TAG, "Ignore publishing. Duplicate location timestamp.");
-                }
+        String locationPayload = getLocationPayload(location);
+        if (lastPublishedLocationTime < location.getTime()) {
+            EventPayload eventPayload = new EventPayload();
+            eventPayload.setPayload(locationPayload);
+            eventPayload.setType(Constants.EventListeners.LOCATION_EVENT_TYPE);
+            HttpDataPublisher httpDataPublisher = new HttpDataPublisher(context);
+            httpDataPublisher.publish(eventPayload);
+            lastPublishedLocationTime = location.getTime();
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Location Event is published.");
             }
         } else {
-            Log.w(TAG, "Event listening not started yet");
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Ignore publishing. Duplicate location timestamp.");
+            }
         }
     }
 

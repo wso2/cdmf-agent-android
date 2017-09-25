@@ -870,9 +870,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             intent.putExtra(resources.getString(R.string.intent_extra_payload), operation.getPayLoad().toString());
             intent.putExtra(resources.getString(R.string.intent_extra_type),
                     Constants.Operation.VPN);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                    Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             context.startActivity(intent);
         }
 

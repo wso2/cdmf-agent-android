@@ -18,11 +18,11 @@
 
 package org.wso2.iot.agent.events.publisher;
 
+import android.content.Context;
 import android.util.Log;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.api.DeviceInfo;
 import org.wso2.iot.agent.beans.ServerConfig;
-import org.wso2.iot.agent.events.EventRegistry;
 import org.wso2.iot.agent.events.beans.EventPayload;
 import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.utils.CommonUtils;
@@ -32,15 +32,15 @@ import org.wso2.iot.agent.utils.Preference;
 import java.util.Map;
 
 public class HttpDataPublisher implements APIResultCallBack, DataPublisher {
-    private static String deviceIdentifier;
-    private static ServerConfig utils;
-    private static final String TAG = HttpDataPublisher.class.getName();
 
-    static {
-        DeviceInfo deviceInfo = new DeviceInfo(EventRegistry.context);
-        deviceIdentifier = deviceInfo.getDeviceId();
+    private static final String TAG = HttpDataPublisher.class.getName();
+    private ServerConfig utils;
+    private Context context;
+
+    public HttpDataPublisher(Context context) {
+        this.context = context;
+        String prefIP = Preference.getString(context, Constants.PreferenceFlag.IP);
         String serverIP = Constants.DEFAULT_HOST;
-        String prefIP = Preference.getString(EventRegistry.context, Constants.PreferenceFlag.IP);
         if (prefIP != null) {
             serverIP = prefIP;
         }
@@ -49,19 +49,19 @@ public class HttpDataPublisher implements APIResultCallBack, DataPublisher {
     }
 
     public void publish(EventPayload eventPayload) {
-        if (EventRegistry.context != null) {
-            eventPayload.setDeviceIdentifier(deviceIdentifier);
-            try {
-                String responsePayload = CommonUtils.toJSON(eventPayload);
-                CommonUtils.callSecuredAPI(EventRegistry.context,
-                                           utils.getAPIServerURL(EventRegistry.context) +
-                                           Constants.EVENT_ENDPOINT, org.wso2.iot.agent.proxy.utils.
-                                                   Constants.HTTP_METHODS.POST,
-                                           responsePayload, HttpDataPublisher.this,
-                                           Constants.EVENT_REQUEST_CODE);
-            } catch (AndroidAgentException e) {
-                Log.e(TAG, "Cannot convert event data to JSON");
-            }
+        DeviceInfo deviceInfo = new DeviceInfo(context);
+        String deviceIdentifier = deviceInfo.getDeviceId();
+        eventPayload.setDeviceIdentifier(deviceIdentifier);
+        try {
+            String responsePayload = CommonUtils.toJSON(eventPayload);
+            CommonUtils.callSecuredAPI(context,
+                    utils.getAPIServerURL(context) +
+                            Constants.EVENT_ENDPOINT, org.wso2.iot.agent.proxy.utils.
+                            Constants.HTTP_METHODS.POST,
+                    responsePayload, HttpDataPublisher.this,
+                    Constants.EVENT_REQUEST_CODE);
+        } catch (AndroidAgentException e) {
+            Log.e(TAG, "Cannot convert event data to JSON");
         }
     }
 

@@ -18,6 +18,8 @@
 
 package org.wso2.iot.agent.utils;
 
+import com.android.volley.DefaultRetryPolicy;
+
 import org.wso2.iot.agent.BuildConfig;
 
 import static org.wso2.iot.agent.proxy.utils.Constants.Authenticator.AUTHENTICATOR_IN_USE;
@@ -199,6 +201,18 @@ public class Constants {
 	public static boolean WIFI_SCANNING_ENABLED = BuildConfig.WIFI_SCANNING_ENABLED;
 	public static int DEFAULT_INTERVAL = 30000;
 	public static int DEFAULT_START_INTERVAL = 10000;
+
+	/**
+	 * HTTP clients
+	 */
+	public final class RetryPolicy {
+		private RetryPolicy(){
+			throw new AssertionError();
+		}
+		public static final int DEFAULT_TIME_OUT = 10000;
+		public static final int DEFAULT_MAX_RETRIES = 5;
+		public static final float DEFAULT_BACKOFF_MULT = DefaultRetryPolicy.DEFAULT_BACKOFF_MULT;
+	}
 
 	/**
 	 * Log publishers

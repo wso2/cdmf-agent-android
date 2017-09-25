@@ -235,7 +235,6 @@
     <string name="error_authentication_failed">Incorrect login information. Please try again.</string>
     <string name="error_network_unavailable">Network connectivity is unavailable. Please check your network connectivity.</string>
     <string name="error_for_all_unknown_registration_failures">Cannot proceed the registration. Please contact administrator.</string>
-    <string name="error_for_gcm_unavailability">Google Play Services is unavailable. This program requires google play services to function. Please contact administrator.</string>
     <string name="error_for_all_unknown_authentication_failures">Cannot proceed the authentication. Please contact administrator.</string>
     <string name="error_for_all_unknown_unregister_failures">Cannot unregister the device. Please contact administrator.</string>
     <string name="error_for_all_unknown_notification_failures">Cannot execute the notification. Please contact administrator.</string>
@@ -366,10 +365,11 @@
     <string name="operation_id">id</string>
     <string name="operation_status">status</string>
     <string name="app_download_progress">app_progress</string>
-    <string name="firmware_upgrade_failed">firmwareUpgradeFailed</string>
+    <string name="firmware_upgrade_retry_pending">firmwareUpgradeRetryPending</string>
     <string name="firmware_upgrade_retries">firmwareUpgradeRetries</string>
-    <string name="firmware_upgrade_failed_message">firmwareUpgradeFailedMessage</string>
-    <string name="firmware_upgrade_failed_id">firmwareUpgradeFailedId</string>
+    <string name="firmware_upgrade_response_message">firmwareUpgradeResponseMessage</string>
+    <string name="firmware_upgrade_response_id">firmwareUpgradeResponseId</string>
+    <string name="firmware_upgrade_response_status">firmwareUpgradeResponseStatus</string>
     <string name="is_automatic_firmware_upgrade">isAutomaticFirmwareUpgrade</string>
     <string name="firmware_upgrade_automatic_retry">autoRetry</string>
     <string name="app_install_failed_message">appInstallFailedMessage</string>

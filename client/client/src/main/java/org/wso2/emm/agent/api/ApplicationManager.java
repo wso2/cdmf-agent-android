@@ -38,6 +38,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -73,6 +74,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.android.volley.DefaultRetryPolicy.DEFAULT_BACKOFF_MULT;
 
 /**
  * This class handles all the functionalities required for managing application
@@ -726,7 +729,7 @@ public class ApplicationManager {
                 //Initialise local responseHeaders map with response headers received
                 responseHeaders = response.headers;
                 //Pass the response data here
-                if ("application/octet-stream".equals(responseHeaders.get("Content-Type"))) {
+                if (response.statusCode == 200) {
                     return Response.success(response.data, HttpHeaderParser.parseCacheHeaders(response));
                 } else {
                     VolleyError error = new VolleyError("Invalid application file URL.");
@@ -734,6 +737,14 @@ public class ApplicationManager {
                 }
             }
         };
+
+        request.setRetryPolicy(new DefaultRetryPolicy(10000, 5, DEFAULT_BACKOFF_MULT) {
+            public void retry(VolleyError error) throws VolleyError {
+                Log.w(TAG, "Retrying download the apk... " + getCurrentRetryCount());
+                super.retry(error);
+            }
+        });
+
         queue.add(request);
     }
 

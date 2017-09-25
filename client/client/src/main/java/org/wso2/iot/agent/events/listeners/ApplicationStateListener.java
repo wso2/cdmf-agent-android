@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -86,8 +87,9 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
         this.context = context;
         switch (intent.getAction()) {
             case Intent.ACTION_PACKAGE_ADDED:
-                status = "added";
+                if (Constants.DEFAULT_OWNERSHIP != Constants.OWNERSHIP_COSU) {
                     applyEnforcement(intent.getData().getEncodedSchemeSpecificPart());
+                }
                 break;
             case Intent.ACTION_PACKAGE_REMOVED:
                 status = "removed";
@@ -116,7 +118,7 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
                 Log.e(TAG, "Could not convert to JSON");
             }
             if (Intent.ACTION_PACKAGE_REPLACED.equals(intent.getAction()) &&
-                    Constants.AGENT_PACKAGE.equals(packageName)){
+                    Constants.AGENT_PACKAGE.equals(packageName)) {
                 Intent broadcastIntent = new Intent();
                 broadcastIntent.setAction(Constants.AGENT_UPDATED_BROADCAST_ACTION);
                 context.sendBroadcast(broadcastIntent);
@@ -139,9 +141,9 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
         String permissionName;
         Boolean isAllowed = false;
         String whiteListAppsPref = Preference.
-                    getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
+                getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
         String ownershipType = Preference.getString(context, Constants.DEVICE_TYPE);
-        if(!whiteListAppsPref.equals("")) {
+        if (!whiteListAppsPref.equals("")) {
             try {
                 JSONArray whiteListApps = new JSONArray(whiteListAppsPref);
                 for (int i = 0; i < whiteListApps.length(); i++) {
@@ -164,21 +166,21 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
                             context.getString(R.string.whitelist_package_split_regex) + packageName;
                     Preference.putString(context, Constants.
                             AppRestriction.DISALLOWED_APPS, disallowedApps);
-                        //Calls devicePolicyManager if the agent is profile-owner or device-owner.
-                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
+                    //Calls devicePolicyManager if the agent is profile-owner or device-owner.
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
                             (devicePolicyManager.
                                     isProfileOwnerApp(cdmfDeviceAdmin.getPackageName()) ||
                                     devicePolicyManager.
                                             isDeviceOwnerApp(cdmfDeviceAdmin.getPackageName()))) {
-                            devicePolicyManager.
-                                    setApplicationHidden(cdmfDeviceAdmin, packageName, true);
-                    } else if(Constants.OWNERSHIP_COPE.equals(ownershipType)){
+                        devicePolicyManager.
+                                setApplicationHidden(cdmfDeviceAdmin, packageName, true);
+                    } else if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
                         CommonUtils.callSystemApp(context,
-                                Constants.Operation.APP_RESTRICTION, "false" , packageName);
+                                Constants.Operation.APP_RESTRICTION, "false", packageName);
                     }
                 }
             } catch (JSONException e) {
-                    Log.e(TAG, "Invalid JSON format..");
+                Log.e(TAG, "Invalid JSON format..");
             }
         }
     }

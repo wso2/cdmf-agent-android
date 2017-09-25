@@ -390,7 +390,7 @@ android {
             // COSU related configurations.
             // ALLOW_MULTIPLE_APPS_IN_COSU_MODE: Set to true to make all installed app in COSU mode
             // accessible; if false only the last installation will be accessible.
-            buildConfigField "boolean", "ALLOW_MULTIPLE_APPS_IN_COSU_MODE", "false"
+            buildConfigField "boolean", "ALLOW_MULTIPLE_APPS_IN_COSU_MODE", "true"
             // By enabling this button, data wipe can be performed on a device without having to
             // issue a remote wipe operation.
             buildConfigField "boolean", "DISPLAY_WIPE_DEVICE_BUTTON", "true"
@@ -548,10 +548,10 @@ android {
             // Set DEFAULT_OWNERSHIP to null if no overriding is needed. Other possible values are,
             // BYOD or COPE. If you are using the mutual SSL authentication
             // This value must be set to a value other than null.
-            buildConfigField "String", "DEFAULT_OWNERSHIP", "\"BYOD\""
+            buildConfigField "String", "DEFAULT_OWNERSHIP", "\"COSU\""
             //DEFAULT_HOST - Hardcode the server host to avoid having the user type it during
             //enrollment. If the user must type the hostname/IP during enrollment, leave it as null.
-            buildConfigField "String", "DEFAULT_HOST", "null"
+            buildConfigField "String", "DEFAULT_HOST", "\"http://192.168.8.101:8280\""
             // APP_MANAGER_HOST: If the App store host is different from the DEFAULT_HOST
             // change this value.
             buildConfigField "String", "APP_MANAGER_HOST", "null"
@@ -702,6 +702,7 @@ dependencies {
     compile 'org.bouncycastle:bcprov-jdk16:1.45'
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.splunk.mint:mint:5.0.0'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
 }
 
 

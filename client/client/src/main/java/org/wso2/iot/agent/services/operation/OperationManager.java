@@ -17,6 +17,7 @@
  */
 package org.wso2.iot.agent.services.operation;
 
+import android.annotation.TargetApi;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
@@ -26,7 +27,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.location.Location;
+import android.media.AudioAttributes;
 import android.media.AudioManager;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -45,6 +48,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
+import org.wso2.iot.agent.KioskActivity;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceInfo;
@@ -299,28 +303,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
 
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Application list sent");
-        }
-    }
-
-    /**
-     * Ring the device.
-     *
-     * @param operation - Operation object.
-     */
-    public void ringDevice(org.wso2.iot.agent.beans.Operation operation) {
-        operation.setStatus(resources.getString(R.string.operation_value_completed));
-        resultBuilder.build(operation);
-        Intent intent = new Intent(context, AlertActivity.class);
-        intent.putExtra(resources.getString(R.string.intent_extra_type),
-                resources.getString(R.string.intent_extra_ring));
-        intent.putExtra(resources.getString(R.string.intent_extra_message_text),
-                resources.getString(R.string.intent_extra_stop_ringing));
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
-
-        if (Constants.DEBUG_MODE_ENABLED) {
-            Log.d(TAG, "Ringing is activated on the device");
         }
     }
 
@@ -629,7 +611,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      */
     public void rebootDevice(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
         JSONObject result = new JSONObject();
-
         try {
             boolean isRebootPossible = Constants.SYSTEM_APP_ENABLED
                     || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && this instanceof OperationManagerDeviceOwner)
@@ -997,46 +978,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
     }
 
     /**
-     * Display notification.
-     *
-     * @param operation - Operation object.
-     */
-    public void displayNotification(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
-        try {
-
-            operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
-            operation.setOperationResponse(notificationService.buildResponse(Notification.Status.RECEIVED));
-            getResultBuilder().build(operation);
-            JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
-            String messageTitle = inputData.getString(getContextResources().getString(R.string.intent_extra_message_title));
-            String messageText = inputData.getString(getContextResources().getString(R.string.intent_extra_message_text));
-
-            if (messageTitle != null && !messageTitle.isEmpty() &&
-                    messageText != null && !messageText.isEmpty()) {
-                //adding notification to the db
-                notificationService.addNotification(operation.getId(), messageTitle, messageText, Notification.Status.RECEIVED);
-                notificationService.showNotification(operation.getId(), messageTitle, messageText);
-            } else {
-                operation.setStatus(getContextResources().getString(R.string.operation_value_error));
-                String errorMessage = "Message title/text is empty. Please retry with valid inputs";
-                JSONObject errorResult = new JSONObject();
-                errorResult.put(STATUS, errorMessage);
-                operation.setOperationResponse(errorMessage);
-                getResultBuilder().build(operation);
-                Log.e(TAG, errorMessage);
-            }
-            if (Constants.DEBUG_MODE_ENABLED) {
-                Log.d(TAG, "Notification received");
-            }
-        } catch (JSONException e) {
-            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
-            operation.setOperationResponse("Error in parsing NOTIFICATION payload.");
-            getResultBuilder().build(operation);
-            throw new AndroidAgentException("Invalid JSON format.", e);
-        }
-    }
-
-    /**
      * Checks camera policy on the device (camera enabled/disabled).
      *
      * @param operation - Operation object.
@@ -1282,5 +1223,4 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             }
         }
     }
-
 }

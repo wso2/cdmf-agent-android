@@ -25,7 +25,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Resources;
+import android.graphics.Point;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -37,9 +37,13 @@ import android.os.SystemProperties;
 import android.os.UserManager;
 import android.util.Log;
 import android.util.Patterns;
+import android.view.Display;
+import android.view.MotionEvent;
+import android.view.WindowManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wso2.iot.system.service.api.InputEventHandler;
 import org.wso2.iot.system.service.api.OTADownload;
 import org.wso2.iot.system.service.api.SettingsManager;
 import org.wso2.iot.system.service.services.BatteryChargingStateReceiver;
@@ -109,6 +113,8 @@ public class SystemService extends IntentService {
     private String appUri = null;
     private int operationId;
     private Context context;
+    private WindowManager wmgr;
+
 
     private static String[] AUTHORIZED_PINNING_APPS;
 
@@ -122,6 +128,7 @@ public class SystemService extends IntentService {
         cdmDeviceAdmin = new ComponentName(this, ServiceDeviceAdminReceiver.class);
         devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
         mUserManager = (UserManager) getSystemService(Context.USER_SERVICE);
+        wmgr = (WindowManager) getSystemService(WINDOW_SERVICE);
         String AGENT_PACKAGE_NAME = context.getPackageName();
         AUTHORIZED_PINNING_APPS = new String[]{AGENT_PACKAGE_NAME, Constants.AGENT_APP_PACKAGE_NAME};
         if (!devicePolicyManager.isAdminActive(cdmDeviceAdmin)) {
@@ -413,7 +420,7 @@ public class SystemService extends IntentService {
                 getLogCat(command);
                 break;
             case Constants.Operation.REMOTE_INPUT:
-                getLogCat(command);
+                injectInput(command);
                 break;
             default:
                 Log.e(TAG, "Invalid operation code received");
@@ -452,9 +459,60 @@ public class SystemService extends IntentService {
      * Inject input to device
      */
     public void injectInput(String command) {
-        int height = Resources.getSystem().getDisplayMetrics().widthPixels;
-        int width = Resources.getSystem().getDisplayMetrics().heightPixels;
-        Log.e(TAG, "getting input" + "height" + height + "width" + width);
+        float x, y;
+        int duration = -1, motionAction = -1;
+        String action = null;
+        try {
+            JSONObject inputData = new JSONObject(command);
+            if (!inputData.has("x") || !inputData.has("y") ) {
+                Log.e(TAG, "Incorrect input for x : " + inputData.get("x") + " y:" + inputData.get("y"));
+                return;
+            }
+
+            Display display = wmgr.getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            x = Float.parseFloat(inputData.get("x").toString()) * (size.x + (size.x * Constants.X_COORDINATE_OFFSET));
+            y = Float.parseFloat(inputData.get("y").toString()) * (size.y + (size.y * Constants.Y_COORDINATE_OFFSET));
+
+            if (inputData.has("duration")) {
+                duration = Integer.valueOf(inputData.get("duration").toString());
+            }
+            if (inputData.has("action")) {
+                action = inputData.get("action").toString();
+            }
+            if (action != null) {
+                switch (action) {
+                    case "move":
+                        motionAction = MotionEvent.ACTION_MOVE;
+                        break;
+                    case "up":
+                        motionAction = MotionEvent.ACTION_UP;
+                        break;
+                    case "down":
+                        motionAction = MotionEvent.ACTION_DOWN;
+                        break;
+                    case "cancel":
+                        motionAction = MotionEvent.ACTION_CANCEL;
+                        break;
+                    default:
+                        Log.w(TAG, "Input manager does not support action: " + action);
+                        break;
+                }
+                if (motionAction != -1) {
+                    InputEventHandler.getInstance(context).injectTouchEvent(x, y, motionAction, duration);
+                }
+
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Unable to parse command string", e);
+        } catch (NumberFormatException e) {
+            Log.e(TAG, "Unable to parse coordinated", e);
+        } catch (Exception e) {
+            Log.e(TAG, "Unable to inject the event", e);
+        }
+
+
     }
 
     /**

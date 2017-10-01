@@ -54,6 +54,12 @@ public class Constants {
 	public static final String SYSTEM_APP_ACTION_RESPONSE = "org.wso2.iot.system.service.MESSAGE_PROCESSED";
 	public static final String AGENT_APP_SERVICE_NAME = "org.wso2.iot.agent.START_SERVICE";
 
+	// Input Inject related constants
+	public static final int INPUT_THRESHOLD = 20;
+	public static final int MIN_DURATION = 10;
+	public static final float X_COORDINATE_OFFSET= 0;
+	public static final float Y_COORDINATE_OFFSET= 0.063f;
+
 	/**
 	 * Operation IDs
 	 */

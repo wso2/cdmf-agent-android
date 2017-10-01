@@ -19,6 +19,7 @@
 package org.wso2.iot.agent.transport.websocket;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -26,6 +27,7 @@ import android.util.Log;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.handshake.ServerHandshake;
+import org.wso2.iot.agent.services.screenshare.ScreenSharingService;
 import org.wso2.iot.agent.transport.exception.TransportHandlerException;
 
 import java.net.URI;
@@ -66,7 +68,7 @@ public class AndroidWebSocketClient extends WebSocketClient {
         try {
             WebSocketSessionHandler.getInstance(context).handleSessionMessage(message);
         } catch (TransportHandlerException e) {
-            Log.e(TAG, "Erroc occurred while handling incoming web socket message");
+            Log.e(TAG, "Error occurred while handling incoming web socket message");
         }
     }
 
@@ -78,6 +80,8 @@ public class AndroidWebSocketClient extends WebSocketClient {
 
     @Override
     public void onError(Exception ex) {
+        WebSocketSessionHandler.getInstance(context).endSession();
         Log.e(TAG, "Error occurred while handling web socket session ", ex);
+
     }
 }

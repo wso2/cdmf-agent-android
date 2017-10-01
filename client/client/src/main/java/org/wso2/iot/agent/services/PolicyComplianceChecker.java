@@ -77,6 +77,10 @@ public class PolicyComplianceChecker {
                 return operationManager.checkWorkProfilePolicy(operation, policy);
             case Constants.Operation.RUNTIME_PERMISSION_POLICY:
                 return operationManager.checkRuntimePermissionPolicy(operation, policy);
+            case Constants.Operation.VPN:
+                //TODO: Compliance VPN settings
+                policy.setCompliance(true);
+                return policy;
             case Constants.Operation.COSU_PROFILE_POLICY:
             case Constants.Operation.DISALLOW_ADJUST_VOLUME:
             case Constants.Operation.DISALLOW_CONFIG_BLUETOOTH:

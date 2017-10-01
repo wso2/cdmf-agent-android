@@ -28,8 +28,13 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Surface;
 
+import org.wso2.iot.agent.utils.Constants;
+
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import static android.app.ActivityThread.TAG;
 
 /**
  * Class for listen to screen images and transform and send via session
@@ -41,33 +46,20 @@ public class ScreenImageReader implements ImageReader.OnImageAvailableListener {
     private final ImageReader imageReader;
     private final ScreenSharingService svc;
     private Bitmap latestBitmap = null;
-    private byte[] lastPng;
-    private final int maxHeight;
-    private final int maxWidth;
 
     ScreenImageReader(ScreenSharingService svc, int maxWidth, int maxHeight) {
         this.svc = svc;
-        this.maxWidth = maxWidth;
-        this.maxHeight = maxHeight;
         Display display = svc.getWindowManager().getDefaultDisplay();
         Point size = new Point();
-
         display.getSize(size);
-
         int width = size.x;
         int height = size.y;
-
         while (width * height > (2 << 19)) {
             width = width >> 1;
             height = height >> 1;
         }
-
-
         // Calculate width and height based on requested given dimensions
-
-
         double diffWidth = 0, diffHeight = 0;
-
         if (width > 0) {
             diffWidth = (double) (width - maxWidth) / width;
         }
@@ -81,21 +73,17 @@ public class ScreenImageReader implements ImageReader.OnImageAvailableListener {
             width = (int) (width * (1 - diffHeight));
             height = (int) (height * (1 - diffHeight));
         }
-
-
         this.width = width;
         this.height = height;
-
         imageReader = ImageReader.newInstance(width, height,
-                PixelFormat.RGB_565, 2);
+                PixelFormat.RGBA_8888, 2);
         imageReader.setOnImageAvailableListener(this, svc.getHandler());
-        svc.updateImageSize(width, height);
     }
 
     @Override
     public void onImageAvailable(ImageReader reader) {
-        final Image image = imageReader.acquireLatestImage();
 
+        final Image image = imageReader.acquireLatestImage();
         if (image != null) {
             Image.Plane[] planes = image.getPlanes();
             ByteBuffer buffer = planes[0].getBuffer();
@@ -103,38 +91,44 @@ public class ScreenImageReader implements ImageReader.OnImageAvailableListener {
             int rowStride = planes[0].getRowStride();
             int rowPadding = rowStride - pixelStride * width;
             int bitmapWidth = width + rowPadding / pixelStride;
-
-            if (latestBitmap == null ||
-                    latestBitmap.getWidth() != bitmapWidth ||
-                    latestBitmap.getHeight() != height) {
+            if (latestBitmap == null || latestBitmap.getWidth() != bitmapWidth || latestBitmap.getHeight() != height) {
                 if (latestBitmap != null) {
                     latestBitmap.recycle();
                 }
-
-                latestBitmap = Bitmap.createBitmap(bitmapWidth,
-                        height, Bitmap.Config.RGB_565);
+                latestBitmap = Bitmap.createBitmap(bitmapWidth, height, Bitmap.Config.ARGB_8888);
             }
-
             latestBitmap.copyPixelsFromBuffer(buffer);
-
             image.close();
-
-
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            Bitmap cropped = Bitmap.createBitmap(latestBitmap, 0, 0,
-                    width, height);
 
-            cropped.compress(Bitmap.CompressFormat.JPEG, 50, baos);
-            byte[] newPng = baos.toByteArray();
-            if (lastPng != null && lastPng.length == newPng.length) {
-                return;
-            } else {
-                lastPng = newPng;
-                svc.updateImage(newPng);
+            Bitmap cropped = Bitmap.createBitmap(latestBitmap, 0, 0, width, height);
+            int quality = Constants.MAX_QUALITY, diff = 0;
+            cropped.compress(Bitmap.CompressFormat.JPEG, Constants.MAX_QUALITY, baos);
 
+            byte[] newImage = baos.toByteArray();
+            if (Constants.MAX_IMAGE_SIZE_BYTES < newImage.length) {
+                int old = newImage.length;
+                diff = (int) Math.round((double) (newImage.length) / Constants.MAX_IMAGE_SIZE_BYTES);
+                if (diff >= 2) {
+                    if (diff > Constants.MAX_QUALITY) {
+                        diff = Constants.MAX_QUALITY;
+                    }
+                    baos.reset();
+                    quality = Constants.MAX_QUALITY / diff;
+                    cropped.compress(Bitmap.CompressFormat.JPEG, Constants.MAX_QUALITY / diff, baos);
+                    newImage = baos.toByteArray();
+                }
+                Log.e(TAG, "dif" + diff + " Length:" + old + ": new: " + newImage.length + ": Quality: " + quality);
             }
-            //  Log.i("size","width: "+width+" height: "+height);
-            Log.e("Size", Integer.toString(newPng.length) + " Width: " + width + " Height: " + height);
+
+            svc.updateImage(newImage, diff);
+
+            try {
+                baos.close();
+            } catch (IOException e) {
+                Log.w(TAG, "Cannot close the  temporary image byte stream");
+            }
+
         }
     }
 

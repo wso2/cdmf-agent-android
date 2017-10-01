@@ -54,7 +54,7 @@ public class WebSocketSessionHandler {
     private String serverUrl;
     private int operationId;
     private AndroidWebSocketClient androidWebSocketClient;
-    private String TAG = "WS";
+    private static final String TAG = WebSocketSessionHandler.class.getSimpleName();
     private static Object instance_lock = new Object();
     private OperationManager operationManager;
     IBinder b = ServiceManager.getService(MEDIA_PROJECTION_SERVICE);
@@ -88,7 +88,8 @@ public class WebSocketSessionHandler {
 
     /**
      * Create new web socket session
-     * @param serverURL Server URL
+     *
+     * @param serverURL   Server URL
      * @param operationId operation id for initialized session
      * @throws TransportHandlerException
      */
@@ -104,8 +105,6 @@ public class WebSocketSessionHandler {
             serverURL = serverURL.replace("localhost", serverConfig.getHostFromPreferences(context));
         }
         this.serverUrl = serverURL;
-        String remoteEndpoint = serverURL + Constants.REMOTE_SESSION_DEVICE_ENDPOINT_CONTEXT + "/" +
-                deviceInfo.getDeviceId() + "/" + operationId + "?websocketToken=" + accessToken;
         this.operationId = operationId;
         if (androidWebSocketClient != null && androidWebSocketClient.getConnection() != null) {
             if (androidWebSocketClient.getConnection().isConnecting() || androidWebSocketClient.getConnection().isOpen()) {
@@ -113,6 +112,8 @@ public class WebSocketSessionHandler {
             }
         }
         URI uri;
+        String remoteEndpoint = serverURL + Constants.REMOTE_SESSION_DEVICE_ENDPOINT_CONTEXT + "/" +
+                deviceInfo.getDeviceId() + "/" + operationId + "?websocketToken=" + accessToken;
         try {
             uri = new URI(remoteEndpoint);
             Log.i(TAG, "connected");
@@ -138,15 +139,10 @@ public class WebSocketSessionHandler {
                 if (request.has("payload")) {
                     operation.setPayLoad(request.get("payload").toString());
                 }
-                if (request.has("id")) {
-                    operation.setId(Integer.parseInt(request.get("id").toString()));
-                }
+                operation.setId(this.operationId);
                 switch (operation.getCode()) {
                     case Constants.Operation.REMOTE_INPUT:
-                        if(Constants.SYSTEM_APP_ENABLED){
-                            CommonUtils.callSystemApp(context, Constants.Operation.REMOTE_INPUT, operation.toString(),
-                                    null);
-                        }
+                        operationManager.processInputInject(operation);
                         break;
                     case Constants.Operation.REMOTE_SHELL:
                         operationManager.processRemoteShell(operation);
@@ -155,31 +151,7 @@ public class WebSocketSessionHandler {
                         operationManager.processRemoteShell(operation);
                         break;
                     case Constants.Operation.REMOTE_SCREEN:
-                        if (operation.getPayLoad().equals("start")) {
-                            operationManager.screenCapture(operation);
-//                            try {
-//                                PackageManager packageManager = context.getPackageManager();
-//                                ApplicationInfo aInfo = packageManager.getApplicationInfo(context.getBasePackageName(), 0);
-//                                IMediaProjection projection = null;
-//                                projection = mService.createProjection(aInfo.uid, context.getBasePackageName(),
-//                                        MediaProjectionManager.TYPE_SCREEN_CAPTURE, true);
-//                                Intent intent = new Intent();
-//                                intent.putExtra(MediaProjectionManager.EXTRA_MEDIA_PROJECTION, projection.asBinder());
-//                                Intent i =
-//                                        new Intent(context, ScreenSharingService.class)
-//                                                .putExtra(ScreenSharingService.EXTRA_RESULT_CODE,
-//                                                        RESULT_OK)
-//                                                .putExtra(ScreenSharingService.EXTRA_RESULT_INTENT,
-//                                                        intent);
-//                                context.startService(i);
-//                            } catch (RemoteException | PackageManager.NameNotFoundException e) {
-//                                e.printStackTrace();
-//                            }
-
-
-                        } else {
-                            context.stopService(new Intent(context, ScreenSharingService.class));
-                        }
+                        operationManager.screenCapture(operation);
                         break;
                     default:
                         operation.setOperationResponse("operation is not supported");
@@ -206,12 +178,13 @@ public class WebSocketSessionHandler {
                 androidWebSocketClient.getConnection().isOpen()) {
             androidWebSocketClient.close();
         }
-        this.operationId = -1;
-        this.serverUrl = null;
+        context.stopService(new Intent(context, ScreenSharingService.class));
+
     }
 
     /**
      * Send String message to remote client using web socket session
+     *
      * @param message
      */
     public void sendMessage(String message) {
@@ -229,6 +202,7 @@ public class WebSocketSessionHandler {
 
     /**
      * Send byte message to remote client using web socket session
+     *
      * @param message byte message
      */
     public void sendMessage(byte[] message) {
@@ -245,6 +219,7 @@ public class WebSocketSessionHandler {
 
     /**
      * Send message to remote client using web socket session
+     *
      * @param operation Operation info for given message
      * @throws TransportHandlerException
      */
@@ -277,7 +252,8 @@ public class WebSocketSessionHandler {
 
     /**
      * Gets operation id for currently connected session
-     * @return
+     *
+     * @return operation id
      */
     public int getOperationId() {
         return operationId;

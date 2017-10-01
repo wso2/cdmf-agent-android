@@ -24,24 +24,23 @@ import android.content.res.Resources;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.PowerManager;
 import android.support.annotation.RequiresApi;
 
-import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.services.screenshare.ScreenSharingService;
+import org.wso2.iot.agent.utils.Constants;
 
 /**
  * Activity which is used to show alerts throughout the application.
  */
 public class ScreenShareActivity extends Activity {
 
-
     private Context context;
     private Resources resources;
     private static final String TAG = ScreenShareActivity.class.getSimpleName();
     private MediaProjectionManager mgr;
     private static final int REQUEST_SCREENSHOT = 59706;
-    private String type;
+    private int maxWidth = 0;
+    private int maxHeight = 0;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -51,18 +50,11 @@ public class ScreenShareActivity extends Activity {
         this.resources = context.getResources();
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            type = extras.getString(getResources().getString(R.string.intent_extra_type));
+            this.maxWidth = extras.getInt(Constants.MAX_WIDTH, Constants.DEFAULT_SCREEN_CAPTURE_IMAGE_WIDTH);
+            this.maxHeight = extras.getInt(Constants.MAX_HEIGHT, Constants.DEFAULT_SCREEN_CAPTURE_IMAGE_HEIGHT);
         }
         mgr = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
-
-        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock TempWakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK |
-                PowerManager.ACQUIRE_CAUSES_WAKEUP, "ScreenLock");
-        TempWakeLock.acquire();
-        TempWakeLock.release();
-        startActivityForResult(mgr.createScreenCaptureIntent(),
-                REQUEST_SCREENSHOT);
-
+        startActivityForResult(mgr.createScreenCaptureIntent(), REQUEST_SCREENSHOT);
     }
 
 
@@ -73,14 +65,10 @@ public class ScreenShareActivity extends Activity {
             if (resultCode == RESULT_OK) {
                 Intent i =
                         new Intent(this, ScreenSharingService.class)
-                                .putExtra(ScreenSharingService.EXTRA_RESULT_CODE,
-                                        resultCode)
-                                .putExtra(ScreenSharingService.EXTRA_RESULT_INTENT,
-                                        data)
-                                .putExtra(ScreenSharingService.MAX_WIDTH,
-                                        1024)
-                                .putExtra(ScreenSharingService.MAX_HEIGHT,
-                                        768);
+                                .putExtra(ScreenSharingService.EXTRA_RESULT_CODE, resultCode)
+                                .putExtra(ScreenSharingService.EXTRA_RESULT_INTENT, data)
+                                .putExtra(Constants.MAX_WIDTH, maxWidth)
+                                .putExtra(Constants.MAX_HEIGHT, maxHeight);
                 startService(i);
             }
         }

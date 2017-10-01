@@ -48,6 +48,7 @@ import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.activities.ScreenShareActivity;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceInfo;
+import org.wso2.iot.agent.api.RootChecker;
 import org.wso2.iot.agent.api.RuntimeInfo;
 import org.wso2.iot.agent.api.WiFiConfig;
 import org.wso2.iot.agent.beans.Address;
@@ -636,20 +637,30 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         JSONObject result = new JSONObject();
 
         try {
-            String status = resources.getString(R.string.shared_pref_default_status);
-            result.put(resources.getString(R.string.operation_status), status);
+            boolean isRebootPossible = Constants.SYSTEM_APP_ENABLED
+                    || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && this instanceof OperationManagerDeviceOwner)
+                    || RootChecker.isDeviceRooted();
+            result.put(resources.getString(R.string.operation_status), isRebootPossible);
             operation.setPayLoad(result.toString());
 
-            if (status.equals(resources.getString(R.string.shared_pref_default_status))) {
-                operation.setStatus(resources.getString(R.string.operation_value_completed));
+            if (isRebootPossible) {
+                int lastRebootOperationId = Preference.getInt(context, resources.getString(R.string.shared_pref_reboot_op_id));
+                if (lastRebootOperationId == operation.getId()) {
+                    Log.i(TAG, "Ignoring duplicated reboot operation");
+                    return; //Ignoring duplicate reboot operation
+                } else {
+                    Preference.removePreference(context, resources.getString(R.string.shared_pref_reboot_status));
+                    Preference.removePreference(context, resources.getString(R.string.shared_pref_reboot_result));
+                    Preference.putInt(context, resources.getString(R.string.shared_pref_reboot_op_id), operation.getId());
+                }
+                operation.setStatus(resources.getString(R.string.operation_value_pending));
                 resultBuilder.build(operation);
 
                 if (Constants.DEBUG_MODE_ENABLED) {
                     Log.d(TAG, "Reboot initiated.");
                 }
             } else {
-                Toast.makeText(context, resources.getString(R.string.toast_message_reboot_failed),
-                        Toast.LENGTH_LONG).show();
+                Log.e(TAG, resources.getString(R.string.toast_message_reboot_failed));
                 operation.setStatus(resources.getString(R.string.operation_value_error));
                 operation.setOperationResponse(resources.getString(R.string.toast_message_reboot_failed));
                 resultBuilder.build(operation);
@@ -775,7 +786,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             operation.setStatus(resources.getString(R.string.operation_value_completed));
             resultBuilder.build(operation);
             NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
-                    .setSmallIcon(R.drawable.ic_launcher)
+                    .setSmallIcon(R.drawable.ic_lock_white_24dp)
                     .setContentTitle(context.getString(R.string.alert_message))
                     .setContentText(message)
                     .setAutoCancel(true)
@@ -884,9 +895,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             intent.putExtra(resources.getString(R.string.intent_extra_payload), operation.getPayLoad().toString());
             intent.putExtra(resources.getString(R.string.intent_extra_type),
                     Constants.Operation.VPN);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                    Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             context.startActivity(intent);
         }
 
@@ -1023,7 +1033,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "Notification received");
             }
-        } catch (JSONException e) {
+        } catch (JSONException | NullPointerException e) {
             operation.setStatus(getContextResources().getString(R.string.operation_value_error));
             operation.setOperationResponse("Error in parsing NOTIFICATION payload.");
             getResultBuilder().build(operation);

@@ -380,7 +380,7 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 			Log.d(TAG, "Calling onResume");
 		}
 
-		if (Build.VERSION.SDK_INT >= 19) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 			try {
 				int locationSetting = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
 				if (locationSetting != 0) {
@@ -390,6 +390,9 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 			} catch (Settings.SettingNotFoundException e) {
 				Log.w(TAG, "Location setting is not available on this device");
 			}
+		}
+		if (Preference.hasPreferenceKey(context, Constants.PreferenceFlag.LAST_SERVER_CALL)) {
+			lastSyncMillis = Preference.getLong(context, Constants.PreferenceFlag.LAST_SERVER_CALL);
 		}
 		updateSyncText();
 		IntentFilter filter = new IntentFilter(Constants.SYNC_BROADCAST_ACTION);
@@ -418,10 +421,6 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 	}
 
 	private void updateSyncText() {
-		if (lastSyncMillis <= 0
-				&& Preference.hasPreferenceKey(context, Constants.PreferenceFlag.LAST_SERVER_CALL)) {
-			lastSyncMillis = Preference.getLong(context, Constants.PreferenceFlag.LAST_SERVER_CALL);
-		}
 		String syncText = CommonUtils.getTimeAgo(lastSyncMillis, context);
 		if (syncText == null) {
 			syncText = getResources().getString(R.string.txt_never);

@@ -73,8 +73,12 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
                 EventPayload eventPayload = new EventPayload();
                 eventPayload.setPayload(payload);
                 eventPayload.setType(type);
-                HttpDataPublisher httpDataPublisher = new HttpDataPublisher();
-                httpDataPublisher.publish(eventPayload);
+                if (EventRegistry.context != null) {
+                    HttpDataPublisher httpDataPublisher = new HttpDataPublisher(EventRegistry.context);
+                    httpDataPublisher.publish(eventPayload);
+                } else {
+                    Log.w(TAG, "Event registry context not available.");
+                }
             }
         }
     }

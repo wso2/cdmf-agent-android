@@ -32,8 +32,8 @@ android {
         targetSdkVersion 25
         multiDexEnabled true
 
-        versionCode 3010020
-        versionName "3.1.20"
+        versionCode 3010021
+        versionName "3.1.21"
     }
     buildTypes {
         release {

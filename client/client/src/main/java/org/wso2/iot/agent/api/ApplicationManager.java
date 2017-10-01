@@ -837,9 +837,15 @@ public class ApplicationManager {
             }
         };
         request.setRetryPolicy(new DefaultRetryPolicy(
-                org.wso2.iot.agent.proxy.utils.Constants.HttpClient.DEFAULT_TIME_OUT,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                Constants.RetryPolicy.DEFAULT_TIME_OUT,
+                Constants.RetryPolicy.DEFAULT_MAX_RETRIES,
+                Constants.RetryPolicy.DEFAULT_BACKOFF_MULT){
+            public void retry(VolleyError error) throws VolleyError {
+                Log.w(TAG, "Retrying download the apk... " + getCurrentRetryCount());
+                super.retry(error);
+            }
+        });
+
         queue.add(request);
     }
 

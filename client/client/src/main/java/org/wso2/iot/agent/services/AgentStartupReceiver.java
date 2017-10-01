@@ -47,116 +47,125 @@ import java.util.Locale;
  * notification service at device startup.
  */
 public class AgentStartupReceiver extends BroadcastReceiver {
-	public static final int DEFAULT_INT_VALUE = 0;
-	public static final int DEFAULT_ID = -1;
-	private static final String TAG = AgentStartupReceiver.class.getSimpleName();
+    public static final int DEFAULT_INT_VALUE = 0;
+    public static final int DEFAULT_ID = -1;
+    private static final String TAG = AgentStartupReceiver.class.getSimpleName();
+    private Resources resources;
 
-	@Override
-	public void onReceive(final Context context, Intent intent) {
-		String action = intent.getAction();
-		if (Constants.DEBUG_MODE_ENABLED) {
-			Log.d(TAG, "Action received: " + action);
-		}
-		if (ConnectivityManager.CONNECTIVITY_ACTION.equals(action)
-				&& !isNetworkConnected(context, intent)) {
-			return;
-		}
-		if (!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE)) {
-			Log.e(TAG, "Device is not active");
-			return;
-		}
-		setRecurringAlarm(context.getApplicationContext());
-		if(!EventRegistry.eventListeningStarted) {
-			EventRegistry registerEvent = new EventRegistry(context.getApplicationContext());
-			registerEvent.register();
-		}
-		if (!CommonUtils.isServiceRunning(context, LocationService.class)) {
-			Intent serviceIntent = new Intent(context, LocationService.class);
-			context.startService(serviceIntent);
-		}
-		if (Intent.ACTION_BOOT_COMPLETED.equals(action) || Constants.AGENT_UPDATED_BROADCAST_ACTION.equals(action)) {
-			if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
-				Preference.putBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START, true);
-				Intent i = new Intent(context, SplashActivity.class);
-				i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				context.startActivity(i);
-			}
-		}
-	}
+    @Override
+    public void onReceive(final Context context, Intent intent) {
+        String action = intent.getAction();
+        if (Constants.DEBUG_MODE_ENABLED) {
+            Log.d(TAG, "Action received: " + action);
+        }
+        if (ConnectivityManager.CONNECTIVITY_ACTION.equals(action)
+                && !isNetworkConnected(context, intent)) {
+            return;
+        }
+        if (!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE)) {
+            Log.e(TAG, "Device is not active");
+            return;
+        }
+        this.resources = context.getApplicationContext().getResources();
+        int lastRebootOperationId = Preference.getInt(context, resources.getString(R.string.shared_pref_reboot_op_id));
+        if (lastRebootOperationId != 0) {
+            Preference.putString(context, resources.getString(R.string.shared_pref_reboot_status),
+                    context.getResources().getString(R.string.operation_value_completed));
+            Preference.putString(context, resources.getString(R.string.shared_pref_reboot_result),
+                    context.getResources().getString(R.string.operation_value_completed));
+        }
+        setRecurringAlarm(context.getApplicationContext());
+        if (!EventRegistry.eventListeningStarted) {
+            EventRegistry registerEvent = new EventRegistry(context.getApplicationContext());
+            registerEvent.register();
+        }
+        if (!CommonUtils.isServiceRunning(context, LocationService.class)) {
+            Intent serviceIntent = new Intent(context, LocationService.class);
+            context.startService(serviceIntent);
+        }
+        if (Intent.ACTION_BOOT_COMPLETED.equals(action) || Constants.AGENT_UPDATED_BROADCAST_ACTION.equals(action)) {
+            if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
+                Preference.putBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START, true);
+                Intent i = new Intent(context, SplashActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(i);
+            }
+        }
+    }
 
-	private boolean isNetworkConnected(Context context, Intent intent){
-		if (intent.getExtras() != null) {
-			final ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
-			final NetworkInfo ni = connectivityManager.getActiveNetworkInfo();
+    private boolean isNetworkConnected(Context context, Intent intent) {
+        if (intent.getExtras() != null) {
+            final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            final NetworkInfo ni = connectivityManager.getActiveNetworkInfo();
 
-			if (ni != null && ni.isConnectedOrConnecting()) {
-				if (Constants.DEBUG_MODE_ENABLED) {
-					Log.d(TAG, "Network " + ni.getTypeName() + " connected");
-				}
-				return true;
-			} else if (intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, Boolean.FALSE)) {
-				Log.i(TAG, "There's no network connectivity");
-			}
-		}
-		return false;
-	}
+            if (ni != null && ni.isConnectedOrConnecting()) {
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    Log.d(TAG, "Network " + ni.getTypeName() + " connected");
+                }
+                return true;
+            } else if (intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, Boolean.FALSE)) {
+                Log.i(TAG, "There's no network connectivity");
+            }
+        }
+        return false;
+    }
 
-	/**
-	 * Initiates device notifier on device startup.
-	 * @param context - Application context.
-	 */
-	private void setRecurringAlarm(Context context) {
-		Resources resources = context.getApplicationContext().getResources();
-		String mode = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
-		boolean isLocked = Preference.getBoolean(context, Constants.IS_LOCKED);
-		String lockMessage = Preference.getString(context, Constants.LOCK_MESSAGE);
+    /**
+     * Initiates device notifier on device startup.
+     *
+     * @param context - Application context.
+     */
+    private void setRecurringAlarm(Context context) {
+        String mode = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
+        boolean isLocked = Preference.getBoolean(context, Constants.IS_LOCKED);
+        String lockMessage = Preference.getString(context, Constants.LOCK_MESSAGE);
 
-		if (lockMessage == null || lockMessage.isEmpty()) {
-			lockMessage = resources.getString(R.string.txt_lock_activity);
-		}
+        if (lockMessage == null || lockMessage.isEmpty()) {
+            lockMessage = resources.getString(R.string.txt_lock_activity);
+        }
 
-		if (isLocked) {
+        if (isLocked) {
             Operation lockOperation = new Operation();
-			lockOperation.setId(DEFAULT_ID);
-			lockOperation.setCode(Constants.Operation.DEVICE_LOCK);
-			try {
-				JSONObject payload = new JSONObject();
-				payload.put(Constants.ADMIN_MESSAGE, lockMessage);
-				payload.put(Constants.IS_HARD_LOCK_ENABLED, true);
-				lockOperation.setPayLoad(payload.toString());
-				OperationProcessor operationProcessor = new OperationProcessor(context);
+            lockOperation.setId(DEFAULT_ID);
+            lockOperation.setCode(Constants.Operation.DEVICE_LOCK);
+            try {
+                JSONObject payload = new JSONObject();
+                payload.put(Constants.ADMIN_MESSAGE, lockMessage);
+                payload.put(Constants.IS_HARD_LOCK_ENABLED, true);
+                lockOperation.setPayLoad(payload.toString());
+                OperationProcessor operationProcessor = new OperationProcessor(context);
                 operationProcessor.doTask(lockOperation);
             } catch (AndroidAgentException e) {
                 Log.e(TAG, "Error occurred while executing hard lock operation at the device startup");
             } catch (JSONException e) {
-				Log.e(TAG, "Error occurred while building hard lock operation payload");
-			}
-		}
+                Log.e(TAG, "Error occurred while building hard lock operation payload");
+            }
+        }
 
-		int interval = Preference.getInt(context, context.getResources().getString(R.string.shared_pref_frequency));
-		if(interval == DEFAULT_INT_VALUE){
-			interval = Constants.DEFAULT_INTERVAL;
-		}
+        int interval = Preference.getInt(context, context.getResources().getString(R.string.shared_pref_frequency));
+        if (interval == DEFAULT_INT_VALUE) {
+            interval = Constants.DEFAULT_INTERVAL;
+        }
 
-		if(mode == null) {
-			mode = Constants.NOTIFIER_LOCAL;
-		}
+        if (mode == null) {
+            mode = Constants.NOTIFIER_LOCAL;
+        }
 
-		if (Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED) && Constants.NOTIFIER_LOCAL.equals(
-				mode.trim().toUpperCase(Locale.ENGLISH))) {
+        if (Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED) && Constants.NOTIFIER_LOCAL.equals(
+                mode.trim().toUpperCase(Locale.ENGLISH))) {
 
-			Intent alarmIntent = new Intent(context, AlarmReceiver.class);
-			PendingIntent recurringAlarmIntent =
-					PendingIntent.getBroadcast(context,
-					                           Constants.DEFAULT_REQUEST_CODE,
-					                           alarmIntent,
-					                           PendingIntent.FLAG_CANCEL_CURRENT);
-			AlarmManager alarmManager =
-					(AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Constants.DEFAULT_START_INTERVAL,
-			                          interval, recurringAlarmIntent);
-			Log.i(TAG, "Setting up alarm manager for polling every " + interval + " milliseconds.");
-		}
-	}
+            Intent alarmIntent = new Intent(context, AlarmReceiver.class);
+            PendingIntent recurringAlarmIntent =
+                    PendingIntent.getBroadcast(context,
+                            Constants.DEFAULT_REQUEST_CODE,
+                            alarmIntent,
+                            PendingIntent.FLAG_CANCEL_CURRENT);
+            AlarmManager alarmManager =
+                    (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Constants.DEFAULT_START_INTERVAL,
+                    interval, recurringAlarmIntent);
+            Log.i(TAG, "Setting up alarm manager for polling every " + interval + " milliseconds.");
+        }
+    }
 
 }

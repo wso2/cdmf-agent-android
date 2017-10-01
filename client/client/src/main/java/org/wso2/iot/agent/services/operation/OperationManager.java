@@ -28,8 +28,7 @@ import android.content.res.Resources;
 import android.location.Location;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.os.Build;
-import android.support.annotation.RequiresApi;
+import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -70,6 +69,8 @@ import org.wso2.iot.agent.services.PolicyComplianceChecker;
 import org.wso2.iot.agent.services.PolicyOperationsMapper;
 import org.wso2.iot.agent.services.ResultPayload;
 import org.wso2.iot.agent.services.location.DeviceLocation;
+import org.wso2.iot.agent.services.screenshare.ScreenSharingService;
+import org.wso2.iot.agent.services.shell.RemoteShellExecutor;
 import org.wso2.iot.agent.transport.exception.TransportHandlerException;
 import org.wso2.iot.agent.transport.websocket.WebSocketSessionHandler;
 import org.wso2.iot.agent.utils.CommonUtils;
@@ -82,11 +83,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public abstract class OperationManager implements APIResultCallBack, VersionBasedOperations {
 
@@ -117,10 +116,12 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
     private static final long DAY_MILLISECONDS_MULTIPLIER = 24 * 60 * 60 * 1000;
     private static String[] AUTHORIZED_PINNING_APPS;
     private static String AGENT_PACKAGE_NAME;
+    private PowerManager powerManager;
 
     public OperationManager(Context context) {
         this.context = context;
         this.resources = context.getResources();
+        this.powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         this.devicePolicyManager =
                 (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
         this.cdmDeviceAdmin = new ComponentName(context, AgentDeviceAdminReceiver.class);
@@ -1031,7 +1032,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
     }
 
     /**
-<<<<<<< HEAD
      * Connect to remote session
      *
      * @param operation Operation received to start session
@@ -1073,124 +1073,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      */
     public void processRemoteShell(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException {
 
-        Process process = null;
-        InputStream inputStream = null;
-        InputStream errorStream = null;
-        ByteArrayOutputStream baosInput = new ByteArrayOutputStream();
-        ByteArrayOutputStream baosError = new ByteArrayOutputStream();
-        String[] command = null;
 
-        try {
-            if (operation.getCode().equals(Constants.Operation.REMOTE_LOGCAT)) {
-                command = new String[]{"logcat", "-d", "-v", "time", "Error"};
-            } else {
-                if (operation.getPayLoad() != null) {
-                    command = new String[]{"sh", "-c", operation.getPayLoad().toString()};
-                } else {
-                    operation.setOperationResponse("Message payload is missing");
-                    WebSocketSessionHandler.getInstance(context).sendMessage(operation);
-                }
-            }
-            if (command != null) {
-                process = Runtime.getRuntime().exec(command);
-                inputStream = process.getInputStream();
-                errorStream = process.getErrorStream();
-
-                int messageMaxSize = 2;
-                int maxMessagesPerOperation = 3;
-                byte[] buffer = new byte[1024];
-                int length;
-                int sentCount = 0, sizeCount = 0;
-                while ((length = inputStream.read(buffer)) != -1) {
-                    baosInput.write(buffer, 0, length);
-                    if (sizeCount >= messageMaxSize) {
-                        operation.setOperationResponse(new String(baosInput.toByteArray()));
-                        WebSocketSessionHandler.getInstance(context).sendMessage(operation);
-                        baosInput.reset();
-                        sizeCount = 0;
-                        sentCount++;
-
-                    } else {
-                        sizeCount++;
-                    }
-
-                    if (sentCount >= maxMessagesPerOperation) {
-                        break;
-                    }
-                }
-                if (sentCount < maxMessagesPerOperation) {
-                    byte[] bytes = baosInput.toByteArray();
-                    if (bytes != null && bytes.length > 0) {
-                        operation.setOperationResponse(new String(baosInput.toByteArray()));
-                        WebSocketSessionHandler.getInstance(context).sendMessage(operation);
-                        sentCount++;
-                    }
-                    sizeCount = 0;
-                    while ((length = errorStream.read(buffer)) != -1) {
-                        baosError.write(buffer, 0, length);
-                        if (sizeCount >= messageMaxSize) {
-                            operation.setOperationResponse(new String(baosError.toByteArray()));
-                            WebSocketSessionHandler.getInstance(context).sendMessage(operation);
-                            baosError.reset();
-                            sizeCount = 0;
-                            sentCount++;
-                        } else {
-                            sizeCount++;
-                        }
-                        if (sentCount > maxMessagesPerOperation) {
-                            break;
-                        }
-                    }
-                    bytes = baosError.toByteArray();
-                    if (bytes != null && bytes.length > 0) {
-                        operation.setOperationResponse(new String(baosError.toByteArray()));
-                        WebSocketSessionHandler.getInstance(context).sendMessage(operation);
-                    }
-                }
-                operation.setStatus("COMPLETED");
-                operation.setOperationResponse("");
-                WebSocketSessionHandler.getInstance(context).sendMessage(operation);
-            }
-        } catch (IOException e) {
-            Log.e(TAG, "Error occurred while sending remote session message");
-            operation.setStatus("ERROR");
-            operation.setOperationResponse("Error occured due to IO");
-            WebSocketSessionHandler.getInstance(context).sendMessage(operation);
-        } finally {
-            if (process != null) {
-                try {
-                    process.destroy();
-                } catch (Exception e) {
-                    Log.e(TAG, "Error occurred while destroying the process for command " + command + e.getMessage());
-                }
-            }
-            Log.e(TAG, "Process killed");
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    Log.e(TAG, "Error occurred while closing data input stream");
-                }
-            }
-
-            if (errorStream != null) {
-                try {
-                    errorStream.close();
-                } catch (IOException e) {
-                    Log.e(TAG, "Error occurred while closing data error stream");
-                }
-            }
-            try {
-                baosInput.close();
-            } catch (IOException e) {
-                Log.e(TAG, "Error occurred while closing buffer input stream");
-            }
-            try {
-                baosError.close();
-            } catch (IOException e) {
-                Log.e(TAG, "Error occurred while closing buffer error stream");
-            }
-        }
+        RemoteShellExecutor.getInstance(context).executeCommand(operation);
     }
 
     /**
@@ -1199,17 +1083,86 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @param operation Operation
      * @throws TransportHandlerException
      */
-    public void screenCapture(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException {
+    public void screenCapture(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException, JSONException {
 
-        Intent intent = new Intent(context, ScreenShareActivity.class);
-        intent.putExtra(resources.getString(R.string.intent_extra_type),
-                "screenShare");
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
+        String action;
+        int maxHeight = Constants.DEFAULT_SCREEN_CAPTURE_IMAGE_HEIGHT;
+        int maxWidth = Constants.DEFAULT_SCREEN_CAPTURE_IMAGE_WIDTH;
+        if (operation.getPayLoad() != null) {
+            JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
+            if (inputData.get("action") != null) {
+                action = inputData.get("action").toString();
+                if (action.equals("start")) {
+                    try {
+                        if (inputData.get("height") != null) {
+                            maxHeight = Integer.parseInt(inputData.get("height").toString());
+                        }
+                        if (inputData.get("width") != null) {
+                            maxWidth = Integer.parseInt(inputData.get("width").toString());
+                        }
 
-        if (Constants.DEBUG_MODE_ENABLED) {
-            Log.d(TAG, "Screen capture is activated on the device");
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Cannot parse the screen capture height and width");
+                    }
+
+                    if (!powerManager.isScreenOn()) {
+                        PowerManager.WakeLock TempWakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK |
+                                PowerManager.ACQUIRE_CAUSES_WAKEUP, "ScreenLock");
+                        TempWakeLock.acquire();
+                        TempWakeLock.release();
+                    }
+                    if (Constants.SYSTEM_APP_ENABLED) {
+                        Intent i =
+                                new Intent(context, ScreenSharingService.class)
+                                        .putExtra(ScreenSharingService.EXTRA_RESULT_CODE, -1)
+                                        .putExtra(Constants.MAX_WIDTH, maxWidth)
+                                        .putExtra(Constants.MAX_HEIGHT, maxHeight);
+                        context.startService(i);
+                    } else {
+                        Intent intent = new Intent(context, ScreenShareActivity.class)
+                                .putExtra(Constants.MAX_WIDTH, maxWidth)
+                                .putExtra(Constants.MAX_HEIGHT, maxHeight);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                                Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(intent);
+                    }
+                    if (Constants.DEBUG_MODE_ENABLED) {
+                        Log.d(TAG, "Screen capture is activated on the device");
+                    }
+                } else if (action.equals("stop")) {
+                    context.stopService(new Intent(context, ScreenSharingService.class));
+                } else {
+                    Log.e(TAG, "Screen capture operation does not support action : " + action);
+                }
+            } else {
+                Log.e(TAG, "Screen capture operation does not have action value in the payload");
+
+            }
+        } else {
+            Log.e(TAG, "Message payload does not contain screen capture inputs");
+        }
+
+
+    }
+
+
+    /**
+     * manage screen sharing operations
+     *
+     * @param operation Operation
+     * @throws TransportHandlerException
+     */
+    public void processInputInject(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException, JSONException {
+        if (Constants.SYSTEM_APP_ENABLED && ScreenSharingService.isScreenShared) {
+            if (operation.getPayLoad() != null) {
+                CommonUtils.callSystemApp(context, Constants.Operation.REMOTE_INPUT,
+                        operation.getPayLoad().toString(),
+                        null);
+            }
+        } else {
+            operation.setStatus("ERROR");
+            operation.setOperationResponse("Remote Input does not support");
+            WebSocketSessionHandler.getInstance(context).sendMessage(operation);
         }
     }
 
@@ -1238,8 +1191,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @return policy - ComplianceFeature object.
      */
     public ComplianceFeature checkInstallAppPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
-        String appIdentifier=null;
-        String name=null;
+        String appIdentifier = null;
+        String name = null;
 
         try {
             JSONObject appData = new JSONObject(operation.getPayLoad().toString());
@@ -1252,11 +1205,11 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 name = appData.getString(getContextResources().getString(R.string.intent_extra_name));
             }
 
-            if(isAppInstalled(appIdentifier)){
+            if (isAppInstalled(appIdentifier)) {
                 policy.setCompliance(true);
-            }else{
+            } else {
                 policy.setCompliance(false);
-                policy.setMessage(getContextResources().getString(R.string.error_app_install_policy)+name);
+                policy.setMessage(getContextResources().getString(R.string.error_app_install_policy) + name);
             }
 
         } catch (JSONException e) {
@@ -1273,8 +1226,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @return policy - ComplianceFeature object.
      */
     public ComplianceFeature checkUninstallAppPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
-        String appIdentifier=null;
-        String name=null;
+        String appIdentifier = null;
+        String name = null;
 
         try {
             JSONObject appData = new JSONObject(operation.getPayLoad().toString());
@@ -1287,11 +1240,11 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 name = appData.getString(getContextResources().getString(R.string.intent_extra_name));
             }
 
-            if(!isAppInstalled(appIdentifier)){
+            if (!isAppInstalled(appIdentifier)) {
                 policy.setCompliance(true);
-            }else{
+            } else {
                 policy.setCompliance(false);
-                policy.setMessage(getContextResources().getString(R.string.error_app_uninstall_policy)+name);
+                policy.setMessage(getContextResources().getString(R.string.error_app_uninstall_policy) + name);
             }
 
         } catch (JSONException e) {
@@ -1308,14 +1261,14 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @return appInstalled - App installed status.
      */
     private boolean isAppInstalled(String appIdentifier) {
-        boolean appInstalled=false;
+        boolean appInstalled = false;
         ArrayList<DeviceAppInfo> apps = new ArrayList<>(getApplicationManager().getInstalledApps().values());
         for (DeviceAppInfo appInfo : apps) {
-            if(appIdentifier.trim().equals(appInfo.getPackagename())){
+            if (appIdentifier.trim().equals(appInfo.getPackagename())) {
                 appInstalled = true;
             }
         }
-        return  appInstalled;
+        return appInstalled;
     }
 
     /**
@@ -1325,7 +1278,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @return policy - ComplianceFeature object.
      */
     public ComplianceFeature checkEncryptPolicy(Operation operation, ComplianceFeature policy) {
-        boolean encryptStatus = (getDevicePolicyManager().getStorageEncryptionStatus()!= getDevicePolicyManager().
+        boolean encryptStatus = (getDevicePolicyManager().getStorageEncryptionStatus() != getDevicePolicyManager().
                 ENCRYPTION_STATUS_UNSUPPORTED && getDevicePolicyManager().
                 getStorageEncryptionStatus() != getDevicePolicyManager().ENCRYPTION_STATUS_INACTIVE);
 
@@ -1345,9 +1298,9 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @return policy - ComplianceFeature object.
      */
     public ComplianceFeature checkPasswordPolicy(ComplianceFeature policy) {
-        if(getDevicePolicyManager().isActivePasswordSufficient()){
+        if (getDevicePolicyManager().isActivePasswordSufficient()) {
             policy.setCompliance(true);
-        }else{
+        } else {
             policy.setCompliance(false);
         }
 
@@ -1370,9 +1323,9 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             }
 
             WiFiConfig config = new WiFiConfig(getContext().getApplicationContext());
-            if(config.findWifiConfigurationBySsid(ssid)){
+            if (config.findWifiConfigurationBySsid(ssid)) {
                 policy.setCompliance(true);
-            }else{
+            } else {
                 policy.setCompliance(false);
                 policy.setMessage(getContextResources().getString(R.string.error_wifi_policy));
             }
@@ -1409,10 +1362,10 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             String permittedPackageName;
             JSONObject permittedApp;
             String whiteListAppsPref;
-            for (String packageName: remainApps) {
+            for (String packageName : remainApps) {
                 whiteListAppsPref = Preference.
                         getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
-                if(whiteListAppsPref != null) {
+                if (whiteListAppsPref != null) {
                     try {
                         JSONArray whiteListApps = new JSONArray(whiteListAppsPref);
                         for (int i = 0; i < whiteListApps.length(); i++) {
@@ -1425,7 +1378,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                             }
                         }
                     } catch (JSONException e) {
-                                Log.e(TAG, "Invalid JSON format..");
+                        Log.e(TAG, "Invalid JSON format..");
                     }
                 }
             }

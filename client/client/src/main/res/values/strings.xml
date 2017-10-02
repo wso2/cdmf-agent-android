@@ -86,7 +86,7 @@
     <string name="alarm_schedule">schedule</string>
     <string name="alert_message">Message</string>
     <string name="kiosk_application_package_split_regex">_</string>
-    <string name="whitelist_package_split_regex">_</string>
+    <string name="whitelist_package_split_regex">,</string>
     <!-- TEXT FIELD HINTS -->
     <string name="hint_new_pin">New PIN Code</string>
 

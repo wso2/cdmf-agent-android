@@ -80,4 +80,13 @@
         android:paddingBottom="10px"
         android:src="@drawable/ic_power" />
 
+    <SeekBar
+        android:id="@+id/seekBarBrightness"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/textViewDate"
+        android:layout_marginStart="16dp"
+        android:layout_toEndOf="@+id/imageViewLogo"
+        android:minWidth="300px" />
+
 </RelativeLayout>

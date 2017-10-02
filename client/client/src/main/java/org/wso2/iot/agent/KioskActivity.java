@@ -48,6 +48,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -85,6 +86,8 @@ public class KioskActivity extends Activity {
     private Uri defaultRingtoneUri;
     private Ringtone defaultRingtone;
     private DeviceInfo deviceInfo;
+    private SeekBar seekBarBrightness;
+    private int brightness=0;
     private static final int DEFAULT_FLAG = 0;
 
 
@@ -106,6 +109,8 @@ public class KioskActivity extends Activity {
         audio = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         progressBarDeviceInitializing =
                 (ProgressBar) findViewById(R.id.progressBarDeviceInitializing);
+        seekBarBrightness = (SeekBar) findViewById(R.id.seekBarBrightness);
+        seekBarBrightness.setMax(255);
         if (Constants.COSU_SECRET_EXIT) {
             textViewKiosk.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -120,6 +125,35 @@ public class KioskActivity extends Activity {
                 }
             });
         }
+
+        try {
+            //Get the current system brightness state
+            brightness = android.provider.Settings.System.getInt(
+                    getContentResolver(), android.provider.Settings.System.SCREEN_BRIGHTNESS);
+            seekBarBrightness.setProgress(brightness);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        seekBarBrightness.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                brightness = progress;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // TODO Auto-generated method stub
+                WindowManager.LayoutParams settings = getWindow().getAttributes();
+                settings.screenBrightness = brightness;
+                getWindow().setAttributes(settings);
+
+            }});
 
         ComponentName component =
                 new ComponentName(KioskActivity.this, KioskAppInstallationListener.class);

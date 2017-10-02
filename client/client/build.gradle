@@ -551,7 +551,7 @@ android {
             buildConfigField "String", "DEFAULT_OWNERSHIP", "\"COSU\""
             //DEFAULT_HOST - Hardcode the server host to avoid having the user type it during
             //enrollment. If the user must type the hostname/IP during enrollment, leave it as null.
-            buildConfigField "String", "DEFAULT_HOST", "\"http://192.168.8.101:8280\""
+            buildConfigField "String", "DEFAULT_HOST", "\"http://192.168.43.47:8280\""
             // APP_MANAGER_HOST: If the App store host is different from the DEFAULT_HOST
             // change this value.
             buildConfigField "String", "APP_MANAGER_HOST", "null"

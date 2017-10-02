@@ -499,7 +499,6 @@ public class OperationManagerWorkProfile extends OperationManager {
         } catch (JSONException e) {
             Log.e(TAG, "Invalid JSON format in app blacklist.");
         }
-
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)

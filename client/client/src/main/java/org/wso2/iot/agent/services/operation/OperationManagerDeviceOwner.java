@@ -638,7 +638,6 @@ public class OperationManagerDeviceOwner extends OperationManager {
             Preference.putString(getContext(),
                     Constants.AppRestriction.BLACK_LIST_APPS, blackListApps.toString());
             blackListApps();
-
         } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
             ArrayList appList = (ArrayList)appRestriction.getRestrictedList();
             JSONArray whiteListApps = new JSONArray();
@@ -700,7 +699,6 @@ public class OperationManagerDeviceOwner extends OperationManager {
         } catch (JSONException e) {
             Log.e(TAG, "Invalid JSON format in app blacklist.");
         }
-
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)

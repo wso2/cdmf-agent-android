@@ -619,7 +619,27 @@ public class OperationManagerDeviceOwner extends OperationManager {
         AppRestriction appRestriction = CommonUtils.
                 getAppRestrictionTypeAndList(operation, getResultBuilder(), getContextResources());
 
-        if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
+        if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
+            ArrayList appList = (ArrayList) appRestriction.getRestrictedList();
+            JSONArray blackListApps = new JSONArray();
+            for (Object appObj : appList) {
+                JSONObject app = new JSONObject();
+                try {
+                    app.put(Constants.AppRestriction.PACKAGE_NAME, appObj.toString());
+                    app.put(Constants.AppRestriction.RESTRICTION_TYPE, Constants.AppRestriction.WHITE_LIST);
+                    blackListApps.put(app);
+                } catch (JSONException e) {
+                    operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+                    operation.setOperationResponse("Error in parsing app white-list payload.");
+                    getResultBuilder().build(operation);
+                    throw new AndroidAgentException("Invalid JSON format for app white-list bundle.", e);
+                }
+            }
+            Preference.putString(getContext(),
+                    Constants.AppRestriction.BLACK_LIST_APPS, blackListApps.toString());
+            blackListApps();
+
+        } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
             ArrayList appList = (ArrayList)appRestriction.getRestrictedList();
             JSONArray whiteListApps = new JSONArray();
             for (Object appObj: appList) {
@@ -640,13 +660,47 @@ public class OperationManagerDeviceOwner extends OperationManager {
             Preference.putString(getContext(),
                     Constants.AppRestriction.WHITE_LIST_APPS, whiteListApps.toString());
             validateInstalledApps();
-        } else if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
-            for (String packageName : appRestriction.getRestrictedList()) {
-                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
-            }
         }
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
+    }
+
+    /**
+     * This method performs the actual hiding of the applications when the app whitelisting is done.
+     * It will go though the list of blacklisted applications sent from the server against the
+     * applications that are installed on the device and will blacklist the relevent applications.
+     * It will also persist the DISALLOWED_APPS so that it will be used when the policy needs to
+     * be revoked.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void blackListApps() {
+        List<String> alreadyInstalledApps = CommonUtils.getInstalledAppPackagesByUser(getContext());
+        JSONObject disallowedApp;
+        JSONArray blackListApps;
+        String disallowedPackageName;
+        try {
+            blackListApps = new JSONArray(Preference.getString(getContext(), Constants.AppRestriction.BLACK_LIST_APPS));
+            for (String packageName : alreadyInstalledApps) {
+                if (!packageName.equals(getCdmDeviceAdmin().getPackageName())) {     //Skip agent app.
+                    for (int i = 0; i < blackListApps.length(); i++) {
+                        disallowedApp = new JSONObject(blackListApps.getString(i));
+                        disallowedPackageName = disallowedApp.getString(Constants.AppRestriction.PACKAGE_NAME);
+
+                        if (Objects.equals(disallowedPackageName, packageName)) {
+                            String disallowedApps = Preference.
+                                    getString(getContext(), Constants.AppRestriction.DISALLOWED_APPS);
+                            disallowedApps = disallowedApps +
+                                    getContext().getString(R.string.whitelist_package_split_regex) + packageName;
+                            Preference.putString(getContext(), Constants.AppRestriction.DISALLOWED_APPS, disallowedApps);
+                            getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
+                        }
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Invalid JSON format in app blacklist.");
+        }
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)

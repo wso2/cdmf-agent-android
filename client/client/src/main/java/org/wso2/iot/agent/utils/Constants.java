@@ -18,6 +18,8 @@
 
 package org.wso2.iot.agent.utils;
 
+import com.android.volley.DefaultRetryPolicy;
+
 import org.wso2.iot.agent.BuildConfig;
 
 import static org.wso2.iot.agent.proxy.utils.Constants.Authenticator.AUTHENTICATOR_IN_USE;
@@ -27,6 +29,7 @@ import static org.wso2.iot.agent.proxy.utils.Constants.Authenticator.MUTUAL_SSL_
  * This class holds all the constants used throughout the application.
  */
 public class Constants {
+
 
 	public static final boolean IS_CLOUD = "release".equalsIgnoreCase(BuildConfig.BUILD_TYPE.trim());
 	public static final boolean DEBUG_MODE_ENABLED = BuildConfig.DEBUG_MODE_ENABLED;
@@ -201,6 +204,18 @@ public class Constants {
 	public static int DEFAULT_START_INTERVAL = 10000;
 
 	/**
+	 * HTTP clients
+	 */
+	public final class RetryPolicy {
+		private RetryPolicy(){
+			throw new AssertionError();
+		}
+		public static final int DEFAULT_TIME_OUT = 10000;
+		public static final int DEFAULT_MAX_RETRIES = 5;
+		public static final float DEFAULT_BACKOFF_MULT = DefaultRetryPolicy.DEFAULT_BACKOFF_MULT;
+	}
+
+	/**
 	 * Log publishers
 	 */
 	public final class LogPublisher {
@@ -359,6 +374,13 @@ public class Constants {
 		public static final String RUNTIME_PERMISSION_POLICY = "RUNTIME_PERMISSION_POLICY";
 		public static final String COSU_PROFILE_POLICY = "COSU_PROFILE";
 		public static final String ENABLE_LOCK ="ENABLE_LOCK";
+
+        // Remote session based operations
+        public static final String REMOTE_CONNECT = "REMOTE_CONNECT";
+        public static final String REMOTE_SHELL = "REMOTE_SHELL";
+        public static final String REMOTE_LOGCAT = "REMOTE_LOGCAT";
+        public static final String REMOTE_SCREEN = "REMOTE_SCREEN";
+        public static final String REMOTE_INPUT = "REMOTE_INPUT";
 
 		private Operation() {
 			throw new AssertionError();
@@ -604,4 +626,26 @@ public class Constants {
 			throw new AssertionError();
 		}
 	}
+
+
+    // Remote session related constants
+    public static final String REMOTE_SESSION_DEVICE_ENDPOINT_CONTEXT = "/remote/session/devices/android";
+
+    // Screen share
+    public static final String MAX_WIDTH = "maxWidth";
+    public static final String MAX_HEIGHT = "maxHeight";
+    public static final int DEFAULT_SCREEN_CAPTURE_IMAGE_HEIGHT = 768;
+    public static final int DEFAULT_SCREEN_CAPTURE_IMAGE_WIDTH = 1024;
+    public static final int SCREEN_SHARING_RATE_IMAGES = 10;
+    public static final int SCREEN_SHARING_RATE_MILLISECONDS = 1000;
+    public static final int MAX_IMAGE_SIZE_BYTES = 20000;
+    public static final int MAX_QUALITY = 60;
+
+    // Remote shell
+    public static final int MESSAGE_RATE_MILLISECONDS = 2000;
+    public static final int MAX_MESSAGES_PER_OPERATION = 10;
+    public static final int MAX_MESSAGE_SIZE = 10;
+
+    // Logcat
+    public static final String DEFAULT_LOGCAT_LINES = "100";
 }

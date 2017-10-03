@@ -19,7 +19,7 @@ public class LogPublisherFactory {
 
     public DataPublisher getLogPublisher() {
         if (Constants.LogPublisher.DAS_PUBLISHER.equals(Constants.LogPublisher.LOG_PUBLISHER_IN_USE)) {
-            return new HttpDataPublisher();
+            return new HttpDataPublisher(context);
         } else if (Constants.LogPublisher.SPLUNK_PUBLISHER.equals(Constants.LogPublisher.LOG_PUBLISHER_IN_USE)) {
             if (splunkLogPublisher == null) {
                 splunkLogPublisher = new SplunkLogPublisher(context);

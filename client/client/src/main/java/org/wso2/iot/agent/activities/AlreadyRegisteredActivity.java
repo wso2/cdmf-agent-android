@@ -380,7 +380,7 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 			Log.d(TAG, "Calling onResume");
 		}
 
-		if (Build.VERSION.SDK_INT >= 19) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 			try {
 				int locationSetting = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
 				if (locationSetting != 0) {

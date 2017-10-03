@@ -31,6 +31,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
+import android.util.Base64;
 import android.util.Log;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -80,19 +81,26 @@ import org.wso2.iot.agent.services.ResultPayload;
 import org.wso2.iot.agent.services.location.DeviceLocation;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
+import org.wso2.iot.agent.utils.HTTPAuthenticator;
 import org.wso2.iot.agent.utils.Preference;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.Authenticator;
 import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -101,6 +109,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+
 
 public abstract class OperationManager implements APIResultCallBack, VersionBasedOperations {
 
@@ -355,6 +364,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             try {
                 JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
                 final String fileURL = inputData.getString(Constants.FileTransfer.FILE_URL);
+                final String userName = inputData.getString(Constants.FileTransfer.USER_NAME);
                 final String ftpPassword = inputData.getString(Constants.FileTransfer.FTP_PASSWORD);
                 final String location = inputData.getString(Constants.FileTransfer.FILE_LOCATION);
                 String savingLocation;
@@ -367,10 +377,16 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                     savingLocation = location;
                 }
                 if (fileURL.startsWith(Constants.FileTransfer.HTTP)) {
-                    downloadFileUsingHTTPClient(operation, fileURL, savingLocation);
+                    downloadFileUsingHTTPClient(operation, fileURL, userName, ftpPassword,
+                            savingLocation);
                 } else {
                     String[] userInfo = urlSplitter(operation, fileURL, false);
-                    String ftpUserName = userInfo[0];
+                    String ftpUserName;
+                    if (!userName.isEmpty()) {
+                        ftpUserName = userInfo[0];
+                    } else {
+                        ftpUserName = userName;
+                    }
                     String fileDirectory = userInfo[1];
                     String host = userInfo[2];
                     int serverPort = 0;
@@ -450,7 +466,10 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @throws AndroidAgentException - Android agent exception.
      */
     private void downloadFileUsingHTTPClient(Operation operation, String url,
+                                             String userName, String password,
                                              String savingLocation) throws AndroidAgentException {
+
+        checkHTTPAuthentication(userName, password);
         InputStream inputStream = null;
         DataInputStream dataInputStream = null;
         FileOutputStream fileOutputStream = null;
@@ -471,14 +490,22 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         } catch (IOException e) {
             handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
         } finally {
-            cleanupStreams(inputStream, null, null, fileOutputStream, null, null, dataInputStream);
+            cleanupStreams(inputStream, null, null, fileOutputStream, null, null, dataInputStream, null);
+        }
+    }
+
+    private void checkHTTPAuthentication(String userName, String password) {
+        if (!userName.isEmpty()) {
+            HTTPAuthenticator.setPasswordAuthentication(userName, password);
+            Authenticator.setDefault(new HTTPAuthenticator());
         }
     }
 
     private void cleanupStreams(InputStream inputStream, OutputStream outputStream,
                                 FileInputStream fileInputStream, FileOutputStream fileOutputStream,
                                 BufferedInputStream bufferedInputStream,
-                                BufferedOutputStream bufferedOutputStream, DataInputStream dataInputStream) {
+                                BufferedOutputStream bufferedOutputStream, DataInputStream
+                                        dataInputStream, DataOutputStream dataOutputstream) {
         if (inputStream != null) {
             try {
                 inputStream.close();
@@ -519,6 +546,14 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             try {
                 dataInputStream.close();
             } catch (IOException ignored) {
+            }
+        }
+        if (dataOutputstream != null) {
+            try {
+                dataOutputstream.flush();
+                dataOutputstream.close();
+            } catch (IOException ignored) {
+
             }
         }
     }
@@ -587,7 +622,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             if (session != null) {
                 session.disconnect();
             }
-            cleanupStreams(null, null, null, null, bufferedInputStream, bufferedOutputStream, null);
+            cleanupStreams(null, null, null, null, bufferedInputStream, bufferedOutputStream, null, null);
         }
     }
 
@@ -645,7 +680,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 }
             } catch (IOException ignored) {
             }
-            cleanupStreams(null, outputStream, null, fileOutputStream, null, null, null);
+            cleanupStreams(null, outputStream, null, fileOutputStream, null, null, null, null);
         }
     }
 
@@ -700,7 +735,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 }
             } catch (IOException ignored) {
             }
-            cleanupStreams(null, outputStream, null, fileOutputStream, null, null, null);
+            cleanupStreams(null, outputStream, null, fileOutputStream, null, null, null, null);
         }
     }
 
@@ -780,30 +815,112 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             try {
                 JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
                 final String fileURL = inputData.getString(Constants.FileTransfer.FILE_URL);
+                final String userName = inputData.getString(Constants.FileTransfer.USER_NAME);
                 final String ftpPassword = inputData.getString(Constants.FileTransfer.FTP_PASSWORD);
                 final String fileLocation = inputData.getString(Constants.FileTransfer.FILE_LOCATION);
-                String[] userInfo = urlSplitter(operation, fileURL, true);
-                String ftpUserName = userInfo[0];
-                String uploadDirectory = userInfo[1];
-                String host = userInfo[2];
-                int serverPort = 0;
-                if (userInfo[3] != null) {
-                    serverPort = Integer.parseInt(userInfo[3]);
+                if (fileURL.startsWith(Constants.FileTransfer.HTTP)) {
+                    uploadFileUsingHTTPClient(operation, fileURL, userName, ftpPassword,
+                            fileLocation);
+                } else {
+                    String[] userInfo = urlSplitter(operation, fileURL, true);
+                    String ftpUserName = userInfo[0];
+                    String uploadDirectory = userInfo[1];
+                    String host = userInfo[2];
+                    int serverPort = 0;
+                    if (userInfo[3] != null) {
+                        serverPort = Integer.parseInt(userInfo[3]);
+                    }
+                    String protocol = userInfo[4];
+                    File file = new File(fileLocation);
+                    fileName = file.getName();
+                    if (Constants.DEBUG_MODE_ENABLED) {
+                        printLogs(ftpUserName, host, fileName, file.getParent(), uploadDirectory, serverPort);
+                    }
+                    selectUploadClient(protocol, operation, host, ftpUserName, ftpPassword,
+                            uploadDirectory, fileLocation, serverPort);
                 }
-                String protocol = userInfo[4];
-                File file = new File(fileLocation);
-                fileName = file.getName();
-                if (Constants.DEBUG_MODE_ENABLED) {
-                    printLogs(ftpUserName, host, fileName, file.getParent(), uploadDirectory, serverPort);
-                }
-                selectUploadClient(protocol, operation, host, ftpUserName, ftpPassword,
-                        uploadDirectory, fileLocation, serverPort);
             } catch (JSONException | URISyntaxException e) {
                 handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
             } finally {
                 Log.d(TAG, operation.getStatus());
                 resultBuilder.build(operation);
             }
+        }
+    }
+
+    private void uploadFileUsingHTTPClient(Operation operation, String uploadURL, final String userName,
+                                           final String password,
+                                           String fileLocation) throws AndroidAgentException {
+
+        int serverResponseCode;
+        HttpURLConnection connection = null;
+        DataOutputStream dataOutputStream = null;
+        String lineEnd = "\r\n";
+        String twoHyphens = "--";
+        String boundary = "*****";
+
+        int bytesRead, bytesAvailable, bufferSize;
+        byte[] buffer;
+        int maxBufferSize = 1024 * 1024;
+        File selectedFile = new File(fileLocation);
+        final String fileName = selectedFile.getName();
+        FileInputStream fileInputStream = null;
+
+        try {
+            fileInputStream = new FileInputStream(selectedFile);
+            URL url = new URL(uploadURL);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);//Allow Inputs
+            connection.setDoOutput(true);//Allow Outputs
+            connection.setUseCaches(false);//Don't use a cached Copy
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Connection", "Keep-Alive");
+            connection.setRequestProperty("ENCTYPE", "multipart/form-data");
+            connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+            connection.setRequestProperty("uploaded_file", fileLocation);
+
+            dataOutputStream = new DataOutputStream(connection.getOutputStream());
+            //writing bytes to data outputStream
+            dataOutputStream.writeBytes(twoHyphens + boundary + lineEnd);
+            dataOutputStream.writeBytes("Content-Disposition: form-data; name=\"file\";filename=\""
+                    + fileName + "\"" + lineEnd);
+            dataOutputStream.writeBytes(lineEnd);
+            //returns no. of bytes present in fileInputStream
+            bytesAvailable = fileInputStream.available();
+            //selecting the buffer size as minimum of available bytes or 1 MB
+            bufferSize = Math.min(bytesAvailable, maxBufferSize);
+            //setting the buffer as byte array of size of bufferSize
+            buffer = new byte[bufferSize];
+            //reads bytes from FileInputStream(from 0th index of buffer to buffersize)
+            bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+
+            //loop repeats till bytesRead = -1, i.e., no bytes are left to read
+            while (bytesRead > 0) {
+                //write the bytes read from inputStream
+                dataOutputStream.write(buffer, 0, bufferSize);
+                bytesAvailable = fileInputStream.available();
+                bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+            }
+
+            dataOutputStream.writeBytes(lineEnd);
+            dataOutputStream.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+
+            serverResponseCode = connection.getResponseCode();
+            String serverResponseMessage = connection.getResponseMessage();
+            Log.i(TAG, "Server Response is: " + serverResponseMessage + ": " + serverResponseCode);
+
+            //response code of 200 indicates the server status OK
+            if (serverResponseCode == 200) {
+                operation.setStatus(resources.getString(R.string.operation_value_completed));
+            }
+        } catch (IOException e) {
+            handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+            cleanupStreams(null, null, fileInputStream, null, null, null, null, dataOutputStream);
         }
     }
 
@@ -878,7 +995,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 } catch (IOException ignored) {
                 }
             }
-            cleanupStreams(inputStream, null, null, null, null, null, null);
+            cleanupStreams(inputStream, null, null, null, null, null, null, null);
         }
     }
 
@@ -935,7 +1052,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 }
             } catch (IOException ignored) {
             }
-            cleanupStreams(inputStream, null, null, null, null, null, null);
+            cleanupStreams(inputStream, null, null, null, null, null, null, null);
         }
     }
 
@@ -981,7 +1098,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         } catch (JSchException | FileNotFoundException | SftpException e) {
             handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
         } finally {
-            cleanupStreams(null, null, fileInputStream, null, null, null, null);
+            cleanupStreams(null, null, fileInputStream, null, null, null, null, null);
             if (channelSftp != null) {
                 channelSftp.exit();
             }

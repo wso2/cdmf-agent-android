@@ -56,7 +56,7 @@ public class OperationManagerTest {
             + "Download";
 
     public void createNewFile(String location) {
-        Log.d(TAG, "Creating new file (" + location + ") for testing .");
+        Log.i(TAG, "Creating new file (" + location + ") for testing .");
         File file = new File(location);
         try {
             if (file.createNewFile()) { //Create  a new file.
@@ -71,7 +71,7 @@ public class OperationManagerTest {
     }
 
     public void deleteFile(String location) {
-        Log.d(TAG, "Deleting file (" + location + ").");
+        Log.i(TAG, "Deleting file (" + location + ").");
         File file = new File(location);
         if (file.delete()) {
             Log.d(TAG, "File deleted successfully.");
@@ -142,7 +142,7 @@ public class OperationManagerTest {
     }
 
     public void testDownloadFile(JSONObject payload) {
-        Log.d(TAG, "Testing for payload: " + payload);
+        Log.i(TAG, "Testing for payload: " + payload);
         OperationManager operationManager = new MockOperationManager(context);
         Operation operation = new Operation();
         operation.setPayLoad(payload);
@@ -151,7 +151,7 @@ public class OperationManagerTest {
         } catch (AndroidAgentException e) {
             Log.e(TAG, "Android agent exception." + e.getLocalizedMessage());
         }
-        Log.d(TAG, "Operation status: \"" + operation.getStatus() + "\". Operation response: "
+        Log.i(TAG, "Operation status: \"" + operation.getStatus() + "\". Operation response: "
                 + operation.getOperationResponse());
         Assert.assertEquals(operation.getOperationResponse(), Constants.STATUS_COMPLETED,
                 operation.getStatus());
@@ -175,7 +175,7 @@ public class OperationManagerTest {
 
 
     public void testUploadFile(JSONObject payload) {
-        Log.d(TAG, "Testing for payload: " + payload);
+        Log.i(TAG, "Testing for payload: " + payload);
         OperationManager operationManager = new MockOperationManager(context);
         Operation operation = new Operation();
         operation.setPayLoad(payload);
@@ -184,7 +184,7 @@ public class OperationManagerTest {
         } catch (AndroidAgentException e) {
             Log.e(TAG, "Android agent exception. " + e.getLocalizedMessage());
         }
-        Log.d(TAG, "Operation status: \"" + operation.getStatus() + "\". Operation response: "
+        Log.i(TAG, "Operation status: \"" + operation.getStatus() + "\". Operation response: "
                 + operation.getOperationResponse());
         Assert.assertEquals(operation.getOperationResponse(), Constants.STATUS_COMPLETED,
                 operation.getStatus());

@@ -116,7 +116,7 @@ public class WebSocketSessionHandler {
                 deviceInfo.getDeviceId() + "/" + operationId + "?websocketToken=" + accessToken;
         try {
             uri = new URI(remoteEndpoint);
-            Log.i(TAG, "connected");
+            Log.i(TAG, "web socket session connected for operation id:" + operationId);
         } catch (URISyntaxException e) {
             throw new TransportHandlerException("Invalid Url : " + remoteEndpoint, e);
         }
@@ -154,7 +154,7 @@ public class WebSocketSessionHandler {
                         operationManager.screenCapture(operation);
                         break;
                     default:
-                        operation.setOperationResponse("operation is not supported");
+                        operation.setOperationResponse("operation code is not supported");
                         WebSocketSessionHandler.getInstance(context).sendMessage(operation);
                         break;
                 }

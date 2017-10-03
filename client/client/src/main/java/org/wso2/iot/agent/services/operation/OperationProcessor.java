@@ -72,9 +72,6 @@ public class OperationProcessor {
      */
     public void doTask(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
         switch (operation.getCode()) {
-            case Constants.Operation.REMOTE_CONNECT:
-                operationManager.connectToRemoteSession(operation);
-                break;
             case Constants.Operation.DEVICE_INFO:
                 operationManager.getDeviceInfo(operation);
                 break;
@@ -83,6 +80,9 @@ public class OperationProcessor {
                 break;
             case Constants.Operation.APPLICATION_LIST:
                 operationManager.getApplicationList(operation);
+                break;
+            case Constants.Operation.REMOTE_CONNECT:
+                operationManager.connectToRemoteSession(operation);
                 break;
             case Constants.Operation.DEVICE_LOCK:
                 operationManager.lockDevice(operation);

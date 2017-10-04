@@ -385,7 +385,7 @@ public class Constants {
 	public final class FileTransfer {
 		public static final String FILE_URL = "fileURL";
 		public static final String USER_NAME = "userName";
-		public static final String FTP_PASSWORD = "ftpPassword";
+		public static final String PASSWORD = "ftpPassword";
 		public static final String FILE_LOCATION = "fileLocation";
 		public static final String FTP = "ftp";
 		public static final String SFTP = "sftp";

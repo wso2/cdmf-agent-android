@@ -86,7 +86,6 @@ import org.wso2.iot.agent.utils.Preference;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -95,12 +94,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Authenticator;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -358,57 +355,47 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      */
     public void downloadFile(Operation operation) throws AndroidAgentException {
         String fileName = null;
-        if (operation.getPayLoad() == null) {
-            payloadNullError(operation);
-        } else {
-            try {
-                JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
-                final String fileURL = inputData.getString(Constants.FileTransfer.FILE_URL);
-                final String userName = inputData.getString(Constants.FileTransfer.USER_NAME);
-                final String ftpPassword = inputData.getString(Constants.FileTransfer.FTP_PASSWORD);
-                final String location = inputData.getString(Constants.FileTransfer.FILE_LOCATION);
-                String savingLocation;
-                if (location.isEmpty()) {
-                    savingLocation = getSavingLocation();
-                    if (savingLocation == null) {
-                        handleOperationError(operation, "Error in default saving location.", null);
-                    }
+        validateOperation(operation);
+        try {
+            JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
+            final String fileURL = inputData.getString(Constants.FileTransfer.FILE_URL);
+            final String userName = inputData.getString(Constants.FileTransfer.USER_NAME);
+            final String password = inputData.getString(Constants.FileTransfer.PASSWORD);
+            final String location = inputData.getString(Constants.FileTransfer.FILE_LOCATION);
+            String savingLocation = getSavingLocation(operation, location);
+            if (fileURL.startsWith(Constants.FileTransfer.HTTP)) {
+                downloadFileUsingHTTPClient(operation, fileURL, userName, password,
+                        savingLocation);
+            } else {
+                String[] userInfo = urlSplitter(operation, fileURL, false);
+                String ftpUserName;
+                if (!userName.isEmpty()) {
+                    ftpUserName = userInfo[0];
                 } else {
-                    savingLocation = location;
+                    ftpUserName = userName;
                 }
-                if (fileURL.startsWith(Constants.FileTransfer.HTTP)) {
-                    downloadFileUsingHTTPClient(operation, fileURL, userName, ftpPassword,
-                            savingLocation);
-                } else {
-                    String[] userInfo = urlSplitter(operation, fileURL, false);
-                    String ftpUserName;
-                    if (!userName.isEmpty()) {
-                        ftpUserName = userInfo[0];
-                    } else {
-                        ftpUserName = userName;
-                    }
-                    String fileDirectory = userInfo[1];
-                    String host = userInfo[2];
-                    int serverPort = 0;
-                    if (userInfo[3] != null) {
-                        serverPort = Integer.parseInt(userInfo[3]);
-                    }
-                    String protocol = userInfo[4];
-                    fileName = userInfo[5];
-                    if (Constants.DEBUG_MODE_ENABLED) {
-                        printLogs(ftpUserName, host, fileName, fileDirectory, savingLocation, serverPort);
-                    }
-                    selectDownloadClient(protocol, operation, host, ftpUserName, ftpPassword,
-                            savingLocation, fileName, serverPort, fileDirectory);
+                String fileDirectory = userInfo[1];
+                String host = userInfo[2];
+                int serverPort = 0;
+                if (userInfo[3] != null) {
+                    serverPort = Integer.parseInt(userInfo[3]);
                 }
-            } catch (ArrayIndexOutOfBoundsException | JSONException | URISyntaxException e) {
-                handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
-            } finally {
-                Log.d(TAG, operation.getStatus());
-                resultBuilder.build(operation);
+                String protocol = userInfo[4];
+                fileName = userInfo[5];
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    printLogs(ftpUserName, host, fileName, fileDirectory, savingLocation, serverPort);
+                }
+                selectDownloadClient(protocol, operation, host, ftpUserName, password,
+                        savingLocation, fileName, serverPort, fileDirectory);
             }
+        } catch (ArrayIndexOutOfBoundsException | JSONException | URISyntaxException e) {
+            handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
+        } finally {
+            Log.d(TAG, operation.getStatus());
+            resultBuilder.build(operation);
         }
     }
+
 
     private void selectDownloadClient(String protocol, Operation operation, String host, String ftpUserName,
                                       String ftpPassword, String savingLocation, String fileName,
@@ -428,12 +415,16 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
 
     }
 
-    private void payloadNullError(Operation operation) throws AndroidAgentException {
-        String response = "Operation payload null.";
-        operation.setOperationResponse(response);
-        operation.setStatus(resources.getString(R.string.operation_value_error));
-        resultBuilder.build(operation);
-        throw new AndroidAgentException(response);
+    private void validateOperation(Operation operation) throws AndroidAgentException {
+        if (operation == null) {
+            throw new AndroidAgentException("Null operation object");
+        } else if (operation.getPayLoad() == null) {
+            String response = "Operation payload null.";
+            operation.setOperationResponse(response);
+            operation.setStatus(resources.getString(R.string.operation_value_error));
+            resultBuilder.build(operation);
+            throw new AndroidAgentException(response);
+        }
     }
 
     private void handleOperationError(Operation operation, String message, Exception exception)
@@ -468,7 +459,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
     private void downloadFileUsingHTTPClient(Operation operation, String url,
                                              String userName, String password,
                                              String savingLocation) throws AndroidAgentException {
-
         checkHTTPAuthentication(userName, password);
         InputStream inputStream = null;
         DataInputStream dataInputStream = null;
@@ -556,6 +546,19 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
 
             }
         }
+    }
+
+    private String getSavingLocation(Operation operation, String location) throws AndroidAgentException {
+        String savingLocation;
+        if (location.isEmpty()) {
+            savingLocation = getSavingLocation();
+            if (savingLocation == null) {
+                handleOperationError(operation, "Error in default saving location.", null);
+            }
+        } else {
+            savingLocation = location;
+        }
+        return savingLocation;
     }
 
     private String getSavingLocation() {
@@ -809,45 +812,53 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      */
     public void uploadFile(Operation operation) throws AndroidAgentException {
         String fileName = "Unknown";
-        if (operation.getPayLoad() == null) {
-            payloadNullError(operation);
-        } else {
-            try {
-                JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
-                final String fileURL = inputData.getString(Constants.FileTransfer.FILE_URL);
-                final String userName = inputData.getString(Constants.FileTransfer.USER_NAME);
-                final String ftpPassword = inputData.getString(Constants.FileTransfer.FTP_PASSWORD);
-                final String fileLocation = inputData.getString(Constants.FileTransfer.FILE_LOCATION);
-                if (fileURL.startsWith(Constants.FileTransfer.HTTP)) {
-                    uploadFileUsingHTTPClient(operation, fileURL, userName, ftpPassword,
-                            fileLocation);
-                } else {
-                    String[] userInfo = urlSplitter(operation, fileURL, true);
-                    String ftpUserName = userInfo[0];
-                    String uploadDirectory = userInfo[1];
-                    String host = userInfo[2];
-                    int serverPort = 0;
-                    if (userInfo[3] != null) {
-                        serverPort = Integer.parseInt(userInfo[3]);
-                    }
-                    String protocol = userInfo[4];
-                    File file = new File(fileLocation);
-                    fileName = file.getName();
-                    if (Constants.DEBUG_MODE_ENABLED) {
-                        printLogs(ftpUserName, host, fileName, file.getParent(), uploadDirectory, serverPort);
-                    }
-                    selectUploadClient(protocol, operation, host, ftpUserName, ftpPassword,
-                            uploadDirectory, fileLocation, serverPort);
+        validateOperation(operation);
+        try {
+            JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
+            final String fileURL = inputData.getString(Constants.FileTransfer.FILE_URL);
+            final String userName = inputData.getString(Constants.FileTransfer.USER_NAME);
+            final String password = inputData.getString(Constants.FileTransfer.PASSWORD);
+            final String fileLocation = inputData.getString(Constants.FileTransfer.FILE_LOCATION);
+            if (fileURL.startsWith(Constants.FileTransfer.HTTP)) {
+                uploadFileUsingHTTPClient(operation, fileURL, userName, password,
+                        fileLocation);
+            } else {
+                String[] userInfo = urlSplitter(operation, fileURL, true);
+                String ftpUserName = userInfo[0];
+                String uploadDirectory = userInfo[1];
+                String host = userInfo[2];
+                int serverPort = 0;
+                if (userInfo[3] != null) {
+                    serverPort = Integer.parseInt(userInfo[3]);
                 }
-            } catch (JSONException | URISyntaxException e) {
-                handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
-            } finally {
-                Log.d(TAG, operation.getStatus());
-                resultBuilder.build(operation);
+                String protocol = userInfo[4];
+                File file = new File(fileLocation);
+                fileName = file.getName();
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    printLogs(ftpUserName, host, fileName, file.getParent(), uploadDirectory, serverPort);
+                }
+                selectUploadClient(protocol, operation, host, ftpUserName, password,
+                        uploadDirectory, fileLocation, serverPort);
             }
+        } catch (JSONException | URISyntaxException e) {
+            handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
+        } finally {
+            Log.d(TAG, operation.getStatus());
+            resultBuilder.build(operation);
         }
     }
 
+    /**
+     * This method is used to upload the using HTTP client , this supports BASIC authentication,
+     * if user name is provided.
+     *
+     * @param operation    - Operation object
+     * @param uploadURL    - HTTP POST endpoint url
+     * @param userName     - username (can be empty)
+     * @param password     - password (can be empty)
+     * @param fileLocation - local location of the file in device
+     * @throws AndroidAgentException - Android agent exception
+     */
     private void uploadFileUsingHTTPClient(Operation operation, String uploadURL, final String userName,
                                            final String password,
                                            String fileLocation) throws AndroidAgentException {
@@ -855,13 +866,13 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         int serverResponseCode;
         HttpURLConnection connection = null;
         DataOutputStream dataOutputStream = null;
-        String lineEnd = "\r\n";
-        String twoHyphens = "--";
-        String boundary = "*****";
+        final String lineEnd = "\r\n";
+        final String twoHyphens = "--";
+        final String boundary = "*****";
 
         int bytesRead, bytesAvailable, bufferSize;
         byte[] buffer;
-        int maxBufferSize = 1024 * 1024;
+        int maxBufferSize = 1024 * 1024; // 1 MB
         File selectedFile = new File(fileLocation);
         final String fileName = selectedFile.getName();
         FileInputStream fileInputStream = null;
@@ -869,29 +880,17 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         try {
             fileInputStream = new FileInputStream(selectedFile);
             URL url = new URL(uploadURL);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);//Allow Inputs
-            connection.setDoOutput(true);//Allow Outputs
-            connection.setUseCaches(false);//Don't use a cached Copy
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Connection", "Keep-Alive");
-            connection.setRequestProperty("ENCTYPE", "multipart/form-data");
-            connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+            connection = getHttpConnection(url, userName, password);
             connection.setRequestProperty("uploaded_file", fileLocation);
 
             dataOutputStream = new DataOutputStream(connection.getOutputStream());
-            //writing bytes to data outputStream
             dataOutputStream.writeBytes(twoHyphens + boundary + lineEnd);
             dataOutputStream.writeBytes("Content-Disposition: form-data; name=\"file\";filename=\""
                     + fileName + "\"" + lineEnd);
             dataOutputStream.writeBytes(lineEnd);
-            //returns no. of bytes present in fileInputStream
             bytesAvailable = fileInputStream.available();
-            //selecting the buffer size as minimum of available bytes or 1 MB
             bufferSize = Math.min(bytesAvailable, maxBufferSize);
-            //setting the buffer as byte array of size of bufferSize
             buffer = new byte[bufferSize];
-            //reads bytes from FileInputStream(from 0th index of buffer to buffersize)
             bytesRead = fileInputStream.read(buffer, 0, bufferSize);
 
             //loop repeats till bytesRead = -1, i.e., no bytes are left to read
@@ -902,17 +901,15 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 bufferSize = Math.min(bytesAvailable, maxBufferSize);
                 bytesRead = fileInputStream.read(buffer, 0, bufferSize);
             }
-
             dataOutputStream.writeBytes(lineEnd);
             dataOutputStream.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
 
             serverResponseCode = connection.getResponseCode();
-            String serverResponseMessage = connection.getResponseMessage();
-            Log.i(TAG, "Server Response is: " + serverResponseMessage + ": " + serverResponseCode);
-
-            //response code of 200 indicates the server status OK
+            Log.i(TAG, "Server Response is: " + connection.getResponseMessage() + ": " + serverResponseCode);
             if (serverResponseCode == 200) {
                 operation.setStatus(resources.getString(R.string.operation_value_completed));
+                operation.setOperationResponse("File uploaded from the device completed ( " +
+                        fileName + " ).");
             }
         } catch (IOException e) {
             handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
@@ -922,6 +919,32 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             }
             cleanupStreams(null, null, fileInputStream, null, null, null, null, dataOutputStream);
         }
+    }
+
+    /**
+     * This methods
+     *
+     * @param url      - the url to make connection
+     * @param userName - user name if authenticated.
+     * @param password - password if authenticated.
+     * @return HTTPURLConnection
+     * @throws IOException - IOException
+     */
+    private HttpURLConnection getHttpConnection(URL url, String userName, String password) throws IOException {
+        final String boundary = "*****";
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        if (!userName.isEmpty()) {
+            String encoded = Base64.encodeToString((userName + ":" + password).getBytes("UTF-8"), Base64.DEFAULT);  //Java 8
+            connection.setRequestProperty("Authorization", "Basic " + encoded);
+        }
+        connection.setDoInput(true);//Allow Inputs
+        connection.setDoOutput(true);//Allow Outputs
+        connection.setUseCaches(false);//Don't use a cached Copy
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Connection", "Keep-Alive");
+        connection.setRequestProperty("ENCTYPE", "multipart/form-data");
+        connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+        return connection;
     }
 
     private void selectUploadClient(String protocol, Operation operation, String host, String ftpUserName,

@@ -17,13 +17,11 @@
 
 package org.wso2.iot.agent.services;
 
-import android.annotation.TargetApi;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,7 +37,6 @@ import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This class is used to revoke the existing policy on the device.
@@ -68,7 +65,6 @@ public class PolicyRevokeHandler {
      * @param operation - Operation object.
      *
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public void revokeExistingPolicy(org.wso2.iot.agent.beans.Operation operation)
             throws AndroidAgentException {
 
@@ -156,6 +152,9 @@ public class PolicyRevokeHandler {
                     break;
                 case Constants.Operation.APP_RESTRICTION:
                     revokeAppRestrictionPolicy(operation);
+                    break;
+                case Constants.Operation.VPN:
+                    //TODO: Revoke VPN settings
                     break;
                 case Constants.Operation.DISALLOW_ADJUST_VOLUME:
                 case Constants.Operation.DISALLOW_SMS:
@@ -249,7 +248,7 @@ public class PolicyRevokeHandler {
      * Revoke app restriction policy (black list or white list).
      *
      * @param operation - Operation object
-     * @throws AndroidAgentException
+     * @throws AndroidAgentException on error in revokation
      */
     private void revokeAppRestrictionPolicy(org.wso2.iot.agent.beans.Operation operation)
             throws AndroidAgentException {
@@ -310,11 +309,11 @@ public class PolicyRevokeHandler {
      *
      * @param operation - Operation object.
      */
-    private void revokeEncryptPolicy(org.wso2.iot.agent.beans.Operation operation) {
+    private void revokeEncryptPolicy(Operation operation) {
 
-        boolean encryptStatus = (devicePolicyManager.getStorageEncryptionStatus() != devicePolicyManager.
-                ENCRYPTION_STATUS_UNSUPPORTED && (devicePolicyManager.getStorageEncryptionStatus() == devicePolicyManager.
-                ENCRYPTION_STATUS_ACTIVE || devicePolicyManager.getStorageEncryptionStatus() == devicePolicyManager.
+        boolean encryptStatus = (devicePolicyManager.getStorageEncryptionStatus() != DevicePolicyManager.
+                ENCRYPTION_STATUS_UNSUPPORTED && (devicePolicyManager.getStorageEncryptionStatus() == DevicePolicyManager.
+                ENCRYPTION_STATUS_ACTIVE || devicePolicyManager.getStorageEncryptionStatus() == DevicePolicyManager.
                 ENCRYPTION_STATUS_ACTIVATING));
 
         if (operation.isEnabled() && encryptStatus) {
@@ -361,46 +360,51 @@ public class PolicyRevokeHandler {
      *
      * @param operation - Operation object.
      */
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void revokeOwnersRestrictionPolicy(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
-        if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE) ||
-                devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
-            devicePolicyManager.clearUserRestriction(deviceAdmin,getPermissionConstantValue(operation.getCode()));
-        }
-    }
-
-    private String getPermissionConstantValue(String key) {
-        return context.getString(resources.getIdentifier(
-                key.toString(),"string",context.getPackageName()));
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void revokeDeviceOwnerRestrictionPolicy(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
-        if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
-            devicePolicyManager.clearUserRestriction(deviceAdmin,getPermissionConstantValue(operation.getCode()));
-        }
-    }
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void revokeScreenCaptureDisabledPolicy() throws AndroidAgentException {
-        if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE) ||
-                devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
-            if (devicePolicyManager.getScreenCaptureDisabled(deviceAdmin)) {
-                devicePolicyManager.setScreenCaptureDisabled(deviceAdmin, false);
+    private void revokeOwnersRestrictionPolicy(Operation operation) throws AndroidAgentException {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE) ||
+                    devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
+                devicePolicyManager.clearUserRestriction(deviceAdmin,getPermissionConstantValue(operation.getCode()));
             }
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
-    private void revokeStatusBarDisabledPolicy() throws AndroidAgentException {
-        if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
-            devicePolicyManager.setStatusBarDisabled(deviceAdmin, false);
+    private String getPermissionConstantValue(String key) {
+        return context.getString(resources.getIdentifier(key,"string",context.getPackageName()));
+    }
+
+    private void revokeDeviceOwnerRestrictionPolicy(Operation operation) throws AndroidAgentException {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
+                devicePolicyManager.clearUserRestriction(deviceAdmin,getPermissionConstantValue(operation.getCode()));
+            }
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void revokeScreenCaptureDisabledPolicy() throws AndroidAgentException {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE) ||
+                    devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
+                if (devicePolicyManager.getScreenCaptureDisabled(deviceAdmin)) {
+                    devicePolicyManager.setScreenCaptureDisabled(deviceAdmin, false);
+                }
+            }
+        }
+    }
+
+    private void revokeStatusBarDisabledPolicy() throws AndroidAgentException {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
+                devicePolicyManager.setStatusBarDisabled(deviceAdmin, false);
+            }
+        }
+    }
+
     private void revokeAutoTimeRestrictionPolicy() throws AndroidAgentException {
-        if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
-            devicePolicyManager.setAutoTimeRequired(deviceAdmin, false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
+                devicePolicyManager.setAutoTimeRequired(deviceAdmin, false);
+            }
         }
     }
 
@@ -423,12 +427,13 @@ public class PolicyRevokeHandler {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void revokeRunTimePermissionPolicyOperation(Operation operation) throws AndroidAgentException {
-        if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE) ||
-                devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
-                devicePolicyManager.setPermissionPolicy(deviceAdmin, DevicePolicyManager.PERMISSION_POLICY_PROMPT);
-                Preference.putString(context,Constants.RuntimePermissionPolicy.PERMITTED_APP_DATA, "");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE) ||
+                    devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {
+                    devicePolicyManager.setPermissionPolicy(deviceAdmin, DevicePolicyManager.PERMISSION_POLICY_PROMPT);
+                    Preference.putString(context,Constants.RuntimePermissionPolicy.PERMITTED_APP_DATA, "");
+            }
         }
     }
 

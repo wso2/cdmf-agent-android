@@ -54,6 +54,8 @@ public class Constants {
 		public static final int DEFAULT_RETRY_COUNT = 3;
 		public static final int DEFAULT_TOKEN_TIME_OUT = 120000;
 		public static final int DEFAULT_TOKEN_RETRY_COUNT = 0;
+		//Taken will renew after tokenValidityTime * TOKEN_VALIDITY_PERCENTAGE%
+		public static final int TOKEN_VALIDITY_PERCENTAGE = 90;
 	}
 
 	public static final String SERVER_PROTOCOL = BuildConfig.SERVER_PROTOCOL;

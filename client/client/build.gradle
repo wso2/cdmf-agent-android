@@ -724,6 +724,7 @@ dependencies {
     compile 'com.splunk.mint:mint:5.0.0'
     compile 'com.jcraft:jsch:0.1.54'
     compile 'commons-net:commons-net:3.3'
+    compile "org.java-websocket:Java-WebSocket:1.3.0"
 }
 
 

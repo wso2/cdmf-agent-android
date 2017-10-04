@@ -30,6 +30,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Base64;
 import android.util.Log;
@@ -55,6 +56,7 @@ import org.json.JSONObject;
 import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.activities.ScreenShareActivity;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceInfo;
 import org.wso2.iot.agent.api.RootChecker;
@@ -79,21 +81,34 @@ import org.wso2.iot.agent.services.PolicyComplianceChecker;
 import org.wso2.iot.agent.services.PolicyOperationsMapper;
 import org.wso2.iot.agent.services.ResultPayload;
 import org.wso2.iot.agent.services.location.DeviceLocation;
+import org.wso2.iot.agent.services.screenshare.ScreenSharingService;
+import org.wso2.iot.agent.services.shell.RemoteShellExecutor;
+import org.wso2.iot.agent.transport.exception.TransportHandlerException;
+import org.wso2.iot.agent.transport.websocket.WebSocketSessionHandler;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.HTTPAuthenticator;
 import org.wso2.iot.agent.utils.Preference;
 
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+
+import java.io.ByteArrayOutputStream;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+<<<<<<< HEAD
+=======
+
+import java.io.InputStreamReader;
+>>>>>>> d82eddb27aba2efea226f20d1e49f4471fc17093
 import java.io.OutputStream;
 import java.net.Authenticator;
 import java.net.ConnectException;
@@ -101,12 +116,13 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+
+
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
-
 
 public abstract class OperationManager implements APIResultCallBack, VersionBasedOperations {
 
@@ -137,10 +153,12 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
     private static final long DAY_MILLISECONDS_MULTIPLIER = 24 * 60 * 60 * 1000;
     private static String[] AUTHORIZED_PINNING_APPS;
     private static String AGENT_PACKAGE_NAME;
+    private PowerManager powerManager;
 
     public OperationManager(Context context) {
         this.context = context;
         this.resources = context.getResources();
+        this.powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         this.devicePolicyManager =
                 (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
         this.cdmDeviceAdmin = new ComponentName(context, AgentDeviceAdminReceiver.class);
@@ -1590,7 +1608,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             operation.setStatus(resources.getString(R.string.operation_value_completed));
             resultBuilder.build(operation);
             NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
-                    .setSmallIcon(R.drawable.ic_launcher)
+                    .setSmallIcon(R.drawable.ic_lock_white_24dp)
                     .setContentTitle(context.getString(R.string.alert_message))
                     .setContentText(message)
                     .setAutoCancel(true)
@@ -1699,9 +1717,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             intent.putExtra(resources.getString(R.string.intent_extra_payload), operation.getPayLoad().toString());
             intent.putExtra(resources.getString(R.string.intent_extra_type),
                     Constants.Operation.VPN);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                    Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             context.startActivity(intent);
         }
 
@@ -1838,11 +1855,146 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "Notification received");
             }
-        } catch (JSONException e) {
+        } catch (JSONException | NullPointerException e) {
             operation.setStatus(getContextResources().getString(R.string.operation_value_error));
             operation.setOperationResponse("Error in parsing NOTIFICATION payload.");
             getResultBuilder().build(operation);
             throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+    }
+
+    /**
+     * Connect to remote session
+     *
+     * @param operation Operation received to start session
+     * @throws AndroidAgentException
+     */
+    public void connectToRemoteSession(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
+        try {
+            operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
+            if (operation.getPayLoad() != null) {
+                JSONObject payload = new JSONObject(operation.getPayLoad().toString());
+                Object serverUrl = payload.get("serverUrl");
+                if (serverUrl != null) {
+                    WebSocketSessionHandler.getInstance(context).initializeSession(serverUrl.toString(), operation.getId());
+                    operation.setStatus(resources.getString(R.string.operation_value_completed));
+
+                } else {
+                    operation.setStatus(resources.getString(R.string.operation_value_error));
+                    operation.setOperationResponse("Server url cannot be found");
+                }
+            } else {
+                operation.setStatus(resources.getString(R.string.operation_value_error));
+                operation.setOperationResponse("Request operation payload cannot be found");
+            }
+
+            getResultBuilder().build(operation);
+        } catch (Exception e) {
+            operation.setOperationResponse("Error connecting to websocket session.");
+            getResultBuilder().build(operation);
+            throw new AndroidAgentException("Connection Error.", e);
+        }
+    }
+
+
+    /**
+     * Process shell command
+     *
+     * @param operation
+     * @throws AndroidAgentException
+     */
+    public void processRemoteShell(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException {
+
+
+        RemoteShellExecutor.getInstance(context).executeCommand(operation);
+    }
+
+    /**
+     * manage screen sharing operations
+     *
+     * @param operation Operation
+     * @throws TransportHandlerException
+     */
+    public void screenCapture(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException, JSONException {
+
+        String action;
+        int maxHeight = Constants.DEFAULT_SCREEN_CAPTURE_IMAGE_HEIGHT;
+        int maxWidth = Constants.DEFAULT_SCREEN_CAPTURE_IMAGE_WIDTH;
+        if (operation.getPayLoad() != null) {
+            JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
+            if (inputData.get("action") != null) {
+                action = inputData.get("action").toString();
+                if (action.equals("start")) {
+                    try {
+                        if (inputData.get("height") != null) {
+                            maxHeight = Integer.parseInt(inputData.get("height").toString());
+                        }
+                        if (inputData.get("width") != null) {
+                            maxWidth = Integer.parseInt(inputData.get("width").toString());
+                        }
+
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Cannot parse the screen capture height and width");
+                    }
+
+                    if (!powerManager.isScreenOn()) {
+                        PowerManager.WakeLock TempWakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK |
+                                PowerManager.ACQUIRE_CAUSES_WAKEUP, "ScreenLock");
+                        TempWakeLock.acquire();
+                        TempWakeLock.release();
+                    }
+                    if (Constants.SYSTEM_APP_ENABLED) {
+                        Intent i =
+                                new Intent(context, ScreenSharingService.class)
+                                        .putExtra(ScreenSharingService.EXTRA_RESULT_CODE, -1)
+                                        .putExtra(Constants.MAX_WIDTH, maxWidth)
+                                        .putExtra(Constants.MAX_HEIGHT, maxHeight);
+                        context.startService(i);
+                    } else {
+                        Intent intent = new Intent(context, ScreenShareActivity.class)
+                                .putExtra(Constants.MAX_WIDTH, maxWidth)
+                                .putExtra(Constants.MAX_HEIGHT, maxHeight);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                                Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(intent);
+                    }
+                    if (Constants.DEBUG_MODE_ENABLED) {
+                        Log.d(TAG, "Screen capture is activated on the device");
+                    }
+                } else if (action.equals("stop")) {
+                    context.stopService(new Intent(context, ScreenSharingService.class));
+                } else {
+                    Log.e(TAG, "Screen capture operation does not support action : " + action);
+                }
+            } else {
+                Log.e(TAG, "Screen capture operation does not have action value in the payload");
+
+            }
+        } else {
+            Log.e(TAG, "Message payload does not contain screen capture inputs");
+        }
+
+
+    }
+
+
+    /**
+     * manage screen sharing operations
+     *
+     * @param operation Operation
+     * @throws TransportHandlerException
+     */
+    public void processInputInject(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException, JSONException {
+        if (Constants.SYSTEM_APP_ENABLED && ScreenSharingService.isScreenShared) {
+            if (operation.getPayLoad() != null) {
+                CommonUtils.callSystemApp(context, Constants.Operation.REMOTE_INPUT,
+                        operation.getPayLoad().toString(),
+                        null);
+            }
+        } else {
+            operation.setStatus("ERROR");
+            operation.setOperationResponse("Remote Input does not support");
+            WebSocketSessionHandler.getInstance(context).sendMessage(operation);
         }
     }
 

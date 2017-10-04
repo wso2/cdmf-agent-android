@@ -104,11 +104,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-<<<<<<< HEAD
-=======
 
 import java.io.InputStreamReader;
->>>>>>> d82eddb27aba2efea226f20d1e49f4471fc17093
 import java.io.OutputStream;
 import java.net.Authenticator;
 import java.net.ConnectException;

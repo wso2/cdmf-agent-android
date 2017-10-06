@@ -32,7 +32,6 @@ import android.os.Build;
 import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -79,10 +78,8 @@ import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -1046,7 +1043,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * Connect to remote session
      *
      * @param operation Operation received to start session
-     * @throws AndroidAgentException
+     * @throws AndroidAgentException Throws when error occur while connecting to session
+     *
      */
     public void connectToRemoteSession(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
         try {
@@ -1055,7 +1053,9 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 JSONObject payload = new JSONObject(operation.getPayLoad().toString());
                 Object serverUrl = payload.get("serverUrl");
                 if (serverUrl != null) {
-                    WebSocketSessionHandler.getInstance(context).initializeSession(serverUrl.toString(), operation.getId());
+                    // Initialize web socket session
+                    WebSocketSessionHandler.getInstance(context).initializeSession(serverUrl.toString(),
+                            operation.getId());
                     operation.setStatus(resources.getString(R.string.operation_value_completed));
 
                 } else {
@@ -1066,7 +1066,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 operation.setStatus(resources.getString(R.string.operation_value_error));
                 operation.setOperationResponse("Request operation payload cannot be found");
             }
-
             getResultBuilder().build(operation);
         } catch (Exception e) {
             operation.setOperationResponse("Error connecting to websocket session.");
@@ -1075,27 +1074,25 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         }
     }
 
-
     /**
      * Process shell command
      *
-     * @param operation
-     * @throws AndroidAgentException
+     * @param operation - Device Operation
+     * @throws TransportHandlerException - Throws when session connection has an error
      */
     public void processRemoteShell(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException {
-
-
         RemoteShellExecutor.getInstance(context).executeCommand(operation);
     }
 
     /**
-     * manage screen sharing operations
+     * Manage screen sharing operations
      *
-     * @param operation Operation
-     * @throws TransportHandlerException
+     * @param operation - Device Operation
+     * @throws TransportHandlerException - Throws when session connection has an error
+     * @throws JSONException             - Throws when error occurs while parsing the payload
      */
-    public void screenCapture(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException, JSONException {
-
+    public void screenCapture(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException,
+            JSONException {
         String action;
         int maxHeight = Constants.DEFAULT_SCREEN_CAPTURE_IMAGE_HEIGHT;
         int maxWidth = Constants.DEFAULT_SCREEN_CAPTURE_IMAGE_WIDTH;
@@ -1105,20 +1102,20 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 action = inputData.get("action").toString();
                 if (action.equals("start")) {
                     try {
+                        // Read screen height and weight from payload
                         if (inputData.get("height") != null) {
                             maxHeight = Integer.parseInt(inputData.get("height").toString());
                         }
                         if (inputData.get("width") != null) {
                             maxWidth = Integer.parseInt(inputData.get("width").toString());
                         }
-
                     } catch (NumberFormatException e) {
                         Log.e(TAG, "Cannot parse the screen capture height and width");
                     }
-
+                    // We need to unlock device to start the screen sharing
                     if (!powerManager.isScreenOn()) {
-                        PowerManager.WakeLock TempWakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK |
-                                PowerManager.ACQUIRE_CAUSES_WAKEUP, "ScreenLock");
+                        PowerManager.WakeLock TempWakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK
+                                | PowerManager.ACQUIRE_CAUSES_WAKEUP, "ScreenLock");
                         TempWakeLock.acquire();
                         TempWakeLock.release();
                     }
@@ -1147,27 +1144,24 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 }
             } else {
                 Log.e(TAG, "Screen capture operation does not have action value in the payload");
-
             }
         } else {
             Log.e(TAG, "Message payload does not contain screen capture inputs");
         }
-
-
     }
 
-
     /**
-     * manage screen sharing operations
+     * Process input inject operation
      *
-     * @param operation Operation
-     * @throws TransportHandlerException
+     * @param operation - Device Operation
+     * @throws TransportHandlerException - Throws when session connection has an error
+     * @throws JSONException             - Throws when error occurs while parsing the payload
      */
-    public void processInputInject(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException, JSONException {
+    public void processInputInject(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException,
+            JSONException {
         if (Constants.SYSTEM_APP_ENABLED && ScreenSharingService.isScreenShared) {
             if (operation.getPayLoad() != null) {
-                CommonUtils.callSystemApp(context, Constants.Operation.REMOTE_INPUT,
-                        operation.getPayLoad().toString(),
+                CommonUtils.callSystemApp(context, Constants.Operation.REMOTE_INPUT, operation.getPayLoad().toString(),
                         null);
             }
         } else {

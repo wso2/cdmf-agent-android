@@ -35,7 +35,6 @@ import org.wso2.iot.agent.services.operation.OperationManager;
 import org.wso2.iot.agent.services.operation.OperationManagerFactory;
 import org.wso2.iot.agent.services.screenshare.ScreenSharingService;
 import org.wso2.iot.agent.transport.exception.TransportHandlerException;
-import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
@@ -57,7 +56,6 @@ public class WebSocketSessionHandler {
     private static final String TAG = WebSocketSessionHandler.class.getSimpleName();
     private static Object instance_lock = new Object();
     private OperationManager operationManager;
-    IBinder b = ServiceManager.getService(MEDIA_PROJECTION_SERVICE);
     private final Object writeLockObject = new Object();
 
     /**
@@ -91,7 +89,7 @@ public class WebSocketSessionHandler {
      *
      * @param serverURL   Server URL
      * @param operationId operation id for initialized session
-     * @throws TransportHandlerException
+     * @throws TransportHandlerException throws when error occur with web socket session
      */
     public void initializeSession(String serverURL, int operationId) throws TransportHandlerException {
         if (this.operationId == operationId) {
@@ -129,6 +127,9 @@ public class WebSocketSessionHandler {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    /*
+     * Use to handle web socket message
+     */
     public void handleSessionMessage(String message) throws TransportHandlerException {
         Operation operation = new Operation();
         try {
@@ -172,20 +173,18 @@ public class WebSocketSessionHandler {
      * Close the web socket session
      */
     public void endSession() {
-
         context.stopService(new Intent(context, ScreenSharingService.class));
         if (androidWebSocketClient != null && androidWebSocketClient.getConnection() != null &&
                 androidWebSocketClient.getConnection().isOpen()) {
             androidWebSocketClient.close();
         }
         context.stopService(new Intent(context, ScreenSharingService.class));
-
     }
 
     /**
      * Send String message to remote client using web socket session
      *
-     * @param message
+     * @param message String message
      */
     public void sendMessage(String message) {
         if (message != null && androidWebSocketClient != null && androidWebSocketClient.getConnection().isOpen()) {
@@ -197,13 +196,12 @@ public class WebSocketSessionHandler {
         } else {
             Log.w(TAG, "android web service client already closed for operation id " + operationId);
         }
-
     }
 
     /**
      * Send byte message to remote client using web socket session
      *
-     * @param message byte message
+     * @param message Byte message
      */
     public void sendMessage(byte[] message) {
         if (message != null && androidWebSocketClient != null && androidWebSocketClient.getConnection().isOpen()) {
@@ -224,7 +222,6 @@ public class WebSocketSessionHandler {
      * @throws TransportHandlerException
      */
     public void sendMessage(Operation operation) throws TransportHandlerException {
-
         try {
             if (operation != null && operation.getId() == operationId) {
                 JSONObject payload = new JSONObject();
@@ -242,12 +239,9 @@ public class WebSocketSessionHandler {
             } else {
                 throw new TransportHandlerException("client session related to operation id is already closed");
             }
-
         } catch (JSONException e) {
             throw new TransportHandlerException("Message send failed due to JSON error ", e);
         }
-
-
     }
 
     /**

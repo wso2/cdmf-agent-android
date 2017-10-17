@@ -28,5 +28,6 @@
     <color name="colorButton">#EF6C00</color>
     <color name="colorButtonPressed">#e78535</color>
     <color name="colorButtonBorder">#C77627</color>
+    <color name="topBannerText">#ffffffff</color>
 
 </resources>

@@ -22,6 +22,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Build;
+import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -256,11 +257,8 @@ public class PolicyRevokeHandler {
         AppRestriction appRestriction =
                 CommonUtils.getAppRestrictionTypeAndList(operation, null, null);
         String ownershipType = Preference.getString(context, Constants.DEVICE_TYPE);
-        if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
-            for (String packageName : appRestriction.getRestrictedList()) {
-                CommonUtils.callSystemApp(context, operation.getCode(), "true", packageName);
-            }
-        } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
+        if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType()) ||
+                Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
             String disallowedApps = Preference.
                     getString(context, Constants.AppRestriction.DISALLOWED_APPS);
             if (disallowedApps != null) {
@@ -272,7 +270,7 @@ public class PolicyRevokeHandler {
                         devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE) ||
                                 devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE))) {
                     for (String appName : disallowedAppsArray) {
-                            devicePolicyManager.setApplicationHidden(deviceAdmin, appName, false);
+                        devicePolicyManager.setApplicationHidden(deviceAdmin, appName, false);
                     }
                 } else if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
                     for (String appName : disallowedAppsArray) {
@@ -281,6 +279,7 @@ public class PolicyRevokeHandler {
                 }
                 //Clean persisted app lists.
                 Preference.putString(this.context, Constants.AppRestriction.DISALLOWED_APPS, "");
+                Preference.putString(this.context, Constants.AppRestriction.BLACK_LIST_APPS, "");
                 Preference.putString(this.context, Constants.AppRestriction.WHITE_LIST_APPS, "");
             }
         }

@@ -145,11 +145,23 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
         String permissionName;
         Boolean isAllowed = false;
         String whiteListAppsPref = Preference.
-                getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
+
+                    getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
+        String blackListAppsPref = Preference.
+                getString(context, Constants.AppRestriction.BLACK_LIST_APPS);
         String ownershipType = Preference.getString(context, Constants.DEVICE_TYPE);
-        if (!whiteListAppsPref.equals("")) {
+
+        String restrictionList = null;
+        if(!whiteListAppsPref.equals("")) {
+            restrictionList = whiteListAppsPref;
+        } else if(!blackListAppsPref.equals("")) {
+            restrictionList = blackListAppsPref;
+        }
+
+        if(restrictionList != null) {
+
             try {
-                JSONArray whiteListApps = new JSONArray(whiteListAppsPref);
+                JSONArray whiteListApps = new JSONArray(restrictionList);
                 for (int i = 0; i < whiteListApps.length(); i++) {
                     permittedApp = new JSONObject(whiteListApps.getString(i));
                     permittedPackageName = permittedApp.
@@ -159,6 +171,9 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
                                 getString(Constants.AppRestriction.RESTRICTION_TYPE);
                         if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
                             isAllowed = true;
+                            break;
+                        } else {
+                            isAllowed = false;
                             break;
                         }
                     }

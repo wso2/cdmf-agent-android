@@ -185,6 +185,8 @@
         <service android:name=".services.kiosk.KioskLockDownService" />
 
         <service android:name=".services.kiosk.KioskUnlockService" />
+        <service android:name=".services.kiosk.KioskMsgAlarmService"
+            android:enabled="true"/>
 
         <activity android:name=".activities.AlreadyRegisteredActivity" />
         <activity

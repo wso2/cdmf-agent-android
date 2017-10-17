@@ -22,22 +22,20 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.admin.DevicePolicyManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
-import android.media.Image;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.constraint.ConstraintLayout;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -45,13 +43,9 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import org.wso2.iot.agent.adapters.AppDrawerAdapter;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceInfo;
@@ -60,9 +54,9 @@ import org.wso2.iot.agent.beans.Power;
 import org.wso2.iot.agent.events.EventRegistry;
 import org.wso2.iot.agent.events.listeners.KioskAppInstallationListener;
 import org.wso2.iot.agent.services.LocalNotification;
+import org.wso2.iot.agent.services.kiosk.KioskMsgAlarmService;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -87,9 +81,9 @@ public class KioskActivity extends Activity {
     private Ringtone defaultRingtone;
     private DeviceInfo deviceInfo;
     private SeekBar seekBarBrightness;
-    private int brightness=0;
+    private int brightness = 0;
     private static final int DEFAULT_FLAG = 0;
-
+    private ResponseReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,8 +98,8 @@ public class KioskActivity extends Activity {
         textViewTime = (TextView) findViewById(R.id.textTime);
         textViewDate = (TextView) findViewById(R.id.textViewDate);
         textViewBattery = (TextView) findViewById(R.id.textViewBattery);
-        imageViewBatteryPlugged = (ImageView) findViewById(R.id.imageViewBattryPlugged);
         textViewInitializingMsg = (TextView) findViewById(R.id.textViewInitializingMsg);
+        imageViewBatteryPlugged = (ImageView) findViewById(R.id.imageViewBattryPlugged);
         audio = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         progressBarDeviceInitializing =
                 (ProgressBar) findViewById(R.id.progressBarDeviceInitializing);
@@ -126,6 +120,13 @@ public class KioskActivity extends Activity {
             });
         }
 
+        //broadcast intent receiver
+        IntentFilter filter = new IntentFilter(ResponseReceiver.ACTION_RESP);
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        receiver = new ResponseReceiver();
+        registerReceiver(receiver, filter);
+
+        //Brightness seekbar operation
         try {
             //Get the current system brightness state
             brightness = android.provider.Settings.System.getInt(
@@ -148,12 +149,11 @@ public class KioskActivity extends Activity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                // TODO Auto-generated method stub
                 WindowManager.LayoutParams settings = getWindow().getAttributes();
                 settings.screenBrightness = brightness;
                 getWindow().setAttributes(settings);
-
-            }});
+            }
+        });
 
         ComponentName component =
                 new ComponentName(KioskActivity.this, KioskAppInstallationListener.class);
@@ -214,7 +214,6 @@ public class KioskActivity extends Activity {
             textViewNoApps.setVisibility(View.INVISIBLE);
             textViewInitializingMsg.setVisibility(View.VISIBLE);
             progressBarDeviceInitializing.setVisibility(View.VISIBLE);
-            //checkAndDisplayDeviceInitializing();
         }
         displayDeviceInfo();
         checkAndDisplayDeviceInitializing();
@@ -223,23 +222,26 @@ public class KioskActivity extends Activity {
             launchKioskAppIfExists();
         }
 
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            if (extras.containsKey(getResources().getString(R.string.intent_extra_type))) {
-                String temp = extras.getString("type");
-                switch (temp) {
-                    case "ring": {
-                        startRing();
-                        showDialog("Ring Operation", "Your device is ringing", "OK");
-                        break;
-                    }
-                    case "notification": {
-                        String title = extras.getString("title");
-                        String text = extras.getString("text");
-                        showDialog(title,text,"OK");
-                        break;
-                    }
+    }
 
+    //Broadcast receiver for Ring and message operations
+    public class ResponseReceiver extends BroadcastReceiver {
+        public static final String ACTION_RESP = "org.wso2.iot.agent.KioskActivity.MESSAGE_PROCESSED";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String msg = intent.getStringExtra(KioskMsgAlarmService.ACTIVITY_MSG);
+            String type = intent.getStringExtra(KioskMsgAlarmService.ACTIVITY_TYPE);
+            String title = intent.getStringExtra(KioskMsgAlarmService.ACTIVITY_TITLE);
+            switch (type) {
+                case Constants.Operation.DEVICE_RING: {
+                    startRing();
+                    showRingDialog();
+                    break;
+                }
+                case Constants.Operation.NOTIFICATION: {
+                    showDialog(title, msg, "OK");
+                    break;
                 }
             }
         }
@@ -248,14 +250,30 @@ public class KioskActivity extends Activity {
     private void showDialog(String title, String message, String buttonText) {
         final Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.dialog_kiosk);
-        dialog.setTitle(title);
-
+        dialog.setTitle("New Notification");
         // set the custom dialog components - text, image and button
         TextView text = (TextView) dialog.findViewById(R.id.textViewDialog);
         text.setText(message);
-
+        TextView text2 = (TextView) dialog.findViewById(R.id.KioskNotificationTitle);
+        text2.setText(title);
         Button dialogButton = (Button) dialog.findViewById(R.id.buttonDialog);
         dialogButton.setText(buttonText);
+        // if button is clicked, close the custom dialog
+        dialogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+
+    private void showRingDialog() {
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.device_ring_kiosk);
+        dialog.setTitle("Device Ring");
+        Button dialogButton = (Button) dialog.findViewById(R.id.deviceRingKioskButton);
+        dialogButton.setText("Dismiss");
         // if button is clicked, close the custom dialog
         dialogButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -313,8 +331,10 @@ public class KioskActivity extends Activity {
                                 textViewBattery.setText(Constants.LAUNCHER_BATTERY_LABEL +
                                         String.valueOf(power.getLevel()) +
                                         Constants.LAUNCHER_PERCENTAGE_MARK);
+                                //Add an icon to indicate charging
                                 String plugged = power.getPlugged();
-                                if (plugged == DeviceState.AC) {
+                                if (plugged.equals(DeviceState.AC) ||
+                                        plugged.equals(DeviceState.CHARGING)) {
                                     imageViewBatteryPlugged.setVisibility(View.VISIBLE);
                                 } else {
                                     imageViewBatteryPlugged.setVisibility(View.INVISIBLE);
@@ -425,14 +445,12 @@ public class KioskActivity extends Activity {
             ringerMode = audio.getRingerMode();
             ringerVolume = audio.getStreamVolume(AudioManager.STREAM_RING);
             audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-            audio.setStreamVolume(AudioManager.STREAM_RING, audio.getStreamMaxVolume(AudioManager.STREAM_RING),
-                    AudioManager.FLAG_PLAY_SOUND);
-
-            defaultRingtoneUri = RingtoneManager.getActualDefaultRingtoneUri(this, RingtoneManager.TYPE_RINGTONE);
-
+            audio.setStreamVolume(AudioManager.STREAM_RING, audio.getStreamMaxVolume
+                    (AudioManager.STREAM_RING), AudioManager.FLAG_PLAY_SOUND);
+            defaultRingtoneUri = RingtoneManager.getActualDefaultRingtoneUri(this,
+                    RingtoneManager.TYPE_RINGTONE);
             if (defaultRingtoneUri != null) {
                 defaultRingtone = RingtoneManager.getRingtone(this, defaultRingtoneUri);
-
                 if (defaultRingtone != null) {
                     if (deviceInfo.getSdkVersion() >= Build.VERSION_CODES.LOLLIPOP) {
                         AudioAttributes attributes = new AudioAttributes.Builder().

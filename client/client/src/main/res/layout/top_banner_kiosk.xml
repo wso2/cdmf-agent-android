@@ -1,92 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/imageViewBatteryCharging"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:layout_editor_absoluteY="25dp"
+    tools:layout_editor_absoluteX="0dp">
 
 
     <ImageView
         android:id="@+id/imageViewBanner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
+        android:layout_width="671dp"
+        android:layout_height="115dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/banner" />
+        android:src="@drawable/banner"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="0dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginLeft="0dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="0dp"
+        app:layout_constraintHorizontal_bias="0.0"
+        tools:layout_editor_absoluteX="1dp" />
 
     <TextView
         android:id="@+id/textTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
         android:fontFamily="sans-serif-smallcaps"
         android:gravity="center"
         android:text="Time:"
         android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large"
         android:textColor="@android:color/white"
         android:textSize="14sp"
-        android:layout_alignParentTop="true"
-        android:layout_toStartOf="@+id/imageViewBattryPlugged" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="24dp"
+        android:layout_marginLeft="0dp"
+        app:layout_constraintLeft_toLeftOf="@+id/textViewDate" />
 
     <ImageView
         android:id="@+id/imageViewLogo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/imageViewBanner"
-        android:layout_alignParentStart="true"
-        android:layout_alignTop="@+id/textTime"
-        android:layout_marginStart="29dp"
+        android:layout_width="121dp"
+        android:layout_height="62dp"
         android:contentDescription="@string/app_name"
-        android:src="@drawable/wso2" />
+        android:src="@drawable/wso2"
+        android:layout_marginStart="29dp"
+        android:layout_marginLeft="16dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp" />
 
     <TextView
         android:id="@+id/textViewBattery"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/textViewDate"
-        android:layout_below="@+id/textViewDate"
-        android:layout_marginTop="11dp"
         android:fontFamily="sans-serif-smallcaps"
         android:gravity="center"
         android:text="Battery: "
         android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large"
         android:textColor="@android:color/white"
-        android:textSize="14sp" />
+        android:textSize="14sp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@+id/textViewDate"
+        app:layout_constraintRight_toLeftOf="@+id/imageViewBattryPlugged"
+        android:layout_marginRight="8dp" />
 
     <TextView
         android:id="@+id/textViewDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/textTime"
-        android:layout_below="@+id/textTime"
-        android:layout_marginTop="14dp"
         android:fontFamily="sans-serif-smallcaps"
         android:gravity="center"
         android:text="Date:"
         android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large"
         android:textColor="@android:color/white"
-        android:textSize="14sp" />
+        android:textSize="14sp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/textTime"
+        android:layout_marginLeft="0dp"
+        app:layout_constraintLeft_toLeftOf="@+id/textViewBattery" />
 
     <ImageView
         android:id="@+id/imageViewBattryPlugged"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/imageViewBanner"
-        android:layout_alignParentEnd="true"
-        android:layout_alignTop="@+id/textViewBattery"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:paddingBottom="10px"
-        android:src="@drawable/ic_power" />
+        android:src="@drawable/ic_power"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="72dp"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <SeekBar
         android:id="@+id/seekBarBrightness"
+        android:layout_width="182dp"
+        android:layout_height="wrap_content"
+        android:minWidth="300px"
+        android:layout_marginEnd="11dp"
+        android:layout_marginRight="0dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/imageViewLogo"
+        app:layout_constraintLeft_toRightOf="@+id/textView4"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintHorizontal_bias="0.0" />
+
+    <TextView
+        android:id="@+id/textView4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/textViewDate"
-        android:layout_marginStart="16dp"
-        android:layout_toEndOf="@+id/imageViewLogo"
-        android:minWidth="300px" />
+        android:text="Brightness"
+        android:textColor="@color/white"
+        android:layout_marginLeft="0dp"
+        app:layout_constraintLeft_toLeftOf="@+id/imageViewLogo"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/imageViewLogo" />
 
-</RelativeLayout>
+</android.support.constraint.ConstraintLayout>

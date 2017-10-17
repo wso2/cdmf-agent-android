@@ -46,6 +46,7 @@ import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.services.NotificationService;
 import org.wso2.iot.agent.services.ResultPayload;
 import org.wso2.iot.agent.services.kiosk.KioskAlarmReceiver;
+import org.wso2.iot.agent.services.kiosk.KioskMsgAlarmService;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
@@ -866,10 +867,9 @@ public class OperationManagerCOSU extends OperationManager {
     public void ringDevice(org.wso2.iot.agent.beans.Operation operation) {
         operation.setStatus(resources.getString(R.string.operation_value_completed));
         resultBuilder.build(operation);
-        Intent intent = new Intent(context, KioskActivity.class);
-        intent.putExtra("type","ring");
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
+        Intent msgIntent = new Intent(context, KioskMsgAlarmService.class);
+        msgIntent.putExtra(KioskMsgAlarmService.ACTIVITY_TYPE, Constants.Operation.DEVICE_RING);
+        context.startService(msgIntent);
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Ringing is activated on the device");
         }
@@ -887,12 +887,11 @@ public class OperationManagerCOSU extends OperationManager {
                     messageText != null && !messageText.isEmpty()) {
                 //adding notification to the db
                 notificationService.addNotification(operation.getId(), messageTitle, messageText, Notification.Status.RECEIVED);
-                Intent intent = new Intent(context, KioskActivity.class);
-                intent.putExtra("type","notification");
-                intent.putExtra("title",messageTitle);
-                intent.putExtra("text",messageText);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);
+                Intent msgIntent = new Intent(context, KioskMsgAlarmService.class);
+                msgIntent.putExtra(KioskMsgAlarmService.ACTIVITY_TYPE, Constants.Operation.NOTIFICATION);
+                msgIntent.putExtra(KioskMsgAlarmService.ACTIVITY_TITLE,messageTitle);
+                msgIntent.putExtra(KioskMsgAlarmService.ACTIVITY_MSG,messageText);
+                context.startService(msgIntent);
             } else {
                 operation.setStatus(getContextResources().getString(R.string.operation_value_error));
                 String errorMessage = "Message title/text is empty. Please retry with valid inputs";

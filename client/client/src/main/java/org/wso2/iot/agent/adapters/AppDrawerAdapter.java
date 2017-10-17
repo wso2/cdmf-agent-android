@@ -27,7 +27,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.utils.Constants;
@@ -45,6 +44,7 @@ public class AppDrawerAdapter extends BaseAdapter {
     private static final String APP_STATE_DOWNLOAD_FAILED = "DOWNLOAD_FAILED";
     private static final String APP_STATE_INSTALL_FAILED = "INSTALL_FAILED";
     private static final String APP_STATE_INSTALLED = "INSTALLED";
+    private static final String NEW_APP = "New App";
 
     private Context context;
     private LayoutInflater inflater;
@@ -73,13 +73,10 @@ public class AppDrawerAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        //tomorrow :)
-        if (position == 1) {
-            String tempp = "sdafasd";
-        }
         if (appList != null) {
-            View view = null;
+            View view;
             if (convertView == null) {
+                // inflating a new view only when necessary
                 view = inflater.inflate(R.layout.kiosk_app_drawer, null);
             } else {
                 view = convertView;
@@ -91,8 +88,8 @@ public class AppDrawerAdapter extends BaseAdapter {
             PackageManager pm = context.getPackageManager();
 
             String packageName = appList.get(position);
-            if (packageName.equals("temp")) {
-                holder.appName.setText("New App");
+            if (packageName.equals(NEW_APP)) {
+                holder.appName.setText(NEW_APP);
                 holder.appIcon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_download));
             } else {
                 ApplicationInfo applicationInfo = null;
@@ -114,7 +111,6 @@ public class AppDrawerAdapter extends BaseAdapter {
         }
     }
 
-
     private class Holder {
         TextView appName;
         ImageView appIcon;
@@ -122,10 +118,6 @@ public class AppDrawerAdapter extends BaseAdapter {
 
     public void setAppList() {
         String appList = Preference.getString(context, Constants.KIOSK_APP_PACKAGE_NAME);
-        String newPackageName = Preference.getString(context, Constants.PreferenceFlag.CURRENT_INSTALLING_APP);
-        if (newPackageName == null || newPackageName == "") {
-            newPackageName = "new app";
-        }
         String temp = Preference.getString(context, context.getResources().getString(R.string.app_install_status));
         if (temp != null && temp != "") {
             switch (temp) {
@@ -133,14 +125,13 @@ public class AppDrawerAdapter extends BaseAdapter {
                 case APP_STATE_DOWNLOAD_COMPLETED:
                 case APP_STATE_INSTALLED:
                     if (appList != null && appList != "") {
-                        appList += "_temp";
+                        appList += "_" + NEW_APP;
                     } else {
-                        appList = "temp";
+                        appList = NEW_APP;
                     }
                     break;
             }
         }
-
         String[] appArr = appList.split(context.getString(R.string.kiosk_application_package_split_regex));
         this.appList = new ArrayList<>(Arrays.asList(appArr));
     }

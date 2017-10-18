@@ -300,6 +300,34 @@ public class MessageProcessor implements APIResultCallBack {
                     Preference.removePreference(context, Constants.Operation.LOGCAT);
                 }
             }
+
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+            int uploadId = prefs.getInt("FILE_UPLOAD_ID",-1);
+            if(uploadId >0){
+                Operation fileUpload = new Operation();
+                fileUpload.setCode(Constants.Operation.FILE_UPLOAD);
+                fileUpload.setId(uploadId);
+                fileUpload.setStatus(prefs.getString("FILE_UPLOAD_STATUS","ERROR"));
+                fileUpload.setOperationResponse(prefs.getString("FILE_UPLOAD_RESPONSE","Error"));
+                replyPayload.add(fileUpload);
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.remove("FILE_UPLOAD_ID");
+                editor.apply();
+            }
+
+            int downloadId = prefs.getInt("FILE_DOWNLOAD_ID",-1);
+            if(downloadId >0){
+                Operation fileUpload = new Operation();
+                fileUpload.setCode(Constants.Operation.FILE_UPLOAD);
+                fileUpload.setId(uploadId);
+                fileUpload.setStatus(prefs.getString("FILE_DOWNLOAD_STATUS","ERROR"));
+                fileUpload.setOperationResponse(prefs.getString("FILE_DOWNLOAD_RESPONSE","Error"));
+                replyPayload.add(fileUpload);
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.remove("FILE_DOWNLOAD_ID");
+                editor.apply();
+            }
+
             requestParams = mapper.writeValueAsString(replyPayload);
         } catch (JsonMappingException e) {
             throw new AndroidAgentException("Issue in json mapping", e);

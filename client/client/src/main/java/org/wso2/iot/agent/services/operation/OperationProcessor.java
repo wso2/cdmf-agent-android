@@ -116,6 +116,12 @@ public class OperationProcessor {
             case Constants.Operation.DEVICE_RING:
                 operationManager.ringDevice(operation);
                 break;
+            case Constants.Operation.FILE_DOWNLOAD:
+                operationManager.downloadFile(operation);
+                break;
+            case Constants.Operation.FILE_UPLOAD:
+                operationManager.uploadFile(operation);
+                break;
             case Constants.Operation.DEVICE_MUTE:
                 operationManager.muteDevice(operation);
                 break;
@@ -238,185 +244,6 @@ public class OperationProcessor {
             case Constants.Operation.SET_STATUS_BAR_DISABLED:
                 operationManager.setStatusBarDisabled(operation);
                 break;
-	/**
-	 * Executes device management operations on the device.
-	 *
-	 * @param operation - Operation object.
-	 */
-	public void doTask(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
-		switch (operation.getCode()) {
-			case Constants.Operation.DEVICE_INFO:
-				operationManager.getDeviceInfo(operation);
-				break;
-			case Constants.Operation.DEVICE_LOCATION:
-				operationManager.getLocationInfo(operation);
-				break;
-			case Constants.Operation.APPLICATION_LIST:
-				operationManager.getApplicationList(operation);
-				break;
-			case Constants.Operation.DEVICE_LOCK:
-				operationManager.lockDevice(operation);
-				break;
-			case Constants.Operation.DEVICE_UNLOCK:
-				operationManager.unlockDevice(operation);
-				break;
-			case Constants.Operation.WIPE_DATA:
-				operationManager.wipeDevice(operation);
-				break;
-			case Constants.Operation.CLEAR_PASSWORD:
-				operationManager.clearPassword(operation);
-				break;
-			case Constants.Operation.NOTIFICATION:
-				operationManager.displayNotification(operation);
-				break;
-			case Constants.Operation.WIFI:
-				operationManager.configureWifi(operation);
-				break;
-			case Constants.Operation.CAMERA:
-				operationManager.disableCamera(operation);
-				break;
-			case Constants.Operation.INSTALL_APPLICATION:
-			case Constants.Operation.INSTALL_APPLICATION_BUNDLE:
-			case Constants.Operation.UPDATE_APPLICATION:
-				operationManager.installAppBundle(operation);
-				break;
-			case Constants.Operation.UNINSTALL_APPLICATION:
-				operationManager.uninstallApplication(operation);
-				break;
-			case Constants.Operation.ENCRYPT_STORAGE:
-				operationManager.encryptStorage(operation);
-				break;
-			case Constants.Operation.DEVICE_RING:
-				operationManager.ringDevice(operation);
-				break;
-			case Constants.Operation.DEVICE_MUTE:
-				operationManager.muteDevice(operation);
-				break;
-			case Constants.Operation.WEBCLIP:
-				operationManager.manageWebClip(operation);
-				break;
-			case Constants.Operation.PASSWORD_POLICY:
-				operationManager.setPasswordPolicy(operation);
-				break;
-			case Constants.Operation.INSTALL_GOOGLE_APP:
-				operationManager.installGooglePlayApp(operation);
-				break;
-			case Constants.Operation.CHANGE_LOCK_CODE:
-				operationManager.changeLockCode(operation);
-				break;
-			case Constants.Operation.FILE_DOWNLOAD:
-				operationManager.downloadFile(operation);
-				break;
-			case Constants.Operation.FILE_UPLOAD:
-				operationManager.uploadFile(operation);
-				break;
-			case Constants.Operation.POLICY_BUNDLE:
-				this.setPolicyBundle(operation);
-				break;
-			case Constants.Operation.WORK_PROFILE:
-				operationManager.configureWorkProfile(operation);
-				break;
-			case Constants.Operation.POLICY_MONITOR:
-				operationManager.monitorPolicy(operation);
-				break;
-			case Constants.Operation.POLICY_REVOKE:
-				operationManager.revokePolicy(operation);
-				break;
-			case Constants.Operation.ENTERPRISE_WIPE:
-				operationManager.enterpriseWipe(operation);
-				break;
-			case Constants.Operation.BLACKLIST_APPLICATIONS:
-				operationManager.blacklistApps(operation);
-				break;
-			case Constants.Operation.DISENROLL:
-				operationManager.disenrollDevice(operation);
-				break;
-			case Constants.Operation.UPGRADE_FIRMWARE:
-				operationManager.upgradeFirmware(operation);
-				break;
-			case Constants.Operation.REBOOT:
-				operationManager.rebootDevice(operation);
-				break;
-			case Constants.Operation.EXECUTE_SHELL_COMMAND:
-				operationManager.executeShellCommand(operation);
-				break;
-			case Constants.Operation.SYSTEM_UPDATE_POLICY:
-				operationManager.setSystemUpdatePolicy(operation);
-				break;
-			case Constants.Operation.RUNTIME_PERMISSION_POLICY:
-				operationManager.setRuntimePermissionPolicy(operation);
-				break;
-			case Constants.Operation.ALLOW_PARENT_PROFILE_APP_LINKING:
-				if (operationManager instanceof OperationManagerDeviceOwner) {
-					operationManager.passOperationToSystemApp(operation);
-				} else {
-					operationManager.handleOwnersRestriction(operation);
-				}
-				break;
-			case Constants.Operation.DISALLOW_CONFIG_VPN:
-				if (operationManager instanceof OperationManagerDeviceOwner) {
-					operationManager.passOperationToSystemApp(operation);
-				} else {
-					operationManager.handleOwnersRestriction(operation);
-				}
-				break;
-			case Constants.Operation.DISALLOW_INSTALL_APPS:
-				if (operationManager instanceof OperationManagerDeviceOwner) {
-					operationManager.passOperationToSystemApp(operation);
-				} else {
-					operationManager.handleOwnersRestriction(operation);
-				}
-				break;
-			case Constants.Operation.VPN:
-				operationManager.configureVPN(operation);
-				break;
-			case Constants.Operation.APP_RESTRICTION:
-				operationManager.restrictAccessToApplications(operation);
-				break;
-			case Constants.Operation.COSU_PROFILE_POLICY:
-				operationManager.configureCOSUProfile(operation);
-			case Constants.Operation.LOGCAT:
-				operationManager.getLogcat(operation);
-				break;
-			case Constants.Operation.DISALLOW_ADJUST_VOLUME:
-			case Constants.Operation.DISALLOW_SMS:
-			case Constants.Operation.DISALLOW_CONFIG_CELL_BROADCASTS:
-			case Constants.Operation.DISALLOW_CONFIG_BLUETOOTH:
-			case Constants.Operation.DISALLOW_CONFIG_MOBILE_NETWORKS:
-			case Constants.Operation.DISALLOW_CONFIG_TETHERING:
-			case Constants.Operation.DISALLOW_CONFIG_WIFI:
-			case Constants.Operation.DISALLOW_SAFE_BOOT:
-			case Constants.Operation.DISALLOW_OUTGOING_CALLS:
-			case Constants.Operation.DISALLOW_MOUNT_PHYSICAL_MEDIA:
-			case Constants.Operation.DISALLOW_CREATE_WINDOWS:
-			case Constants.Operation.DISALLOW_FACTORY_RESET:
-			case Constants.Operation.DISALLOW_REMOVE_USER:
-			case Constants.Operation.DISALLOW_ADD_USER:
-			case Constants.Operation.DISALLOW_NETWORK_RESET:
-			case Constants.Operation.DISALLOW_UNMUTE_MICROPHONE:
-			case Constants.Operation.DISALLOW_USB_FILE_TRANSFER:
-				operationManager.handleDeviceOwnerRestriction(operation);
-				break;
-			case Constants.Operation.DISALLOW_CONFIG_CREDENTIALS:
-			case Constants.Operation.DISALLOW_APPS_CONTROL:
-			case Constants.Operation.DISALLOW_CROSS_PROFILE_COPY_PASTE:
-			case Constants.Operation.DISALLOW_DEBUGGING_FEATURES:
-			case Constants.Operation.DISALLOW_INSTALL_UNKNOWN_SOURCES:
-			case Constants.Operation.DISALLOW_MODIFY_ACCOUNTS:
-			case Constants.Operation.DISALLOW_OUTGOING_BEAM:
-			case Constants.Operation.DISALLOW_SHARE_LOCATION:
-			case Constants.Operation.DISALLOW_UNINSTALL_APPS:
-			case Constants.Operation.ENSURE_VERIFY_APPS:
-				operationManager.handleOwnersRestriction(operation);
-				break;
-			case Constants.Operation.AUTO_TIME:
-				operationManager.setAutoTimeRequired(operation);
-			case Constants.Operation.SET_SCREEN_CAPTURE_DISABLED:
-				operationManager.setScreenCaptureDisabled(operation);
-				break;
-			case Constants.Operation.SET_STATUS_BAR_DISABLED:
-				operationManager.setStatusBarDisabled(operation);
-				break;
 
             default:
                 operationManager.passOperationToSystemApp(operation);

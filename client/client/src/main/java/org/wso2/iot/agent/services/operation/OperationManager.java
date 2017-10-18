@@ -24,30 +24,45 @@ import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.graphics.Path;
 import android.location.Location;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
+import android.os.Environment;
+import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.util.Base64;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.Gson;
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SftpException;
 
 import org.apache.commons.io.input.ReversedLinesFileReader;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPConnectionClosedException;
+import org.apache.commons.net.ftp.FTPSClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.activities.ScreenShareActivity;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceInfo;
+import org.wso2.iot.agent.api.RootChecker;
 import org.wso2.iot.agent.api.RuntimeInfo;
 import org.wso2.iot.agent.api.WiFiConfig;
 import org.wso2.iot.agent.beans.Address;
@@ -63,25 +78,50 @@ import org.wso2.iot.agent.events.listeners.WifiConfigCreationListener;
 import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.services.DeviceInfoPayload;
+import org.wso2.iot.agent.services.FileDownloadService;
+import org.wso2.iot.agent.services.FileUploadService;
 import org.wso2.iot.agent.services.LogPublisherFactory;
 import org.wso2.iot.agent.services.NotificationService;
 import org.wso2.iot.agent.services.PolicyComplianceChecker;
 import org.wso2.iot.agent.services.PolicyOperationsMapper;
 import org.wso2.iot.agent.services.ResultPayload;
 import org.wso2.iot.agent.services.location.DeviceLocation;
+import org.wso2.iot.agent.services.screenshare.ScreenSharingService;
+import org.wso2.iot.agent.services.shell.RemoteShellExecutor;
+import org.wso2.iot.agent.transport.exception.TransportHandlerException;
+import org.wso2.iot.agent.transport.websocket.WebSocketSessionHandler;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
+import org.wso2.iot.agent.utils.HTTPAuthenticator;
 import org.wso2.iot.agent.utils.Preference;
 
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+
+import java.io.OutputStream;
+import java.net.Authenticator;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+
+
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public abstract class OperationManager implements APIResultCallBack, VersionBasedOperations {
 
@@ -321,6 +361,46 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Ringing is activated on the device");
         }
+    }
+
+    /**
+     * Upload file to server by calling fileUpload service.
+     *
+     * @param operation - operation object
+     * @throws AndroidAgentException - AndroidAgentException.
+     */
+    public void uploadFile(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
+        Intent upload = new Intent(context, FileUploadService.class);
+        upload.putExtra(resources.getString(R.string.intent_extra_operation_object), operation);
+        context.startService(upload);
+    }
+
+    /**
+     * Download file from server by calling file download service
+     *
+     * @param operation - operation object
+     * @throws AndroidAgentException - AndroidAgentException.
+     */
+    public void downloadFile(Operation operation) throws AndroidAgentException {
+        operation.setStatus(resources.getString(R.string.operation_value_progress));
+        Intent upload = new Intent(context, FileDownloadService.class);
+        upload.putExtra(resources.getString(R.string.intent_extra_operation_object), operation);
+        context.startService(upload);
+    }
+
+    /**
+     * Set response for file transfer operations by saving in a shared preference.
+     *
+     * @param operation - operation object
+     */
+    public void setResponse(Operation operation) {
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        operation.setEnabled(true);
+        editor.putInt(resources.getString(R.string.FILE_UPLOAD_ID), operation.getId());
+        editor.putString(resources.getString(R.string.FILE_UPLOAD_STATUS), operation.getStatus());
+        editor.putString(resources.getString(R.string.FILE_UPLOAD_RESPONSE), operation.getOperationResponse());
+        editor.apply();
     }
 
     /**

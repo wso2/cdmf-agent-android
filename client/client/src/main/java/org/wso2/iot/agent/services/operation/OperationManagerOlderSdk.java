@@ -117,6 +117,51 @@ public class OperationManagerOlderSdk extends OperationManager {
     }
 
     @Override
+    public void uploadFile(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
+        try {
+            JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
+            final String fileURL = inputData.getString(Constants.FileTransfer.FILE_LOCATION);
+            File selectedFile = new File(fileURL);
+            if (selectedFile.exists()) {
+                Context context = getContext();
+                Intent uploadIntent = new Intent(context, FileUploadReceiver.class);
+                uploadIntent.putExtra(getContextResources().getString(R.string.intent_extra_operation_object), operation);
+
+                PendingIntent requestPermission = PendingIntent.getBroadcast(context, 0, uploadIntent,
+                        PendingIntent.FLAG_CANCEL_CURRENT);
+
+                Intent cancelIntent = new Intent(context, FileUploadCancelReceiver.class);
+                cancelIntent.putExtra(getContextResources().getString(R.string.intent_extra_operation_object), operation);
+
+                PendingIntent cancel = PendingIntent.getBroadcast(context, 0, cancelIntent,
+                        PendingIntent.FLAG_CANCEL_CURRENT);
+
+                NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
+                mBuilder
+                        .setSmallIcon(android.R.drawable.ic_menu_upload)
+                        .setContentTitle(selectedFile.getName() + "is requested by WSO2 IOT agent.")
+                        .setTicker("WSO2 IOT agent")
+                        .setAutoCancel(true)
+                        .addAction(android.R.drawable.ic_menu_upload, "Allow", requestPermission)
+                        .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancel);
+                NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.notify(operation.getId(), mBuilder.build());
+            } else {
+                operation.setStatus(getContextResources().getString(R.string.
+                        operation_value_error));
+                operation.setOperationResponse("Requested file does not exists in device.");
+                setResponse(operation);
+            }
+        } catch (JSONException e) {
+            operation.setStatus(getContextResources().getString(R.string.
+                    operation_value_error));
+            operation.setOperationResponse("Error in operation payload");
+            setResponse(operation);
+        }
+    }
+
+    @Override
     public void clearPassword(Operation operation) {
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);

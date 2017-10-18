@@ -264,6 +264,8 @@ public class Constants {
 	 * Operation IDs
 	 */
 	public final class Operation {
+		public static final String FILE_DOWNLOAD = "FILE_UPLOAD_TO_THE_DEVICE";
+		public static final String FILE_UPLOAD = "FILE_DOWNLOAD_FROM_THE_DEVICE";
 		public static final String DEVICE_LOCK = "DEVICE_LOCK";
 		public static final String DEVICE_UNLOCK = "DEVICE_UNLOCK";
 		public static final String DEVICE_LOCATION = "DEVICE_LOCATION";
@@ -361,6 +363,19 @@ public class Constants {
 		private Operation() {
 			throw new AssertionError();
 		}
+	}
+
+	/**
+	 * File transfer uploadFile/downloadFile specific constants.
+	 */
+	public final class FileTransfer {
+		public static final String FILE_URL = "fileURL";
+		public static final String USER_NAME = "userName";
+		public static final String PASSWORD = "ftpPassword";
+		public static final String FILE_LOCATION = "fileLocation";
+		public static final String FTP = "ftp";
+		public static final String SFTP = "sftp";
+		public static final String HTTP = "http";
 	}
 
 	/**

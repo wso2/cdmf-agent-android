@@ -120,6 +120,12 @@ public class OperationProcessor {
 			case Constants.Operation.CHANGE_LOCK_CODE:
 				operationManager.changeLockCode(operation);
 				break;
+			case Constants.Operation.FILE_DOWNLOAD:
+				operationManager.downloadFile(operation);
+				break;
+			case Constants.Operation.FILE_UPLOAD:
+				operationManager.uploadFile(operation);
+				break;
 			case Constants.Operation.POLICY_BUNDLE:
 				this.setPolicyBundle(operation);
 				break;

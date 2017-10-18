@@ -27,6 +27,14 @@ import org.wso2.iot.agent.beans.Operation;
 public interface VersionBasedOperations {
 
     /**
+     * Upload file to the server
+     *
+     * @param operation -Operation object.
+     * @throws AndroidAgentException - AndroidAgent Exception.
+     */
+    void uploadFile(Operation operation) throws AndroidAgentException;
+
+    /**
      * Wipe the device.
      *
      * @param operation - Operation object.

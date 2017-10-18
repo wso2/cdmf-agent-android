@@ -75,7 +75,9 @@ public class FileDownloadService extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        Log.d(TAG, "Starting File upload service");
+        if (Constants.DEBUG_MODE_ENABLED) {
+            Log.d(TAG, "Starting File upload service");
+        }
         resources = getResources();
         editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
         if (intent != null) {
@@ -84,7 +86,7 @@ public class FileDownloadService extends IntentService {
             try {
                 downloadFile(operation);
             } catch (AndroidAgentException e) {
-                Log.d(TAG, e.getLocalizedMessage());
+                Log.e(TAG, e.getLocalizedMessage());
             }
         }
         this.stopSelf();
@@ -133,7 +135,9 @@ public class FileDownloadService extends IntentService {
         } catch (ArrayIndexOutOfBoundsException | JSONException | URISyntaxException e) {
             handleOperationError(operation, fileTransferExceptionCause(e, fileName), e);
         } finally {
-            Log.d(TAG, operation.getStatus());
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, operation.getStatus());
+            }
             setResponse(operation);
         }
     }

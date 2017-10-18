@@ -538,5 +538,10 @@
     <string name="FILE_DOWNLOAD_ID">FILE_DOWNLOAD_ID</string>
     <string name="FILE_DOWNLOAD_STATUS">FILE_DOWNLOAD_STATUS</string>
     <string name="FILE_DOWNLOAD_RESPONSE">FILE_DOWNLOAD_RESPONSE</string>
+    <string name="NOTIFICATION_TITLE">is requested by WSO2 IOT agent.</string>
+    <string name="NOTIFICATION_TICKER">WSO2 IOT agent</string>
+    <string name="NOTIFICATION_ALLOW">Allow</string>
+    <string name="NOTIFICATION_CANCEL">Cancel</string>
+
 
 </resources>

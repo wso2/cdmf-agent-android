@@ -74,7 +74,9 @@ public class FileUploadService extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        Log.d(TAG, "Starting File upload service");
+        if (Constants.DEBUG_MODE_ENABLED) {
+            Log.d(TAG, "Starting File upload service");
+        }
         resources = getResources();
         if (intent != null) {
             Operation operation = (Operation) intent.getExtras().getSerializable(resources.
@@ -82,7 +84,7 @@ public class FileUploadService extends IntentService {
             try {
                 uploadFile(operation);
             } catch (AndroidAgentException e) {
-                Log.d(TAG, e.getLocalizedMessage());
+                Log.e(TAG, e.getLocalizedMessage());
             }
         }
         this.stopSelf();
@@ -134,7 +136,9 @@ public class FileUploadService extends IntentService {
         } catch (JSONException | URISyntaxException e) {
             handleOperationError(operation, fileTransferExceptionCause(e, fileName), e, resources);
         } finally {
-            Log.d(TAG, operation.getStatus());
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, operation.getStatus());
+            }
             setResponse(operation);
         }
     }
@@ -226,7 +230,9 @@ public class FileUploadService extends IntentService {
             dataOutputStream.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
 
             serverResponseCode = connection.getResponseCode();
-            Log.i(TAG, "Server Response is: " + connection.getResponseMessage() + ": " + serverResponseCode);
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Server Response is: " + connection.getResponseMessage() + ": " + serverResponseCode);
+            }
             if (serverResponseCode == 200) {
                 operation.setStatus(resources.getString(R.string.operation_value_completed));
                 operation.setOperationResponse("File uploaded from the device completed ( " +

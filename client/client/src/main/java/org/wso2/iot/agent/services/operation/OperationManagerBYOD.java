@@ -94,11 +94,15 @@ public class OperationManagerBYOD extends OperationManager {
                 NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
                 mBuilder
                         .setSmallIcon(android.R.drawable.ic_menu_upload)
-                        .setContentTitle(selectedFile.getName() + " is requested by WSO2 IOT agent.")
-                        .setTicker("WSO2 IOT agent")
+                        .setContentTitle(selectedFile.getName() + getContextResources().getString(R.
+                                string.NOTIFICATION_TITLE))
+                        .setTicker(getContextResources().getString(R.
+                                string.NOTIFICATION_TICKER))
                         .setAutoCancel(true)
-                        .addAction(android.R.drawable.ic_menu_upload, "Allow", requestPermission)
-                        .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancel);
+                        .addAction(android.R.drawable.ic_menu_upload, getContextResources().getString(R.
+                                string.NOTIFICATION_ALLOW), requestPermission)
+                        .addAction(android.R.drawable.ic_menu_close_clear_cancel, getContextResources().
+                                getString(R.string.NOTIFICATION_CANCEL), cancel);
 
                 NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                 manager.notify(operation.getId(), mBuilder.build());

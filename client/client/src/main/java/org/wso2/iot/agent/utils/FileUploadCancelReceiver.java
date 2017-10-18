@@ -17,6 +17,7 @@
  */
 package org.wso2.iot.agent.utils;
 
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -27,8 +28,12 @@ import android.preference.PreferenceManager;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.beans.Operation;
 
-
+/**
+ * This class handles the operation when notification cancel button is clicked
+ * for file upload request.
+ */
 public class FileUploadCancelReceiver extends BroadcastReceiver {
+
     @Override
     public void onReceive(Context context, Intent intent) {
         Resources resources = context.getResources();
@@ -36,6 +41,8 @@ public class FileUploadCancelReceiver extends BroadcastReceiver {
                 getString(R.string.intent_extra_operation_object));
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
         if (operation != null) {
+            NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.cancel(operation.getId());
             operation.setStatus(resources.getString(R.string.operation_value_error));
             operation.setOperationResponse("Request rejected by the device user.");
             operation.setEnabled(true);

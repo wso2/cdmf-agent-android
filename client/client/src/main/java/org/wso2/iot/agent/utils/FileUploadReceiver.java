@@ -17,6 +17,7 @@
  */
 package org.wso2.iot.agent.utils;
 
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -26,6 +27,10 @@ import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.FileUploadService;
 
+/**
+ * This class handles the file upload process when Allow button
+ * of file upload notification is clicked.
+ */
 public class FileUploadReceiver extends BroadcastReceiver {
 
     @Override
@@ -33,6 +38,10 @@ public class FileUploadReceiver extends BroadcastReceiver {
         Resources resources = context.getResources();
         Operation operation = (Operation) intent.getExtras().getSerializable(resources.
                 getString(R.string.intent_extra_operation_object));
+        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (operation != null) {
+            manager.cancel(operation.getId());
+        }
         Intent upload = new Intent(context, FileUploadService.class);
         upload.putExtra(resources.
                 getString(R.string.intent_extra_operation_object), operation);

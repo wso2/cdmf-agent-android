@@ -19,12 +19,14 @@
 package org.wso2.iot.agent.services.operation;
 
 import android.app.AlarmManager;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -43,8 +45,11 @@ import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.AppLockService;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
+import org.wso2.iot.agent.utils.FileUploadCancelReceiver;
+import org.wso2.iot.agent.utils.FileUploadReceiver;
 import org.wso2.iot.agent.utils.Preference;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;

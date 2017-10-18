@@ -20,7 +20,9 @@ package org.wso2.iot.agent.services;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -323,7 +325,8 @@ public class MessageProcessor implements APIResultCallBack {
                 fileUpload.setStatus(prefs.getString("FILE_DOWNLOAD_STATUS","ERROR"));
                 fileUpload.setOperationResponse(prefs.getString("FILE_DOWNLOAD_RESPONSE","Error"));
                 replyPayload.add(fileUpload);
-                SharedPreferences.Editor editor = prefs.edit();
+                SharedPreferences
+                        .Editor editor = prefs.edit();
                 editor.remove("FILE_DOWNLOAD_ID");
                 editor.apply();
             }

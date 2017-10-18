@@ -26,40 +26,26 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.graphics.Path;
 import android.location.Location;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
-import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
-import android.util.Base64;
 import android.util.Log;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.Gson;
-import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.SftpException;
 
 import org.apache.commons.io.input.ReversedLinesFileReader;
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPConnectionClosedException;
-import org.apache.commons.net.ftp.FTPSClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
-import org.wso2.iot.agent.activities.ScreenShareActivity;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceInfo;
 import org.wso2.iot.agent.api.RootChecker;
@@ -86,37 +72,12 @@ import org.wso2.iot.agent.services.PolicyComplianceChecker;
 import org.wso2.iot.agent.services.PolicyOperationsMapper;
 import org.wso2.iot.agent.services.ResultPayload;
 import org.wso2.iot.agent.services.location.DeviceLocation;
-import org.wso2.iot.agent.services.screenshare.ScreenSharingService;
-import org.wso2.iot.agent.services.shell.RemoteShellExecutor;
-import org.wso2.iot.agent.transport.exception.TransportHandlerException;
-import org.wso2.iot.agent.transport.websocket.WebSocketSessionHandler;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
-import org.wso2.iot.agent.utils.HTTPAuthenticator;
 import org.wso2.iot.agent.utils.Preference;
 
-
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-
-import java.io.OutputStream;
-import java.net.Authenticator;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-
-
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Calendar;

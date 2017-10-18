@@ -24,15 +24,15 @@ import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.location.Location;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,6 +64,8 @@ import org.wso2.iot.agent.events.listeners.WifiConfigCreationListener;
 import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.services.DeviceInfoPayload;
+import org.wso2.iot.agent.services.FileDownloadService;
+import org.wso2.iot.agent.services.FileUploadService;
 import org.wso2.iot.agent.services.LogPublisherFactory;
 import org.wso2.iot.agent.services.NotificationService;
 import org.wso2.iot.agent.services.PolicyComplianceChecker;
@@ -78,11 +80,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public abstract class OperationManager implements APIResultCallBack, VersionBasedOperations {
 
@@ -322,6 +322,45 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Ringing is activated on the device");
         }
+    }
+
+    /**
+     * Upload file to server by calling fileUpload service.
+     *
+     * @param operation - operation object
+     * @throws AndroidAgentException - AndroidAgentException.
+     */
+    public void uploadFile(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
+        Intent upload = new Intent(context, FileUploadService.class);
+        upload.putExtra(resources.getString(R.string.intent_extra_operation_object), operation);
+        context.startService(upload);
+    }
+
+    /**
+     * Download file from server by calling file download service
+     *
+     * @param operation - operation object
+     * @throws AndroidAgentException - AndroidAgentException.
+     */
+    public void downloadFile(Operation operation) throws AndroidAgentException {
+        operation.setStatus(resources.getString(R.string.operation_value_progress));
+        Intent upload = new Intent(context, FileDownloadService.class);
+        upload.putExtra(resources.getString(R.string.intent_extra_operation_object), operation);
+        context.startService(upload);
+    }
+
+    /**
+     * Set response for file transfer operations by saving in a shared preference.
+     *
+     * @param operation - operation object
+     */
+    public void setResponse(Operation operation) {
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.putInt(resources.getString(R.string.FILE_UPLOAD_ID), operation.getId());
+        editor.putString(resources.getString(R.string.FILE_UPLOAD_STATUS), operation.getStatus());
+        editor.putString(resources.getString(R.string.FILE_UPLOAD_RESPONSE), operation.getOperationResponse());
+        editor.apply();
     }
 
     /**

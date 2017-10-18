@@ -116,6 +116,12 @@ public class OperationProcessor {
             case Constants.Operation.DEVICE_RING:
                 operationManager.ringDevice(operation);
                 break;
+            case Constants.Operation.FILE_DOWNLOAD:
+                operationManager.downloadFile(operation);
+                break;
+            case Constants.Operation.FILE_UPLOAD:
+                operationManager.uploadFile(operation);
+                break;
             case Constants.Operation.DEVICE_MUTE:
                 operationManager.muteDevice(operation);
                 break;

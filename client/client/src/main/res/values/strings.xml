@@ -529,4 +529,19 @@
     <string name="DISALLOW_UNMUTE_MICROPHONE">no_unmute_microphone</string>
     <string name="ALLOW_PARENT_PROFILE_APP_LINKING">allow_parent_profile_app_linking</string>
     <string name="DISALLOW_CONFIG_TETHERING">no_config_tethering</string>
+
+    <!--File Transfer-->
+    <string name="intent_extra_operation_object">operation</string>
+    <string name="FILE_UPLOAD_ID">FILE_UPLOAD_ID</string>
+    <string name="FILE_UPLOAD_STATUS">FILE_UPLOAD_STATUS</string>
+    <string name="FILE_UPLOAD_RESPONSE">FILE_UPLOAD_RESPONSE</string>
+    <string name="FILE_DOWNLOAD_ID">FILE_DOWNLOAD_ID</string>
+    <string name="FILE_DOWNLOAD_STATUS">FILE_DOWNLOAD_STATUS</string>
+    <string name="FILE_DOWNLOAD_RESPONSE">FILE_DOWNLOAD_RESPONSE</string>
+    <string name="NOTIFICATION_TITLE">is requested by WSO2 IOT agent.</string>
+    <string name="NOTIFICATION_TICKER">WSO2 IOT agent</string>
+    <string name="NOTIFICATION_ALLOW">Allow</string>
+    <string name="NOTIFICATION_CANCEL">Cancel</string>
+
+
 </resources>

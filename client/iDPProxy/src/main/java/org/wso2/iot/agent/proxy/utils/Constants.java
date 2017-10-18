@@ -54,13 +54,15 @@ public class Constants {
 		public static final int DEFAULT_RETRY_COUNT = 3;
 		public static final int DEFAULT_TOKEN_TIME_OUT = 120000;
 		public static final int DEFAULT_TOKEN_RETRY_COUNT = 0;
+		//Taken will renew after tokenValidityTime * TOKEN_VALIDITY_PERCENTAGE%
+		public static final int TOKEN_VALIDITY_PERCENTAGE = 90;
 	}
 
 	public static final String SERVER_PROTOCOL = BuildConfig.SERVER_PROTOCOL;
-	public static final String TRUSTSTORE_PASSWORD = "wso2carbon";
-	public static final String KEYSTORE_PASSWORD = "wso2carbon";
-	public static final String TRUSTSTORE_LOCATION = null;
-	public static final String KEYSTORE_LOCATION = null;
+	public static final String TRUSTSTORE_PASSWORD = BuildConfig.TRUSTSTORE_PASSWORD;
+	public static final String KEYSTORE_PASSWORD = BuildConfig.KEYSTORE_PASSWORD;
+	public static final String TRUSTSTORE_LOCATION = BuildConfig.TRUSTSTORE_LOCATION;
+	public static final String KEYSTORE_LOCATION = BuildConfig.KEYSTORE_LOCATION;
 	public static final boolean DEBUG_ENABLED = BuildConfig.DEBUG_MODE_ENABLED;
 	public final static int ACCESS_TOKEN_AGE = 3000;
 

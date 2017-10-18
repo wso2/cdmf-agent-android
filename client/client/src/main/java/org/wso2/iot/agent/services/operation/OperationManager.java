@@ -165,7 +165,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         AUTHORIZED_PINNING_APPS = new String[]{AGENT_PACKAGE_NAME};
         applicationManager = new ApplicationManager(context);
         notificationService = NotificationService.getInstance(context.getApplicationContext());
-        if(Constants.DEBUG_MODE_ENABLED) {
+        if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "New OperationManager created.");
         }
     }
@@ -242,7 +242,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         operation.setOperationResponse(replyPayload);
         operation.setStatus(resources.getString(R.string.operation_value_completed));
         resultBuilder.build(operation);
-        if(Constants.DEBUG_MODE_ENABLED) {
+        if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "getDeviceInfo executed.");
         }
     }
@@ -297,7 +297,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             resultBuilder.build(operation);
             throw new AndroidAgentException("Invalid JSON format.", e);
         }
-        if(Constants.DEBUG_MODE_ENABLED) {
+        if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "getLocationInfo executed.");
         }
     }
@@ -351,11 +351,11 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         resultBuilder.build(operation);
         Intent intent = new Intent(context, AlertActivity.class);
         intent.putExtra(resources.getString(R.string.intent_extra_type),
-                        resources.getString(R.string.intent_extra_ring));
+                resources.getString(R.string.intent_extra_ring));
         intent.putExtra(resources.getString(R.string.intent_extra_message_text),
-                        resources.getString(R.string.intent_extra_stop_ringing));
+                resources.getString(R.string.intent_extra_stop_ringing));
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                        Intent.FLAG_ACTIVITY_NEW_TASK);
+                Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
 
         if (Constants.DEBUG_MODE_ENABLED) {
@@ -450,7 +450,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             if (!wifiData.isNull(WifiProfile.CACERTNAME)) {
                 wifiProfile.setCaCertName(wifiData.getString(WifiProfile.CACERTNAME));
             }
-            
+
         } catch (JSONException e) {
             operation.setStatus(resources.getString(R.string.operation_value_error));
             operation.setOperationResponse("Error in parsing WIFI payload.");
@@ -487,7 +487,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             }
         });
 
-        if(Constants.DEBUG_MODE_ENABLED) {
+        if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "configureWifi executed.");
         }
     }
@@ -607,7 +607,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 List<org.wso2.iot.agent.beans.Operation> operations = mapper.readValue(
                         payload,
                         mapper.getTypeFactory().constructCollectionType(List.class,
-                                                                        org.wso2.iot.agent.beans.Operation.class));
+                                org.wso2.iot.agent.beans.Operation.class));
                 for (org.wso2.iot.agent.beans.Operation op : operations) {
                     op = operationsMapper.getOperation(op);
                     result.add(policyChecker.checkPolicyState(op));
@@ -710,20 +710,30 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         JSONObject result = new JSONObject();
 
         try {
-            String status = resources.getString(R.string.shared_pref_default_status);
-            result.put(resources.getString(R.string.operation_status), status);
+            boolean isRebootPossible = Constants.SYSTEM_APP_ENABLED
+                    || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && this instanceof OperationManagerDeviceOwner)
+                    || RootChecker.isDeviceRooted();
+            result.put(resources.getString(R.string.operation_status), isRebootPossible);
             operation.setPayLoad(result.toString());
 
-            if (status.equals(resources.getString(R.string.shared_pref_default_status))) {
-                operation.setStatus(resources.getString(R.string.operation_value_completed));
+            if (isRebootPossible) {
+                int lastRebootOperationId = Preference.getInt(context, resources.getString(R.string.shared_pref_reboot_op_id));
+                if (lastRebootOperationId == operation.getId()) {
+                    Log.i(TAG, "Ignoring duplicated reboot operation");
+                    return; //Ignoring duplicate reboot operation
+                } else {
+                    Preference.removePreference(context, resources.getString(R.string.shared_pref_reboot_status));
+                    Preference.removePreference(context, resources.getString(R.string.shared_pref_reboot_result));
+                    Preference.putInt(context, resources.getString(R.string.shared_pref_reboot_op_id), operation.getId());
+                }
+                operation.setStatus(resources.getString(R.string.operation_value_pending));
                 resultBuilder.build(operation);
 
                 if (Constants.DEBUG_MODE_ENABLED) {
                     Log.d(TAG, "Reboot initiated.");
                 }
             } else {
-                Toast.makeText(context, resources.getString(R.string.toast_message_reboot_failed),
-                               Toast.LENGTH_LONG).show();
+                Log.e(TAG, resources.getString(R.string.toast_message_reboot_failed));
                 operation.setStatus(resources.getString(R.string.operation_value_error));
                 operation.setOperationResponse(resources.getString(R.string.toast_message_reboot_failed));
                 resultBuilder.build(operation);
@@ -848,13 +858,13 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         } else {
             operation.setStatus(resources.getString(R.string.operation_value_completed));
             resultBuilder.build(operation);
-            NotificationCompat.Builder mBuilder =   new NotificationCompat.Builder(context)
-                    .setSmallIcon(R.drawable.ic_launcher)
+            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
+                    .setSmallIcon(R.drawable.ic_lock_white_24dp)
                     .setContentTitle(context.getString(R.string.alert_message))
                     .setContentText(message)
                     .setAutoCancel(true)
                     .setContentIntent(PendingIntent.getActivity(context, 0, new Intent(), 0));
-            NotificationManager notificationManager= (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.notify(0, mBuilder.build());
             devicePolicyManager.lockNow();
         }
@@ -958,9 +968,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             intent.putExtra(resources.getString(R.string.intent_extra_payload), operation.getPayLoad().toString());
             intent.putExtra(resources.getString(R.string.intent_extra_type),
                     Constants.Operation.VPN);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                    Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             context.startActivity(intent);
         }
 
@@ -979,7 +988,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      */
     public void getLogcat(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
         String logLevel = Constants.LogPublisher.LOG_LEVEL;
-        if (Constants.SYSTEM_APP_ENABLED){
+        if (Constants.SYSTEM_APP_ENABLED) {
             try {
                 JSONObject commandObj = new JSONObject();
                 commandObj.put("operation_id", operation.getId());
@@ -1097,7 +1106,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "Notification received");
             }
-        } catch (JSONException e) {
+        } catch (JSONException | NullPointerException e) {
             operation.setStatus(getContextResources().getString(R.string.operation_value_error));
             operation.setOperationResponse("Error in parsing NOTIFICATION payload.");
             getResultBuilder().build(operation);
@@ -1130,8 +1139,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @return policy - ComplianceFeature object.
      */
     public ComplianceFeature checkInstallAppPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
-        String appIdentifier=null;
-        String name=null;
+        String appIdentifier = null;
+        String name = null;
 
         try {
             JSONObject appData = new JSONObject(operation.getPayLoad().toString());
@@ -1144,11 +1153,11 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 name = appData.getString(getContextResources().getString(R.string.intent_extra_name));
             }
 
-            if(isAppInstalled(appIdentifier)){
+            if (isAppInstalled(appIdentifier)) {
                 policy.setCompliance(true);
-            }else{
+            } else {
                 policy.setCompliance(false);
-                policy.setMessage(getContextResources().getString(R.string.error_app_install_policy)+name);
+                policy.setMessage(getContextResources().getString(R.string.error_app_install_policy) + name);
             }
 
         } catch (JSONException e) {
@@ -1165,8 +1174,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @return policy - ComplianceFeature object.
      */
     public ComplianceFeature checkUninstallAppPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
-        String appIdentifier=null;
-        String name=null;
+        String appIdentifier = null;
+        String name = null;
 
         try {
             JSONObject appData = new JSONObject(operation.getPayLoad().toString());
@@ -1179,11 +1188,11 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 name = appData.getString(getContextResources().getString(R.string.intent_extra_name));
             }
 
-            if(!isAppInstalled(appIdentifier)){
+            if (!isAppInstalled(appIdentifier)) {
                 policy.setCompliance(true);
-            }else{
+            } else {
                 policy.setCompliance(false);
-                policy.setMessage(getContextResources().getString(R.string.error_app_uninstall_policy)+name);
+                policy.setMessage(getContextResources().getString(R.string.error_app_uninstall_policy) + name);
             }
 
         } catch (JSONException e) {
@@ -1200,14 +1209,14 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @return appInstalled - App installed status.
      */
     private boolean isAppInstalled(String appIdentifier) {
-        boolean appInstalled=false;
+        boolean appInstalled = false;
         ArrayList<DeviceAppInfo> apps = new ArrayList<>(getApplicationManager().getInstalledApps().values());
         for (DeviceAppInfo appInfo : apps) {
-            if(appIdentifier.trim().equals(appInfo.getPackagename())){
+            if (appIdentifier.trim().equals(appInfo.getPackagename())) {
                 appInstalled = true;
             }
         }
-        return  appInstalled;
+        return appInstalled;
     }
 
     /**
@@ -1217,7 +1226,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @return policy - ComplianceFeature object.
      */
     public ComplianceFeature checkEncryptPolicy(Operation operation, ComplianceFeature policy) {
-        boolean encryptStatus = (getDevicePolicyManager().getStorageEncryptionStatus()!= getDevicePolicyManager().
+        boolean encryptStatus = (getDevicePolicyManager().getStorageEncryptionStatus() != getDevicePolicyManager().
                 ENCRYPTION_STATUS_UNSUPPORTED && getDevicePolicyManager().
                 getStorageEncryptionStatus() != getDevicePolicyManager().ENCRYPTION_STATUS_INACTIVE);
 
@@ -1237,9 +1246,9 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @return policy - ComplianceFeature object.
      */
     public ComplianceFeature checkPasswordPolicy(ComplianceFeature policy) {
-        if(getDevicePolicyManager().isActivePasswordSufficient()){
+        if (getDevicePolicyManager().isActivePasswordSufficient()) {
             policy.setCompliance(true);
-        }else{
+        } else {
             policy.setCompliance(false);
         }
 
@@ -1262,9 +1271,9 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             }
 
             WiFiConfig config = new WiFiConfig(getContext().getApplicationContext());
-            if(config.findWifiConfigurationBySsid(ssid)){
+            if (config.findWifiConfigurationBySsid(ssid)) {
                 policy.setCompliance(true);
-            }else{
+            } else {
                 policy.setCompliance(false);
                 policy.setMessage(getContextResources().getString(R.string.error_wifi_policy));
             }
@@ -1301,10 +1310,10 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             String permittedPackageName;
             JSONObject permittedApp;
             String whiteListAppsPref;
-            for (String packageName: remainApps) {
+            for (String packageName : remainApps) {
                 whiteListAppsPref = Preference.
                         getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
-                if(whiteListAppsPref != null) {
+                if (whiteListAppsPref != null) {
                     try {
                         JSONArray whiteListApps = new JSONArray(whiteListAppsPref);
                         for (int i = 0; i < whiteListApps.length(); i++) {
@@ -1317,7 +1326,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                             }
                         }
                     } catch (JSONException e) {
-                                Log.e(TAG, "Invalid JSON format..");
+                        Log.e(TAG, "Invalid JSON format..");
                     }
                 }
             }

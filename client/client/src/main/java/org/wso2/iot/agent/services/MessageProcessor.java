@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- * 
+ *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -300,6 +300,34 @@ public class MessageProcessor implements APIResultCallBack {
                     Preference.removePreference(context, Constants.Operation.LOGCAT);
                 }
             }
+
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+            int uploadId = prefs.getInt("FILE_UPLOAD_ID", -1);
+            if (uploadId > 0) {
+                Operation fileUpload = new Operation();
+                fileUpload.setCode(Constants.Operation.FILE_UPLOAD);
+                fileUpload.setId(uploadId);
+                fileUpload.setStatus(prefs.getString("FILE_UPLOAD_STATUS", "ERROR"));
+                fileUpload.setOperationResponse(prefs.getString("FILE_UPLOAD_RESPONSE", "Error"));
+                replyPayload.add(fileUpload);
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.remove("FILE_UPLOAD_ID");
+                editor.apply();
+            }
+
+            int downloadId = prefs.getInt("FILE_DOWNLOAD_ID", -1);
+            if (downloadId > 0) {
+                Operation fileUpload = new Operation();
+                fileUpload.setCode(Constants.Operation.FILE_UPLOAD);
+                fileUpload.setId(uploadId);
+                fileUpload.setStatus(prefs.getString("FILE_DOWNLOAD_STATUS", "ERROR"));
+                fileUpload.setOperationResponse(prefs.getString("FILE_DOWNLOAD_RESPONSE", "Error"));
+                replyPayload.add(fileUpload);
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.remove("FILE_DOWNLOAD_ID");
+                editor.apply();
+            }
+
             requestParams = mapper.writeValueAsString(replyPayload);
         } catch (JsonMappingException e) {
             throw new AndroidAgentException("Issue in json mapping", e);
@@ -311,56 +339,6 @@ public class MessageProcessor implements APIResultCallBack {
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Reply Payload: " + requestParams);
         }
-			if (Preference.hasPreferenceKey(context, Constants.Operation.LOGCAT)){
-				if (Preference.hasPreferenceKey(context, Constants.Operation.LOGCAT)) {
-					Gson operationGson = new Gson();
-					Operation logcatOperation = operationGson.fromJson(Preference
-							.getString(context, Constants.Operation.LOGCAT), Operation.class);
-					if (replyPayload == null) {
-						replyPayload = new ArrayList<>();
-					}
-					replyPayload.add(logcatOperation);
-					Preference.removePreference(context, Constants.Operation.LOGCAT);
-				}
-			}
-
-			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-			int uploadId = prefs.getInt("FILE_UPLOAD_ID", -1);
-			if (uploadId > 0) {
-				Operation fileUpload = new Operation();
-				fileUpload.setCode(Constants.Operation.FILE_UPLOAD);
-				fileUpload.setId(uploadId);
-				fileUpload.setStatus(prefs.getString("FILE_UPLOAD_STATUS", "ERROR"));
-				fileUpload.setOperationResponse(prefs.getString("FILE_UPLOAD_RESPONSE", "Error"));
-				replyPayload.add(fileUpload);
-				SharedPreferences.Editor editor = prefs.edit();
-				editor.remove("FILE_UPLOAD_ID");
-				editor.apply();
-			}
-
-			int downloadId = prefs.getInt("FILE_DOWNLOAD_ID", -1);
-			if (downloadId > 0) {
-				Operation fileUpload = new Operation();
-				fileUpload.setCode(Constants.Operation.FILE_UPLOAD);
-				fileUpload.setId(uploadId);
-				fileUpload.setStatus(prefs.getString("FILE_DOWNLOAD_STATUS", "ERROR"));
-				fileUpload.setOperationResponse(prefs.getString("FILE_DOWNLOAD_RESPONSE", "Error"));
-				replyPayload.add(fileUpload);
-				SharedPreferences.Editor editor = prefs.edit();
-				editor.remove("FILE_DOWNLOAD_ID");
-				editor.apply();
-			}
-			requestParams =  mapper.writeValueAsString(replyPayload);
-		} catch (JsonMappingException e) {
-			throw new AndroidAgentException("Issue in json mapping", e);
-		} catch (JsonGenerationException e) {
-			throw new AndroidAgentException("Issue in json generation", e);
-		} catch (IOException e) {
-			throw new AndroidAgentException("Issue in parsing stream", e);
-		}
-		if (Constants.DEBUG_MODE_ENABLED) {
-			Log.d(TAG, "Reply Payload: " + requestParams);
-		}
 
         if (requestParams != null && requestParams.trim().equals(context.getResources().getString(
                 R.string.operation_value_null))) {

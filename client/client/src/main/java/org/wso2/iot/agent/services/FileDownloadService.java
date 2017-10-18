@@ -60,6 +60,9 @@ import java.net.URL;
 
 import static org.wso2.iot.agent.utils.FileTransferUtils.cleanupStreams;
 
+/**
+ * Service to download files.
+ */
 public class FileDownloadService extends IntentService {
 
     private static final String TAG = FileDownloadService.class.getSimpleName();
@@ -76,7 +79,8 @@ public class FileDownloadService extends IntentService {
         resources = getResources();
         editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
         if (intent != null) {
-            Operation operation = (Operation) intent.getExtras().getSerializable("operation");
+            Operation operation = (Operation) intent.getExtras().getSerializable(resources.
+                    getString(R.string.intent_extra_operation_object));
             try {
                 downloadFile(operation);
             } catch (AndroidAgentException e) {
@@ -135,7 +139,6 @@ public class FileDownloadService extends IntentService {
     }
 
     private void setResponse(Operation operation) {
-        operation.setEnabled(true);
         editor.putInt(resources.getString(R.string.FILE_DOWNLOAD_ID), operation.getId());
         editor.putString(resources.getString(R.string.FILE_DOWNLOAD_STATUS), operation.getStatus());
         editor.putString(resources.getString(R.string.FILE_DOWNLOAD_RESPONSE), operation.getOperationResponse());

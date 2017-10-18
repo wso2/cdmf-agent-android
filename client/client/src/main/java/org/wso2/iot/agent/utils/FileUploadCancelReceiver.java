@@ -21,23 +21,27 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.preference.PreferenceManager;
 
+import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.beans.Operation;
 
 
 public class FileUploadCancelReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        Operation operation = (Operation) intent.getExtras().getSerializable("operation");
+        Resources resources = context.getResources();
+        Operation operation = (Operation) intent.getExtras().getSerializable(resources.
+                getString(R.string.intent_extra_operation_object));
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
         if (operation != null) {
-            operation.setStatus("ERROR");
+            operation.setStatus(resources.getString(R.string.operation_value_error));
             operation.setOperationResponse("Request rejected by the device user.");
             operation.setEnabled(true);
-            editor.putInt("FILE_UPLOAD_ID", operation.getId());
-            editor.putString("FILE_UPLOAD_STATUS", operation.getStatus());
-            editor.putString("FILE_UPLOAD_RESPONSE", operation.getOperationResponse());
+            editor.putInt(resources.getString(R.string.FILE_UPLOAD_ID), operation.getId());
+            editor.putString(resources.getString(R.string.FILE_UPLOAD_STATUS), operation.getStatus());
+            editor.putString(resources.getString(R.string.FILE_UPLOAD_RESPONSE), operation.getOperationResponse());
             editor.apply();
         }
     }

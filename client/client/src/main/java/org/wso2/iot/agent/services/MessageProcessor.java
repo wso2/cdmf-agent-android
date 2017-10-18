@@ -21,6 +21,7 @@ import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -303,31 +304,38 @@ public class MessageProcessor implements APIResultCallBack {
                 }
             }
 
+            Resources resources = context.getResources();
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-            int uploadId = prefs.getInt("FILE_UPLOAD_ID",-1);
-            if(uploadId >0){
+            int uploadId = prefs.getInt(resources.getString(R.string.FILE_UPLOAD_ID), -1);
+            if (uploadId > 0) {
                 Operation fileUpload = new Operation();
                 fileUpload.setCode(Constants.Operation.FILE_UPLOAD);
                 fileUpload.setId(uploadId);
-                fileUpload.setStatus(prefs.getString("FILE_UPLOAD_STATUS","ERROR"));
-                fileUpload.setOperationResponse(prefs.getString("FILE_UPLOAD_RESPONSE","Error"));
+                fileUpload.setStatus(prefs.getString(resources.getString(R.string.FILE_UPLOAD_STATUS),
+                        resources.getString(R.string.operation_value_error)));
+                fileUpload.setOperationResponse(prefs.getString(resources.getString(R.string.
+                        FILE_UPLOAD_RESPONSE), resources.getString(R.string.operation_value_error)));
+                fileUpload.setEnabled(true);
                 replyPayload.add(fileUpload);
                 SharedPreferences.Editor editor = prefs.edit();
-                editor.remove("FILE_UPLOAD_ID");
+                editor.remove(resources.getString(R.string.FILE_UPLOAD_ID));
                 editor.apply();
             }
 
-            int downloadId = prefs.getInt("FILE_DOWNLOAD_ID",-1);
-            if(downloadId >0){
-                Operation fileUpload = new Operation();
-                fileUpload.setCode(Constants.Operation.FILE_UPLOAD);
-                fileUpload.setId(uploadId);
-                fileUpload.setStatus(prefs.getString("FILE_DOWNLOAD_STATUS","ERROR"));
-                fileUpload.setOperationResponse(prefs.getString("FILE_DOWNLOAD_RESPONSE","Error"));
-                replyPayload.add(fileUpload);
+            int downloadId = prefs.getInt(resources.getString(R.string.FILE_DOWNLOAD_ID), -1);
+            if (downloadId > 0) {
+                Operation fileDownload = new Operation();
+                fileDownload.setCode(Constants.Operation.FILE_DOWNLOAD);
+                fileDownload.setId(downloadId);
+                fileDownload.setStatus(prefs.getString(resources.getString(R.string.FILE_DOWNLOAD_STATUS),
+                        resources.getString(R.string.operation_value_error)));
+                fileDownload.setOperationResponse(prefs.getString(resources.getString(R.string.
+                        FILE_DOWNLOAD_RESPONSE), resources.getString(R.string.operation_value_error)));
+                fileDownload.setEnabled(true);
+                replyPayload.add(fileDownload);
                 SharedPreferences
                         .Editor editor = prefs.edit();
-                editor.remove("FILE_DOWNLOAD_ID");
+                editor.remove(resources.getString(R.string.FILE_DOWNLOAD_ID));
                 editor.apply();
             }
 

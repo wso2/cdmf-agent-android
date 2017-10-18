@@ -20,7 +20,9 @@ package org.wso2.iot.agent.utils;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 
+import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.FileUploadService;
 
@@ -28,9 +30,12 @@ public class FileUploadReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Operation operation = (Operation) intent.getExtras().getSerializable("operation");
+        Resources resources = context.getResources();
+        Operation operation = (Operation) intent.getExtras().getSerializable(resources.
+                getString(R.string.intent_extra_operation_object));
         Intent upload = new Intent(context, FileUploadService.class);
-        upload.putExtra("operation", operation);
+        upload.putExtra(resources.
+                getString(R.string.intent_extra_operation_object), operation);
         context.startService(upload);
     }
 }

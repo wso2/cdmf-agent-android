@@ -77,7 +77,8 @@ public class FileUploadService extends IntentService {
         Log.d(TAG, "Starting File upload service");
         resources = getResources();
         if (intent != null) {
-            Operation operation = (Operation) intent.getExtras().getSerializable("operation");
+            Operation operation = (Operation) intent.getExtras().getSerializable(resources.
+                    getString(R.string.intent_extra_operation_object));
             try {
                 uploadFile(operation);
             } catch (AndroidAgentException e) {

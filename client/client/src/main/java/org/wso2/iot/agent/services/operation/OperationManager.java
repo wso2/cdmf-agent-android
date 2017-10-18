@@ -357,7 +357,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      */
     public void setResponse(Operation operation) {
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-        operation.setEnabled(true);
         editor.putInt(resources.getString(R.string.FILE_UPLOAD_ID), operation.getId());
         editor.putString(resources.getString(R.string.FILE_UPLOAD_STATUS), operation.getStatus());
         editor.putString(resources.getString(R.string.FILE_UPLOAD_RESPONSE), operation.getOperationResponse());

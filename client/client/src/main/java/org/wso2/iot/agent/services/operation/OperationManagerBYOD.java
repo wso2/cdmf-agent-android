@@ -19,6 +19,7 @@
 package org.wso2.iot.agent.services.operation;
 
 import android.app.AlarmManager;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
@@ -26,6 +27,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -47,8 +49,11 @@ import org.wso2.iot.agent.services.NotificationService;
 import org.wso2.iot.agent.services.ResultPayload;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
+import org.wso2.iot.agent.utils.FileUploadCancelReceiver;
+import org.wso2.iot.agent.utils.FileUploadReceiver;
 import org.wso2.iot.agent.utils.Preference;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -72,6 +77,57 @@ public class OperationManagerBYOD extends OperationManager {
     @Override
     public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
         super.onReceiveAPIResult(result, requestCode);
+    }
+
+    @Override
+    public void uploadFile(Operation operation) throws AndroidAgentException {
+        operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
+        try {
+            JSONObject inputData =
+                    new JSONObject(operation.getPayLoad().toString());
+            final String fileURL = inputData.getString(Constants.FileTransfer.FILE_LOCATION);
+            File selectedFile = new File(fileURL);
+            if (selectedFile.exists()) {
+                Context context = getContext();
+                Intent uploadIntent = new Intent(context, FileUploadReceiver.class);
+                uploadIntent.putExtra(getContextResources().getString(R.string.intent_extra_operation_object), operation);
+
+                PendingIntent requestPermission = PendingIntent.getBroadcast(context, 0, uploadIntent,
+                        PendingIntent.FLAG_CANCEL_CURRENT);
+
+                Intent cancelIntent = new Intent(context, FileUploadCancelReceiver.class);
+                cancelIntent.putExtra(getContextResources().getString(R.string.intent_extra_operation_object), operation);
+
+                PendingIntent cancel = PendingIntent.getBroadcast(context, 0, cancelIntent,
+                        PendingIntent.FLAG_CANCEL_CURRENT);
+
+                NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
+                mBuilder
+                        .setSmallIcon(android.R.drawable.ic_menu_upload)
+                        .setContentTitle(selectedFile.getName() + getContextResources().getString(R.
+                                string.NOTIFICATION_TITLE))
+                        .setTicker(getContextResources().getString(R.
+                                string.NOTIFICATION_TICKER))
+                        .setAutoCancel(true)
+                        .addAction(android.R.drawable.ic_menu_upload, getContextResources().getString(R.
+                                string.NOTIFICATION_ALLOW), requestPermission)
+                        .addAction(android.R.drawable.ic_menu_close_clear_cancel, getContextResources().
+                                getString(R.string.NOTIFICATION_CANCEL), cancel);
+
+                NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.notify(operation.getId(), mBuilder.build());
+            } else {
+                operation.setStatus(getContextResources().getString(R.string.
+                        operation_value_error));
+                operation.setOperationResponse("Requested file does not exists in device.");
+                setResponse(operation);
+            }
+        } catch (JSONException e) {
+            operation.setStatus(getContextResources().getString(R.string.
+                    operation_value_error));
+            operation.setOperationResponse("Error in operation payload");
+            setResponse(operation);
+        }
     }
 
     @Override

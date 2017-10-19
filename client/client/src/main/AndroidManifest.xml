@@ -88,6 +88,8 @@
         </receiver>
         <receiver android:name=".services.AlarmReceiver" />
         <receiver android:name=".events.EventAlarmReceiver" />
+        <receiver android:name=".utils.FileUploadReceiver" />
+        <receiver android:name=".utils.FileUploadCancelReceiver" />
         <receiver
             android:name=".services.AgentStartupReceiver"
             android:enabled="true"
@@ -146,6 +148,8 @@
             </intent-filter>
         </receiver>
 
+        <service android:name=".services.FileUploadService" />
+        <service android:name=".services.FileDownloadService" />
         <service
             android:name=".services.ApplicationManagementService"
             android:enabled="true"

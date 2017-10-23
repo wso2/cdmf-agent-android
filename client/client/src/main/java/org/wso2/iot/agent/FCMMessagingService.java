@@ -41,7 +41,9 @@ public class FCMMessagingService extends FirebaseMessagingService {
 		Log.d(TAG, "New FCM notification.");
 		MessageProcessor messageProcessor = new MessageProcessor(context);
 		try {
-			messageProcessor.getMessages();
+			if (Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED)) {
+				messageProcessor.getMessages();
+			}
 		} catch (AndroidAgentException e) {
 			Log.e(TAG, "Failed to perform operation", e);
 		}

@@ -57,6 +57,9 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_registration);
 		context = this;
+		if (Constants.NOTIFIER_FCM.equals(Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE))) {
+			registerFCM();
+		}
 		deviceInfoBuilder = new DeviceInfoPayload(context);
 		DeviceInfo deviceInfo = new DeviceInfo(context);
 		String deviceIdentifier = deviceInfo.getDeviceId();
@@ -221,16 +224,13 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 				responseStatus = result.get(Constants.STATUS);
 				Preference.putString(context, Constants.PreferenceFlag.REG_ID, info.getDeviceId());
 				if (Constants.Status.SUCCESSFUL.equals(responseStatus) || Constants.Status.CREATED.equals(responseStatus)) {
-					if (Constants.NOTIFIER_FCM.equals(Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE))) {
-						registerFCM();
+					CommonDialogUtils.stopProgressDialog(progressDialog);
+					if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
+						loadKioskActivity();
 					} else {
-						CommonDialogUtils.stopProgressDialog(progressDialog);
-						if(Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)){
-							loadKioskActivity();
-						}else{
-							loadAlreadyRegisteredActivity();
-						}
+						loadAlreadyRegisteredActivity();
 					}
+
 				} else {
 					displayInternalServerError();
 				}
@@ -271,11 +271,6 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		String token =  FirebaseInstanceId.getInstance().getToken();
 		if(token != null) {
 			Preference.putString(context, Constants.FCM_REG_ID, token);
-			try {
-				sendRegistrationId();
-			} catch (AndroidAgentException e) {
-				Log.e(TAG, "Error while sending registration Id");
-			}
 		} else {
 			try {
 				CommonUtils.clearAppData(context);

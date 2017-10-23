@@ -54,12 +54,14 @@ public class HttpDataPublisher implements APIResultCallBack, DataPublisher {
         eventPayload.setDeviceIdentifier(deviceIdentifier);
         try {
             String responsePayload = CommonUtils.toJSON(eventPayload);
-            CommonUtils.callSecuredAPI(context,
-                    utils.getAPIServerURL(context) +
-                            Constants.EVENT_ENDPOINT, org.wso2.iot.agent.proxy.utils.
-                            Constants.HTTP_METHODS.POST,
-                    responsePayload, HttpDataPublisher.this,
-                    Constants.EVENT_REQUEST_CODE);
+            if (Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED)) {
+                CommonUtils.callSecuredAPI(context,
+                        utils.getAPIServerURL(context) +
+                                Constants.EVENT_ENDPOINT, org.wso2.iot.agent.proxy.utils.
+                                Constants.HTTP_METHODS.POST,
+                        responsePayload, HttpDataPublisher.this,
+                        Constants.EVENT_REQUEST_CODE);
+            }
         } catch (AndroidAgentException e) {
             Log.e(TAG, "Cannot convert event data to JSON");
         }

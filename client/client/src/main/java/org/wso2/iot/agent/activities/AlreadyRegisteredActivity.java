@@ -131,6 +131,19 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 			if (!isDeviceAdminActive()) {
 				startEvents();
 			}
+			// In FCM, for fresh registrations, the initial FCM notification has been ignored
+			// purposely to avoid calling the server during enrollment flow and causing threading
+			// issues. Therefore after initial enrollment, pending operations is called manually.
+			if (Constants.NOTIFIER_FCM.equals(Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE))) {
+				MessageProcessor messageProcessor = new MessageProcessor(context);
+				try {
+					if (Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED)) {
+						messageProcessor.getMessages();
+					}
+				} catch (AndroidAgentException e) {
+					Log.e(TAG, "Failed to perform operation", e);
+				}
+			}
 			isFreshRegistration = false;
 		}
 
@@ -514,6 +527,7 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 	 */
 	private void initiateUnregistration() {
 		CommonUtils.disableAdmin(context);
+		Preference.putBoolean(context, Constants.PreferenceFlag.REGISTERED, false);
 		loadInitialActivity();
 	}
 

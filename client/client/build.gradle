@@ -286,6 +286,7 @@ android {
             //Collect WiFi scan results
             buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "false"
             debuggable true
+            signingConfig signingConfigs.debug
         }
         debugCope {
             // DEBUG_MODE_ENABLED: Make the agent print the debug logs.
@@ -302,7 +303,7 @@ android {
             // Set DEFAULT_OWNERSHIP to null if no overriding is needed. Other possible values are,
             // BYOD or COPE. If you are using the mutual SSL authentication
             // This value must be set to a value other than null.
-            buildConfigField "String", "DEFAULT_OWNERSHIP", "COPE"
+            buildConfigField "String", "DEFAULT_OWNERSHIP", "\"COPE\""
             //DEFAULT_HOST - Hardcode the server host to avoid having the user type it during
             //enrollment. If the user must type the hostname/IP during enrollment, leave it as null.
             buildConfigField "String", "DEFAULT_HOST", "null"
@@ -342,7 +343,7 @@ android {
             // SKIP_LICENSE: Skip displaying the license policy during enrollment.
             // This is recommended to be used in conjunction with
             // AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED
-            buildConfigField "boolean", "SKIP_LICENSE", "false"
+            buildConfigField "boolean", "SKIP_LICENSE", "true"
             // HIDE_LOGIN_UI: Skip displaying the login screen during enrollment.
             // This is recommended to be used in conjunction with
             // AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED
@@ -350,7 +351,7 @@ android {
             // SKIP_WORK_PROFILE_CREATION: This will hide the work profile creation step from the
             // user. This is recommended to be used in conjunction with
             // AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED
-            buildConfigField "boolean", "SKIP_WORK_PROFILE_CREATION", "false"
+            buildConfigField "boolean", "SKIP_WORK_PROFILE_CREATION", "true"
             // HIDE_ERROR_DIALOG: If this is set to true, agent will not show any error messages.
             // This is only recommended to use when the enrollment happens in background, and no
             // user interaction is needed. i.e in conjunction with
@@ -397,7 +398,7 @@ android {
             buildConfigField "boolean", "DISPLAY_WIPE_DEVICE_BUTTON", "true"
             // Under COSU mode, this will enable an area in the screen to exit from screen pinned
             // mode. This MUST be set to false in production, if COSU is used.
-            buildConfigField "boolean", "COSU_SECRET_EXIT", "true"
+            buildConfigField "boolean", "COSU_SECRET_EXIT", "false"
             buildConfigField "String", "EULA_TITLE", "\"POLICY AGREEMENT\""
             //Minimum Server API version that supported by the agent app
             buildConfigField "float", "MIN_SERVER_API_VERSION", "1.0f"
@@ -410,6 +411,7 @@ android {
             //Collect WiFi scan results
             buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "true"
             debuggable true
+            signingConfig signingConfigs.debug
         }
         standalone {
             // DEBUG_MODE_ENABLED: Make the agent print the debug logs.

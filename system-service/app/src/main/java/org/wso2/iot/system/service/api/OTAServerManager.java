@@ -301,7 +301,7 @@ public class OTAServerManager {
         }
         asyncTask = new AsyncTask<Void, Void, Void>() {
             protected Void doInBackground(Void... unused) {
-                Log.e(TAG, "Firmware download started");
+                Log.i(TAG, "Firmware download started");
                 Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
                         Constants.Status.OTA_UPGRADE_ONGOING);
 
@@ -346,7 +346,9 @@ public class OTAServerManager {
 
                             lengthOfFile = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
 
-                            Log.d(TAG, "Update package file size:" + lengthOfFile);
+                            if (Constants.DEBUG_MODE_ENABLED) {
+                                Log.d(TAG, "Update package file size:" + lengthOfFile);
+                            }
                             if (getFreeDiskSpace() < lengthOfFile) {
                                 String message = "Device does not have enough memory to download the OTA update";
                                 CommonUtils.sendBroadcast(context, Constants.Operation.UPGRADE_FIRMWARE, Constants.Code.FAILURE,
@@ -358,7 +360,9 @@ public class OTAServerManager {
 
                             int bytesDownloaded = cursor.getInt(cursor.getColumnIndex(DownloadManager.
                                     COLUMN_BYTES_DOWNLOADED_SO_FAR));
-                            Log.d(TAG, "downloaded bytes so far:" + bytesDownloaded);
+                            if (Constants.DEBUG_MODE_ENABLED) {
+                                Log.d(TAG, "downloaded bytes so far:" + bytesDownloaded);
+                            }
 
                             int bytesTotal = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
                             if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
@@ -366,7 +370,7 @@ public class OTAServerManager {
                                 downloading = false;
                                 Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
                                         context.getResources().getString(R.string.status_success));
-                                Log.d(TAG, "download successful");
+                                Log.i(TAG, "Download successful");
                                 if (serverManager.stateChangeListener != null) {
                                     serverManager.stateChangeListener.onStateOrProgress(OTAStateChangeListener.STATE_IN_DOWNLOADING,
                                             DEFAULT_STATE_ERROR_CODE, null, DEFAULT_STATE_INFO_CODE);

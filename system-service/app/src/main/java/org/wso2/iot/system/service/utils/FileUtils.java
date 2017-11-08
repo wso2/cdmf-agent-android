@@ -29,12 +29,15 @@ import java.io.File;
 public class FileUtils {
 
     public static String getUpgradePackageDirectory(){
-        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
+//        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
+        return Environment.getDownloadCacheDirectory().getPath();
     }
 
     public static String getUpgradePackageFilePath() {
         String path = getUpgradePackageDirectory();
         Log.d(FileUtils.class.getName(), path + File.separator + Constants.UPDATE_PACKAGE_NAME);
-        return getUpgradePackageDirectory() + File.separator + Constants.UPDATE_PACKAGE_NAME;
+//        return getUpgradePackageDirectory() + File.separator + Constants.UPDATE_PACKAGE_NAME;
+        return getUpgradePackageDirectory() + File.separator + "ota" + File.separator + Constants.UPDATE_PACKAGE_NAME;
+
     }
 }

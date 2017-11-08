@@ -304,6 +304,16 @@ public class OTAServerManager {
                 Log.i(TAG, "Firmware download started");
                 Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
                         Constants.Status.OTA_UPGRADE_ONGOING);
+                String cacheDirectory = FileUtils.getUpgradePackageDirectory();
+                File directory = new File(cacheDirectory, "/ota/");
+
+                if (!directory.exists()) {
+                    if (!directory.mkdir()) {
+                        Log.e(TAG, "Cannot create a directory!");
+                    } else {
+                        directory.mkdirs();
+                    }
+                }
 
                 URL url = serverConfig.getPackageURL();
 
@@ -327,7 +337,9 @@ public class OTAServerManager {
                     request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
                 }
                 // Set the local destination for the downloaded file to a path within the application's external files directory
-                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "update.zip");
+//                request.setDestinationInExternalPublicDir(FileUtils.getUpgradePackageFilePath(),"update.zip");
+                Uri uri = Uri.parse(directory.getAbsolutePath());
+                request.setDestinationUri(uri);
 
                 downloadReference = downloadManager.enqueue(request);
 
@@ -398,6 +410,8 @@ public class OTAServerManager {
                                 progress += DOWNLOADER_INCREMENT;
                                 Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
                                         Constants.Status.OTA_UPGRADE_ONGOING);
+                                Log.i(TAG, "downloaded progress so far:" + downloadProgress +"%");
+
                             } else {
                                 progress = DOWNLOAD_PERCENTAGE_TOTAL;
 

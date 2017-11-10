@@ -36,8 +36,8 @@ public class FileUtils {
     public static String getUpgradePackageFilePath() {
         String path = getUpgradePackageDirectory();
         Log.d(FileUtils.class.getName(), path + File.separator + Constants.UPDATE_PACKAGE_NAME);
-//        return getUpgradePackageDirectory() + File.separator + Constants.UPDATE_PACKAGE_NAME;
-        return getUpgradePackageDirectory() + File.separator + "ota" + File.separator + Constants.UPDATE_PACKAGE_NAME;
+        return getUpgradePackageDirectory() + File.separator + Constants.UPDATE_PACKAGE_NAME;
+//        return getUpgradePackageDirectory() + File.separator + "ota" + File.separator + Constants.UPDATE_PACKAGE_NAME;
 
     }
 }

@@ -53,7 +53,8 @@ public class Constants {
 	public static final String FIRMWARE_INSTALL_CANCEL_ACTION = "FIRMWARE_INSTALL_CANCEL_ACTION";
 	public static final String SYSTEM_APP_ACTION_RESPONSE = "org.wso2.iot.system.service.MESSAGE_PROCESSED";
 	public static final String AGENT_APP_SERVICE_NAME = "org.wso2.iot.agent.START_SERVICE";
-	public static final String OTA_DOWNLOAD_PROGRESS_BAR_ENABLED = "true";
+	public static final boolean OTA_DOWNLOAD_PROGRESS_BAR_ENABLED = true;
+	public static final int OTA_DOWNLOAD_PERCENTAGE_FACTOR = 5;
 
 	/**
 	 * Operation IDs

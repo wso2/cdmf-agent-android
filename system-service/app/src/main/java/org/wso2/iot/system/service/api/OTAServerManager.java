@@ -112,7 +112,7 @@ public class OTAServerManager {
             Log.d(TAG, "Verify progress " + progress);
             if (stateChangeListener != null) {
                 stateChangeListener.onStateOrProgress(OTAStateChangeListener.MESSAGE_VERIFY_PROGRESS,
-                                                      DEFAULT_STATE_ERROR_CODE, null, progress);
+                        DEFAULT_STATE_ERROR_CODE, null, progress);
             }
         }
     };
@@ -196,7 +196,7 @@ public class OTAServerManager {
         if (progress != published) {
             publishFirmwareDownloadProgress(progress);
             Preference.putString(context, context.getResources().getString(R.string.firmware_download_progress),
-                                 String.valueOf(progress));
+                    String.valueOf(progress));
             Log.d(TAG, "Download Progress - " + progress + "% - Downloaded:" + downloaded + "/" + total);
             if (progress == 100) {
                 Preference.putString(context, context.getResources().getString(R.string.firmware_download_progress),
@@ -206,7 +206,7 @@ public class OTAServerManager {
 
         if (this.stateChangeListener != null && progress != cacheProgress) {
             this.stateChangeListener.onStateOrProgress(OTAStateChangeListener.MESSAGE_DOWNLOAD_PROGRESS,
-                                                       DEFAULT_STATE_INFO_CODE, null, progress);
+                    DEFAULT_STATE_INFO_CODE, null, progress);
             cacheProgress = progress;
         }
     }
@@ -228,21 +228,21 @@ public class OTAServerManager {
     void reportCheckingError(int error) {
         if (this.stateChangeListener != null) {
             this.stateChangeListener.onStateOrProgress(OTAStateChangeListener.STATE_IN_CHECKED,
-                                                       error, null, DEFAULT_STATE_INFO_CODE);
+                    error, null, DEFAULT_STATE_INFO_CODE);
         }
     }
 
     void reportDownloadError(int error) {
         if (this.stateChangeListener != null) {
             this.stateChangeListener.onStateOrProgress(OTAStateChangeListener.STATE_IN_DOWNLOADING,
-                                                       error, null, DEFAULT_STATE_INFO_CODE);
+                    error, null, DEFAULT_STATE_INFO_CODE);
         }
     }
 
     void reportInstallError(int error) {
         if (this.stateChangeListener != null) {
             this.stateChangeListener.onStateOrProgress(OTAStateChangeListener.STATE_IN_UPGRADING,
-                                                       error, null, DEFAULT_STATE_INFO_CODE);
+                    error, null, DEFAULT_STATE_INFO_CODE);
         }
     }
 
@@ -299,6 +299,16 @@ public class OTAServerManager {
         if (asyncTask != null) {
             asyncTask.cancel(true);
         }
+        String oldFileName = Preference.getString(context, context.getResources().
+                getString(R.string.firmware_upgrade_file_name_pref));
+        if (oldFileName != null) {
+            File targetFile = new File(FileUtils.getUpgradePackageDirectory() + File.separator + oldFileName);
+            if (targetFile.exists()) {
+                targetFile.delete();
+                Log.w(TAG, "Old update has been deleted.");
+            }
+        }
+
         asyncTask = new AsyncTask<Void, Void, Void>() {
             protected Void doInBackground(Void... unused) {
                 Log.i(TAG, "Firmware download started");
@@ -306,7 +316,6 @@ public class OTAServerManager {
                         Constants.Status.OTA_UPGRADE_ONGOING);
 
                 URL url = serverConfig.getPackageURL();
-
                 Log.d(TAG, "Start downloading package:" + url.toString());
 
                 final DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
@@ -317,7 +326,7 @@ public class OTAServerManager {
                 // Set whether this download may proceed over a roaming connection.
                 request.setAllowedOverRoaming(true);
                 // Set the title of this download, to be displayed in notifications
-                if(Constants.OTA_DOWNLOAD_PROGRESS_BAR_ENABLED.equals(true)) {
+                if (Constants.OTA_DOWNLOAD_PROGRESS_BAR_ENABLED.equals(true)) {
                     request.setVisibleInDownloadsUi(true);
                     request.setTitle("Downloading firmware upgrade");
                     request.setDescription("WSO2 Agent");
@@ -327,7 +336,8 @@ public class OTAServerManager {
                     request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
                 }
                 // Set the local destination for the downloaded file to a path within the application's external files directory
-                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "update.zip");
+
+                request.setDestinationToSystemCache();
 
                 downloadReference = downloadManager.enqueue(request);
 
@@ -336,7 +346,10 @@ public class OTAServerManager {
                     public void run() {
                         JSONObject result = new JSONObject();
                         boolean downloading = true;
+                        boolean isLogPrinted = false;
+                        boolean isFileNameAvailable = false;
                         int progress = 0;
+                        int previousPercentage = 0;
                         while (downloading) {
                             downloadOngoing = true;
                             DownloadManager.Query query = new DownloadManager.Query();
@@ -346,23 +359,38 @@ public class OTAServerManager {
 
                             lengthOfFile = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
 
-                            if (Constants.DEBUG_MODE_ENABLED) {
-                                Log.d(TAG, "Update package file size:" + lengthOfFile);
+                            //Get the name of the OTA package file
+                            String otaPackageName = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_TITLE));
+                            if (otaPackageName != null && !otaPackageName.isEmpty()) {
+                                if (!isFileNameAvailable) {
+                                    Preference.putString(context, context.getResources().
+                                            getString(R.string.firmware_upgrade_file_name_pref), otaPackageName);
+                                    isFileNameAvailable = true;
+                                }
                             }
+
+                            /*if (Constants.DEBUG_MODE_ENABLED) {
+                                Log.d(TAG, "Update package file size:" + lengthOfFile);
+                            }*/
+
+                            //Checks whether there is enough storage capacity to download the ota file
                             if (getFreeDiskSpace() < lengthOfFile) {
                                 String message = "Device does not have enough memory to download the OTA update";
                                 CommonUtils.sendBroadcast(context, Constants.Operation.UPGRADE_FIRMWARE, Constants.Code.FAILURE,
                                         Constants.Status.LOW_DISK_SPACE, message);
                                 CommonUtils.callAgentApp(context, Constants.Operation.FIRMWARE_UPGRADE_FAILURE,
                                         Preference.getInt(context, context.getResources().getString(R.string.operation_id)), message);
-                                Log.e(TAG, message);
+                                if (!isLogPrinted) {
+                                    Log.e(TAG, message);
+                                }
+                                isLogPrinted = true;
                             }
 
                             int bytesDownloaded = cursor.getInt(cursor.getColumnIndex(DownloadManager.
                                     COLUMN_BYTES_DOWNLOADED_SO_FAR));
-                            if (Constants.DEBUG_MODE_ENABLED) {
+                            /*if (Constants.DEBUG_MODE_ENABLED) {
                                 Log.d(TAG, "downloaded bytes so far:" + bytesDownloaded);
-                            }
+                            }*/
 
                             int bytesTotal = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
                             if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
@@ -395,7 +423,14 @@ public class OTAServerManager {
                                 downloadProgress = (int) ((bytesDownloaded * 100l) / bytesTotal);
                             }
                             if (downloadProgress != DOWNLOAD_PERCENTAGE_TOTAL) {
-                                progress += DOWNLOADER_INCREMENT;
+                                if ((downloadProgress % Constants.OTA_DOWNLOAD_PERCENTAGE_FACTOR) == 0
+                                        && downloadProgress > previousPercentage) {
+                                    previousPercentage = downloadProgress;
+                                    if (Constants.DEBUG_MODE_ENABLED) {
+                                        Log.d(TAG, "downloaded progress so far:" + downloadProgress + "%");
+                                    }
+                                    progress = downloadProgress;
+                                }
                                 Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
                                         Constants.Status.OTA_UPGRADE_ONGOING);
                             } else {
@@ -431,7 +466,9 @@ public class OTAServerManager {
     public long getFreeDiskSpace() {
         StatFs statFs = new StatFs(FileUtils.getUpgradePackageDirectory());
         long freeDiskSpace = (long) statFs.getAvailableBlocks() * (long) statFs.getBlockSize();
-        Log.d(TAG, "Free disk space: " + freeDiskSpace);
+        /*if (Constants.DEBUG_MODE_ENABLED) {
+            Log.d(TAG, "Free disk space: " + freeDiskSpace);
+        }*/
         return freeDiskSpace;
     }
 
@@ -477,7 +514,7 @@ public class OTAServerManager {
                 }
             } else if (isAutomaticRetryEnabled) {
                 Preference.putString(context, context.getResources().getString(R.string.upgrade_install_status),
-                                     Constants.Status.BATTERY_LEVEL_INSUFFICIENT_TO_INSTALL);
+                        Constants.Status.BATTERY_LEVEL_INSUFFICIENT_TO_INSTALL);
                 Log.e(TAG, "Upgrade installation differed due to insufficient battery level.");
                 setNotification(context, context.getResources().getString(R.string.upgrade_differed_due_to_battery), false);
             } else {
@@ -518,7 +555,7 @@ public class OTAServerManager {
                 .setSmallIcon(R.drawable.notification)
                 .setContentTitle("Message from IoT Agent")
                 .setStyle(new NotificationCompat.BigTextStyle()
-                                  .bigText(notificationMessage))
+                        .bigText(notificationMessage))
                 .setContentText(notificationMessage).setAutoCancel(true);
 
         if (isUserInput) {
@@ -539,8 +576,8 @@ public class OTAServerManager {
 
     private int getBatteryLevel(Context context) {
         Intent batteryIntent = context.registerReceiver(null,
-                                                        new IntentFilter(
-                                                                Intent.ACTION_BATTERY_CHANGED));
+                new IntentFilter(
+                        Intent.ACTION_BATTERY_CHANGED));
         int level = 0;
         if (batteryIntent != null) {
             level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
@@ -642,7 +679,7 @@ public class OTAServerManager {
                     if (parser != null) {
                         if (stateChangeListener != null) {
                             stateChangeListener.onStateOrProgress(OTAStateChangeListener.STATE_IN_CHECKED,
-                                                                  OTAStateChangeListener.NO_ERROR, parser, DEFAULT_STATE_INFO_CODE);
+                                    OTAStateChangeListener.NO_ERROR, parser, DEFAULT_STATE_INFO_CODE);
                         }
                     } else {
                         reportCheckingError(OTAStateChangeListener.ERROR_CANNOT_FIND_SERVER);
@@ -672,7 +709,7 @@ public class OTAServerManager {
     };
 
 
-        public interface OTAStateChangeListener {
+    public interface OTAStateChangeListener {
 
         int STATE_IN_CHECKED = 1;
         int STATE_IN_DOWNLOADING = 2;

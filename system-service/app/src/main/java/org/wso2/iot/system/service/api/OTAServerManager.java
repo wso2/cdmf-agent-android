@@ -305,7 +305,7 @@ public class OTAServerManager {
             File targetFile = new File(FileUtils.getUpgradePackageDirectory() + File.separator + oldFileName);
             if (targetFile.exists()) {
                 targetFile.delete();
-                Log.w(TAG, "Old update has been deleted.");
+                Log.i(TAG, "Old update has been deleted.");
             }
         }
 
@@ -326,7 +326,7 @@ public class OTAServerManager {
                 // Set whether this download may proceed over a roaming connection.
                 request.setAllowedOverRoaming(true);
                 // Set the title of this download, to be displayed in notifications
-                if (Constants.OTA_DOWNLOAD_PROGRESS_BAR_ENABLED.equals(true)) {
+                if (Constants.OTA_DOWNLOAD_PROGRESS_BAR_ENABLED) {
                     request.setVisibleInDownloadsUi(true);
                     request.setTitle("Downloading firmware upgrade");
                     request.setDescription("WSO2 Agent");

@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -149,9 +150,9 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
         String ownershipType = Preference.getString(context, Constants.DEVICE_TYPE);
 
         String restrictionList = null;
-        if(!whiteListAppsPref.equals("")) {
+        if(!TextUtils.isEmpty(whiteListAppsPref)) {
             restrictionList = whiteListAppsPref;
-        } else if(!blackListAppsPref.equals("")) {
+        } else if(!TextUtils.isEmpty(blackListAppsPref)) {
             restrictionList = blackListAppsPref;
         }
 

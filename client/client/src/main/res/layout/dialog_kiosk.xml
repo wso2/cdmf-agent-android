@@ -10,8 +10,8 @@
 
     <TextView
         android:id="@+id/textViewDialog"
-        android:layout_width="287dp"
-        android:layout_height="170dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginLeft="32dp"
         android:layout_marginRight="32dp"
         android:layout_marginTop="21dp"
@@ -29,8 +29,8 @@
 
     <Button
         android:id="@+id/buttonDialog"
-        android:layout_width="218dp"
-        android:layout_height="69dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         android:layout_marginLeft="32dp"
         android:layout_marginRight="32dp"
@@ -48,8 +48,8 @@
 
     <TextView
         android:id="@+id/KioskNotificationTitle"
-        android:layout_width="281dp"
-        android:layout_height="32dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginLeft="32dp"
         android:layout_marginRight="32dp"
         android:layout_marginTop="16dp"

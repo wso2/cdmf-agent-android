@@ -122,9 +122,13 @@ public class KioskAppInstallationListener extends BroadcastReceiver {
                     for (int i = 0; i < permittedAppsData.length(); i++) {
                         permittedApp = new JSONObject(permittedAppsData.getString(i));
                         permittedPackageName = permittedApp.getString(Constants.RuntimePermissionPolicy.PACKAGE_NAME);
-                        Log.d(TAG, permittedPackageName + " <-> " + installedPackageName);
+                        if (Constants.DEBUG_MODE_ENABLED) {
+                            Log.d(TAG, permittedPackageName + " <-> " + installedPackageName);
+                        }
                         if (Objects.equals(permittedPackageName, installedPackageName)) {
-                            Log.d(TAG, "packageName found of payload.");
+                            if (Constants.DEBUG_MODE_ENABLED) {
+                                Log.d(TAG, "packageName found of payload.");
+                            }
                             permissionName = permittedApp.getString(Constants.RuntimePermissionPolicy.PERMISSION_NAME);
                             permissionType = Integer.parseInt(permittedApp.getString(Constants.RuntimePermissionPolicy.PERMISSION_TYPE));
 

@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +30,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.activities.RegistrationActivity;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
@@ -37,7 +39,7 @@ import java.util.Arrays;
 
 public class AppDrawerAdapter extends BaseAdapter {
 
-
+    private String TAG = AppDrawerAdapter.class.getSimpleName();
     private static final String ACTION_INSTALL_COMPLETE = "INSTALL_COMPLETED";
     private static final String APP_STATE_DOWNLOAD_STARTED = "DOWNLOAD_STARTED";
     private static final String APP_STATE_DOWNLOAD_COMPLETED = "DOWNLOAD_COMPLETED";
@@ -96,13 +98,13 @@ public class AppDrawerAdapter extends BaseAdapter {
                 try {
                     applicationInfo = pm.getApplicationInfo(packageName, 0);
                 } catch (PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
+                    Log.e(TAG,"Package name not found", e);
                 }
                 holder.appName.setText(pm.getApplicationLabel(applicationInfo).toString());
                 try {
                     holder.appIcon.setImageDrawable(pm.getApplicationIcon(packageName));
                 } catch (PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
+                    Log.e(TAG,"Package name not found", e);
                 }
             }
             return view;

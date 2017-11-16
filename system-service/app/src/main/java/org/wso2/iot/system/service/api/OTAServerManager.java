@@ -64,6 +64,9 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
@@ -102,6 +105,9 @@ public class OTAServerManager {
     private int maximumPoolSize = 80;
     private int keepAliveTime = 10;
     private long downloadReference;
+
+    private final List<String> dontDeleteTheseFolders = Arrays.asList("backup", "lost+found", "vfienv", "ota");
+
 
     //Use our own thread pool executor for async task to schedule new tasks upon download failures.
     private BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(maximumPoolSize);
@@ -294,20 +300,92 @@ public class OTAServerManager {
         }
     }
 
+    private void renameDownloadedFile(String otaPackageName){
+        try {
+
+            File otaFolder = new File(FileUtils.getOTAPackageFilePath());
+            if (!otaFolder.exists()) {
+                if (otaFolder.mkdir()) {
+                    Log.i(TAG, "creating folder: " + otaFolder.toString());
+                } else {
+                    Log.i(TAG, "Failed to create directory!" + otaFolder.toString());
+                }
+            }
+            String downloadedFilename = otaPackageName;
+            Log.i(TAG, "moving file from " + downloadedFilename + " to " + FileUtils.getUpgradePackageFilePath());
+            File from = new File(downloadedFilename);
+            File to = new File(FileUtils.getUpgradePackageFilePath());
+            org.apache.commons.io.FileUtils.moveFile(from, to);
+        } catch (IOException ex){
+            Log.e(TAG, "Error renaming file", ex);
+        }
+    }
+
+    private void clearCacheDirectory(){
+        File cacheDirectory = new File(FileUtils.getUpgradePackageDirectory());
+
+        if (cacheDirectory.exists()) {
+            Log.i(TAG, "Cleaning the folder: " + cacheDirectory);
+            try {
+                deleteRecursive(cacheDirectory);
+
+            } catch (IOException ex){
+                Log.e(TAG, "Can't clean up folder: " + cacheDirectory + "; " + ex.getMessage());
+            }
+        } else {
+            Log.e(TAG, "Can't clean up folder: " + cacheDirectory + " does not exist");
+        }
+    }
+
+    private void deleteRecursive(File fileOrDirectory) throws IOException {
+        deleteRecursive(fileOrDirectory, 0);
+    }
+
+    private void deleteRecursive(File fileOrDirectory, int level) throws IOException {
+        if (fileOrDirectory != null && fileOrDirectory.isDirectory() && fileOrDirectory.listFiles() != null && fileOrDirectory.listFiles().length > 0) {
+            for (File child : fileOrDirectory.listFiles()) {
+                if (!dontDeleteTheseFolders.contains(child.getName())) {
+                    deleteRecursive(child, level + 1);
+                }
+            }
+        }
+
+
+        if (level != 0) {// don't delete top level folder
+            if (!dontDeleteTheseFolders.contains(fileOrDirectory.getName())) {
+                Log.i(TAG, "erasing file: " + fileOrDirectory.getAbsolutePath() + " of size: " + fileOrDirectory.length());
+                if (!fileOrDirectory.delete()) {
+                    Log.e(TAG, "couldn't erase: " + fileOrDirectory.getName());
+                }
+            } else {
+                Log.i(TAG, "ignoring file: " + fileOrDirectory.getAbsolutePath() + " of size: " + fileOrDirectory.length());
+            }
+        }
+    }
+
 
     public void startDownloadUpgradePackage(final OTAServerManager serverManager) {
         if (asyncTask != null) {
             asyncTask.cancel(true);
         }
-        String oldFileName = Preference.getString(context, context.getResources().
+
+        File targetFile = new File(FileUtils.getUpgradePackageFilePath());
+        if (targetFile.exists()) {
+            targetFile.delete();
+            Log.w(TAG,"Previous update in /cache/ota/update.zip has been deleted.");
+        }
+
+        String previousOTAFile = Preference.getString(context, context.getResources().
                 getString(R.string.firmware_upgrade_file_name_pref));
-        if (oldFileName != null) {
-            File targetFile = new File(FileUtils.getUpgradePackageDirectory() + File.separator + oldFileName);
+        if (previousOTAFile != null) {
+            File previousFile = new File(FileUtils.getUpgradePackageDirectory() + File.separator + previousOTAFile);
             if (targetFile.exists()) {
                 targetFile.delete();
                 Log.i(TAG, "Old update has been deleted.");
             }
         }
+
+        clearCacheDirectory();
 
         asyncTask = new AsyncTask<Void, Void, Void>() {
             protected Void doInBackground(Void... unused) {
@@ -350,6 +428,10 @@ public class OTAServerManager {
                         boolean isFileNameAvailable = false;
                         int progress = 0;
                         int previousPercentage = 0;
+
+                        long pauseTimeStamp = 0l;
+                        boolean isPaused = false;
+
                         while (downloading) {
                             downloadOngoing = true;
                             DownloadManager.Query query = new DownloadManager.Query();
@@ -359,8 +441,7 @@ public class OTAServerManager {
 
                             lengthOfFile = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
 
-                            //Get the name of the OTA package file
-                            String otaPackageName = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_TITLE));
+                            String otaPackageName = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_FILENAME));
                             if (otaPackageName != null && !otaPackageName.isEmpty()) {
                                 if (!isFileNameAvailable) {
                                     Preference.putString(context, context.getResources().
@@ -392,10 +473,11 @@ public class OTAServerManager {
                                 Log.d(TAG, "downloaded bytes so far:" + bytesDownloaded);
                             }*/
 
-                            int bytesTotal = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
                             if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
                                     STATUS_SUCCESSFUL) {
                                 downloading = false;
+                                renameDownloadedFile(otaPackageName);
+                                cursor.close();
                                 Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
                                         context.getResources().getString(R.string.status_success));
                                 Log.i(TAG, "Download successful");
@@ -404,9 +486,36 @@ public class OTAServerManager {
                                             DEFAULT_STATE_ERROR_CODE, null, DEFAULT_STATE_INFO_CODE);
                                 }
                             }
+
+
+                            if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
+                                    STATUS_PAUSED) {
+                                if(!isPaused){
+                                    pauseTimeStamp = Calendar.getInstance().getTime().getTime();
+                                }
+                                if((Calendar.getInstance().getTime().getTime() - pauseTimeStamp)> Constants.FIRMWARE_DOWNLOAD_TIMEOUT){
+                                    downloadManager.remove(downloadReference);
+                                    cursor.close();
+                                    downloading = false;
+                                    String message = "Connection failure (timeout) when downloading update package.";
+                                    Log.e(TAG, message);
+                                    CommonUtils.sendBroadcast(context, Constants.Operation.UPGRADE_FIRMWARE, Constants.Code.FAILURE,
+                                            Constants.Status.CONNECTION_FAILED, message);
+                                    CommonUtils.callAgentApp(context, Constants.Operation.FAILED_FIRMWARE_UPGRADE_NOTIFICATION, Preference.getInt(
+                                            context, context.getResources().getString(R.string.operation_id)), message);
+                                    Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
+                                            Constants.Status.CONNECTION_FAILED);
+                                }
+                                isPaused = true;
+                            } else {
+                                isPaused = false;
+                            }
+
                             if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
                                     STATUS_FAILED) {
                                 downloading = false;
+                                downloadManager.remove(downloadReference);
+                                cursor.close();
                                 int columnReason = cursor.getColumnIndex(DownloadManager.COLUMN_REASON);
                                 int reason = cursor.getInt(columnReason);
                                 String message = "Download Manager error code" + reason;
@@ -419,8 +528,8 @@ public class OTAServerManager {
                                         context, context.getResources().getString(R.string.operation_id)), message);
                             }
                             int downloadProgress = 0;
-                            if (bytesTotal > 0) {
-                                downloadProgress = (int) ((bytesDownloaded * 100l) / bytesTotal);
+                            if (lengthOfFile > 0) {
+                                downloadProgress = (int) ((bytesDownloaded * 100l) / lengthOfFile);
                             }
                             if (downloadProgress != DOWNLOAD_PERCENTAGE_TOTAL) {
                                 if ((downloadProgress % Constants.OTA_DOWNLOAD_PERCENTAGE_FACTOR) == 0
@@ -451,8 +560,15 @@ public class OTAServerManager {
                                 CommonUtils.sendBroadcast(context, Constants.Operation.UPGRADE_FIRMWARE, Constants.Code.SUCCESS,
                                         Constants.Status.INTERNAL_ERROR, e.getMessage());
                             }
+
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                Log.e(TAG, e.getMessage());
+                            }
                             cursor.close();
                         }
+
                         downloadOngoing = false;
                     }
                 }

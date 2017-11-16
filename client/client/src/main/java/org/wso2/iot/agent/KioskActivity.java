@@ -17,40 +17,53 @@
  */
 package org.wso2.iot.agent;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.admin.DevicePolicyManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
-
 import org.wso2.iot.agent.adapters.AppDrawerAdapter;
 import org.wso2.iot.agent.api.ApplicationManager;
+import org.wso2.iot.agent.api.DeviceInfo;
 import org.wso2.iot.agent.api.DeviceState;
 import org.wso2.iot.agent.beans.Power;
 import org.wso2.iot.agent.events.EventRegistry;
 import org.wso2.iot.agent.events.listeners.KioskAppInstallationListener;
 import org.wso2.iot.agent.services.LocalNotification;
+import org.wso2.iot.agent.services.kiosk.KioskMsgAlarmService;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
 public class KioskActivity extends Activity {
     private Context context;
+    private ImageView imageViewBatteryPlugged;
     private TextView textViewNoApps;
     private TextView textViewTime;
     private TextView textViewDate;
@@ -61,12 +74,23 @@ public class KioskActivity extends Activity {
     private GridView gridView;
     private AppDrawerAdapter appDrawerAdapter;
     private final String TAG = KioskActivity.class.getSimpleName();
+    private AudioManager audio;
+    private int ringerMode;
+    private int ringerVolume;
+    private Uri defaultRingtoneUri;
+    private Ringtone defaultRingtone;
+    private DeviceInfo deviceInfo;
+    private SeekBar seekBarBrightness;
+    private int brightness = 0;
+    private static final int DEFAULT_FLAG = 0;
+    private ResponseReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_kiosk);
         context = this.getApplicationContext();
+        deviceInfo = new DeviceInfo(this);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         Preference.putBoolean(getApplicationContext(),
                 Constants.PreferenceFlag.DEVICE_ACTIVE, true);
@@ -75,8 +99,12 @@ public class KioskActivity extends Activity {
         textViewDate = (TextView) findViewById(R.id.textViewDate);
         textViewBattery = (TextView) findViewById(R.id.textViewBattery);
         textViewInitializingMsg = (TextView) findViewById(R.id.textViewInitializingMsg);
+        imageViewBatteryPlugged = (ImageView) findViewById(R.id.imageViewBattryPlugged);
+        audio = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         progressBarDeviceInitializing =
                 (ProgressBar) findViewById(R.id.progressBarDeviceInitializing);
+        seekBarBrightness = (SeekBar) findViewById(R.id.seekBarBrightness);
+        seekBarBrightness.setMax(255);
         if (Constants.COSU_SECRET_EXIT) {
             textViewKiosk.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -91,6 +119,41 @@ public class KioskActivity extends Activity {
                 }
             });
         }
+
+        //broadcast intent receiver
+        IntentFilter filter = new IntentFilter(ResponseReceiver.ACTION_RESP);
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        receiver = new ResponseReceiver();
+        registerReceiver(receiver, filter);
+
+        //Brightness seekbar operation
+        try {
+            //Get the current system brightness state
+            brightness = android.provider.Settings.System.getInt(
+                    getContentResolver(), android.provider.Settings.System.SCREEN_BRIGHTNESS);
+            seekBarBrightness.setProgress(brightness);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        seekBarBrightness.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                brightness = progress;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                WindowManager.LayoutParams settings = getWindow().getAttributes();
+                settings.screenBrightness = brightness;
+                getWindow().setAttributes(settings);
+            }
+        });
 
         ComponentName component =
                 new ComponentName(KioskActivity.this, KioskAppInstallationListener.class);
@@ -147,18 +210,79 @@ public class KioskActivity extends Activity {
             }
         });
 
-        if(!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
+        if (!Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
             textViewNoApps.setVisibility(View.INVISIBLE);
             textViewInitializingMsg.setVisibility(View.VISIBLE);
             progressBarDeviceInitializing.setVisibility(View.VISIBLE);
-            checkAndDisplayDeviceInitializing();
         }
         displayDeviceInfo();
+        checkAndDisplayDeviceInitializing();
         installKioskApp();
         if (Preference.getBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START)) {
             launchKioskAppIfExists();
         }
 
+    }
+
+    //Broadcast receiver for Ring and message operations
+    public class ResponseReceiver extends BroadcastReceiver {
+        public static final String ACTION_RESP = "org.wso2.iot.agent.KioskActivity.MESSAGE_PROCESSED";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String msg = intent.getStringExtra(KioskMsgAlarmService.ACTIVITY_MSG);
+            String type = intent.getStringExtra(KioskMsgAlarmService.ACTIVITY_TYPE);
+            String title = intent.getStringExtra(KioskMsgAlarmService.ACTIVITY_TITLE);
+            switch (type) {
+                case Constants.Operation.DEVICE_RING: {
+                    startRing();
+                    showRingDialog();
+                    break;
+                }
+                case Constants.Operation.NOTIFICATION: {
+                    showDialog(title, msg, "OK");
+                    break;
+                }
+            }
+        }
+    }
+
+    private void showDialog(String title, String message, String buttonText) {
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_kiosk);
+        dialog.setTitle("New Notification");
+        // set the custom dialog components - text, image and button
+        TextView text = (TextView) dialog.findViewById(R.id.textViewDialog);
+        text.setText(message);
+        TextView text2 = (TextView) dialog.findViewById(R.id.KioskNotificationTitle);
+        text2.setText(title);
+        Button dialogButton = (Button) dialog.findViewById(R.id.buttonDialog);
+        dialogButton.setText(buttonText);
+        // if button is clicked, close the custom dialog
+        dialogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+
+    private void showRingDialog() {
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.device_ring_kiosk);
+        dialog.setTitle("Device Ring");
+        Button dialogButton = (Button) dialog.findViewById(R.id.deviceRingKioskButton);
+        dialogButton.setText("Dismiss");
+        // if button is clicked, close the custom dialog
+        dialogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                stopRing();
+            }
+        });
+        dialog.show();
     }
 
     private void checkAndDisplayDeviceInitializing() {
@@ -175,18 +299,20 @@ public class KioskActivity extends Activity {
                     progressBarDeviceInitializing.setVisibility(View.INVISIBLE);
                     refreshAppDrawer();
                 } catch (InterruptedException e) {
-                    Log.e(TAG,"Thread is interrupted");
+                    Log.e(TAG, "Thread is interrupted");
                 }
             }
         };
         thread.start();
     }
+
     private void displayDeviceInfo() {
         Thread thread = new Thread() {
             final DeviceState phoneState = new DeviceState(context);
             Power power = phoneState.getBatteryDetails();
             String time;
             String date;
+
             @Override
             public void run() {
                 try {
@@ -196,20 +322,29 @@ public class KioskActivity extends Activity {
                             @Override
                             public void run() {
                                 power = phoneState.getBatteryDetails();
-                               time = new SimpleDateFormat(Constants.LAUNCHER_TIME_FORMAT,
-                                       Locale.ENGLISH).format(Calendar.getInstance().getTime());
+                                time = new SimpleDateFormat(Constants.LAUNCHER_TIME_FORMAT,
+                                        Locale.ENGLISH).format(Calendar.getInstance().getTime());
                                 date = new SimpleDateFormat(Constants.LAUNCHER_DATE_FORMAT,
                                         Locale.ENGLISH).format(Calendar.getInstance().getTime());
-                                textViewTime.setText(Constants.LAUNCHER_TIME_LABEL +  time);
+                                textViewTime.setText(Constants.LAUNCHER_TIME_LABEL + time);
                                 textViewDate.setText(Constants.LAUNCHER_DATE_LABEL + date);
                                 textViewBattery.setText(Constants.LAUNCHER_BATTERY_LABEL +
                                         String.valueOf(power.getLevel()) +
                                         Constants.LAUNCHER_PERCENTAGE_MARK);
+                                //Add an icon to indicate charging
+                                String plugged = power.getPlugged();
+                                if (plugged.equals(DeviceState.AC) ||
+                                        plugged.equals(DeviceState.CHARGING)) {
+                                    imageViewBatteryPlugged.setVisibility(View.VISIBLE);
+                                } else {
+                                    imageViewBatteryPlugged.setVisibility(View.INVISIBLE);
+                                }
+                                refreshAppDrawer();
                             }
                         });
                     }
                 } catch (InterruptedException e) {
-                    Log.e(TAG,"Thread is interrupted");
+                    Log.e(TAG, "Thread is interrupted");
                 }
             }
         };
@@ -222,7 +357,7 @@ public class KioskActivity extends Activity {
     }
 
     private void startEvents() {
-        if(!EventRegistry.eventListeningStarted) {
+        if (!EventRegistry.eventListeningStarted) {
             EventRegistry registerEvent = new EventRegistry(this);
             registerEvent.register();
         }
@@ -231,7 +366,7 @@ public class KioskActivity extends Activity {
     private void startPolling() {
         String notifier = Preference.
                 getString(getApplicationContext(), Constants.PreferenceFlag.NOTIFIER_TYPE);
-        if(Constants.NOTIFIER_LOCAL.equals(notifier) &&
+        if (Constants.NOTIFIER_LOCAL.equals(notifier) &&
                 !Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED) {
             LocalNotification.startPolling(getApplicationContext());
         }
@@ -291,7 +426,7 @@ public class KioskActivity extends Activity {
     private void refreshAppDrawer() {
         String appList = Preference.getString(context, Constants.KIOSK_APP_PACKAGE_NAME);
         if (appList == null) {
-            if(Preference.getBoolean(context,Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
+            if (Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
                 gridView.setVisibility(View.INVISIBLE);
                 textViewNoApps.setVisibility(View.VISIBLE);
             }
@@ -301,6 +436,43 @@ public class KioskActivity extends Activity {
             textViewNoApps.setVisibility(View.INVISIBLE);
             gridView.setVisibility(View.VISIBLE);
         }
+    }
+
+    @TargetApi(21)
+    private void startRing() {
+
+        if (audio != null) {
+            ringerMode = audio.getRingerMode();
+            ringerVolume = audio.getStreamVolume(AudioManager.STREAM_RING);
+            audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+            audio.setStreamVolume(AudioManager.STREAM_RING, audio.getStreamMaxVolume
+                    (AudioManager.STREAM_RING), AudioManager.FLAG_PLAY_SOUND);
+            defaultRingtoneUri = RingtoneManager.getActualDefaultRingtoneUri(this,
+                    RingtoneManager.TYPE_RINGTONE);
+            if (defaultRingtoneUri != null) {
+                defaultRingtone = RingtoneManager.getRingtone(this, defaultRingtoneUri);
+                if (defaultRingtone != null) {
+                    if (deviceInfo.getSdkVersion() >= Build.VERSION_CODES.LOLLIPOP) {
+                        AudioAttributes attributes = new AudioAttributes.Builder().
+                                setUsage(AudioAttributes.USAGE_NOTIFICATION).
+                                setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).
+                                build();
+                        defaultRingtone.setAudioAttributes(attributes);
+                    } else {
+                        defaultRingtone.setStreamType(AudioManager.STREAM_NOTIFICATION);
+                    }
+                    defaultRingtone.play();
+                }
+            }
+        }
+    }
+
+    private void stopRing() {
+        if (defaultRingtone != null && defaultRingtone.isPlaying()) {
+            defaultRingtone.stop();
+        }
+        audio.setStreamVolume(AudioManager.STREAM_RING, ringerVolume, DEFAULT_FLAG);
+        audio.setRingerMode(ringerMode);
     }
 
 }

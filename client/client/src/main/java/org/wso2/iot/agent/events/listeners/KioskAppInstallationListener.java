@@ -25,6 +25,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -114,25 +115,32 @@ public class KioskAppInstallationListener extends BroadcastReceiver {
 
         Log.d(TAG, "addIfPremissionEnforcementExist triggered.");
         try {
-            JSONArray permittedAppsData = new JSONArray(Preference.getString(context,Constants.RuntimePermissionPolicy.PERMITTED_APP_DATA).toString());
-            if(!permittedAppsData.equals(null)) {
-                for (int i = 0; i < permittedAppsData.length(); i++) {
-                    permittedApp = new JSONObject(permittedAppsData.getString(i));
-                    permittedPackageName = permittedApp.getString(Constants.RuntimePermissionPolicy.PACKAGE_NAME);
-                    Log.d(TAG, permittedPackageName + " <-> " + installedPackageName);
-                    if (Objects.equals(permittedPackageName, installedPackageName)) {
-                        Log.d(TAG, "packageName found of payload.");
-                        permissionName = permittedApp.getString(Constants.RuntimePermissionPolicy.PERMISSION_NAME);
-                        permissionType = Integer.parseInt(permittedApp.getString(Constants.RuntimePermissionPolicy.PERMISSION_TYPE));
-
-                        if (permissionName.equals(Constants.RuntimePermissionPolicy.ALL_PERMISSIONS)) {
-                            String[] permissionList = context.getResources().getStringArray(R.array.runtime_permission_list_array);
-                            for (String permission : permissionList) {
-                                devicePolicyManager.setPermissionGrantState(cdmfDeviceAdmin, permittedPackageName, permission, permissionType);
-                            }
+            String permittedAppData = Preference.getString(context, Constants.RuntimePermissionPolicy.PERMITTED_APP_DATA);
+            if (permittedAppData != null && permittedAppData != "") {
+                JSONArray permittedAppsData = new JSONArray(permittedAppData);
+                if (!permittedAppsData.equals(null)) {
+                    for (int i = 0; i < permittedAppsData.length(); i++) {
+                        permittedApp = new JSONObject(permittedAppsData.getString(i));
+                        permittedPackageName = permittedApp.getString(Constants.RuntimePermissionPolicy.PACKAGE_NAME);
+                        if (Constants.DEBUG_MODE_ENABLED) {
+                            Log.d(TAG, permittedPackageName + " <-> " + installedPackageName);
                         }
-                        devicePolicyManager.setPermissionGrantState(cdmfDeviceAdmin, permittedPackageName, permissionName, permissionType);
-                        break;
+                        if (Objects.equals(permittedPackageName, installedPackageName)) {
+                            if (Constants.DEBUG_MODE_ENABLED) {
+                                Log.d(TAG, "packageName found of payload.");
+                            }
+                            permissionName = permittedApp.getString(Constants.RuntimePermissionPolicy.PERMISSION_NAME);
+                            permissionType = Integer.parseInt(permittedApp.getString(Constants.RuntimePermissionPolicy.PERMISSION_TYPE));
+
+                            if (permissionName.equals(Constants.RuntimePermissionPolicy.ALL_PERMISSIONS)) {
+                                String[] permissionList = context.getResources().getStringArray(R.array.runtime_permission_list_array);
+                                for (String permission : permissionList) {
+                                    devicePolicyManager.setPermissionGrantState(cdmfDeviceAdmin, permittedPackageName, permission, permissionType);
+                                }
+                            }
+                            devicePolicyManager.setPermissionGrantState(cdmfDeviceAdmin, permittedPackageName, permissionName, permissionType);
+                            break;
+                        }
                     }
                 }
             }

@@ -22,6 +22,7 @@ import android.annotation.TargetApi;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -35,7 +36,10 @@ import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.activities.ServerConfigsActivity;
 import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.ComplianceFeature;
+import org.wso2.iot.agent.beans.Notification;
 import org.wso2.iot.agent.beans.Operation;
+import org.wso2.iot.agent.services.NotificationService;
+import org.wso2.iot.agent.services.ResultPayload;
 import org.wso2.iot.agent.services.kiosk.KioskAlarmReceiver;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
@@ -47,9 +51,15 @@ import java.util.Objects;
 
 public class OperationManagerDeviceOwner extends OperationManager {
     private static final String TAG = OperationManagerDeviceOwner.class.getSimpleName();
+    private Context context=super.getContext();
+    private Resources resources = context.getResources();
+    private ResultPayload resultBuilder=super.getResultBuilder();
+    private NotificationService notificationService;
+    private static final String STATUS = "status";
 
     public OperationManagerDeviceOwner(Context context) {
         super(context);
+        notificationService = super.getNotificationService();
     }
 
     @Override
@@ -106,6 +116,57 @@ public class OperationManagerDeviceOwner extends OperationManager {
             operation.setOperationResponse("Error in parsing WIPE payload.");
             getResultBuilder().build(operation);
             throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+    }
+
+    @Override
+    public void displayNotification(Operation operation) throws AndroidAgentException {
+        try {
+            operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
+            operation.setOperationResponse(notificationService.buildResponse(Notification.Status.RECEIVED));
+            getResultBuilder().build(operation);
+            JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
+            String messageTitle = inputData.getString(getContextResources().getString(R.string.intent_extra_message_title));
+            String messageText = inputData.getString(getContextResources().getString(R.string.intent_extra_message_text));
+
+            if (messageTitle != null && !messageTitle.isEmpty() &&
+                    messageText != null && !messageText.isEmpty()) {
+                //adding notification to the db
+                notificationService.addNotification(operation.getId(), messageTitle, messageText, Notification.Status.RECEIVED);
+                notificationService.showNotification(operation.getId(), messageTitle, messageText);
+            } else {
+                operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+                String errorMessage = "Message title/text is empty. Please retry with valid inputs";
+                JSONObject errorResult = new JSONObject();
+                errorResult.put(STATUS, errorMessage);
+                operation.setOperationResponse(errorMessage);
+                getResultBuilder().build(operation);
+                Log.e(TAG, errorMessage);
+            }
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Notification received");
+            }
+        } catch (JSONException e) {
+            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+            operation.setOperationResponse("Error in parsing NOTIFICATION payload.");
+            getResultBuilder().build(operation);
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+    }
+
+    @Override
+    public void ringDevice(Operation operation) {
+        operation.setStatus(resources.getString(R.string.operation_value_completed));
+        resultBuilder.build(operation);
+        Intent intent = new Intent(context, AlertActivity.class);
+        intent.putExtra(resources.getString(R.string.intent_extra_type), resources.getString(R.string.intent_extra_ring));
+        intent.putExtra(resources.getString(R.string.intent_extra_message_text), resources.getString(R.string.intent_extra_stop_ringing));
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+
+        if (Constants.DEBUG_MODE_ENABLED) {
+            Log.d(TAG, "Ringing is activated on the device");
         }
     }
 
@@ -619,26 +680,7 @@ public class OperationManagerDeviceOwner extends OperationManager {
         AppRestriction appRestriction = CommonUtils.
                 getAppRestrictionTypeAndList(operation, getResultBuilder(), getContextResources());
 
-        if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
-            ArrayList appList = (ArrayList) appRestriction.getRestrictedList();
-            JSONArray blackListApps = new JSONArray();
-            for (Object appObj : appList) {
-                JSONObject app = new JSONObject();
-                try {
-                    app.put(Constants.AppRestriction.PACKAGE_NAME, appObj.toString());
-                    app.put(Constants.AppRestriction.RESTRICTION_TYPE, Constants.AppRestriction.WHITE_LIST);
-                    blackListApps.put(app);
-                } catch (JSONException e) {
-                    operation.setStatus(getContextResources().getString(R.string.operation_value_error));
-                    operation.setOperationResponse("Error in parsing app white-list payload.");
-                    getResultBuilder().build(operation);
-                    throw new AndroidAgentException("Invalid JSON format for app white-list bundle.", e);
-                }
-            }
-            Preference.putString(getContext(),
-                    Constants.AppRestriction.BLACK_LIST_APPS, blackListApps.toString());
-            blackListApps();
-        } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
+        if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
             ArrayList appList = (ArrayList)appRestriction.getRestrictedList();
             JSONArray whiteListApps = new JSONArray();
             for (Object appObj: appList) {
@@ -659,46 +701,13 @@ public class OperationManagerDeviceOwner extends OperationManager {
             Preference.putString(getContext(),
                     Constants.AppRestriction.WHITE_LIST_APPS, whiteListApps.toString());
             validateInstalledApps();
+        } else if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
+            for (String packageName : appRestriction.getRestrictedList()) {
+                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
+            }
         }
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
-    }
-
-    /**
-     * This method performs the actual hiding of the applications when the app whitelisting is done.
-     * It will go though the list of blacklisted applications sent from the server against the
-     * applications that are installed on the device and will blacklist the relevent applications.
-     * It will also persist the DISALLOWED_APPS so that it will be used when the policy needs to
-     * be revoked.
-     */
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void blackListApps() {
-        List<String> alreadyInstalledApps = CommonUtils.getInstalledAppPackagesByUser(getContext());
-        JSONObject disallowedApp;
-        JSONArray blackListApps;
-        String disallowedPackageName;
-        try {
-            blackListApps = new JSONArray(Preference.getString(getContext(), Constants.AppRestriction.BLACK_LIST_APPS));
-            for (String packageName : alreadyInstalledApps) {
-                if (!packageName.equals(getCdmDeviceAdmin().getPackageName())) {     //Skip agent app.
-                    for (int i = 0; i < blackListApps.length(); i++) {
-                        disallowedApp = new JSONObject(blackListApps.getString(i));
-                        disallowedPackageName = disallowedApp.getString(Constants.AppRestriction.PACKAGE_NAME);
-
-                        if (Objects.equals(disallowedPackageName, packageName)) {
-                            String disallowedApps = Preference.
-                                    getString(getContext(), Constants.AppRestriction.DISALLOWED_APPS);
-                            disallowedApps = disallowedApps +
-                                    getContext().getString(R.string.whitelist_package_split_regex) + packageName;
-                            Preference.putString(getContext(), Constants.AppRestriction.DISALLOWED_APPS, disallowedApps);
-                            getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
-                        }
-                    }
-                }
-            }
-        } catch (JSONException e) {
-            Log.e(TAG, "Invalid JSON format in app blacklist.");
-        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)

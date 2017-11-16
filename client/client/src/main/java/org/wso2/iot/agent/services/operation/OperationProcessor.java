@@ -114,7 +114,7 @@ public class OperationProcessor {
                 operationManager.encryptStorage(operation);
                 break;
             case Constants.Operation.DEVICE_RING:
-                operationManager.ringDevice(operation);
+                 operationManager.ringDevice(operation);
                 break;
             case Constants.Operation.FILE_DOWNLOAD:
                 operationManager.downloadFile(operation);

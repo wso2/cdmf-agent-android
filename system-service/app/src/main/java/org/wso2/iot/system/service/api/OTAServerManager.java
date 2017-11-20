@@ -365,59 +365,70 @@ public class OTAServerManager {
 
 
     public void startDownloadUpgradePackage(final OTAServerManager serverManager) {
-        if (asyncTask != null) {
-            asyncTask.cancel(true);
-        }
+        boolean isAvailabledownloadReference = Preference.getBoolean(context, context.getResources().getString(R.string.download_Manager_reference_id_available));
+        if(!isAvailabledownloadReference) {
+            if (asyncTask != null) {
+                asyncTask.cancel(true);
+            }
 
-        File targetFile = new File(FileUtils.getUpgradePackageFilePath());
-        if (targetFile.exists()) {
-            targetFile.delete();
-            Log.w(TAG,"Previous update in /cache/ota/update.zip has been deleted.");
-        }
-
-        String previousOTAFile = Preference.getString(context, context.getResources().
-                getString(R.string.firmware_upgrade_file_name_pref));
-        if (previousOTAFile != null) {
-            File previousFile = new File(FileUtils.getUpgradePackageDirectory() + File.separator + previousOTAFile);
+            File targetFile = new File(FileUtils.getUpgradePackageFilePath());
             if (targetFile.exists()) {
                 targetFile.delete();
-                Log.i(TAG, "Old update has been deleted.");
+                Log.w(TAG, "Previous update in /cache/ota/update.zip has been deleted.");
             }
-        }
 
-        clearCacheDirectory();
+            String previousOTAFile = Preference.getString(context, context.getResources().
+                    getString(R.string.firmware_upgrade_file_name_pref));
+            if (previousOTAFile != null) {
+                File previousFile = new File(FileUtils.getUpgradePackageDirectory() + File.separator + previousOTAFile);
+                if (previousFile.exists()) {
+                    previousFile.delete();
+                    Log.i(TAG, "Old update has been deleted.");
+                }
+            }
+
+            clearCacheDirectory();
+        }
 
         asyncTask = new AsyncTask<Void, Void, Void>() {
             protected Void doInBackground(Void... unused) {
-                Log.i(TAG, "Firmware download started");
-                Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
-                        Constants.Status.OTA_UPGRADE_ONGOING);
-
-                URL url = serverConfig.getPackageURL();
-                Log.d(TAG, "Start downloading package:" + url.toString());
-
                 final DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-                Uri downloadUri = Uri.parse(url.toString());
-                DownloadManager.Request request = new DownloadManager.Request(downloadUri);
-                // Restrict the types of networks over which this download may proceed.
-                request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
-                // Set whether this download may proceed over a roaming connection.
-                request.setAllowedOverRoaming(true);
-                // Set the title of this download, to be displayed in notifications
-                if (Constants.OTA_DOWNLOAD_PROGRESS_BAR_ENABLED) {
-                    request.setVisibleInDownloadsUi(true);
-                    request.setTitle("Downloading firmware upgrade");
-                    request.setDescription("WSO2 Agent");
-                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+                boolean isAvailabledownloadReference = Preference.getBoolean(context, context.getResources().getString(R.string.download_Manager_reference_id_available));
+                if(!isAvailabledownloadReference) {
+                    Log.i(TAG, "Firmware download started");
+                    Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
+                            Constants.Status.OTA_UPGRADE_ONGOING);
+
+                    URL url = serverConfig.getPackageURL();
+                    Log.d(TAG, "Start downloading package:" + url.toString());
+
+                    Uri downloadUri = Uri.parse(url.toString());
+                    DownloadManager.Request request = new DownloadManager.Request(downloadUri);
+                    // Restrict the types of networks over which this download may proceed.
+                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
+                    // Set whether this download may proceed over a roaming connection.
+                    request.setAllowedOverRoaming(true);
+                    // Set the title of this download, to be displayed in notifications
+                    if (Constants.OTA_DOWNLOAD_PROGRESS_BAR_ENABLED) {
+                        request.setVisibleInDownloadsUi(true);
+                        request.setTitle("Downloading firmware upgrade");
+                        request.setDescription("WSO2 Agent");
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+                    } else {
+                        request.setVisibleInDownloadsUi(false);
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
+                    }
+                    // Set the local destination for the downloaded file to a path within the application's external files directory
+
+                    request.setDestinationToSystemCache();
+
+                    downloadReference = downloadManager.enqueue(request);
+                    Preference.putLong(context, context.getResources().getString(R.string.download_Manager_reference_id), downloadReference);
+                    Preference.putBoolean(context, context.getResources().getString(R.string.download_Manager_reference_id_available), true);
+                    Log.e(TAG, String.valueOf(Preference.getLong(context, context.getResources().getString(R.string.download_Manager_reference_id))));
                 } else {
-                    request.setVisibleInDownloadsUi(false);
-                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
+                    downloadReference = Preference.getLong(context, context.getResources().getString(R.string.download_Manager_reference_id));
                 }
-                // Set the local destination for the downloaded file to a path within the application's external files directory
-
-                request.setDestinationToSystemCache();
-
-                downloadReference = downloadManager.enqueue(request);
 
                 new Thread(new Runnable() {
                     @Override
@@ -478,6 +489,7 @@ public class OTAServerManager {
                                 downloading = false;
                                 renameDownloadedFile(otaPackageName);
                                 cursor.close();
+                                Preference.putBoolean(context, context.getResources().getString(R.string.download_Manager_reference_id_available), false);
                                 Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
                                         context.getResources().getString(R.string.status_success));
                                 Log.i(TAG, "Download successful");
@@ -516,6 +528,7 @@ public class OTAServerManager {
                                 downloading = false;
                                 downloadManager.remove(downloadReference);
                                 cursor.close();
+                                Preference.putBoolean(context, context.getResources().getString(R.string.download_Manager_reference_id_available), false);
                                 int columnReason = cursor.getColumnIndex(DownloadManager.COLUMN_REASON);
                                 int reason = cursor.getInt(columnReason);
                                 String message = "Download Manager error code" + reason;
@@ -526,7 +539,16 @@ public class OTAServerManager {
                                         Constants.Status.CONNECTION_FAILED, message);
                                 CommonUtils.callAgentApp(context, Constants.Operation.FAILED_FIRMWARE_UPGRADE_NOTIFICATION, Preference.getInt(
                                         context, context.getResources().getString(R.string.operation_id)), message);
+
+                                CommonUtils.sendBroadcast(context, Constants.Operation.UPGRADE_FIRMWARE, Constants.Code.FAILURE,
+                                        Constants.Status.FILE_NOT_FOUND, message);
+                                CommonUtils.callAgentApp(context, Constants.Operation.FAILED_FIRMWARE_UPGRADE_NOTIFICATION, 0, null);
+                                reportDownloadError(OTAStateChangeListener.ERROR_WRITE_FILE_ERROR);
+                                Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
+                                        Constants.Status.FILE_NOT_FOUND);
+
                             }
+
                             int downloadProgress = 0;
                             if (lengthOfFile > 0) {
                                 downloadProgress = (int) ((bytesDownloaded * 100l) / lengthOfFile);

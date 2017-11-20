@@ -23,4 +23,6 @@
     <string name="txt_unlock_activity">Device is Unlocked</string>
     <string name="title_activity_lock">LockActivity</string>
     <string name="firmware_upgrade_file_name_pref">firmwareUpgradeFileName</string>
+    <string name="download_Manager_reference_id">downloadManagerReferenceId</string>
+    <string name="download_Manager_reference_id_available">downloadManagerReferenceIdAvailable</string>
 </resources>

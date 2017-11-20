@@ -23,6 +23,9 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.util.Log;
 import org.wso2.iot.system.service.R;
+import org.wso2.iot.system.service.SystemService;
+import org.wso2.iot.system.service.api.OTADownload;
+import org.wso2.iot.system.service.api.OTAServerManager;
 import org.wso2.iot.system.service.utils.AlarmUtils;
 import org.wso2.iot.system.service.utils.Constants;
 import org.wso2.iot.system.service.utils.Preference;
@@ -39,6 +42,16 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(final Context context, Intent intent) {
+
+		if ("android.intent.action.BOOT_COMPLETED".equals(intent.getAction())) {
+			boolean isAvailabledownloadReference = Preference.getBoolean(context, context.getResources().getString(R.string.download_Manager_reference_id_available));
+			if(isAvailabledownloadReference){
+				OTADownload otaDownload = new OTADownload(context);
+				OTAServerManager otaServerManager = otaDownload.getOtaServerManager();
+				otaServerManager.startDownloadUpgradePackage(otaServerManager);
+			}
+		}
+
 		if (intent.hasExtra(context.getResources().getString(R.string.alarm_scheduled_operation))) {
 			operation = intent.getStringExtra(context.getResources().getString(R.string.alarm_scheduled_operation));
 		}

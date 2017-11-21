@@ -17,7 +17,6 @@
  */
 package org.wso2.iot.agent.services.operation;
 
-import android.annotation.TargetApi;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
@@ -28,13 +27,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.location.Location;
-import android.media.AudioAttributes;
 import android.media.AudioManager;
-import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
-import android.preference.PreferenceManager;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -49,7 +46,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
-import org.wso2.iot.agent.KioskActivity;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.activities.ScreenShareActivity;
 import org.wso2.iot.agent.api.ApplicationManager;

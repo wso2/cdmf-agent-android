@@ -30,10 +30,9 @@ import static org.wso2.iot.agent.proxy.utils.Constants.Authenticator.MUTUAL_SSL_
  */
 public class Constants {
 
-
 	public static final boolean IS_CLOUD = "release".equalsIgnoreCase(BuildConfig.BUILD_TYPE.trim());
 	public static final boolean DEBUG_MODE_ENABLED = BuildConfig.DEBUG_MODE_ENABLED;
-	public static final boolean SYSTEM_APP_ENABLED = true;
+	public static final boolean SYSTEM_APP_ENABLED = BuildConfig.SYSTEM_APP_ENABLED;
 	public static final boolean AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED =
 			BuildConfig.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED;
 	public static final boolean ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE =

@@ -374,6 +374,13 @@ public class Constants {
 		public static final String COSU_PROFILE_POLICY = "COSU_PROFILE";
 		public static final String ENABLE_LOCK ="ENABLE_LOCK";
 
+        // Remote session based operations
+        public static final String REMOTE_CONNECT = "REMOTE_CONNECT";
+        public static final String REMOTE_SHELL = "REMOTE_SHELL";
+        public static final String REMOTE_LOGCAT = "REMOTE_LOGCAT";
+        public static final String REMOTE_SCREEN = "REMOTE_SCREEN";
+        public static final String REMOTE_INPUT = "REMOTE_INPUT";
+
 		private Operation() {
 			throw new AssertionError();
 		}
@@ -619,4 +626,26 @@ public class Constants {
 			throw new AssertionError();
 		}
 	}
+
+
+    // Remote session related constants
+    public static final String REMOTE_SESSION_DEVICE_ENDPOINT_CONTEXT = "/remote/session/devices/android";
+
+    // Screen share
+    public static final String MAX_WIDTH = "maxWidth";
+    public static final String MAX_HEIGHT = "maxHeight";
+    public static final int DEFAULT_SCREEN_CAPTURE_IMAGE_HEIGHT = 768;
+    public static final int DEFAULT_SCREEN_CAPTURE_IMAGE_WIDTH = 1024;
+    public static final int SCREEN_SHARING_RATE_IMAGES = 10;
+    public static final int SCREEN_SHARING_RATE_MILLISECONDS = 1000;
+    public static final int MAX_IMAGE_SIZE_BYTES = 20000;
+    public static final int MAX_QUALITY = 60;
+
+    // Remote shell
+    public static final int MESSAGE_RATE_MILLISECONDS = 2000;
+    public static final int MAX_MESSAGES_PER_OPERATION = 10;
+    public static final int MAX_MESSAGE_SIZE = 10;
+
+    // Logcat
+    public static final String DEFAULT_LOGCAT_LINES = "100";
 }

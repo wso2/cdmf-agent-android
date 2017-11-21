@@ -543,5 +543,6 @@
     <string name="NOTIFICATION_ALLOW">Allow</string>
     <string name="NOTIFICATION_CANCEL">Cancel</string>
 
-
+    <!-- Screen sharing-->
+    <string name="intent_extra_screen_share">screenShare</string>
 </resources>

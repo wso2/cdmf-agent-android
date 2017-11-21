@@ -34,6 +34,7 @@
     <uses-permission android:name="android.permisssion.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.READ_LOGS" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.MANAGE_MEDIA_PROJECTION" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -211,6 +212,10 @@
             android:screenOrientation="portrait"
             android:theme="@android:style/Theme.Holo.Dialog.NoActionBar" />
         <activity
+                android:name=".activities.ScreenShareActivity"
+                android:screenOrientation="portrait"
+                android:theme="@android:style/Theme.Holo.Dialog.NoActionBar" />
+        <activity
             android:name=".LockActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_lock" />
@@ -237,6 +242,11 @@
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
+        </service>
+
+        <service
+                android:name=".services.screenshare.ScreenSharingService"
+                android:exported="false">
         </service>
 
         <activity

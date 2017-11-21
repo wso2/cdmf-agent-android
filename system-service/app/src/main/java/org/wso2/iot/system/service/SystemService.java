@@ -25,6 +25,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Point;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -36,9 +37,13 @@ import android.os.SystemProperties;
 import android.os.UserManager;
 import android.util.Log;
 import android.util.Patterns;
+import android.view.Display;
+import android.view.MotionEvent;
+import android.view.WindowManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wso2.iot.system.service.api.InputEventHandler;
 import org.wso2.iot.system.service.api.OTADownload;
 import org.wso2.iot.system.service.api.SettingsManager;
 import org.wso2.iot.system.service.services.BatteryChargingStateReceiver;
@@ -108,6 +113,8 @@ public class SystemService extends IntentService {
     private String appUri = null;
     private int operationId;
     private Context context;
+    private WindowManager wmgr;
+
 
     private static String[] AUTHORIZED_PINNING_APPS;
 
@@ -121,6 +128,7 @@ public class SystemService extends IntentService {
         cdmDeviceAdmin = new ComponentName(this, ServiceDeviceAdminReceiver.class);
         devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
         mUserManager = (UserManager) getSystemService(Context.USER_SERVICE);
+        wmgr = (WindowManager) getSystemService(WINDOW_SERVICE);
         String AGENT_PACKAGE_NAME = context.getPackageName();
         AUTHORIZED_PINNING_APPS = new String[]{AGENT_PACKAGE_NAME, Constants.AGENT_APP_PACKAGE_NAME};
         if (!devicePolicyManager.isAdminActive(cdmDeviceAdmin)) {
@@ -194,7 +202,7 @@ public class SystemService extends IntentService {
                                             .getString(R.string.firmware_upgrade_automatic_retry));
                                 }
                                 CommonUtils.callAgentApp(context, Constants.Operation.
-                                        FIRMWARE_UPGRADE_AUTOMATIC_RETRY, 0, (isAutomaticRetry ? "true": "false"));
+                                        FIRMWARE_UPGRADE_AUTOMATIC_RETRY, 0, (isAutomaticRetry ? "true" : "false"));
                             } catch (JSONException e) {
                                 String error = "Failed to build JSON object form the request: " + command;
                                 Log.e(TAG, error);
@@ -223,7 +231,7 @@ public class SystemService extends IntentService {
             Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
                     Constants.Status.REQUEST_PLACED);
             Timer timeoutTimer = new Timer();
-            timeoutTimer.schedule(new TimerTask(){
+            timeoutTimer.schedule(new TimerTask() {
                 @Override
                 public void run() {
                     if (Constants.Status.REQUEST_PLACED
@@ -411,6 +419,9 @@ public class SystemService extends IntentService {
             case Constants.Operation.LOGCAT:
                 getLogCat(command);
                 break;
+            case Constants.Operation.REMOTE_INPUT:
+                injectInput(command);
+                break;
             default:
                 Log.e(TAG, "Invalid operation code received");
                 break;
@@ -445,15 +456,75 @@ public class SystemService extends IntentService {
     }
 
     /**
+     * Inject input to device
+     */
+    public void injectInput(String command) {
+        float x, y;
+        int duration = -1, motionAction = -1;
+        String action = null;
+        try {
+            JSONObject inputData = new JSONObject(command);
+            if (!inputData.has("x") || !inputData.has("y") ) {
+                Log.e(TAG, "Incorrect input for x : " + inputData.get("x") + " y:" + inputData.get("y"));
+                return;
+            }
+
+            Display display = wmgr.getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            x = Float.parseFloat(inputData.get("x").toString()) * (size.x + (size.x * Constants.X_COORDINATE_OFFSET));
+            y = Float.parseFloat(inputData.get("y").toString()) * (size.y + (size.y * Constants.Y_COORDINATE_OFFSET));
+
+            if (inputData.has("duration")) {
+                duration = Integer.valueOf(inputData.get("duration").toString());
+            }
+            if (inputData.has("action")) {
+                action = inputData.get("action").toString();
+            }
+            if (action != null) {
+                switch (action) {
+                    case "move":
+                        motionAction = MotionEvent.ACTION_MOVE;
+                        break;
+                    case "up":
+                        motionAction = MotionEvent.ACTION_UP;
+                        break;
+                    case "down":
+                        motionAction = MotionEvent.ACTION_DOWN;
+                        break;
+                    case "cancel":
+                        motionAction = MotionEvent.ACTION_CANCEL;
+                        break;
+                    default:
+                        Log.w(TAG, "Input manager does not support action: " + action);
+                        break;
+                }
+                if (motionAction != -1) {
+                    InputEventHandler.getInstance(context).injectTouchEvent(x, y, motionAction, duration);
+                }
+
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Unable to parse command string", e);
+        } catch (NumberFormatException e) {
+            Log.e(TAG, "Unable to parse coordinated", e);
+        } catch (Exception e) {
+            Log.e(TAG, "Unable to inject the event", e);
+        }
+
+
+    }
+
+    /**
      * Upgrading device firmware over the air (OTA).
      */
     public void upgradeFirmware(final boolean isStatusCheck) {
         Log.i(TAG, "An upgrade has been requested");
 
         Preference.putBoolean(context, context.getResources().getString(R.string.
-                                                                                firmware_status_check_in_progress), isStatusCheck);
+                firmware_status_check_in_progress), isStatusCheck);
         Preference.putString(context, context.getResources().getString(R.string.firmware_download_progress),
-                             String.valueOf(DEFAULT_STATE_INFO_CODE));
+                String.valueOf(DEFAULT_STATE_INFO_CODE));
         Preference.putInt(context, context.getResources().getString(R.string.operation_id), operationId);
 
         String schedule = null;
@@ -471,7 +542,7 @@ public class SystemService extends IntentService {
                 if (!upgradeData.isNull(context.getResources().getString(R.string.firmware_upgrade_automatic_retry))) {
                     isAutomaticRetry = upgradeData.getBoolean(context.getResources()
                             .getString(R.string.firmware_upgrade_automatic_retry));
-                    if (!isAutomaticRetry){
+                    if (!isAutomaticRetry) {
                         Log.i(TAG, "Automatic retry on firmware upgrade failure is disabled.");
                     }
                 }
@@ -622,8 +693,8 @@ public class SystemService extends IntentService {
             devicePolicyManager.setLockTaskPackages(cdmDeviceAdmin, AUTHORIZED_PINNING_APPS);
             Intent intent = new Intent(context, LockActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                            Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY |
-                            Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                    Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY |
+                    Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             intent.putExtra(Constants.ADMIN_MESSAGE, message);
             intent.putExtra(Constants.IS_LOCKED, true);
             context.startActivity(intent);
@@ -647,7 +718,7 @@ public class SystemService extends IntentService {
             return;
         }
 
-        switch (status){
+        switch (status) {
             case Constants.Status.MALFORMED_REQUEST:
                 CommonUtils.sendBroadcast(context, Constants.Operation.GET_FIRMWARE_UPGRADE_DOWNLOAD_PROGRESS,
                         Constants.Code.FAILURE, Constants.Status.MALFORMED_REQUEST, null);
@@ -707,7 +778,7 @@ public class SystemService extends IntentService {
     private void disableHardLock() {
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                        Intent.FLAG_ACTIVITY_NEW_TASK);
+                Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
 
@@ -719,12 +790,12 @@ public class SystemService extends IntentService {
         try {
             result.put("buildDate", buildDate);
             CommonUtils.sendBroadcast(context, Constants.Operation.GET_FIRMWARE_BUILD_DATE, Constants.Code.SUCCESS, Constants.Status.SUCCESSFUL,
-                          result.toString());
+                    result.toString());
         } catch (JSONException e) {
             String error = "Failed to create JSON object when publishing OTA progress.";
             Log.e(TAG, error, e);
             CommonUtils.sendBroadcast(context, Constants.Operation.GET_FIRMWARE_BUILD_DATE, Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR,
-                          String.valueOf(DEFAULT_STATE_INFO_CODE));
+                    String.valueOf(DEFAULT_STATE_INFO_CODE));
         }
     }
 

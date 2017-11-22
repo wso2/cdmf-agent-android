@@ -296,7 +296,6 @@ android {
             //Collect WiFi scan results
             buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "false"
             debuggable true
-            signingConfig signingConfigs.debug
         }
         debugCope {
             // DEBUG_MODE_ENABLED: Make the agent print the debug logs.
@@ -402,7 +401,7 @@ android {
             // COSU related configurations.
             // ALLOW_MULTIPLE_APPS_IN_COSU_MODE: Set to true to make all installed app in COSU mode
             // accessible; if false only the last installation will be accessible.
-            buildConfigField "boolean", "ALLOW_MULTIPLE_APPS_IN_COSU_MODE", "false"
+            buildConfigField "boolean", "ALLOW_MULTIPLE_APPS_IN_COSU_MODE", "true"
             // By enabling this button, data wipe can be performed on a device without having to
             // issue a remote wipe operation.
             buildConfigField "boolean", "DISPLAY_WIPE_DEVICE_BUTTON", "true"
@@ -735,8 +734,10 @@ dependencies {
     compile 'org.bouncycastle:bcprov-jdk16:1.45'
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.splunk.mint:mint:5.0.0'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.jcraft:jsch:0.1.54'
     compile 'commons-net:commons-net:3.3'
+    compile "org.java-websocket:Java-WebSocket:1.3.0"
 }
 
 apply plugin: 'com.google.gms.google-services'

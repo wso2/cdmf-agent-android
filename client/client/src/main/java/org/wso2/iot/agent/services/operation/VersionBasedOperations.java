@@ -42,6 +42,20 @@ public interface VersionBasedOperations {
     void wipeDevice(Operation operation) throws AndroidAgentException;
 
     /**
+     * Display notification.
+     *
+     * @param operation - Operation object.
+     */
+    void displayNotification(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException;
+
+    /**
+     * Ring the device.
+     *
+     * @param operation - Operation object.
+     */
+    void ringDevice(org.wso2.iot.agent.beans.Operation operation);
+
+    /**
      * Clear device password.
      *
      * @param operation - Operation object.

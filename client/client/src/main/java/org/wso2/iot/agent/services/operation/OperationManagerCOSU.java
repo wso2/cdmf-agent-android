@@ -21,8 +21,10 @@ package org.wso2.iot.agent.services.operation;
 import android.annotation.TargetApi;
 import android.app.admin.DevicePolicyManager;
 import android.app.admin.SystemUpdatePolicy;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -32,13 +34,19 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
+import org.wso2.iot.agent.KioskActivity;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.activities.ServerConfigsActivity;
+import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.ComplianceFeature;
+import org.wso2.iot.agent.beans.Notification;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
+import org.wso2.iot.agent.services.NotificationService;
+import org.wso2.iot.agent.services.ResultPayload;
 import org.wso2.iot.agent.services.kiosk.KioskAlarmReceiver;
+import org.wso2.iot.agent.services.kiosk.KioskMsgAlarmService;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
@@ -50,9 +58,15 @@ import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
 public class OperationManagerCOSU extends OperationManager {
     private static final String TAG = OperationManagerCOSU.class.getSimpleName();
+    private Context context=super.getContext();
+    private Resources resources = context.getResources();
+    private ResultPayload resultBuilder=super.getResultBuilder();
+    private NotificationService notificationService;
+    private static final String STATUS = "status";
 
     public OperationManagerCOSU(Context context) {
         super(context);
+        notificationService = super.getNotificationService();
     }
 
     @Override
@@ -849,10 +863,57 @@ public class OperationManagerCOSU extends OperationManager {
 
     }
 
+    @Override
+    public void ringDevice(org.wso2.iot.agent.beans.Operation operation) {
+        operation.setStatus(resources.getString(R.string.operation_value_completed));
+        resultBuilder.build(operation);
+        Intent msgIntent = new Intent(context, KioskMsgAlarmService.class);
+        msgIntent.putExtra(KioskMsgAlarmService.ACTIVITY_TYPE, Constants.Operation.DEVICE_RING);
+        context.startService(msgIntent);
+        if (Constants.DEBUG_MODE_ENABLED) {
+            Log.d(TAG, "Ringing is activated on the device");
+        }
+    }
+    @Override
+    public void displayNotification(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
+        try {
+            operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
+            operation.setOperationResponse(notificationService.buildResponse(Notification.Status.RECEIVED));
+            getResultBuilder().build(operation);
+            JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
+            String messageTitle = inputData.getString(getContextResources().getString(R.string.intent_extra_message_title));
+            String messageText = inputData.getString(getContextResources().getString(R.string.intent_extra_message_text));
+            if (messageTitle != null && !messageTitle.isEmpty() &&
+                    messageText != null && !messageText.isEmpty()) {
+                //adding notification to the db
+                notificationService.addNotification(operation.getId(), messageTitle, messageText, Notification.Status.RECEIVED);
+                Intent msgIntent = new Intent(context, KioskMsgAlarmService.class);
+                msgIntent.putExtra(KioskMsgAlarmService.ACTIVITY_TYPE, Constants.Operation.NOTIFICATION);
+                msgIntent.putExtra(KioskMsgAlarmService.ACTIVITY_TITLE,messageTitle);
+                msgIntent.putExtra(KioskMsgAlarmService.ACTIVITY_MSG,messageText);
+                context.startService(msgIntent);
+            } else {
+                operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+                String errorMessage = "Message title/text is empty. Please retry with valid inputs";
+                JSONObject errorResult = new JSONObject();
+                errorResult.put(STATUS, errorMessage);
+                operation.setOperationResponse(errorMessage);
+                getResultBuilder().build(operation);
+                Log.e(TAG, errorMessage);
+            }
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Notification received");
+            }
+        } catch (JSONException e) {
+            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+            operation.setOperationResponse("Error in parsing NOTIFICATION payload.");
+            getResultBuilder().build(operation);
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+    }
     private String getPermissionConstantValue(String key) {
         return getContext().getString(getContextResources().getIdentifier(
                 key.toString(),"string",getContext().getPackageName()));
-
     }
 
 }

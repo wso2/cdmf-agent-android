@@ -39,6 +39,11 @@ public class MockOperationManager extends OperationManager {
     }
 
     @Override
+    public void displayNotification(Operation operation) throws AndroidAgentException {
+
+    }
+
+    @Override
     public void clearPassword(Operation operation) {
 
     }

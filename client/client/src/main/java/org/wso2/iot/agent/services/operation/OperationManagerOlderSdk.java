@@ -23,28 +23,28 @@ import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.widget.Toast;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
-import org.wso2.iot.agent.activities.ServerConfigsActivity;
 import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.ComplianceFeature;
 import org.wso2.iot.agent.beans.DeviceAppInfo;
+import org.wso2.iot.agent.beans.Notification;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.AppLockService;
+import org.wso2.iot.agent.services.NotificationService;
+import org.wso2.iot.agent.services.ResultPayload;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.FileUploadCancelReceiver;
 import org.wso2.iot.agent.utils.FileUploadReceiver;
 import org.wso2.iot.agent.utils.Preference;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -54,9 +54,15 @@ import java.util.Map;
 public class OperationManagerOlderSdk extends OperationManager {
 
     private static final String TAG = OperationManagerOlderSdk.class.getSimpleName();
+    private Context context=super.getContext();
+    private Resources resources = context.getResources();
+    private ResultPayload resultBuilder=super.getResultBuilder();
+    private NotificationService notificationService;
+    private static final String STATUS = "status";
 
     public OperationManagerOlderSdk(Context context){
         super(context);
+        notificationService = super.getNotificationService();
     }
 
     @Override
@@ -122,6 +128,56 @@ public class OperationManagerOlderSdk extends OperationManager {
     }
 
     @Override
+    public void displayNotification(Operation operation) throws AndroidAgentException {
+        try {
+            operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
+            operation.setOperationResponse(notificationService.buildResponse(Notification.Status.RECEIVED));
+            getResultBuilder().build(operation);
+            JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
+            String messageTitle = inputData.getString(getContextResources().getString(R.string.intent_extra_message_title));
+            String messageText = inputData.getString(getContextResources().getString(R.string.intent_extra_message_text));
+
+            if (messageTitle != null && !messageTitle.isEmpty() &&
+                    messageText != null && !messageText.isEmpty()) {
+                //adding notification to the db
+                notificationService.addNotification(operation.getId(), messageTitle, messageText, Notification.Status.RECEIVED);
+                notificationService.showNotification(operation.getId(), messageTitle, messageText);
+            } else {
+                operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+                String errorMessage = "Message title/text is empty. Please retry with valid inputs";
+                JSONObject errorResult = new JSONObject();
+                errorResult.put(STATUS, errorMessage);
+                operation.setOperationResponse(errorMessage);
+                getResultBuilder().build(operation);
+                Log.e(TAG, errorMessage);
+            }
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Notification received");
+            }
+        } catch (JSONException e) {
+            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+            operation.setOperationResponse("Error in parsing NOTIFICATION payload.");
+            getResultBuilder().build(operation);
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+    }
+
+    @Override
+    public void ringDevice(Operation operation) {
+        operation.setStatus(resources.getString(R.string.operation_value_completed));
+        resultBuilder.build(operation);
+        Intent intent = new Intent(context, AlertActivity.class);
+        intent.putExtra(resources.getString(R.string.intent_extra_type), resources.getString(R.string.intent_extra_ring));
+        intent.putExtra(resources.getString(R.string.intent_extra_message_text), resources.getString(R.string.intent_extra_stop_ringing));
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+
+        if (Constants.DEBUG_MODE_ENABLED) {
+            Log.d(TAG, "Ringing is activated on the device");
+        }
+    }
+
     public void uploadFile(Operation operation) throws AndroidAgentException {
         operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
         try {

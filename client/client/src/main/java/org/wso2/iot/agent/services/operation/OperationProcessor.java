@@ -81,6 +81,9 @@ public class OperationProcessor {
             case Constants.Operation.APPLICATION_LIST:
                 operationManager.getApplicationList(operation);
                 break;
+            case Constants.Operation.REMOTE_CONNECT:
+                operationManager.connectToRemoteSession(operation);
+                break;
             case Constants.Operation.DEVICE_LOCK:
                 operationManager.lockDevice(operation);
                 break;
@@ -114,7 +117,7 @@ public class OperationProcessor {
                 operationManager.encryptStorage(operation);
                 break;
             case Constants.Operation.DEVICE_RING:
-                operationManager.ringDevice(operation);
+                 operationManager.ringDevice(operation);
                 break;
             case Constants.Operation.FILE_DOWNLOAD:
                 operationManager.downloadFile(operation);
@@ -244,7 +247,6 @@ public class OperationProcessor {
             case Constants.Operation.SET_STATUS_BAR_DISABLED:
                 operationManager.setStatusBarDisabled(operation);
                 break;
-
             default:
                 operationManager.passOperationToSystemApp(operation);
                 break;

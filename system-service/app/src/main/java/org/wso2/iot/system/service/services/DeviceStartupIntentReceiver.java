@@ -23,7 +23,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.util.Log;
 import org.wso2.iot.system.service.R;
-import org.wso2.iot.system.service.SystemService;
 import org.wso2.iot.system.service.api.OTADownload;
 import org.wso2.iot.system.service.api.OTAServerManager;
 import org.wso2.iot.system.service.utils.AlarmUtils;
@@ -44,7 +43,8 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 	public void onReceive(final Context context, Intent intent) {
 
 		if ("android.intent.action.BOOT_COMPLETED".equals(intent.getAction())) {
-			boolean isAvailabledownloadReference = Preference.getBoolean(context, context.getResources().getString(R.string.download_Manager_reference_id_available));
+			boolean isAvailabledownloadReference = Preference.getBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available));
+            //Log.d(TAG, "Download manager reference id availability : "+isAvailabledownloadReference);
 			if(isAvailabledownloadReference){
 				OTADownload otaDownload = new OTADownload(context);
 				OTAServerManager otaServerManager = otaDownload.getOtaServerManager();

@@ -36,6 +36,16 @@ android {
         versionName "3.1.21"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
+    signingConfigs {
+        config {
+            keyAlias ''
+            keyPassword ''
+            storeFile file('')
+            storePassword ''
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -75,7 +85,7 @@ android {
             buildConfigField "String", "AGENT_PACKAGE", "\"org.wso2.iot.agent\""
             // FIRMWARE_UPGRADE_RETRY_COUNT: How many time the agent must retry if firmware upgrade
             // fails.
-            buildConfigField "int", "FIRMWARE_UPGRADE_RETRY_COUNT", "5"
+            buildConfigField "int", "FIRMWARE_UPGRADE_RETRY_COUNT", "0"
             // CATALOG_APP_PACKAGE_NAME: If a modification of the catalog apps's package
             // name is done, this must be altered.
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
@@ -196,7 +206,7 @@ android {
             buildConfigField "String", "AGENT_PACKAGE", "\"org.wso2.iot.agent\""
             // FIRMWARE_UPGRADE_RETRY_COUNT: How many time the agent must retry if firmware upgrade
             // fails.
-            buildConfigField "int", "FIRMWARE_UPGRADE_RETRY_COUNT", "5"
+            buildConfigField "int", "FIRMWARE_UPGRADE_RETRY_COUNT", "0"
             // CATALOG_APP_PACKAGE_NAME: If a modification of the catalog apps's package
             // name is done, this must be altered.
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
@@ -320,7 +330,7 @@ android {
             buildConfigField "String", "AGENT_PACKAGE", "\"org.wso2.iot.agent\""
             // FIRMWARE_UPGRADE_RETRY_COUNT: How many time the agent must retry if firmware upgrade
             // fails.
-            buildConfigField "int", "FIRMWARE_UPGRADE_RETRY_COUNT", "5"
+            buildConfigField "int", "FIRMWARE_UPGRADE_RETRY_COUNT", "0"
             // CATALOG_APP_PACKAGE_NAME: If a modification of the catalog apps's package
             // name is done, this must be altered.
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
@@ -445,7 +455,7 @@ android {
             buildConfigField "String", "AGENT_PACKAGE", "\"org.wso2.iot.agent\""
             // FIRMWARE_UPGRADE_RETRY_COUNT: How many time the agent must retry if firmware upgrade
             // fails.
-            buildConfigField "int", "FIRMWARE_UPGRADE_RETRY_COUNT", "5"
+            buildConfigField "int", "millisecondsmilliseconds", "0"
             // CATALOG_APP_PACKAGE_NAME: If a modification of the catalog apps's package
             // name is done, this must be altered.
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
@@ -568,14 +578,14 @@ android {
             buildConfigField "String", "AGENT_PACKAGE", "\"org.wso2.iot.agent\""
             // FIRMWARE_UPGRADE_RETRY_COUNT: How many time the agent must retry if firmware upgrade
             // fails.
-            buildConfigField "int", "FIRMWARE_UPGRADE_RETRY_COUNT", "5"
+            buildConfigField "int", "FIRMWARE_UPGRADE_RETRY_COUNT", "0"
             // CATALOG_APP_PACKAGE_NAME: If a modification of the catalog apps's package
             // name is done, this must be altered.
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
             // System service specific configurations.
             // SYSTEM_APP_ENABLED: This is to set if the system app will also be installed.
             // If this is set org.wso2.emm.system.service must also be available in the device.
-            buildConfigField "boolean", "SYSTEM_APP_ENABLED", "false"
+            buildConfigField "boolean", "SYSTEM_APP_ENABLED", "true"
             // SYSTEM_SERVICE_PACKAGE: If system service app is in use, the package name of it is
             // defined here so that the agent knows the package name of the system service to
             // contact.
@@ -658,6 +668,7 @@ android {
             buildConfigField "boolean", "LOCATION_PUBLISHING_ENABLED", "true"
             //Collect WiFi scan results
             buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "false"
+            signingConfig signingConfigs.config
         }
     }
     compileOptions {

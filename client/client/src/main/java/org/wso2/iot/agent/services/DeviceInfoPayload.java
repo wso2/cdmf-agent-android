@@ -17,11 +17,14 @@
  */
 package org.wso2.iot.agent.services;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
+import android.support.v4.app.ActivityCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -73,7 +76,7 @@ public class DeviceInfoPayload {
         //setting up basic details of the device
         info.setOwner(owner);
         info.setOwnership(Constants.OWNERSHIP_BYOD.equals(type) ? Device.EnrolmentInfo.OwnerShip.BYOD
-                                                                : Device.EnrolmentInfo.OwnerShip.COPE);
+                : Device.EnrolmentInfo.OwnerShip.COPE);
         device.setEnrolmentInfo(info);
         getInfo();
     }
@@ -81,7 +84,7 @@ public class DeviceInfoPayload {
     /**
      * This method builds the payload including device current state.
      *
-     * @throws AndroidAgentException
+     * @throws AndroidAgentException on error
      */
     public void build() throws AndroidAgentException {
         device = new Device();
@@ -90,14 +93,15 @@ public class DeviceInfoPayload {
 
     /**
      * Fetch all device runtime information.
-     * @throws AndroidAgentException
+     *
+     * @throws AndroidAgentException on error
      */
     @SuppressLint("HardwareIds")
     private void getInfo() throws AndroidAgentException {
 
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
 
-        if (!CommonUtils.isServiceRunning(context, NetworkInfoService.class) ){
+        if (!CommonUtils.isServiceRunning(context, NetworkInfoService.class)) {
             Intent serviceIntent = new Intent(context, NetworkInfoService.class);
             context.startService(serviceIntent);
         }
@@ -119,10 +123,13 @@ public class DeviceInfoPayload {
         property.setValue(deviceInfo.getDeviceSerialNumber());
         properties.add(property);
 
-        property = new Device.Property();
-        property.setName(Constants.Device.IMEI);
-        property.setValue(telephonyManager.getDeviceId());
-        properties.add(property);
+        if (telephonyManager != null
+                && ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+            property = new Device.Property();
+            property.setName(Constants.Device.IMEI);
+            property.setValue(telephonyManager.getDeviceId());
+            properties.add(property);
+        }
 
         property = new Device.Property();
         property.setName(Constants.Device.IMSI);
@@ -228,11 +235,16 @@ public class DeviceInfoPayload {
         property.setValue(String.valueOf(deviceInfo.getNetworkOperatorName()));
         deviceInfoProperties.add(property);
 
-        property = new Device.Property();
-        property.setName(Constants.Device.PHONE_NUMBER);
-        String mPhoneNumber = telephonyManager.getLine1Number();
-        property.setValue(mPhoneNumber);
-        deviceInfoProperties.add(property);
+        if (telephonyManager != null
+                && ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+            String mPhoneNumber = telephonyManager.getLine1Number();
+            if (mPhoneNumber != null) {
+                property = new Device.Property();
+                property.setName(Constants.Device.PHONE_NUMBER);
+                property.setValue(mPhoneNumber);
+                deviceInfoProperties.add(property);
+            }
+        }
 
         try {
             String network = NetworkInfoService.getNetworkStatus();
@@ -351,7 +363,7 @@ public class DeviceInfoPayload {
      */
     public String getDeviceInfoPayload() {
         try {
-            if(Constants.DEBUG_MODE_ENABLED){
+            if (Constants.DEBUG_MODE_ENABLED) {
                 Log.d(TAG, "device info " + device.toJSON());
             }
             return device.toJSON();

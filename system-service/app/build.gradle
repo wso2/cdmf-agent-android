@@ -28,6 +28,16 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
+    signingConfigs {
+        config {
+            keyAlias ''
+            keyPassword ''
+            storeFile file('')
+            storePassword ''
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -100,9 +110,11 @@ android {
             buildConfigField "String", "UPDATE_PACKAGE_NAME", "\"update.zip\""
             // SILENT_FIRMWARE_INSTALLATION: Suppress all messages & confirmations during
             // firmware upgrade
-            buildConfigField "boolean", "SILENT_FIRMWARE_INSTALLATION", "false"
+            buildConfigField "boolean", "SILENT_FIRMWARE_INSTALLATION", "true"
             buildConfigField "int", "FIRMWARE_UPGRADE_CONNECTIVITY_TIMEOUT", "10000"
             buildConfigField "int", "FIRMWARE_UPGRADE_READ_TIMEOUT", "60000"
+            signingConfig signingConfigs.config
+
         }
     }
 }
@@ -110,4 +122,5 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'commons-io:commons-io:2.4'
 }

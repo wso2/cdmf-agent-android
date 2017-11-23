@@ -12,6 +12,38 @@ import org.wso2.iot.system.service.R;
 public class Preference {
 	private static final int DEFAULT_INDEX = 0;
 
+
+	/**
+	 * Put float data to shared preferences in private mode.
+	 * @param context - The context of activity which is requesting to put data.
+	 * @param key     - Used to identify the value.
+	 * @param value   - The actual value to be saved.
+	 */
+	public static void putLong(Context context, String key, long value) {
+		SharedPreferences mainPref =
+				context.getSharedPreferences(context.getResources()
+								.getString(R.string.shared_pref_package),
+						Context.MODE_PRIVATE
+				);
+		Editor editor = mainPref.edit();
+		editor.putLong(key, value);
+		editor.commit();
+	}
+
+	/**
+	 * Retrieve float data from shared preferences in private mode.
+	 * @param context - The context of activity which is requesting to put data.
+	 * @param key     - Used to identify the value to to be retrieved.
+	 */
+	public static long getLong(Context context, String key) {
+		SharedPreferences mainPref =
+				context.getSharedPreferences(context.getResources()
+								.getString(R.string.shared_pref_package),
+						Context.MODE_PRIVATE
+				);
+		return mainPref.getLong(key, DEFAULT_INDEX);
+	}
+
 	/**
 	 * Put string data to shared preferences in private mode.
 	 * @param context - The context of activity which is requesting to put data.

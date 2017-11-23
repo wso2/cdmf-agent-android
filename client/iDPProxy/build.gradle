@@ -26,6 +26,15 @@ android {
         targetSdkVersion 25
     }
 
+    signingConfigs {
+        config {
+            keyAlias ''
+            keyPassword ''
+            storeFile file('')
+            storePassword ''
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -167,6 +176,8 @@ android {
             // APPLICATION_PACKAGE: If a modification of the agent's package name is done, this must
             // be altered.
             buildConfigField "String", "APPLICATION_PACKAGE", "\"org.wso2.iot.agent\""
+            signingConfig signingConfigs.config
+
         }
     }
     compileOptions {

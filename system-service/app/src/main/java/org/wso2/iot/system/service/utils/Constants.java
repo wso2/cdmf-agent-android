@@ -55,7 +55,7 @@ public class Constants {
 	public static final String AGENT_APP_SERVICE_NAME = "org.wso2.iot.agent.START_SERVICE";
 	public static final boolean OTA_DOWNLOAD_PROGRESS_BAR_ENABLED = true;
 	public static final int OTA_DOWNLOAD_PERCENTAGE_FACTOR = 5;
-	public static final int FIRMWARE_DOWNLOAD_TIMEOUT = 2*60*1000;
+	public static final int FIRMWARE_DOWNLOAD_TIMEOUT = 10*60*1000; //Time in milliseconds(Example 10 minutes).
 
 	// Input Inject related constants
 	public static final int INPUT_THRESHOLD = 20;

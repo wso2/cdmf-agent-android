@@ -74,37 +74,42 @@ public class OAuthSSLClient implements CommunicationClient {
                             openRawResource(R.raw.truststore);
                 }
                 localTrustStore.load(inStream, Constants.TRUSTSTORE_PASSWORD.toCharArray());
-                String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
-                TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
-                tmf.init(localTrustStore);
+                if(localTrustStore.size() > 0) { // Handling self-signed server SSL
+                    String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+                    TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
+                    tmf.init(localTrustStore);
 
 
-                SSLContext sslContext = SSLContext.getInstance("TLS");
-                sslContext.init(null, tmf.getTrustManagers(), null);
-                final SSLSocketFactory socketFactory = sslContext.getSocketFactory();
-                HurlStack hurlStack = new HurlStack() {
-                    @Override
-                    protected HttpURLConnection createConnection(URL url) throws IOException {
-                        if (Constants.DEBUG_ENABLED) {
-                            Log.d(TAG, "url: " + url);
-                        }
-                        if ("https".equalsIgnoreCase(url.getProtocol())) {
+                    SSLContext sslContext = SSLContext.getInstance("TLS");
+                    sslContext.init(null, tmf.getTrustManagers(), null);
+                    final SSLSocketFactory socketFactory = sslContext.getSocketFactory();
+                    HurlStack hurlStack = new HurlStack() {
+                        @Override
+                        protected HttpURLConnection createConnection(URL url) throws IOException {
                             if (Constants.DEBUG_ENABLED) {
-                                Log.d(TAG, "Creating https URL connection");
+                                Log.d(TAG, "url: " + url);
                             }
-                            HttpsURLConnection httpsURLConnection = (HttpsURLConnection) super.createConnection(url);
-                            httpsURLConnection.setSSLSocketFactory(socketFactory);
-                            httpsURLConnection.setHostnameVerifier(getHostnameVerifier());
-                            return httpsURLConnection;
-                        } else {
-                            if (Constants.DEBUG_ENABLED) {
-                                Log.d(TAG, "Creating http URL connection");
+                            if ("https".equalsIgnoreCase(url.getProtocol())) {
+                                if (Constants.DEBUG_ENABLED) {
+                                    Log.d(TAG, "Creating https URL connection");
+                                }
+                                HttpsURLConnection httpsURLConnection = (HttpsURLConnection) super.createConnection(url);
+                                httpsURLConnection.setSSLSocketFactory(socketFactory);
+                                httpsURLConnection.setHostnameVerifier(getHostnameVerifier());
+                                return httpsURLConnection;
+                            } else {
+                                if (Constants.DEBUG_ENABLED) {
+                                    Log.d(TAG, "Creating http URL connection");
+                                }
+                                return super.createConnection(url);
                             }
-                            return super.createConnection(url);
                         }
-                    }
-                };
-                client = Volley.newRequestQueue(context, hurlStack);
+                    };
+                    client = Volley.newRequestQueue(context, hurlStack);
+                } else { //Handling valid(non-self-signed) SSL (Server must present the full
+                         // certificate chain.)
+                    client = Volley.newRequestQueue(context);
+                }
             } else {
                 client = Volley.newRequestQueue(context);
             }

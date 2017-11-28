@@ -54,6 +54,7 @@
                 <action android:name="org.wso2.emm.system.service.START_SERVICE" />
             </intent-filter>
         </service>
+        <service android:name=".services.OTADownloadService" />
 
         <activity
                 android:name=".MainActivity"

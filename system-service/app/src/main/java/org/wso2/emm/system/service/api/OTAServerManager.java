@@ -405,9 +405,10 @@ public class OTAServerManager {
                     Uri downloadUri = Uri.parse(url.toString());
                     DownloadManager.Request request = new DownloadManager.Request(downloadUri);
                     // Restrict the types of networks over which this download may proceed.
-                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
+                    request. setAllowedOverMetered(true);
+//                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
                     // Set whether this download may proceed over a roaming connection.
-                    request.setAllowedOverRoaming(true);
+//                    request.setAllowedOverRoaming(true);
                     // Set the title of this download, to be displayed in notifications
                     if (Constants.OTA_DOWNLOAD_PROGRESS_BAR_ENABLED) {
                         request.setVisibleInDownloadsUi(true);
@@ -446,20 +447,18 @@ public class OTAServerManager {
                         int progress = 0;
                         int previousPercentage = 0;
                         String otaPackageName= null;
-                        Log.e(TAG, "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+                        Log.e(TAG, "--------------------Download monitoring thread started----------------------------");
 
                         long pauseTimeStamp = 0l;
                         boolean isPaused = false;
                         int cursorFixAttempts = 0;
                         Cursor cursor = null;
+                        DownloadManager.Query query = null;
 
                         while (downloading) {
                             downloadOngoing = true;
 
-
-                            DownloadManager.Query query = null;
                             query = new DownloadManager.Query();
-                           // Cursor cursor = null;
                             query.setFilterById(downloadReference);
                             cursor = downloadManager.query(query);
 
@@ -472,7 +471,29 @@ public class OTAServerManager {
                                     Log.d(TAG, "Update package file size:" + lengthOfFile);
                                 }
                             } else {
-                                Log.e(TAG, "Cursor is null");
+                                cursorFixAttempts ++;
+                                if(cursor!= null){
+                                    cursor.close();
+                                }
+                                if(cursorFixAttempts == 2) {
+                                    downloadManager.remove(downloadReference);
+                                    Preference.putBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available), false);
+                                    Preference.putLong(context, context.getResources().getString(R.string.download_manager_reference_id), -1);
+                                    String message = "Android Database cursor error; aborting";
+                                    Log.e(TAG, message);
+                                    CommonUtils.sendBroadcast(context, Constants.Operation.UPGRADE_FIRMWARE, Constants.Code.FAILURE,
+                                            Constants.Status.INTERNAL_ERROR, message);
+                                    CommonUtils.callAgentApp(context, Constants.Operation.FAILED_FIRMWARE_UPGRADE_NOTIFICATION, Preference.getInt(
+                                            context, context.getResources().getString(R.string.operation_id)), message);
+                                    Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
+                                            Constants.Status.INTERNAL_ERROR);
+                                    if (serverManager.stateChangeListener != null) {
+                                        serverManager.stateChangeListener.onStateOrProgress(OTAStateChangeListener.STATE_IN_DOWNLOADING,
+                                                OTAStateChangeListener.ERROR_PACKAGE_INSTALL_FAILED, null, DEFAULT_STATE_INFO_CODE);
+                                    }
+                                    break;
+                                }
+                                Log.e(TAG, "Cursor is null or empty");
                                 continue;
                             }
 
@@ -509,7 +530,9 @@ public class OTAServerManager {
                                 break;
                             }
 
-                            //Checks whether there is enough s torage capacity to download the ota file
+                            int bytesDownloaded = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+
+                            //Checks whether there is enough storage capacity to download the ota file
                             if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON)) == DownloadManager.ERROR_INSUFFICIENT_SPACE) {
                                 downloadManager.remove(downloadReference);
                                 Preference.putBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available), false);
@@ -519,20 +542,9 @@ public class OTAServerManager {
                                         Constants.Status.LOW_DISK_SPACE, message);
                                 CommonUtils.callAgentApp(context, Constants.Operation.FIRMWARE_UPGRADE_FAILURE,
                                         Preference.getInt(context, context.getResources().getString(R.string.operation_id)), message);
-                                if (!isLogPrinted) {
-                                    Log.e(TAG, message);
-                                    isLogPrinted = true;
-                                }
                                 cursor.close();
                                 break;
-                            }
-
-                            int bytesDownloaded = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
-                            if (Constants.DEBUG_MODE_ENABLED) {
-                                //Log.d(TAG, "downloaded bytes so far:" + bytesDownloaded);
-                            }
-
-                            if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
+                            } else if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
                                     STATUS_SUCCESSFUL) {
                                 Log.e(TAG, "successful-successful-successful-successful-successful-successful-successful-successful");
                                 Preference.putBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available), false);
@@ -546,7 +558,6 @@ public class OTAServerManager {
                                     serverManager.stateChangeListener.onStateOrProgress(OTAStateChangeListener.STATE_IN_DOWNLOADING,
                                             DEFAULT_STATE_ERROR_CODE, null, DEFAULT_STATE_INFO_CODE);
                                 }
-                                cursor.close();
                                 break;
                             } else if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
                                     STATUS_PAUSED) {
@@ -571,6 +582,7 @@ public class OTAServerManager {
                                     Log.w(TAG, "Download paused. Reason: " + reasonString + " (code: " + reason + ")");
                                 }
                                 isPaused = true;
+                                cursor.close();
                             } else if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
                                     STATUS_FAILED) {
                                 Log.e(TAG, "failed-failed-failed-failed-failed-failed-failed-failed-failed");
@@ -620,9 +632,6 @@ public class OTAServerManager {
                                 reportDownloadError(OTAStateChangeListener.ERROR_WRITE_FILE_ERROR);
                                 cursor.close();
                                 break;
-                            } else if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
-                                    STATUS_PENDING) {
-
                             } else if(cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
                                     STATUS_RUNNING){
                                 Log.e(TAG, "-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-");

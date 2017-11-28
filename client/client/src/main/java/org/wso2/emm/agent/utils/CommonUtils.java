@@ -417,9 +417,9 @@ public class CommonUtils {
 									.getString(R.string.firmware_upgrade_automatic_retry)));
 						} else {
 							upgradeData.put(context.getResources()
-									.getString(R.string.firmware_upgrade_automatic_retry), true);
+									.getString(R.string.firmware_upgrade_automatic_retry), false);
 							Preference.putBoolean(context, context.getResources()
-									.getString(R.string.is_automatic_firmware_upgrade), true);
+									.getString(R.string.is_automatic_firmware_upgrade), false);
 							Log.d(TAG, "Updated payload: " + command);
 						}
 					} catch (JSONException e) {

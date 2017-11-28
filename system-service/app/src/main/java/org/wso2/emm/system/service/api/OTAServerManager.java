@@ -63,6 +63,9 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
@@ -101,6 +104,10 @@ public class OTAServerManager {
     private int maximumPoolSize = 80;
     private int keepAliveTime = 10;
     private long downloadReference;
+    private long startTimeStamp;
+
+    private final List<String> dontDeleteTheseFolders = Arrays.asList("backup", "lost+found", "vfienv", "ota");
+
 
     //Use our own thread pool executor for async task to schedule new tasks upon download failures.
     private BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(maximumPoolSize);
@@ -288,79 +295,250 @@ public class OTAServerManager {
         }
     }
 
-    public void startDownloadUpgradePackage(final OTAServerManager serverManager) {
-        if (asyncTask != null) {
-            asyncTask.cancel(true);
+    private void renameDownloadedFile(String otaPackageName){
+        try {
+
+            File otaFolder = new File(FileUtils.getOTAPackageFilePath());
+            if (!otaFolder.exists()) {
+                if (otaFolder.mkdir()) {
+                    Log.i(TAG, "creating folder: " + otaFolder.toString());
+                } else {
+                    Log.i(TAG, "Failed to create directory!" + otaFolder.toString());
+                }
+            }
+            String downloadedFilename = otaPackageName;
+            Log.i(TAG, "moving file from " + downloadedFilename + " to " + FileUtils.getUpgradePackageFilePath());
+            File from = new File(downloadedFilename);
+            File to = new File(FileUtils.getUpgradePackageFilePath());
+            org.apache.commons.io.FileUtils.moveFile(from, to);
+        } catch (IOException ex){
+            Log.e(TAG, "Error renaming file", ex);
         }
+    }
+
+    private void clearCacheDirectory(){
+        File cacheDirectory = new File(FileUtils.getUpgradePackageDirectory());
+
+        if (cacheDirectory.exists()) {
+            Log.i(TAG, "Cleaning the folder: " + cacheDirectory);
+            try {
+                deleteRecursive(cacheDirectory);
+
+            } catch (IOException ex){
+                Log.e(TAG, "Can't clean up folder: " + cacheDirectory + "; " + ex.getMessage());
+            }
+        } else {
+            Log.e(TAG, "Can't clean up folder: " + cacheDirectory + " does not exist");
+        }
+    }
+
+    private void deleteRecursive(File fileOrDirectory) throws IOException {
+        deleteRecursive(fileOrDirectory, 0);
+    }
+
+    private void deleteRecursive(File fileOrDirectory, int level) throws IOException {
+        if (fileOrDirectory != null && fileOrDirectory.isDirectory() && fileOrDirectory.listFiles() != null && fileOrDirectory.listFiles().length > 0) {
+            for (File child : fileOrDirectory.listFiles()) {
+                if (!dontDeleteTheseFolders.contains(child.getName())) {
+                    deleteRecursive(child, level + 1);
+                }
+            }
+        }
+
+
+        if (level != 0) {// don't delete top level folder
+            if (!dontDeleteTheseFolders.contains(fileOrDirectory.getName())) {
+                Log.i(TAG, "erasing file: " + fileOrDirectory.getAbsolutePath() + " of size: " + fileOrDirectory.length());
+                if (!fileOrDirectory.delete()) {
+                    Log.e(TAG, "couldn't erase: " + fileOrDirectory.getName());
+                }
+            } else {
+                Log.i(TAG, "ignoring file: " + fileOrDirectory.getAbsolutePath() + " of size: " + fileOrDirectory.length());
+            }
+        }
+    }
+
+    public void startDownloadUpgradePackage(final OTAServerManager serverManager) {
+        boolean isAvailabledownloadReference = Preference.getBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available));
+        if(!isAvailabledownloadReference) {
+            if (asyncTask != null) {
+                asyncTask.cancel(true);
+            }
+
+            //If there's an update.zip(any other) downloaded previously to /cache/ota/, that will be deleted.
+            File targetDir = new File(FileUtils.getOTAPackageFilePath());
+            if (targetDir.exists()) {
+                try {
+                    org.apache.commons.io.FileUtils.cleanDirectory(targetDir);
+                } catch (IOException ex){
+                    Log.e(TAG, "Can't clean up folder: " + targetDir + "; " + ex.getMessage());
+                }
+            }
+
+            //If there are any files (downloaded previously) in /cache, that will be deleted.
+            String previousOTAFile = Preference.getString(context, context.getResources().
+                    getString(R.string.firmware_upgrade_file_name_pref));
+            if (previousOTAFile != null) {
+                File previousFile = new File(FileUtils.getUpgradePackageDirectory() + File.separator + previousOTAFile);
+                if (previousFile.exists()) {
+                    previousFile.delete();
+                    Log.i(TAG, "Old update has been deleted.");
+                }
+            }
+            //Apart from the above deletions, this method will carry further cache clearance
+            clearCacheDirectory();
+        }
+
         asyncTask = new AsyncTask<Void, Void, Void>() {
             protected Void doInBackground(Void... unused) {
-                Log.i(TAG, "Firmware download started");
-                Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
-                        Constants.Status.OTA_UPGRADE_ONGOING);
-
-                URL url = serverConfig.getPackageURL();
-
-                Log.d(TAG, "Start downloading package:" + url.toString());
-
                 final DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-                Uri downloadUri = Uri.parse(url.toString());
-                DownloadManager.Request request = new DownloadManager.Request(downloadUri);
-                // Restrict the types of networks over which this download may proceed.
-                request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
-                // Set whether this download may proceed over a roaming connection.
-                request.setAllowedOverRoaming(true);
-                // Set the title of this download, to be displayed in notifications
-                if(Constants.OTA_DOWNLOAD_PROGRESS_BAR_ENABLED) {
-                    request.setVisibleInDownloadsUi(true);
-                    request.setTitle("Downloading firmware upgrade");
-                    request.setDescription("WSO2 Agent");
-                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+                //Checks whether there are any pending download references
+                boolean isAvailabledownloadReference = Preference.getBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available));
+                if(!isAvailabledownloadReference) {
+                    Log.i(TAG, "Firmware download started");
+                    Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
+                            Constants.Status.OTA_UPGRADE_ONGOING);
+
+                    URL url = serverConfig.getPackageURL();
+                    Log.d(TAG, "Start downloading package:" + url.toString());
+
+                    Uri downloadUri = Uri.parse(url.toString());
+                    DownloadManager.Request request = new DownloadManager.Request(downloadUri);
+                    // Restrict the types of networks over which this download may proceed.
+                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
+                    // Set whether this download may proceed over a roaming connection.
+                    request.setAllowedOverRoaming(true);
+                    // Set the title of this download, to be displayed in notifications
+                    if (Constants.OTA_DOWNLOAD_PROGRESS_BAR_ENABLED) {
+                        request.setVisibleInDownloadsUi(true);
+                        request.setTitle("Downloading firmware upgrade");
+                        request.setDescription("WSO2 Agent");
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+                    } else {
+                        request.setVisibleInDownloadsUi(false);
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
+                    }
+
+                    request.setDestinationToSystemCache();
+                    //Save the timestamp when the download is started (initially).
+                    startTimeStamp = Calendar.getInstance().getTime().getTime();
+                    downloadReference = downloadManager.enqueue(request);
+                    Preference.putLong(context, context.getResources().getString(R.string.download_manager_reference_id), downloadReference);
+                    Preference.putBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available), true);
+                    Preference.putLong(context, context.getResources().getString(R.string.download_manager_start_time), startTimeStamp);
+                    if (Constants.DEBUG_MODE_ENABLED) {
+                        Log.d(TAG, String.valueOf(Preference.getLong(context, context.getResources().getString(R.string.download_manager_reference_id))));
+                    }
                 } else {
-                    request.setVisibleInDownloadsUi(false);
-                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
+                    downloadReference = Preference.getLong(context, context.getResources().getString(R.string.download_manager_reference_id));
+                    //Save the timestamp if the download is resumed after a reboot or any other interrupt.
+                    startTimeStamp = Preference.getLong(context, context.getResources().getString(R.string.download_manager_start_time));
                 }
-                // Set the local destination for the downloaded file to a path within the application's external files directory
-                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "update.zip");
 
-                downloadReference = downloadManager.enqueue(request);
-
+                //Download monitoring thread.
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         JSONObject result = new JSONObject();
                         boolean downloading = true;
+                        boolean isLogPrinted = false;
+                        boolean isFileNameAvailable = false;
                         int progress = 0;
+                        int previousPercentage = 0;
+                        String otaPackageName= null;
+                        Log.e(TAG, "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+
+                        long pauseTimeStamp = 0l;
+                        boolean isPaused = false;
+                        int cursorFixAttempts = 0;
+                        Cursor cursor = null;
+
                         while (downloading) {
                             downloadOngoing = true;
-                            DownloadManager.Query query = new DownloadManager.Query();
+
+
+                            DownloadManager.Query query = null;
+                            query = new DownloadManager.Query();
+                           // Cursor cursor = null;
                             query.setFilterById(downloadReference);
-                            Cursor cursor = downloadManager.query(query);
-                            cursor.moveToFirst();
+                            cursor = downloadManager.query(query);
 
-                            lengthOfFile = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+                            Log.e(TAG, "EEEEEE  --- : "+downloadManager.query(query).toString());
 
-                            if (Constants.DEBUG_MODE_ENABLED) {
-                                Log.d(TAG, "Update package file size:" + lengthOfFile);
+                            if(cursor != null && cursor.moveToFirst()){
+                                lengthOfFile = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+                                Log.e(TAG, "PPPPP  --- : "+cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)));
+                                if (Constants.DEBUG_MODE_ENABLED) {
+                                    Log.d(TAG, "Update package file size:" + lengthOfFile);
+                                }
+                            } else {
+                                Log.e(TAG, "Cursor is null");
+                                continue;
                             }
-                            if (getFreeDiskSpace() < lengthOfFile) {
+
+                            //Get the OTA download file name and stored it in shared preference "firmware_upgrade_file_name_pref"
+                            otaPackageName = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_FILENAME));
+                            if (otaPackageName != null && !otaPackageName.isEmpty()) {
+                                if (!isFileNameAvailable) {
+                                    Preference.putString(context, context.getResources().
+                                            getString(R.string.firmware_upgrade_file_name_pref), otaPackageName);
+                                    isFileNameAvailable = true;
+                                }
+                            }
+
+                            //This will setup a total time for the upgrade firmware operation. Firmware operation needs to be
+                            //completed within this time limit otherwise the operation will be aborted.
+                            if ((Calendar.getInstance().getTime().getTime() - startTimeStamp) > Constants.FIRMWARE_DOWNLOAD_TIMEOUT){
+                                Log.e(TAG, "timeout-timeout-timeout-timeout-timeout-timeout-timeout-timeout");
+                                downloadManager.remove(downloadReference);
+                                Preference.putBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available), false);
+                                Preference.putLong(context, context.getResources().getString(R.string.download_manager_reference_id), -1);
+                                String message = "Download took more than the maximum allowed time; aborting";
+                                Log.e(TAG, message);
+                                CommonUtils.sendBroadcast(context, Constants.Operation.UPGRADE_FIRMWARE, Constants.Code.FAILURE,
+                                        Constants.Status.CONNECTION_FAILED, message);
+                                CommonUtils.callAgentApp(context, Constants.Operation.FAILED_FIRMWARE_UPGRADE_NOTIFICATION, Preference.getInt(
+                                        context, context.getResources().getString(R.string.operation_id)), message);
+                                Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
+                                        Constants.Status.CONNECTION_FAILED);
+                                if (serverManager.stateChangeListener != null) {
+                                    serverManager.stateChangeListener.onStateOrProgress(OTAStateChangeListener.STATE_IN_DOWNLOADING,
+                                            OTAStateChangeListener.ERROR_PACKAGE_INSTALL_FAILED, null, DEFAULT_STATE_INFO_CODE);
+                                }
+                                cursor.close();
+                                break;
+                            }
+
+                            //Checks whether there is enough s torage capacity to download the ota file
+                            if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON)) == DownloadManager.ERROR_INSUFFICIENT_SPACE) {
+                                downloadManager.remove(downloadReference);
+                                Preference.putBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available), false);
+                                Preference.putLong(context, context.getResources().getString(R.string.download_manager_reference_id), -1);
                                 String message = "Device does not have enough memory to download the OTA update";
                                 CommonUtils.sendBroadcast(context, Constants.Operation.UPGRADE_FIRMWARE, Constants.Code.FAILURE,
                                         Constants.Status.LOW_DISK_SPACE, message);
                                 CommonUtils.callAgentApp(context, Constants.Operation.FIRMWARE_UPGRADE_FAILURE,
                                         Preference.getInt(context, context.getResources().getString(R.string.operation_id)), message);
-                                Log.e(TAG, message);
+                                if (!isLogPrinted) {
+                                    Log.e(TAG, message);
+                                    isLogPrinted = true;
+                                }
+                                cursor.close();
+                                break;
                             }
 
-                            int bytesDownloaded = cursor.getInt(cursor.getColumnIndex(DownloadManager.
-                                    COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                            int bytesDownloaded = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
                             if (Constants.DEBUG_MODE_ENABLED) {
-                                Log.d(TAG, "downloaded bytes so far:" + bytesDownloaded);
+                                //Log.d(TAG, "downloaded bytes so far:" + bytesDownloaded);
                             }
 
-                            int bytesTotal = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
                             if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
                                     STATUS_SUCCESSFUL) {
-                                downloading = false;
+                                Log.e(TAG, "successful-successful-successful-successful-successful-successful-successful-successful");
+                                Preference.putBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available), false);
+                                Preference.putLong(context, context.getResources().getString(R.string.download_manager_reference_id), -1);
+                                cursor.close();
+                                renameDownloadedFile(otaPackageName);
                                 Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
                                         context.getResources().getString(R.string.status_success));
                                 Log.i(TAG, "Download successful");
@@ -368,13 +546,70 @@ public class OTAServerManager {
                                     serverManager.stateChangeListener.onStateOrProgress(OTAStateChangeListener.STATE_IN_DOWNLOADING,
                                             DEFAULT_STATE_ERROR_CODE, null, DEFAULT_STATE_INFO_CODE);
                                 }
-                            }
-                            if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
+                                cursor.close();
+                                break;
+                            } else if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
+                                    STATUS_PAUSED) {
+                                Log.e(TAG, "paused-paused-paused-paused-paused-paused-paused-paused-paused-paused-paused");
+                                if (!isPaused) {
+                                    int reason = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON));
+                                    String reasonString = "Unknown";
+                                    switch (reason) {
+                                        case DownloadManager.PAUSED_QUEUED_FOR_WIFI:
+                                            reasonString = "PAUSED_QUEUED_FOR_WIFI";
+                                            break;
+                                        case DownloadManager.PAUSED_UNKNOWN:
+                                            reasonString = "PAUSED_UNKNOWN";
+                                            break;
+                                        case DownloadManager.PAUSED_WAITING_FOR_NETWORK:
+                                            reasonString = "PAUSED_WAITING_FOR_NETWORK";
+                                            break;
+                                        case DownloadManager.PAUSED_WAITING_TO_RETRY:
+                                            reasonString = "PAUSED_WAITING_TO_RETRY";
+                                            break;
+                                    }
+                                    Log.w(TAG, "Download paused. Reason: " + reasonString + " (code: " + reason + ")");
+                                }
+                                isPaused = true;
+                            } else if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
                                     STATUS_FAILED) {
-                                downloading = false;
+                                Log.e(TAG, "failed-failed-failed-failed-failed-failed-failed-failed-failed");
+
+                                downloadManager.remove(downloadReference);
+                                Preference.putBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available), false);
+                                Preference.putLong(context, context.getResources().getString(R.string.download_manager_reference_id), -1);
                                 int columnReason = cursor.getColumnIndex(DownloadManager.COLUMN_REASON);
                                 int reason = cursor.getInt(columnReason);
-                                String message = "Download Manager error code" + reason;
+                                String reasonString = "Unknown";
+                                switch (reason) {
+                                    case DownloadManager.ERROR_CANNOT_RESUME:
+                                        reasonString = "ERROR_CANNOT_RESUME";
+                                        break;
+                                    case DownloadManager.ERROR_DEVICE_NOT_FOUND:
+                                        reasonString = "ERROR_DEVICE_NOT_FOUND";
+                                        break;
+                                    case DownloadManager.ERROR_FILE_ALREADY_EXISTS:
+                                        reasonString = "ERROR_FILE_ALREADY_EXISTS";
+                                        break;
+                                    case DownloadManager.ERROR_FILE_ERROR:
+                                        reasonString = "ERROR_FILE_ERROR";
+                                        break;
+                                    case DownloadManager.ERROR_HTTP_DATA_ERROR:
+                                        reasonString = "ERROR_HTTP_DATA_ERROR";
+                                        break;
+                                    case DownloadManager.ERROR_INSUFFICIENT_SPACE:
+                                        reasonString = "ERROR_INSUFFICIENT_SPACE";
+                                        break;
+                                    case DownloadManager.ERROR_TOO_MANY_REDIRECTS:
+                                        reasonString = "ERROR_TOO_MANY_REDIRECTS";
+                                        break;
+                                    case DownloadManager.ERROR_UNHANDLED_HTTP_CODE:
+                                        reasonString = "ERROR_UNHANDLED_HTTP_CODE";
+                                        break;
+                                }
+
+                                String message = "Download failed. Reason: " + reasonString + " (code: " + reason + ")";
+                                Log.e(TAG, message);
 
                                 Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
                                         Constants.Status.OTA_DOWNLOAD_FAILED);
@@ -382,35 +617,59 @@ public class OTAServerManager {
                                         Constants.Status.CONNECTION_FAILED, message);
                                 CommonUtils.callAgentApp(context, Constants.Operation.FAILED_FIRMWARE_UPGRADE_NOTIFICATION, Preference.getInt(
                                         context, context.getResources().getString(R.string.operation_id)), message);
-                            }
-                            int downloadProgress = 0;
-                            if (bytesTotal > 0) {
-                                downloadProgress = (int) ((bytesDownloaded * 100l) / bytesTotal);
-                            }
-                            if (downloadProgress != DOWNLOAD_PERCENTAGE_TOTAL) {
-                                progress += DOWNLOADER_INCREMENT;
-                                Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
-                                        Constants.Status.OTA_UPGRADE_ONGOING);
-                            } else {
-                                progress = DOWNLOAD_PERCENTAGE_TOTAL;
+                                reportDownloadError(OTAStateChangeListener.ERROR_WRITE_FILE_ERROR);
+                                cursor.close();
+                                break;
+                            } else if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
+                                    STATUS_PENDING) {
+
+                            } else if(cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
+                                    STATUS_RUNNING){
+                                Log.e(TAG, "-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-");
+
+                                int downloadProgress = 0;
+                                if (lengthOfFile > 0) {
+                                    downloadProgress = (int) ((bytesDownloaded * 100l) / lengthOfFile);
+                                }
+
+                                if (downloadProgress != DOWNLOAD_PERCENTAGE_TOTAL) {
+                                    if ((downloadProgress % Constants.OTA_DOWNLOAD_PERCENTAGE_FACTOR) == 0
+                                            && downloadProgress > previousPercentage) {
+                                        previousPercentage = downloadProgress;
+                                        if (Constants.DEBUG_MODE_ENABLED) {
+                                            Log.d(TAG, "downloaded progress so far:" + downloadProgress + "%");
+                                        }
+                                        progress = downloadProgress;
+                                    }
+                                    Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
+                                            Constants.Status.OTA_UPGRADE_ONGOING);
+                                } else {
+                                    progress = DOWNLOAD_PERCENTAGE_TOTAL;
+
+                                    Preference.putString(context, context.getResources().getString(R.string.firmware_download_progress),
+                                            String.valueOf(DEFAULT_STATE_INFO_CODE));
+                                }
 
                                 Preference.putString(context, context.getResources().getString(R.string.firmware_download_progress),
-                                        String.valueOf(DEFAULT_STATE_INFO_CODE));
-                            }
-
-                            Preference.putString(context, context.getResources().getString(R.string.firmware_download_progress),
-                                    String.valueOf(progress));
-                            try {
-                                result.put("progress", String.valueOf(progress));
-                                CommonUtils.sendBroadcast(context, Constants.Operation.UPGRADE_FIRMWARE, Constants.Code.SUCCESS,
-                                        Constants.Status.OTA_UPGRADE_ONGOING, result.toString());
-                            } catch (JSONException e) {
-                                Log.e(TAG, "Failed to create JSON object when publishing OTA progress.");
-                                CommonUtils.sendBroadcast(context, Constants.Operation.UPGRADE_FIRMWARE, Constants.Code.SUCCESS,
-                                        Constants.Status.INTERNAL_ERROR, e.getMessage());
+                                        String.valueOf(progress));
+                                try {
+                                    result.put("progress", String.valueOf(progress));
+                                    CommonUtils.sendBroadcast(context, Constants.Operation.UPGRADE_FIRMWARE, Constants.Code.SUCCESS,
+                                            Constants.Status.OTA_UPGRADE_ONGOING, result.toString());
+                                } catch (JSONException e) {
+                                    Log.e(TAG, "Failed to create JSON object when publishing OTA progress.");
+                                    CommonUtils.sendBroadcast(context, Constants.Operation.UPGRADE_FIRMWARE, Constants.Code.SUCCESS,
+                                            Constants.Status.INTERNAL_ERROR, e.getMessage());
+                                }
                             }
                             cursor.close();
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                Log.e(TAG, e.getMessage());
+                            }
                         }
+
                         downloadOngoing = false;
                     }
                 }
@@ -424,7 +683,9 @@ public class OTAServerManager {
     public long getFreeDiskSpace() {
         StatFs statFs = new StatFs(FileUtils.getUpgradePackageDirectory());
         long freeDiskSpace = (long) statFs.getAvailableBlocks() * (long) statFs.getBlockSize();
-        Log.d(TAG, "Free disk space: " + freeDiskSpace);
+        /*if (Constants.DEBUG_MODE_ENABLED) {
+            Log.d(TAG, "Free disk space: " + freeDiskSpace);
+        }*/
         return freeDiskSpace;
     }
 
@@ -464,6 +725,7 @@ public class OTAServerManager {
                 if (isAutomaticRetryEnabled || Constants.SILENT_FIRMWARE_INSTALLATION) {
                     CommonUtils.callAgentApp(context, Constants.Operation.FIRMWARE_UPGRADE_COMPLETE, Preference.getInt(
                             context, context.getResources().getString(R.string.operation_id)), "Starting firmware upgrade");
+                    Log.d(TAG, "Starting firmware upgrade");
                     RecoverySystem.installPackage(context, recoveryFile);
                 } else {
                     setNotification(context, context.getResources().getString(R.string.ask_from_user_to_install_firmware), true);
@@ -646,23 +908,6 @@ public class OTAServerManager {
         }.executeOnExecutor(threadPoolExecutor);
     }
 
-    private BroadcastReceiver downloadReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            long referenceId = intent.getLongExtra(
-                    DownloadManager.EXTRA_DOWNLOAD_ID, -1);
-
-            if (downloadReference == referenceId) {
-                String downloadDirectoryPath = Environment.getExternalStoragePublicDirectory(Environment.
-                        DIRECTORY_DOWNLOADS).getPath();
-                File file = new File(downloadDirectoryPath, "update.zip");
-                if (file.exists()) {
-                    Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
-                            context.getResources().getString(R.string.status_success));
-                }
-            }
-        }
-    };
 
     public interface OTAStateChangeListener {
 

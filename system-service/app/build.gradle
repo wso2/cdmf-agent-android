@@ -19,19 +19,33 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "21.1.2"
+    buildToolsVersion "24.0.0"
 
     defaultConfig {
         applicationId "org.wso2.emm.system.service"
-        minSdkVersion 17
-        targetSdkVersion 23
+        minSdkVersion 22
+        targetSdkVersion 22
         versionCode 1
         versionName "1.0"
     }
+
+    signingConfigs {
+        config {
+            keyAlias 'platform'
+            keyPassword 'android'
+            storeFile file('../../swordfish.keystore')
+            storePassword 'android'
+        }
+    }
+
     buildTypes {
+        debug{
+            signingConfig signingConfigs.config
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
         }
     }
 }
@@ -39,4 +53,5 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:23.2.1'
+    compile 'commons-io:commons-io:2.4'
 }

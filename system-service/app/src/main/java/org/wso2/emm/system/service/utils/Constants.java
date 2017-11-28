@@ -49,6 +49,8 @@ public class Constants {
 	public static final String FIRMWARE_INSTALL_CANCEL_ACTION = "FIRMWARE_INSTALL_CANCEL_ACTION";
 	public static final boolean SILENT_FIRMWARE_INSTALLATION = true;
 	public static final boolean OTA_DOWNLOAD_PROGRESS_BAR_ENABLED = true;
+	public static final int OTA_DOWNLOAD_PERCENTAGE_FACTOR = 5;
+	public static final int FIRMWARE_DOWNLOAD_TIMEOUT = 10*60*1000; //Time in milliseconds(Example 10 minutes).
 	/**
 	 * Read_TIMEOUT = SO timeout(the time since the last byte has been received)
 	 */

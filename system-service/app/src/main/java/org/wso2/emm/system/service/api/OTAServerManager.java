@@ -504,7 +504,6 @@ public class OTAServerManager {
                             //This will setup a total time for the upgrade firmware operation. Firmware operation needs to be
                             //completed within this time limit otherwise the operation will be aborted.
                             if ((Calendar.getInstance().getTime().getTime() - startTimeStamp) > Constants.FIRMWARE_DOWNLOAD_TIMEOUT) {
-                                Log.e(TAG, "timeout-timeout-timeout-timeout-timeout-timeout-timeout-timeout");
                                 downloadManager.remove(downloadReference);
                                 Preference.putBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available), false);
                                 Preference.putLong(context, context.getResources().getString(R.string.download_manager_reference_id), -1);
@@ -540,7 +539,6 @@ public class OTAServerManager {
                                 break;
                             } else if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
                                     STATUS_SUCCESSFUL) {
-                                Log.e(TAG, "successful-successful-successful-successful-successful-successful-successful-successful");
                                 Preference.putBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available), false);
                                 Preference.putLong(context, context.getResources().getString(R.string.download_manager_reference_id), -1);
                                 cursor.close();
@@ -555,7 +553,6 @@ public class OTAServerManager {
                                 break;
                             } else if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
                                     STATUS_PAUSED) {
-                                Log.e(TAG, "paused-paused-paused-paused-paused-paused-paused-paused-paused-paused-paused");
                                 if (!isPaused) {
                                     int reason = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON));
                                     String reasonString = "Unknown";
@@ -579,8 +576,6 @@ public class OTAServerManager {
                                 cursor.close();
                             } else if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
                                     STATUS_FAILED) {
-                                Log.e(TAG, "failed-failed-failed-failed-failed-failed-failed-failed-failed");
-
                                 downloadManager.remove(downloadReference);
                                 Preference.putBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available), false);
                                 Preference.putLong(context, context.getResources().getString(R.string.download_manager_reference_id), -1);

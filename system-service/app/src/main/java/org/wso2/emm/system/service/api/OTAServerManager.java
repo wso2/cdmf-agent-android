@@ -83,6 +83,7 @@ public class OTAServerManager {
     private static final String BUILD_DATE_UTC_PROPERTY = "ro.build.date.utc";
     private static final int DEFAULT_STATE_ERROR_CODE = 0;
     private static final int DEFAULT_STATE_INFO_CODE = 0;
+    private static final int CURSOR_ATTEMPTS = 2;
     private static final int DEFAULT_BYTES = 100 * 1024;
     private static final int DEFAULT_STREAM_LENGTH = 153600;
     private static final int DEFAULT_OFFSET = 0;
@@ -360,7 +361,7 @@ public class OTAServerManager {
 
     public void startDownloadUpgradePackage(final OTAServerManager serverManager) {
         boolean isAvailabledownloadReference = Preference.getBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available));
-        if(!isAvailabledownloadReference) {
+        if (!isAvailabledownloadReference) {
             if (asyncTask != null) {
                 asyncTask.cancel(true);
             }
@@ -370,7 +371,7 @@ public class OTAServerManager {
             if (targetDir.exists()) {
                 try {
                     org.apache.commons.io.FileUtils.cleanDirectory(targetDir);
-                } catch (IOException ex){
+                } catch (IOException ex) {
                     Log.e(TAG, "Can't clean up folder: " + targetDir + "; " + ex.getMessage());
                 }
             }
@@ -394,7 +395,7 @@ public class OTAServerManager {
                 final DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
                 //Checks whether there are any pending download references
                 boolean isAvailabledownloadReference = Preference.getBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available));
-                if(!isAvailabledownloadReference) {
+                if (!isAvailabledownloadReference) {
                     Log.i(TAG, "Firmware download started");
                     Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
                             Constants.Status.OTA_UPGRADE_ONGOING);
@@ -404,11 +405,8 @@ public class OTAServerManager {
 
                     Uri downloadUri = Uri.parse(url.toString());
                     DownloadManager.Request request = new DownloadManager.Request(downloadUri);
-                    // Restrict the types of networks over which this download may proceed.
-                    request. setAllowedOverMetered(true);
-//                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
-                    // Set whether this download may proceed over a roaming connection.
-//                    request.setAllowedOverRoaming(true);
+                    // Types of networks over which this download may proceed.
+                    request.setAllowedOverMetered(true);
                     // Set the title of this download, to be displayed in notifications
                     if (Constants.OTA_DOWNLOAD_PROGRESS_BAR_ENABLED) {
                         request.setVisibleInDownloadsUi(true);
@@ -446,8 +444,7 @@ public class OTAServerManager {
                         boolean isFileNameAvailable = false;
                         int progress = 0;
                         int previousPercentage = 0;
-                        String otaPackageName= null;
-                        Log.e(TAG, "--------------------Download monitoring thread started----------------------------");
+                        String otaPackageName = null;
 
                         long pauseTimeStamp = 0l;
                         boolean isPaused = false;
@@ -462,20 +459,17 @@ public class OTAServerManager {
                             query.setFilterById(downloadReference);
                             cursor = downloadManager.query(query);
 
-                            Log.e(TAG, "EEEEEE  --- : "+downloadManager.query(query).toString());
-
-                            if(cursor != null && cursor.moveToFirst()){
+                            if (cursor != null && cursor.moveToFirst()) {
                                 lengthOfFile = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
-                                Log.e(TAG, "PPPPP  --- : "+cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)));
                                 if (Constants.DEBUG_MODE_ENABLED) {
                                     Log.d(TAG, "Update package file size:" + lengthOfFile);
                                 }
                             } else {
-                                cursorFixAttempts ++;
-                                if(cursor!= null){
+                                cursorFixAttempts++;
+                                if (cursor != null) {
                                     cursor.close();
                                 }
-                                if(cursorFixAttempts == 2) {
+                                if (cursorFixAttempts == CURSOR_ATTEMPTS) {
                                     downloadManager.remove(downloadReference);
                                     Preference.putBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available), false);
                                     Preference.putLong(context, context.getResources().getString(R.string.download_manager_reference_id), -1);
@@ -509,7 +503,7 @@ public class OTAServerManager {
 
                             //This will setup a total time for the upgrade firmware operation. Firmware operation needs to be
                             //completed within this time limit otherwise the operation will be aborted.
-                            if ((Calendar.getInstance().getTime().getTime() - startTimeStamp) > Constants.FIRMWARE_DOWNLOAD_TIMEOUT){
+                            if ((Calendar.getInstance().getTime().getTime() - startTimeStamp) > Constants.FIRMWARE_DOWNLOAD_TIMEOUT) {
                                 Log.e(TAG, "timeout-timeout-timeout-timeout-timeout-timeout-timeout-timeout");
                                 downloadManager.remove(downloadReference);
                                 Preference.putBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available), false);
@@ -632,10 +626,8 @@ public class OTAServerManager {
                                 reportDownloadError(OTAStateChangeListener.ERROR_WRITE_FILE_ERROR);
                                 cursor.close();
                                 break;
-                            } else if(cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
-                                    STATUS_RUNNING){
-                                Log.e(TAG, "-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-");
-
+                            } else if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
+                                    STATUS_RUNNING) {
                                 int downloadProgress = 0;
                                 if (lengthOfFile > 0) {
                                     downloadProgress = (int) ((bytesDownloaded * 100l) / lengthOfFile);
@@ -671,14 +663,18 @@ public class OTAServerManager {
                                             Constants.Status.INTERNAL_ERROR, e.getMessage());
                                 }
                             }
-                            cursor.close();
+                            try {
+                                if (!cursor.isClosed())
+                                    cursor.close();
+                            } catch (Exception ex) {
+                                Log.e(TAG, "Error closing the cursor");
+                            }
                             try {
                                 Thread.sleep(1000);
                             } catch (InterruptedException e) {
                                 Log.e(TAG, e.getMessage());
                             }
                         }
-
                         downloadOngoing = false;
                     }
                 }

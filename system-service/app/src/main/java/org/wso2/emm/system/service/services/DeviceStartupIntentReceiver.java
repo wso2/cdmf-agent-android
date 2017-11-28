@@ -44,9 +44,8 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 	public void onReceive(final Context context, Intent intent) {
 
 		if ("android.intent.action.BOOT_COMPLETED".equals(intent.getAction())) {
-			Log.d(TAG, "Download manager reference id availability -----------------------------------------------------------:");
 			Intent pushIntent = new Intent(context, OTADownloadService.class);
-				context.startService(pushIntent);
+			context.startService(pushIntent);
 		}
 
 		if (intent.hasExtra(context.getResources().getString(R.string.alarm_scheduled_operation))) {
@@ -57,12 +56,12 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 		int interval = Preference.getInt(context, resources.getString(R.string.alarm_interval));
 		String oneTimeAlarm = Preference.getString(context, resources.getString(R.string.alarm_schedule));
 
-		if(interval > 0) {
+		if (interval > 0) {
 			AlarmUtils.setRecurringAlarm(context.getApplicationContext(), interval);
 		}
 
-		if(oneTimeAlarm != null && !oneTimeAlarm.trim().isEmpty()) {
-			try{
+		if (oneTimeAlarm != null && !oneTimeAlarm.trim().isEmpty()) {
+			try {
 				if (operation != null && operation.trim().equals(Constants.Operation.UPGRADE_FIRMWARE)) {
 					AlarmUtils.setOneTimeAlarm(context, oneTimeAlarm, Constants.Operation.UPGRADE_FIRMWARE, null);
 				}

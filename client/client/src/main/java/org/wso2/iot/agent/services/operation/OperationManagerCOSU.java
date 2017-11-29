@@ -21,7 +21,6 @@ package org.wso2.iot.agent.services.operation;
 import android.annotation.TargetApi;
 import android.app.admin.DevicePolicyManager;
 import android.app.admin.SystemUpdatePolicy;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -34,10 +33,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
-import org.wso2.iot.agent.KioskActivity;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.activities.ServerConfigsActivity;
-import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.ComplianceFeature;
 import org.wso2.iot.agent.beans.Notification;
@@ -58,9 +55,9 @@ import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
 public class OperationManagerCOSU extends OperationManager {
     private static final String TAG = OperationManagerCOSU.class.getSimpleName();
-    private Context context=super.getContext();
+    private Context context = super.getContext();
     private Resources resources = context.getResources();
-    private ResultPayload resultBuilder=super.getResultBuilder();
+    private ResultPayload resultBuilder = super.getResultBuilder();
     private NotificationService notificationService;
     private static final String STATUS = "status";
 
@@ -71,36 +68,19 @@ public class OperationManagerCOSU extends OperationManager {
 
     @Override
     public void wipeDevice(Operation operation) throws AndroidAgentException {
-        String inputPin = null;
-        String savedPin = Preference.getString(getContext(), getContextResources().getString(R.string.shared_pref_pin));
         JSONObject result = new JSONObject();
-        String ownershipType = Preference.getString(getContext(), Constants.DEVICE_TYPE);
-        if (Constants.DEFAULT_OWNERSHIP != null) {
-            ownershipType = Constants.OWNERSHIP_COSU;
-        }
         try {
-            JSONObject wipeKey;
-            String status;
-            if (operation.getPayLoad() != null) {
-                wipeKey = new JSONObject(operation.getPayLoad().toString());
-                if (!wipeKey.isNull(getContextResources().getString(R.string.shared_pref_pin))) {
-                    inputPin = (String) wipeKey.get(getContextResources().getString(R.string.shared_pref_pin));
-                }
+            result.put(getContextResources().getString(R.string.operation_status), "true");
+            operation.setPayLoad(result.toString());
+            operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+            getResultBuilder().build(operation);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                getDevicePolicyManager().wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE | DevicePolicyManager.WIPE_RESET_PROTECTION_DATA);
+            } else {
+                getDevicePolicyManager().wipeData(0);
             }
-
-            status = "true";
-            if (Constants.OWNERSHIP_COSU.equals(ownershipType.trim())) {
-                result.put(getContextResources().getString(R.string.operation_status), status);
-                operation.setPayLoad(result.toString());
-                operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
-                getResultBuilder().build(operation);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-                    getDevicePolicyManager().
-                            wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE | DevicePolicyManager.WIPE_RESET_PROTECTION_DATA);
-                }
-                if (Constants.DEBUG_MODE_ENABLED) {
-                    Log.d(TAG, "Started to wipe data");
-                }
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Started to wipe data");
             }
         } catch (JSONException e) {
             operation.setStatus(getContextResources().getString(R.string.operation_value_error));
@@ -131,7 +111,7 @@ public class OperationManagerCOSU extends OperationManager {
     @Override
     public void installAppBundle(Operation operation) throws AndroidAgentException {
         try {
-            if (operation.getCode().equals(Constants.Operation.INSTALL_APPLICATION)||
+            if (operation.getCode().equals(Constants.Operation.INSTALL_APPLICATION) ||
                     operation.getCode().equals(Constants.Operation.UPDATE_APPLICATION)) {
                 JSONObject appData = new JSONObject(operation.getPayLoad().toString());
                 installApplication(appData, operation);
@@ -173,7 +153,7 @@ public class OperationManagerCOSU extends OperationManager {
 
                 if (type.equalsIgnoreCase(getContextResources().getString(R.string.intent_extra_enterprise))) {
                     appUrl = data.getString(getContextResources().getString(R.string.app_url));
-                    if(data.has(getContextResources().getString(R.string.app_schedule))){
+                    if (data.has(getContextResources().getString(R.string.app_schedule))) {
                         schedule = data.getString(getContextResources().getString(R.string.app_schedule));
                     }
                     operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
@@ -639,8 +619,8 @@ public class OperationManagerCOSU extends OperationManager {
 
     @Override
     public void passOperationToSystemApp(Operation operation) throws AndroidAgentException {
-        if(getApplicationManager().isPackageInstalled(Constants.SYSTEM_SERVICE_PACKAGE)) {
-            CommonUtils.callSystemApp(getContext(),operation.getCode(),
+        if (getApplicationManager().isPackageInstalled(Constants.SYSTEM_SERVICE_PACKAGE)) {
+            CommonUtils.callSystemApp(getContext(), operation.getCode(),
                     Boolean.toString(operation.isEnabled()), null);
         } else {
             if (operation.isEnabled()) {
@@ -660,7 +640,7 @@ public class OperationManagerCOSU extends OperationManager {
             toBeHideApps.remove(Constants.SYSTEM_SERVICE_PACKAGE);
             toBeHideApps.remove(Constants.AGENT_PACKAGE);
             for (String packageName : toBeHideApps) {
-                CommonUtils.callSystemApp(getContext(), operation.getCode(), "false" , packageName);
+                CommonUtils.callSystemApp(getContext(), operation.getCode(), "false", packageName);
             }
         } else if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
 
@@ -698,7 +678,7 @@ public class OperationManagerCOSU extends OperationManager {
                 any of those apps are added later, the app can be identified and do the needful at
                 that time. */
                 saveToPreferences(permittedApplicationsPayload);
-                for(int i = 0; i <permittedApplicationsPayload.length(); i++) {
+                for (int i = 0; i < permittedApplicationsPayload.length(); i++) {
                     restrictionAppData = new JSONObject(permittedApplicationsPayload.getString(i));
                     permissionName = restrictionAppData.getString(Constants.
                             RuntimePermissionPolicy.PERMISSION_NAME);
@@ -707,10 +687,9 @@ public class OperationManagerCOSU extends OperationManager {
                     packageName = restrictionAppData.getString(Constants.
                             RuntimePermissionPolicy.PACKAGE_NAME);
 
-                    if(!permissionName.equals(Constants.RuntimePermissionPolicy.ALL_PERMISSIONS)) {
+                    if (!permissionName.equals(Constants.RuntimePermissionPolicy.ALL_PERMISSIONS)) {
                         setAppRuntimePermission(packageName, permissionName, permissionType);
-                    }
-                    else {
+                    } else {
                         setAppAllRuntimePermission(packageName, permissionType);
                     }
                 }
@@ -736,7 +715,7 @@ public class OperationManagerCOSU extends OperationManager {
                 setPermissionGrantState(getCdmDeviceAdmin(), packageName, permission, permissionType);
     }
 
-    private void saveToPreferences(JSONArray array){
+    private void saveToPreferences(JSONArray array) {
         Preference.putString(getContext(),
                 Constants.RuntimePermissionPolicy.PERMITTED_APP_DATA, array.toString());
     }
@@ -745,7 +724,7 @@ public class OperationManagerCOSU extends OperationManager {
     private void setAppAllRuntimePermission(String packageName, int permissionType) {
         String[] permissionList = getContextResources().
                 getStringArray(R.array.runtime_permission_list_array);
-        for(String permission: permissionList){
+        for (String permission : permissionList) {
             setAppRuntimePermission(packageName, permission, permissionType);
         }
     }
@@ -758,8 +737,7 @@ public class OperationManagerCOSU extends OperationManager {
         getResultBuilder().build(operation);
         if (isEnable) {
             getDevicePolicyManager().setStatusBarDisabled(getCdmDeviceAdmin(), true);
-        }
-        else {
+        } else {
             getDevicePolicyManager().setStatusBarDisabled(getCdmDeviceAdmin(), false);
         }
     }
@@ -772,8 +750,7 @@ public class OperationManagerCOSU extends OperationManager {
         getResultBuilder().build(operation);
         if (isEnable) {
             getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), true);
-        }
-        else {
+        } else {
             getDevicePolicyManager().setScreenCaptureDisabled(getCdmDeviceAdmin(), false);
         }
     }
@@ -786,8 +763,7 @@ public class OperationManagerCOSU extends OperationManager {
         getResultBuilder().build(operation);
         if (isEnable) {
             getDevicePolicyManager().setAutoTimeRequired(getCdmDeviceAdmin(), true);
-        }
-        else {
+        } else {
             getDevicePolicyManager().setAutoTimeRequired(getCdmDeviceAdmin(), false);
         }
     }
@@ -809,7 +785,7 @@ public class OperationManagerCOSU extends OperationManager {
             Preference.putInt(getContext(),
                     Constants.PreferenceCOSUProfile.RELEASE_TIME, releaseTime);
 
-            if(!Preference.getBoolean(getContext(),
+            if (!Preference.getBoolean(getContext(),
                     Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN)) {
                 Preference.putBoolean(getContext(),
                         Constants.PreferenceCOSUProfile.ENABLE_LOCKDOWN, true);
@@ -849,7 +825,7 @@ public class OperationManagerCOSU extends OperationManager {
                                 toString());
                 currentPermissionType =
                         getDevicePolicyManager().getPermissionPolicy(getCdmDeviceAdmin());
-                if(currentPermissionType != policyPermissionType){
+                if (currentPermissionType != policyPermissionType) {
                     policy.setCompliance(false);
                     policy.setMessage(getContextResources().getString(R.string.error_runtime_permission_policy));
                     return policy;
@@ -874,6 +850,7 @@ public class OperationManagerCOSU extends OperationManager {
             Log.d(TAG, "Ringing is activated on the device");
         }
     }
+
     @Override
     public void displayNotification(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
         try {
@@ -889,8 +866,8 @@ public class OperationManagerCOSU extends OperationManager {
                 notificationService.addNotification(operation.getId(), messageTitle, messageText, Notification.Status.RECEIVED);
                 Intent msgIntent = new Intent(context, KioskMsgAlarmService.class);
                 msgIntent.putExtra(KioskMsgAlarmService.ACTIVITY_TYPE, Constants.Operation.NOTIFICATION);
-                msgIntent.putExtra(KioskMsgAlarmService.ACTIVITY_TITLE,messageTitle);
-                msgIntent.putExtra(KioskMsgAlarmService.ACTIVITY_MSG,messageText);
+                msgIntent.putExtra(KioskMsgAlarmService.ACTIVITY_TITLE, messageTitle);
+                msgIntent.putExtra(KioskMsgAlarmService.ACTIVITY_MSG, messageText);
                 context.startService(msgIntent);
             } else {
                 operation.setStatus(getContextResources().getString(R.string.operation_value_error));
@@ -911,9 +888,10 @@ public class OperationManagerCOSU extends OperationManager {
             throw new AndroidAgentException("Invalid JSON format.", e);
         }
     }
+
     private String getPermissionConstantValue(String key) {
         return getContext().getString(getContextResources().getIdentifier(
-                key.toString(),"string",getContext().getPackageName()));
+                key.toString(), "string", getContext().getPackageName()));
     }
 
 }

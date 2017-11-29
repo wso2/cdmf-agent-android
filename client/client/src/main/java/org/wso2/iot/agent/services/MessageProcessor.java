@@ -393,7 +393,12 @@ public class MessageProcessor implements APIResultCallBack {
                 if (Constants.SYSTEM_APP_ENABLED) {
                     CommonUtils.callSystemApp(context, Constants.Operation.WIPE_DATA, null, null);
                 } else {
-                    Log.i(TAG, "Not the device owner.");
+                    DevicePolicyManager devicePolicyManager = operationProcessor.getOperationManager().getDevicePolicyManager();
+                    if (devicePolicyManager != null) {
+                        devicePolicyManager.wipeData(0);
+                    } else {
+                        Log.e(TAG, "Unable to perform operation as device policy manager is null");
+                    }
                 }
             }
 

@@ -26,6 +26,7 @@ import android.content.res.Resources;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.os.UserManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -576,7 +577,102 @@ public class OperationManagerDeviceOwner extends OperationManager {
     @Override
     public void handleOwnersRestriction(Operation operation) throws AndroidAgentException {
         boolean isEnable = operation.isEnabled();
-        String key = operation.getCode();
+        String key = "";
+        switch (operation.getCode()) {
+            case Constants.Operation.ALLOW_PARENT_PROFILE_APP_LINKING:
+                key = UserManager.ALLOW_PARENT_PROFILE_APP_LINKING;
+                break;
+            case Constants.Operation.DISALLOW_CONFIG_VPN:
+                key = UserManager.DISALLOW_CONFIG_VPN;
+                break;
+            case Constants.Operation.DISALLOW_INSTALL_APPS:
+                key = UserManager.DISALLOW_INSTALL_APPS;
+                break;
+            case Constants.Operation.DISALLOW_ADJUST_VOLUME:
+                key = UserManager.DISALLOW_ADJUST_VOLUME;
+                break;
+            case Constants.Operation.DISALLOW_SMS:
+                key = UserManager.DISALLOW_SMS;
+                break;
+            case Constants.Operation.DISALLOW_CONFIG_CELL_BROADCASTS:
+                key = UserManager.DISALLOW_CONFIG_CELL_BROADCASTS;
+                break;
+            case Constants.Operation.DISALLOW_CONFIG_BLUETOOTH:
+                key = UserManager.DISALLOW_CONFIG_BLUETOOTH;
+                break;
+            case Constants.Operation.DISALLOW_CONFIG_MOBILE_NETWORKS:
+                key = UserManager.DISALLOW_CONFIG_MOBILE_NETWORKS;
+                break;
+            case Constants.Operation.DISALLOW_CONFIG_TETHERING:
+                key = UserManager.DISALLOW_CONFIG_TETHERING;
+                break;
+            case Constants.Operation.DISALLOW_CONFIG_WIFI:
+                key = UserManager.DISALLOW_CONFIG_WIFI;
+                break;
+            case Constants.Operation.DISALLOW_SAFE_BOOT:
+                key = UserManager.DISALLOW_SAFE_BOOT;
+                break;
+            case Constants.Operation.DISALLOW_OUTGOING_CALLS:
+                key = UserManager.DISALLOW_OUTGOING_CALLS;
+                break;
+            case Constants.Operation.DISALLOW_MOUNT_PHYSICAL_MEDIA:
+                key = UserManager.DISALLOW_MOUNT_PHYSICAL_MEDIA;
+                break;
+            case Constants.Operation.DISALLOW_CREATE_WINDOWS:
+                key = UserManager.DISALLOW_CREATE_WINDOWS;
+                break;
+            case Constants.Operation.DISALLOW_FACTORY_RESET:
+                key = UserManager.DISALLOW_FACTORY_RESET;
+                break;
+            case Constants.Operation.DISALLOW_REMOVE_USER:
+                key = UserManager.DISALLOW_REMOVE_USER;
+                break;
+            case Constants.Operation.DISALLOW_ADD_USER:
+                key = UserManager.DISALLOW_ADD_USER;
+                break;
+            case Constants.Operation.DISALLOW_NETWORK_RESET:
+                key = UserManager.DISALLOW_NETWORK_RESET;
+                break;
+            case Constants.Operation.DISALLOW_UNMUTE_MICROPHONE:
+                key = UserManager.DISALLOW_UNMUTE_MICROPHONE;
+                break;
+            case Constants.Operation.DISALLOW_USB_FILE_TRANSFER:
+                key = UserManager.DISALLOW_USB_FILE_TRANSFER;
+                break;
+            case Constants.Operation.DISALLOW_CONFIG_CREDENTIALS:
+                key = UserManager.DISALLOW_CONFIG_CREDENTIALS;
+                break;
+            case Constants.Operation.DISALLOW_APPS_CONTROL:
+                key = UserManager.DISALLOW_APPS_CONTROL;
+                break;
+            case Constants.Operation.DISALLOW_CROSS_PROFILE_COPY_PASTE:
+                key = UserManager.DISALLOW_CROSS_PROFILE_COPY_PASTE;
+                break;
+            case Constants.Operation.DISALLOW_DEBUGGING_FEATURES:
+                key = UserManager.DISALLOW_DEBUGGING_FEATURES;
+                break;
+            case Constants.Operation.DISALLOW_INSTALL_UNKNOWN_SOURCES:
+                key = UserManager.DISALLOW_INSTALL_UNKNOWN_SOURCES;
+                break;
+            case Constants.Operation.DISALLOW_MODIFY_ACCOUNTS:
+                key = UserManager.DISALLOW_MODIFY_ACCOUNTS;
+                break;
+            case Constants.Operation.DISALLOW_OUTGOING_BEAM:
+                key = UserManager.DISALLOW_OUTGOING_BEAM;
+                break;
+            case Constants.Operation.DISALLOW_SHARE_LOCATION:
+                key = UserManager.DISALLOW_SHARE_LOCATION;
+                break;
+            case Constants.Operation.DISALLOW_UNINSTALL_APPS:
+                key = UserManager.DISALLOW_UNINSTALL_APPS;
+                break;
+            case Constants.Operation.ENSURE_VERIFY_APPS:
+                key = UserManager.ENSURE_VERIFY_APPS;
+                break;
+            default:
+                key = operation.getCode();
+                break;
+        }
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
         if (isEnable) {

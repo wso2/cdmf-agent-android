@@ -166,6 +166,19 @@ public class ApplicationManagementService extends IntentService implements APIRe
                 sendBroadcast(Constants.Status.SUCCESSFUL, Preference.getString(context, context.getResources().
                         getString(R.string.app_download_progress)));
                 break;
+            case Constants.Operation.FIRMWARE_IMAGE_DOWNLOADING:
+                Preference.putInt(context, context.getResources().
+                        getString(R.string.firmware_upgrade_retries), 0);
+                Preference.putString(context, context.getResources().
+                        getString(R.string.firmware_upgrade_response_message), message);
+                Preference.putString(context, context.getResources().
+                        getString(R.string.firmware_upgrade_response_status), context.getResources().getString(
+                        R.string.operation_value_progress));
+                Preference.putInt(context, context.getResources().
+                        getString(R.string.firmware_upgrade_response_id), id);
+                Preference.putBoolean(context, context.getResources().
+                        getString(R.string.firmware_upgrade_retry_pending), false);
+                break;
             case Constants.Operation.FIRMWARE_UPGRADE_COMPLETE:
             case Constants.Operation.FIRMWARE_INSTALLATION_CANCELED:
                 Preference.putInt(context, context.getResources().

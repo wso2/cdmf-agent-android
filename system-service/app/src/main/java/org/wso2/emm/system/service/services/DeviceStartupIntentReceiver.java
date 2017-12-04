@@ -21,8 +21,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.os.Debug;
 import android.util.Log;
 import org.wso2.emm.system.service.R;
+import org.wso2.emm.system.service.api.OTADownload;
+import org.wso2.emm.system.service.api.OTAServerManager;
 import org.wso2.emm.system.service.utils.AlarmUtils;
 import org.wso2.emm.system.service.utils.Constants;
 import org.wso2.emm.system.service.utils.Preference;
@@ -39,6 +42,12 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(final Context context, Intent intent) {
+
+		if ("android.intent.action.BOOT_COMPLETED".equals(intent.getAction())) {
+			Intent pushIntent = new Intent(context, OTADownloadService.class);
+			context.startService(pushIntent);
+		}
+
 		if (intent.hasExtra(context.getResources().getString(R.string.alarm_scheduled_operation))) {
 			operation = intent.getStringExtra(context.getResources().getString(R.string.alarm_scheduled_operation));
 		}
@@ -47,12 +56,12 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 		int interval = Preference.getInt(context, resources.getString(R.string.alarm_interval));
 		String oneTimeAlarm = Preference.getString(context, resources.getString(R.string.alarm_schedule));
 
-		if(interval > 0) {
+		if (interval > 0) {
 			AlarmUtils.setRecurringAlarm(context.getApplicationContext(), interval);
 		}
 
-		if(oneTimeAlarm != null && !oneTimeAlarm.trim().isEmpty()) {
-			try{
+		if (oneTimeAlarm != null && !oneTimeAlarm.trim().isEmpty()) {
+			try {
 				if (operation != null && operation.trim().equals(Constants.Operation.UPGRADE_FIRMWARE)) {
 					AlarmUtils.setOneTimeAlarm(context, oneTimeAlarm, Constants.Operation.UPGRADE_FIRMWARE, null);
 				}

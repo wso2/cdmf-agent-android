@@ -18,6 +18,7 @@
 
 package org.wso2.emm.agent.utils;
 
+import android.app.Service;
 import android.util.Log;
 
 /**
@@ -28,7 +29,7 @@ public class Constants {
 	public static final boolean DEBUG_MODE_ENABLED = true;
 	public static final boolean LOCAL_NOTIFICATIONS_ENABLED = true;
 	public static final boolean GCM_ENABLED = false;
-	public static final boolean SYSTEM_APP_ENABLED = false;
+	public static final boolean SYSTEM_APP_ENABLED = true;
 	public static final boolean AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED = false;
 	public static final boolean ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE = false;
 	public static final String SYSTEM_APP_SERVICE_START_ACTION = "org.wso2.emm.system.service.START_SERVICE";
@@ -55,7 +56,7 @@ public class Constants {
 	public static final String APP_MANAGER_HOST = null;
 	public static final String SYSTEM_SERVICE_PACKAGE = "org.wso2.emm.system.service";
 	public static final String AGENT_PACKAGE = "org.wso2.emm.agent";
-	public static final int FIRMWARE_UPGRADE_RETRY_COUNT = 5;
+	public static final int FIRMWARE_UPGRADE_RETRY_COUNT = 0;
 	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 
 
@@ -340,6 +341,7 @@ public class Constants {
 		public static final String GET_FIRMWARE_UPGRADE_DOWNLOAD_PROGRESS = "FIRMWARE_UPGRADE_DOWNLOAD_PROGRESS";
 		public static final String FAILED_FIRMWARE_UPGRADE_NOTIFICATION = "FAILED_FIRMWARE_UPGRADE_NOTIFICATION";
 		public static final String FIRMWARE_UPGRADE_COMPLETE = "FIRMWARE_UPGRADE_COMPLETE";
+		public static final String FIRMWARE_IMAGE_DOWNLOADING = "FIRMWARE_IMAGE_DOWNLOADING";
 		public static final String FIRMWARE_UPGRADE_FAILURE = "FIRMWARE_UPGRADE_FAILURE";
 		public static final String FIRMWARE_INSTALLATION_CANCELED = "FIRMWARE_INSTALLATION_CANCELED";
 		public static final String GET_FIRMWARE_BUILD_DATE = "FIRMWARE_BUILD_DATE";

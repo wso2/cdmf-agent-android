@@ -18,7 +18,7 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.wso2.emm.agent"
-    android:sharedUserId="org.wso2.emm.agent"
+    android:sharedUserId="android.uid.system"
     android:versionCode="2"
     android:versionName="2.0">
 

@@ -40,7 +40,7 @@ public class Constants {
 	public static final String OPERATION = "operation";
 	public static final String SYSTEM_APP_ACTION_RESPONSE = "org.wso2.emm.system.service.MESSAGE_PROCESSED";
 	public static final String AGENT_APP_SERVICE_NAME = "org.wso2.emm.agent.START_SERVICE";
-	public static final boolean DEBUG_MODE_ENABLED = false;
+	public static final boolean DEBUG_MODE_ENABLED = true;
 	public static final String ADMIN_MESSAGE = "message";
 	public static final String IS_LOCKED = "lock";
 	public static final int FIRMWARE_UPGRADE_CONNECTIVITY_TIMEOUT = 10000;
@@ -49,6 +49,8 @@ public class Constants {
 	public static final String FIRMWARE_INSTALL_CANCEL_ACTION = "FIRMWARE_INSTALL_CANCEL_ACTION";
 	public static final boolean SILENT_FIRMWARE_INSTALLATION = true;
 	public static final boolean OTA_DOWNLOAD_PROGRESS_BAR_ENABLED = true;
+	public static final int OTA_DOWNLOAD_PERCENTAGE_FACTOR = 2;
+	public static final int FIRMWARE_DOWNLOAD_TIMEOUT = 10*60*1000; //Time in milliseconds(Example 10 minutes).
 	/**
 	 * Read_TIMEOUT = SO timeout(the time since the last byte has been received)
 	 */
@@ -116,6 +118,7 @@ public class Constants {
 		public static final String WIPE_DATA = "WIPE_DATA";
 		public static final String FAILED_FIRMWARE_UPGRADE_NOTIFICATION = "FAILED_FIRMWARE_UPGRADE_NOTIFICATION";
 		public static final String FIRMWARE_UPGRADE_COMPLETE = "FIRMWARE_UPGRADE_COMPLETE";
+		public static final String FIRMWARE_IMAGE_DOWNLOADING = "FIRMWARE_IMAGE_DOWNLOADING";
 		public static final String FIRMWARE_UPGRADE_FAILURE = "FIRMWARE_UPGRADE_FAILURE";
 		public static final String GET_FIRMWARE_BUILD_DATE = "FIRMWARE_BUILD_DATE";
 		public static final String FIRMWARE_INSTALLATION_CANCELED = "FIRMWARE_INSTALLATION_CANCELED";

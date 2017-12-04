@@ -78,6 +78,10 @@ public class OTADownload implements OTAServerManager.OTAStateChangeListener {
         }
     }
 
+    public OTAServerManager getOtaServerManager(){
+        return otaServerManager;
+    }
+
     /**
      * Returns the byte count in a human readable format.
      *

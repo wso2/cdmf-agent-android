@@ -177,21 +177,9 @@ public class OperationProcessor {
                 operationManager.setRuntimePermissionPolicy(operation);
                 break;
             case Constants.Operation.ALLOW_PARENT_PROFILE_APP_LINKING:
-                if (operationManager instanceof OperationManagerDeviceOwner) {
-                    operationManager.passOperationToSystemApp(operation);
-                } else {
-                    operationManager.handleOwnersRestriction(operation);
-                }
-                break;
             case Constants.Operation.DISALLOW_CONFIG_VPN:
-                if (operationManager instanceof OperationManagerDeviceOwner) {
-                    operationManager.passOperationToSystemApp(operation);
-                } else {
-                    operationManager.handleOwnersRestriction(operation);
-                }
-                break;
             case Constants.Operation.DISALLOW_INSTALL_APPS:
-                if (operationManager instanceof OperationManagerDeviceOwner) {
+                if (Constants.SYSTEM_APP_ENABLED){
                     operationManager.passOperationToSystemApp(operation);
                 } else {
                     operationManager.handleOwnersRestriction(operation);

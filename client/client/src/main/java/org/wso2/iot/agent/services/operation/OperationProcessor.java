@@ -177,13 +177,13 @@ public class OperationProcessor {
                 operationManager.setRuntimePermissionPolicy(operation);
                 break;
             case Constants.Operation.ALLOW_PARENT_PROFILE_APP_LINKING:
-                operationManager.handleOwnersRestriction(operation);
-                break;
             case Constants.Operation.DISALLOW_CONFIG_VPN:
-                operationManager.handleOwnersRestriction(operation);
-                break;
             case Constants.Operation.DISALLOW_INSTALL_APPS:
-                operationManager.handleOwnersRestriction(operation);
+                if (Constants.SYSTEM_APP_ENABLED){
+                    operationManager.passOperationToSystemApp(operation);
+                } else {
+                    operationManager.handleOwnersRestriction(operation);
+                }
                 break;
             case Constants.Operation.VPN:
                 operationManager.configureVPN(operation);

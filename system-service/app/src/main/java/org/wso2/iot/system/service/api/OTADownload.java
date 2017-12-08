@@ -171,7 +171,7 @@ public class OTADownload implements OTAServerManager.OTAStateChangeListener {
                 }
                 String message = "Software is up to date:" + Build.VERSION.RELEASE + ", " + Build.ID;
                 Log.i(TAG, message);
-                CommonUtils.callAgentApp(context, Constants.Operation.FIRMWARE_UPGRADE_COMPLETE, Preference.getInt(
+                CommonUtils.callAgentApp(context, Constants.Operation.FIRMWARE_UPGRADE_FAILURE, Preference.getInt(
                         context, context.getResources().getString(R.string.operation_id)), "No upgrades available. " + message);
             } else if (checkNetworkOnline()) {
                 new AsyncTask<Void, Void, Long>() {

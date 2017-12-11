@@ -130,6 +130,7 @@ public class Constants {
 		public static final String FIRMWARE_UPGRADE_AUTOMATIC_RETRY = "FIRMWARE_UPGRADE_AUTOMATIC_RETRY";
 		public static final String LOGCAT = "LOGCAT";
 		public static final String REMOTE_INPUT = "REMOTE_INPUT";
+		public static final String TRIGGER_HEARTBEAT = "TRIGGER_HEARTBEAT";
 	}
 
 	/**

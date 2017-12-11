@@ -252,6 +252,11 @@ public class ApplicationManagementService extends IntentService implements APIRe
                 Gson operationGson = new Gson();
                 Preference.putString(context, Constants.Operation.LOGCAT, operationGson.toJson(logcatOperation));
                 break;
+            case Constants.Operation.TRIGGER_HEARTBEAT:
+                Log.i(TAG, "Triggering heartbeat");
+                Intent alarmIntent = new Intent(context, AlarmReceiver.class);
+                sendBroadcast(alarmIntent);
+                break;
             default:
                 Log.e(TAG, "Invalid operation code received");
                 break;

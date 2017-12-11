@@ -215,6 +215,9 @@ public class SystemService extends IntentService {
                         case Constants.Operation.GET_FIRMWARE_UPGRADE_DOWNLOAD_PROGRESS:
                             doTask(operationCode);
                             break;
+                        case Constants.Operation.TRIGGER_HEARTBEAT:
+                            CommonUtils.callAgentApp(context, Constants.Operation.TRIGGER_HEARTBEAT, 0, null);
+                            break;
                         default:
                             Log.e(TAG, "Invalid operation code: " + operationCode);
                             break;

@@ -719,31 +719,34 @@ public class OperationManagerDeviceOwner extends OperationManager {
         AppRestriction appRestriction = CommonUtils.
                 getAppRestrictionTypeAndList(operation, getResultBuilder(), getContextResources());
 
-        if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
-            ArrayList appList = (ArrayList)appRestriction.getRestrictedList();
-            JSONArray whiteListApps = new JSONArray();
-            for (Object appObj: appList) {
-                JSONObject app = new JSONObject();
-                try {
-                    app.put(Constants.AppRestriction.PACKAGE_NAME,appObj.toString());
-                    app.put(Constants.AppRestriction.
-                            RESTRICTION_TYPE, Constants.AppRestriction.WHITE_LIST);
-                    whiteListApps.put(app);
-                } catch (JSONException e) {
-                    operation.setStatus(getContextResources().
-                            getString(R.string.operation_value_error));
-                    operation.setOperationResponse("Error in parsing app white-list payload.");
-                    getResultBuilder().build(operation);
-                    throw new AndroidAgentException("Invalid JSON format for app white-list bundle.", e);
-                }
+        ArrayList appList = (ArrayList)appRestriction.getRestrictedList();
+        JSONArray appRestrictions = new JSONArray();
+        for (Object appObj: appList) {
+            JSONObject app = new JSONObject();
+            try {
+                app.put(Constants.AppRestriction.PACKAGE_NAME,appObj.toString());
+                app.put(Constants.AppRestriction.
+                        RESTRICTION_TYPE, appRestriction.getRestrictionType());
+                appRestrictions.put(app);
+            } catch (JSONException e) {
+                operation.setStatus(getContextResources().
+                        getString(R.string.operation_value_error));
+                operation.setOperationResponse("Error in parsing app restriction payload.");
+                getResultBuilder().build(operation);
+                throw new AndroidAgentException("Invalid JSON format for app restriction bundle.", e);
             }
+        }
+
+        if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
             Preference.putString(getContext(),
-                    Constants.AppRestriction.WHITE_LIST_APPS, whiteListApps.toString());
+                    Constants.AppRestriction.WHITE_LIST_APPS, appRestrictions.toString());
             validateInstalledApps();
         } else if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
             for (String packageName : appRestriction.getRestrictedList()) {
                 getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
             }
+            Preference.putString(getContext(),
+                    Constants.AppRestriction.BLACK_LIST_APPS, appRestrictions.toString());
         }
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);

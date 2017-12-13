@@ -146,7 +146,6 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
         String permissionName;
         Boolean isAllowed = false;
         String whiteListAppsPref = Preference.
-
                     getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
         String blackListAppsPref = Preference.
                 getString(context, Constants.AppRestriction.BLACK_LIST_APPS);

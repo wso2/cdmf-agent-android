@@ -27,6 +27,10 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
@@ -40,6 +44,8 @@ import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -89,6 +95,31 @@ public class AgentStartupReceiver extends BroadcastReceiver {
                 Intent i = new Intent(context, SplashActivity.class);
                 i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(i);
+            }
+        }
+        if (Intent.ACTION_BOOT_COMPLETED.equals(action)) {
+            String policyBundle = Preference.getString(context, Constants.PreferenceFlag.APPLIED_POLICY);
+            if (policyBundle != null) {
+                PolicyOperationsMapper operationsMapper = new PolicyOperationsMapper();
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+                try {
+                    List<Operation> operations = mapper.readValue(
+                            policyBundle,
+                            mapper.getTypeFactory().
+                                    constructCollectionType(List.class, Operation.class));
+                    OperationProcessor operationProcessor = new OperationProcessor(context);
+                    for (org.wso2.iot.agent.beans.Operation op : operations) {
+                        op = operationsMapper.getOperation(op);
+                        operationProcessor.doTask(op);
+                    }
+                    if (Constants.DEBUG_MODE_ENABLED) {
+                        Log.d(TAG, "Policy applied on agent startup.");
+                    }
+                } catch (AndroidAgentException | IOException e) {
+                    Log.e(TAG, "Error occurred when applying stored policies.", e);
+                }
             }
         }
     }

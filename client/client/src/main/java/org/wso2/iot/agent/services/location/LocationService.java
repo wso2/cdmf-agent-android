@@ -37,7 +37,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.activities.AlreadyRegisteredActivity;
-import org.wso2.iot.agent.events.EventRegistry;
 import org.wso2.iot.agent.events.beans.EventPayload;
 import org.wso2.iot.agent.events.publisher.HttpDataPublisher;
 import org.wso2.iot.agent.utils.CommonUtils;

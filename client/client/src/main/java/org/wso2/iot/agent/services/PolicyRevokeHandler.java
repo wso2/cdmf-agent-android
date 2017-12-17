@@ -132,7 +132,8 @@ public class PolicyRevokeHandler {
                 case Constants.Operation.RUNTIME_PERMISSION_POLICY:
                     revokeRunTimePermissionPolicyOperation(operation);
                 default:
-                    throw new AndroidAgentException("Invalid operation code received");
+                    Log.e(TAG, "Operation code: " + operation.getCode() + " is not supported");
+                    //throw new AndroidAgentException("Invalid operation code received");
             }
         } else {
             switch (operation.getCode()) {
@@ -204,7 +205,8 @@ public class PolicyRevokeHandler {
                     revokeCOSUProfilePolicy(operation);
                     break;
                 default:
-                    throw new AndroidAgentException("Invalid operation code received");
+                    Log.e(TAG, "Operation code: " + operation.getCode() + " is not supported");
+                    //throw new AndroidAgentException("Invalid operation code received");
             }
         }
     }

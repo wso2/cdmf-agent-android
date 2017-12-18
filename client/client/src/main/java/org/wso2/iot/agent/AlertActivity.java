@@ -229,7 +229,7 @@ public class AlertActivity extends Activity {
 				if (defaultRingtone != null) {
 					if (deviceInfo.getSdkVersion() >= Build.VERSION_CODES.LOLLIPOP) {
 						AudioAttributes attributes = new AudioAttributes.Builder().
-								setUsage(AudioAttributes.USAGE_NOTIFICATION).
+								setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE).
 								setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).
 								build();
 						defaultRingtone.setAudioAttributes(attributes);

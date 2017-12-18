@@ -229,6 +229,8 @@
     <string name="shared_pref_reboot_result">rebootResult</string>
 
     <!-- ERROR MESSAGES -->
+    <string name="error_clear_passcode_nougat">Passcode clearing is not supported in the BYOD enrollment for Android Nougat upwards</string>
+    <string name="error_clear_passcode">Passcode clearing is not supported by the device</string>
     <string name="error_connect_to_server">Could not connect to server please check your internet connection and try again</string>
     <string name="error_heading_connection">Connection Error</string>
     <string name="error_registration_failed">Registration Failed</string>

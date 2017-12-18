@@ -385,7 +385,7 @@ public class WiFiConfig {
         List<WifiConfiguration> configuredNetworks = wifiManager.getConfiguredNetworks();
         boolean isAvailable = false;
         for (WifiConfiguration configuration : configuredNetworks) {
-            if (configuration.SSID.equals(ssid)) {
+            if (configuration.SSID.equals(ssid) || configuration.SSID.equals("\"" + ssid + "\"")) {
                 isAvailable = true;
                 break;
             }

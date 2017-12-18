@@ -378,7 +378,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         intent.putExtra(resources.getString(R.string.intent_extra_message_text),
                 resources.getString(R.string.intent_extra_stop_ringing));
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                Intent.FLAG_ACTIVITY_NEW_TASK);
+                Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
         context.startActivity(intent);
 
         if (Constants.DEBUG_MODE_ENABLED) {

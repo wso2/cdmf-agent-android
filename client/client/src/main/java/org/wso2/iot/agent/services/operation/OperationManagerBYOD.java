@@ -163,19 +163,28 @@ public class OperationManagerBYOD extends OperationManager {
 
     @Override
     public void clearPassword(Operation operation) {
-        operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
-        getResultBuilder().build(operation);
-
-        getDevicePolicyManager().setPasswordQuality(getCdmDeviceAdmin(),
-                DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
-        getDevicePolicyManager().setPasswordMinimumLength(getCdmDeviceAdmin(), getDefaultPasswordLength());
-        getDevicePolicyManager().resetPassword(getContextResources().getString(R.string.shared_pref_default_string),
-                DevicePolicyManager.RESET_PASSWORD_REQUIRE_ENTRY);
-        getDevicePolicyManager().lockNow();
-        getDevicePolicyManager().setPasswordQuality(getCdmDeviceAdmin(),
-                DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
-        if (Constants.DEBUG_MODE_ENABLED) {
-            Log.d(TAG, "Password cleared");
+        try {
+            getDevicePolicyManager().setPasswordQuality(getCdmDeviceAdmin(),
+                    DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
+            getDevicePolicyManager().setPasswordMinimumLength(getCdmDeviceAdmin(), getDefaultPasswordLength());
+            getDevicePolicyManager().resetPassword(getContextResources().getString(R.string.shared_pref_default_string),
+                    DevicePolicyManager.RESET_PASSWORD_REQUIRE_ENTRY);
+            getDevicePolicyManager().lockNow();
+            getDevicePolicyManager().setPasswordQuality(getCdmDeviceAdmin(),
+                    DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Password cleared");
+            }
+            operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+            getResultBuilder().build(operation);
+        } catch (SecurityException e) {
+            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                operation.setOperationResponse(getContextResources().getString(R.string.error_clear_passcode_nougat));
+            } else {
+                operation.setOperationResponse(getContextResources().getString(R.string.error_clear_passcode));
+            }
+            getResultBuilder().build(operation);
         }
     }
 

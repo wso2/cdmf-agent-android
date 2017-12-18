@@ -69,7 +69,7 @@ public class PolicyRevokeHandler {
     public void revokeExistingPolicy(org.wso2.iot.agent.beans.Operation operation)
             throws AndroidAgentException {
 
-        if (applicationManager.isPackageInstalled(Constants.SYSTEM_SERVICE_PACKAGE)) {
+        if (Constants.SYSTEM_APP_ENABLED) {
             switch (operation.getCode()) {
                 case Constants.Operation.CAMERA:
                     revokeCameraPolicy(operation);
@@ -130,7 +130,7 @@ public class PolicyRevokeHandler {
                     revokeAppRestrictionPolicy(operation);
                     break;
                 case Constants.Operation.RUNTIME_PERMISSION_POLICY:
-                    revokeRunTimePermissionPolicyOperation(operation);
+                    revokeRunTimePermissionPolicyOperation();
                 default:
                     Log.e(TAG, "Operation code: " + operation.getCode() + " is not supported");
                     //throw new AndroidAgentException("Invalid operation code received");
@@ -251,21 +251,19 @@ public class PolicyRevokeHandler {
      * Revoke app restriction policy (black list or white list).
      *
      * @param operation - Operation object
-     * @throws AndroidAgentException on error in revokation
+     * @throws AndroidAgentException on error in revocation
      */
     private void revokeAppRestrictionPolicy(org.wso2.iot.agent.beans.Operation operation)
             throws AndroidAgentException {
 
         AppRestriction appRestriction =
                 CommonUtils.getAppRestrictionTypeAndList(operation, null, null);
-        String ownershipType = Preference.getString(context, Constants.DEVICE_TYPE);
         if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType()) ||
                 Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
             String disallowedApps = Preference.
                     getString(context, Constants.AppRestriction.DISALLOWED_APPS);
             if (disallowedApps != null) {
-                String[] disallowedAppsArray =
-                        disallowedApps.split(context.
+                String[] disallowedAppsArray = disallowedApps.split(context.
                                 getString(R.string.whitelist_package_split_regex));
                 //Enabling previously hidden apps due to App white-list restriction.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && (
@@ -274,7 +272,7 @@ public class PolicyRevokeHandler {
                     for (String appName : disallowedAppsArray) {
                         devicePolicyManager.setApplicationHidden(deviceAdmin, appName, false);
                     }
-                } else if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
+                } else if (Constants.SYSTEM_APP_ENABLED) {
                     for (String appName : disallowedAppsArray) {
                         CommonUtils.callSystemApp(context, operation.getCode(), "true", appName);
                     }
@@ -428,7 +426,7 @@ public class PolicyRevokeHandler {
         }
     }
 
-    private void revokeRunTimePermissionPolicyOperation(Operation operation) throws AndroidAgentException {
+    private void revokeRunTimePermissionPolicyOperation() throws AndroidAgentException {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE) ||
                     devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)) {

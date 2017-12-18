@@ -662,18 +662,18 @@ public class OperationManagerBYOD extends OperationManager {
             if (Constants.OWNERSHIP_BYOD.equals(ownershipType)) {
                 Intent restrictionIntent = new Intent(getContext(), AppLockService.class);
                 restrictionIntent.setAction(Constants.APP_LOCK_SERVICE);
-
-                restrictionIntent.putStringArrayListExtra(Constants.AppRestriction.APP_LIST, (ArrayList) appRestriction.getRestrictedList());
-
-                PendingIntent pendingIntent = PendingIntent.getService(getContext(), 0, restrictionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
+                restrictionIntent.putStringArrayListExtra(Constants.AppRestriction.APP_LIST,
+                        (ArrayList<String>) appRestriction.getRestrictedList());
+                PendingIntent pendingIntent = PendingIntent.getService(getContext(), 0,
+                        restrictionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 AlarmManager alarmManager = (AlarmManager)getContext().getSystemService(Context.ALARM_SERVICE);
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTimeInMillis(System.currentTimeMillis());
                 calendar.add(Calendar.SECOND, 1); // First time
-                long frequency= 1 * 1000; // In ms
-                alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), frequency, pendingIntent);
-
+                if (alarmManager != null){
+                    alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
+                            Constants.APP_MONITOR_FREQUENCY, pendingIntent);
+                }
                 getContext().startService(restrictionIntent);
             } else if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
                 for (String packageName : appRestriction.getRestrictedList()) {
@@ -741,21 +741,5 @@ public class OperationManagerBYOD extends OperationManager {
     public ComplianceFeature checkRuntimePermissionPolicy(Operation operation, ComplianceFeature policy) throws AndroidAgentException {
         policy.setCompliance(true);
         return policy;
-    }
-
-    @Override
-    public void ringDevice(org.wso2.iot.agent.beans.Operation operation) {
-        operation.setStatus(resources.getString(R.string.operation_value_completed));
-        resultBuilder.build(operation);
-        Intent intent = new Intent(context, AlertActivity.class);
-        intent.putExtra(resources.getString(R.string.intent_extra_type), resources.getString(R.string.intent_extra_ring));
-        intent.putExtra(resources.getString(R.string.intent_extra_message_text), resources.getString(R.string.intent_extra_stop_ringing));
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
-
-        if (Constants.DEBUG_MODE_ENABLED) {
-            Log.d(TAG, "Ringing is activated on the device");
-        }
     }
 }

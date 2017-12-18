@@ -22,7 +22,6 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -30,7 +29,6 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.beans.AppRestriction;
@@ -39,13 +37,11 @@ import org.wso2.iot.agent.beans.Notification;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.AppLockService;
 import org.wso2.iot.agent.services.NotificationService;
-import org.wso2.iot.agent.services.ResultPayload;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
 import java.util.ArrayList;
-
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -54,9 +50,6 @@ import java.util.Objects;
 public class OperationManagerWorkProfile extends OperationManager {
 
     private static final String TAG = OperationManagerWorkProfile.class.getSimpleName();
-    private Context context=super.getContext();
-    private Resources resources = context.getResources();
-    private ResultPayload resultBuilder=super.getResultBuilder();
     private NotificationService notificationService;
     private static final String STATUS = "status";
 
@@ -468,29 +461,22 @@ public class OperationManagerWorkProfile extends OperationManager {
     public void restrictAccessToApplications(Operation operation) throws AndroidAgentException {
         AppRestriction appRestriction = CommonUtils.getAppRestrictionTypeAndList(operation, getResultBuilder(), getContextResources());
         if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
-            Intent restrictionIntent = new Intent(getContext(), AppLockService.class);
-            restrictionIntent.setAction(Constants.APP_LOCK_SERVICE);
-
-            restrictionIntent.putStringArrayListExtra(Constants.AppRestriction.APP_LIST, (ArrayList) appRestriction.getRestrictedList());
-
-            PendingIntent pendingIntent = PendingIntent.getService(getContext(), 0, restrictionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-            AlarmManager alarmManager = (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(System.currentTimeMillis());
-            calendar.add(Calendar.SECOND, 1); // First time
-            long frequency = 1 * 1000; // In ms
-            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), frequency, pendingIntent);
-
-            getContext().startService(restrictionIntent);
-
+            String disallowedApps = "";
+            for (String packageName : appRestriction.getRestrictedList()) {
+                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
+                disallowedApps = disallowedApps + getContext().getString(R.string.whitelist_package_split_regex) + packageName;
+            }
+            Preference.putString(getContext(),
+                    Constants.AppRestriction.DISALLOWED_APPS, disallowedApps);
+            Preference.putString(getContext(),
+                    Constants.AppRestriction.BLACK_LIST_APPS, appRestriction.toString());
         } else if (Constants.AppRestriction.WHITE_LIST.equals(appRestriction.getRestrictionType())) {
-            ArrayList appList = (ArrayList)appRestriction.getRestrictedList();
+            ArrayList appList = (ArrayList) appRestriction.getRestrictedList();
             JSONArray whiteListApps = new JSONArray();
-            for (Object appObj: appList) {
+            for (Object appObj : appList) {
                 JSONObject app = new JSONObject();
                 try {
-                    app.put(Constants.AppRestriction.PACKAGE_NAME,appObj.toString());
+                    app.put(Constants.AppRestriction.PACKAGE_NAME, appObj.toString());
                     app.put(Constants.AppRestriction.RESTRICTION_TYPE, Constants.AppRestriction.WHITE_LIST);
                     whiteListApps.put(app);
                 } catch (JSONException e) {
@@ -518,33 +504,28 @@ public class OperationManagerWorkProfile extends OperationManager {
         JSONArray whiteListApps;
         try {
             whiteListApps = new JSONArray(Preference.getString(getContext(), Constants.AppRestriction.WHITE_LIST_APPS));
-            if (whiteListApps != null) {
-                for (String packageName: alreadyInstalledApps) {
-                    if(!packageName.equals(getCdmDeviceAdmin().getPackageName())) {     //Skip agent app.
-                        for (int i = 0; i < whiteListApps.length(); i++) {
-                            permittedApp = new JSONObject(whiteListApps.getString(i));
-                            permittedPackageName = permittedApp.getString(Constants.AppRestriction.PACKAGE_NAME);
-                            if (Objects.equals(permittedPackageName, packageName)) {
-                                permissionName = permittedApp.getString(Constants.AppRestriction.RESTRICTION_TYPE);
-                                if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
-                                    isAllowed = true;
-                                    break;
-                                }
+            String disallowedApps = "";
+            for (String packageName : alreadyInstalledApps) {
+                if (!packageName.equals(getCdmDeviceAdmin().getPackageName())) {     //Skip agent app.
+                    for (int i = 0; i < whiteListApps.length(); i++) {
+                        permittedApp = new JSONObject(whiteListApps.getString(i));
+                        permittedPackageName = permittedApp.getString(Constants.AppRestriction.PACKAGE_NAME);
+                        if (Objects.equals(permittedPackageName, packageName)) {
+                            permissionName = permittedApp.getString(Constants.AppRestriction.RESTRICTION_TYPE);
+                            if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
+                                isAllowed = true;
+                                break;
                             }
                         }
-                        if(!isAllowed) {
-                                String disallowedApps = Preference.
-                                        getString(getContext(), Constants.AppRestriction.DISALLOWED_APPS);
-                                disallowedApps = disallowedApps +
-                                        getContext().getString(R.string.whitelist_package_split_regex) +
-                                        packageName;
-                                Preference.putString(getContext(), Constants.AppRestriction.DISALLOWED_APPS, disallowedApps);
-                                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
-                        }
-                        isAllowed = false;
                     }
+                    if (!isAllowed) {
+                        disallowedApps = disallowedApps + getContext().getString(R.string.whitelist_package_split_regex) + packageName;
+                        getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
+                    }
+                    isAllowed = false;
                 }
             }
+            Preference.putString(getContext(), Constants.AppRestriction.DISALLOWED_APPS, disallowedApps);
         } catch (JSONException e) {
             Log.e(TAG, "Invalid JSON format..");
         }
@@ -600,10 +581,9 @@ public class OperationManagerWorkProfile extends OperationManager {
                     permissionName = restrictionAppData.getString(Constants.RuntimePermissionPolicy.PERMISSION_NAME);
                     permissionType = Integer.parseInt(restrictionAppData.getString(Constants.RuntimePermissionPolicy.PERMISSION_TYPE));
                     packageName = restrictionAppData.getString(Constants.RuntimePermissionPolicy.PACKAGE_NAME);
-                    if(!permissionName.equals(Constants.RuntimePermissionPolicy.ALL_PERMISSIONS)){
+                    if (!permissionName.equals(Constants.RuntimePermissionPolicy.ALL_PERMISSIONS)) {
                         setAppRuntimePermission(packageName, permissionName, permissionType);
-                    }
-                    else {
+                    } else {
                         setAppAllRuntimePermission(packageName, permissionType);
                     }
                 }
@@ -627,7 +607,7 @@ public class OperationManagerWorkProfile extends OperationManager {
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void setAppAllRuntimePermission(String packageName, int permissionType) {
         String[] permissionList = getContextResources().getStringArray(R.array.runtime_permission_list_array);
-        for(String permission: permissionList){
+        for (String permission : permissionList) {
             setAppRuntimePermission(packageName, permission, permissionType);
         }
     }
@@ -689,7 +669,7 @@ public class OperationManagerWorkProfile extends OperationManager {
                 List<String> systemAppList = Arrays.asList(systemAppsData.split(getContextResources().getString(
                         R.string.split_delimiter)));
                 for (String packageName : systemAppList) {
-                    if(!getApplicationManager().isPackageInstalled(packageName)){
+                    if (!getApplicationManager().isPackageInstalled(packageName)) {
                         policy.setCompliance(false);
                         policy.setMessage(getContextResources().getString(R.string.error_work_profile_policy));
                         return policy;
@@ -702,7 +682,7 @@ public class OperationManagerWorkProfile extends OperationManager {
                 List<String> playStoreAppList = Arrays.asList(googlePlayAppsData.split(getContextResources().getString(
                         R.string.split_delimiter)));
                 for (String packageName : playStoreAppList) {
-                    if(!getApplicationManager().isPackageInstalled(packageName)){
+                    if (!getApplicationManager().isPackageInstalled(packageName)) {
                         policy.setCompliance(false);
                         policy.setMessage(getContextResources().getString(R.string.error_work_profile_policy));
                         return policy;
@@ -729,21 +709,5 @@ public class OperationManagerWorkProfile extends OperationManager {
     private String getPermissionConstantValue(String key) {
         return getContext().getString(getContextResources().getIdentifier(
                 key.toString(), "string", getContext().getPackageName()));
-    }
-
-    @Override
-    public void ringDevice(org.wso2.iot.agent.beans.Operation operation) {
-        operation.setStatus(resources.getString(R.string.operation_value_completed));
-        resultBuilder.build(operation);
-        Intent intent = new Intent(context, AlertActivity.class);
-        intent.putExtra(resources.getString(R.string.intent_extra_type), resources.getString(R.string.intent_extra_ring));
-        intent.putExtra(resources.getString(R.string.intent_extra_message_text), resources.getString(R.string.intent_extra_stop_ringing));
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
-
-        if (Constants.DEBUG_MODE_ENABLED) {
-            Log.d(TAG, "Ringing is activated on the device");
-        }
     }
 }

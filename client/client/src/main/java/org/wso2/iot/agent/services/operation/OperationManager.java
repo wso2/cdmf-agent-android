@@ -373,10 +373,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         operation.setStatus(resources.getString(R.string.operation_value_completed));
         resultBuilder.build(operation);
         Intent intent = new Intent(context, AlertActivity.class);
-        intent.putExtra(resources.getString(R.string.intent_extra_type),
-                resources.getString(R.string.intent_extra_ring));
-        intent.putExtra(resources.getString(R.string.intent_extra_message_text),
-                resources.getString(R.string.intent_extra_stop_ringing));
+        intent.putExtra(resources.getString(R.string.intent_extra_type), resources.getString(R.string.intent_extra_ring));
+        intent.putExtra(resources.getString(R.string.intent_extra_message_text), resources.getString(R.string.intent_extra_stop_ringing));
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
                 Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
         context.startActivity(intent);

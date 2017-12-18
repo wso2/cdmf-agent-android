@@ -22,11 +22,10 @@ import android.annotation.TargetApi;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Build;
+import android.os.UserManager;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.os.UserManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -40,7 +39,6 @@ import org.wso2.iot.agent.beans.ComplianceFeature;
 import org.wso2.iot.agent.beans.Notification;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.services.NotificationService;
-import org.wso2.iot.agent.services.ResultPayload;
 import org.wso2.iot.agent.services.kiosk.KioskAlarmReceiver;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
@@ -52,9 +50,6 @@ import java.util.Objects;
 
 public class OperationManagerDeviceOwner extends OperationManager {
     private static final String TAG = OperationManagerDeviceOwner.class.getSimpleName();
-    private Context context=super.getContext();
-    private Resources resources = context.getResources();
-    private ResultPayload resultBuilder=super.getResultBuilder();
     private NotificationService notificationService;
     private static final String STATUS = "status";
 
@@ -95,22 +90,6 @@ public class OperationManagerDeviceOwner extends OperationManager {
             operation.setOperationResponse("Error in parsing NOTIFICATION payload.");
             getResultBuilder().build(operation);
             throw new AndroidAgentException("Invalid JSON format.", e);
-        }
-    }
-
-    @Override
-    public void ringDevice(Operation operation) {
-        operation.setStatus(resources.getString(R.string.operation_value_completed));
-        resultBuilder.build(operation);
-        Intent intent = new Intent(context, AlertActivity.class);
-        intent.putExtra(resources.getString(R.string.intent_extra_type), resources.getString(R.string.intent_extra_ring));
-        intent.putExtra(resources.getString(R.string.intent_extra_message_text), resources.getString(R.string.intent_extra_stop_ringing));
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
-
-        if (Constants.DEBUG_MODE_ENABLED) {
-            Log.d(TAG, "Ringing is activated on the device");
         }
     }
 
@@ -742,9 +721,13 @@ public class OperationManagerDeviceOwner extends OperationManager {
                     Constants.AppRestriction.WHITE_LIST_APPS, appRestrictions.toString());
             validateInstalledApps();
         } else if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
+            String disallowedApps = "";
             for (String packageName : appRestriction.getRestrictedList()) {
                 getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
+                disallowedApps = disallowedApps + getContext().getString(R.string.whitelist_package_split_regex) + packageName;
             }
+            Preference.putString(getContext(),
+                    Constants.AppRestriction.DISALLOWED_APPS, disallowedApps);
             Preference.putString(getContext(),
                     Constants.AppRestriction.BLACK_LIST_APPS, appRestrictions.toString());
         }
@@ -763,37 +746,32 @@ public class OperationManagerDeviceOwner extends OperationManager {
         try {
             whiteListApps = new JSONArray(Preference.getString(getContext(),
                     Constants.AppRestriction.WHITE_LIST_APPS));
-            if (whiteListApps != null) {
-                for (String packageName: alreadyInstalledApps) {
-                    if(!packageName.equals(getCdmDeviceAdmin().getPackageName())) {     //Skip agent app.
-                        for (int i = 0; i < whiteListApps.length(); i++) {
-                            permittedApp = new JSONObject(whiteListApps.getString(i));
-                            permittedPackageName = permittedApp.
-                                    getString(Constants.AppRestriction.PACKAGE_NAME);
-                            if (Objects.equals(permittedPackageName, packageName)) {
-                                permissionName = permittedApp.
-                                        getString(Constants.AppRestriction.RESTRICTION_TYPE);
-                                if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
-                                    isAllowed = true;
-                                    break;
-                                }
+            String disallowedApps = "";
+            for (String packageName : alreadyInstalledApps) {
+                if (!packageName.equals(getCdmDeviceAdmin().getPackageName())) {     //Skip agent app.
+                    for (int i = 0; i < whiteListApps.length(); i++) {
+                        permittedApp = new JSONObject(whiteListApps.getString(i));
+                        permittedPackageName = permittedApp.
+                                getString(Constants.AppRestriction.PACKAGE_NAME);
+                        if (Objects.equals(permittedPackageName, packageName)) {
+                            permissionName = permittedApp.
+                                    getString(Constants.AppRestriction.RESTRICTION_TYPE);
+                            if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
+                                isAllowed = true;
+                                break;
                             }
                         }
-                        if(!isAllowed) {
-                            String disallowedApps = Preference.
-                                    getString(getContext(), Constants.AppRestriction.DISALLOWED_APPS);
-                            disallowedApps = disallowedApps +
-                                    getContext().getString(R.string.whitelist_package_split_regex) +
-                                    packageName;
-                            Preference.putString(getContext(),
-                                    Constants.AppRestriction.DISALLOWED_APPS, disallowedApps);
-                            getDevicePolicyManager().
-                                    setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
-                        }
-                        isAllowed = false;
                     }
+                    if (!isAllowed) {
+                        disallowedApps = disallowedApps + getContext().getString(R.string.whitelist_package_split_regex) + packageName;
+                        getDevicePolicyManager().
+                                setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
+                    }
+                    isAllowed = false;
                 }
             }
+            Preference.putString(getContext(),
+                    Constants.AppRestriction.DISALLOWED_APPS, disallowedApps);
         } catch (JSONException e) {
             Log.e(TAG, "Invalid JSON format..");
         }

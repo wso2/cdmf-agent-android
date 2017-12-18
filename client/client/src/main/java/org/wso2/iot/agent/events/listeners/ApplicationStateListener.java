@@ -18,6 +18,8 @@
 
 package org.wso2.iot.agent.events.listeners;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -38,9 +40,13 @@ import org.wso2.iot.agent.events.beans.ApplicationStatus;
 import org.wso2.iot.agent.events.beans.EventPayload;
 import org.wso2.iot.agent.events.publisher.HttpDataPublisher;
 import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
+import org.wso2.iot.agent.services.AppLockService;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
+
+import java.util.ArrayList;
+import java.util.Calendar;
 
 /**
  * Listening to application state changes such as an app getting installed, uninstalled,
@@ -90,9 +96,13 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
         String status = null;
         ApplicationStatus applicationState;
         this.context = context;
+        if (intent == null || intent.getAction() == null || intent.getData() == null) {
+            Log.w(TAG, "Invalid app state intent");
+            return;
+        }
         switch (intent.getAction()) {
             case Intent.ACTION_PACKAGE_ADDED:
-                if (Constants.DEFAULT_OWNERSHIP != Constants.OWNERSHIP_COSU) {
+                if (!Constants.DEFAULT_OWNERSHIP.equals(Constants.OWNERSHIP_COSU)) {
                     applyEnforcement(intent.getData().getEncodedSchemeSpecificPart());
                 }
                 break;
@@ -141,34 +151,30 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
                 (DevicePolicyManager) context.getApplicationContext().
                         getSystemService(Context.DEVICE_POLICY_SERVICE);
         cdmfDeviceAdmin = AgentDeviceAdminReceiver.getComponentName(context.getApplicationContext());
-        String permittedPackageName;
-        JSONObject permittedApp;
+        String appPackageName;
+        JSONObject app;
         String permissionName;
-        Boolean isAllowed = false;
+        boolean isAllowed = true;
         String whiteListAppsPref = Preference.
-                    getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
+                getString(context, Constants.AppRestriction.WHITE_LIST_APPS);
         String blackListAppsPref = Preference.
                 getString(context, Constants.AppRestriction.BLACK_LIST_APPS);
-        String ownershipType = Preference.getString(context, Constants.DEVICE_TYPE);
 
         String restrictionList = null;
-        if(!TextUtils.isEmpty(whiteListAppsPref)) {
+        if (!TextUtils.isEmpty(whiteListAppsPref)) {
             restrictionList = whiteListAppsPref;
-        } else if(!TextUtils.isEmpty(blackListAppsPref)) {
+        } else if (!TextUtils.isEmpty(blackListAppsPref)) {
             restrictionList = blackListAppsPref;
         }
 
-        if(restrictionList != null) {
-
+        if (restrictionList != null) {
             try {
-                JSONArray whiteListApps = new JSONArray(restrictionList);
-                for (int i = 0; i < whiteListApps.length(); i++) {
-                    permittedApp = new JSONObject(whiteListApps.getString(i));
-                    permittedPackageName = permittedApp.
-                            getString(Constants.AppRestriction.PACKAGE_NAME);
-                    if (permittedPackageName.equals(packageName)) {
-                        permissionName = permittedApp.
-                                getString(Constants.AppRestriction.RESTRICTION_TYPE);
+                JSONArray appRestrictions = new JSONArray(restrictionList);
+                for (int i = 0; i < appRestrictions.length(); i++) {
+                    app = new JSONObject(appRestrictions.getString(i));
+                    appPackageName = app.getString(Constants.AppRestriction.PACKAGE_NAME);
+                    if (appPackageName.equals(packageName)) {
+                        permissionName = app.getString(Constants.AppRestriction.RESTRICTION_TYPE);
                         if (permissionName.equals(Constants.AppRestriction.WHITE_LIST)) {
                             isAllowed = true;
                             break;
@@ -181,19 +187,39 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
                 if (!isAllowed) {
                     String disallowedApps = Preference.
                             getString(context, Constants.AppRestriction.DISALLOWED_APPS);
-                    disallowedApps = disallowedApps +
-                            context.getString(R.string.whitelist_package_split_regex) + packageName;
+                    disallowedApps = disallowedApps + context.getString(R.string.whitelist_package_split_regex) + packageName;
                     Preference.putString(context, Constants.
                             AppRestriction.DISALLOWED_APPS, disallowedApps);
-                    //Calls devicePolicyManager if the agent is profile-owner or device-owner.
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
-                            (devicePolicyManager.
-                                    isProfileOwnerApp(cdmfDeviceAdmin.getPackageName()) ||
-                                    devicePolicyManager.
-                                            isDeviceOwnerApp(cdmfDeviceAdmin.getPackageName()))) {
-                        devicePolicyManager.
-                                setApplicationHidden(cdmfDeviceAdmin, packageName, true);
-                    } else if (Constants.OWNERSHIP_COPE.equals(ownershipType)) {
+                    if (devicePolicyManager != null
+                            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        //Calls devicePolicyManager if the agent is profile-owner or device-owner.
+                        if (devicePolicyManager.isProfileOwnerApp(cdmfDeviceAdmin.getPackageName())
+                                || devicePolicyManager
+                                .isDeviceOwnerApp(cdmfDeviceAdmin.getPackageName())) {
+                            devicePolicyManager.
+                                    setApplicationHidden(cdmfDeviceAdmin, packageName, true);
+                        } else {
+                            ArrayList<String> restrictedApps = new ArrayList<>();
+                            restrictedApps.add(packageName);
+
+                            Intent restrictionIntent = new Intent(context, AppLockService.class);
+                            restrictionIntent.setAction(Constants.APP_LOCK_SERVICE);
+                            restrictionIntent.putStringArrayListExtra(
+                                    Constants.AppRestriction.APP_LIST, restrictedApps);
+                            PendingIntent pendingIntent = PendingIntent.getService(context, 0,
+                                    restrictionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                            AlarmManager alarmManager = (AlarmManager) context
+                                    .getSystemService(Context.ALARM_SERVICE);
+                            Calendar calendar = Calendar.getInstance();
+                            calendar.setTimeInMillis(System.currentTimeMillis());
+                            calendar.add(Calendar.SECOND, 1); // First time
+                            if (alarmManager != null) {
+                                alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
+                                        Constants.APP_MONITOR_FREQUENCY, pendingIntent);
+                            }
+                            context.startService(restrictionIntent);
+                        }
+                    } else if (Constants.SYSTEM_APP_ENABLED) {
                         CommonUtils.callSystemApp(context,
                                 Constants.Operation.APP_RESTRICTION, "false", packageName);
                     }

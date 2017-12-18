@@ -105,22 +105,6 @@ public class OperationManagerOlderSdk extends OperationManager {
         }
     }
 
-    @Override
-    public void ringDevice(Operation operation) {
-        operation.setStatus(resources.getString(R.string.operation_value_completed));
-        resultBuilder.build(operation);
-        Intent intent = new Intent(context, AlertActivity.class);
-        intent.putExtra(resources.getString(R.string.intent_extra_type), resources.getString(R.string.intent_extra_ring));
-        intent.putExtra(resources.getString(R.string.intent_extra_message_text), resources.getString(R.string.intent_extra_stop_ringing));
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
-
-        if (Constants.DEBUG_MODE_ENABLED) {
-            Log.d(TAG, "Ringing is activated on the device");
-        }
-    }
-
     public void uploadFile(Operation operation) throws AndroidAgentException {
         operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
         try {

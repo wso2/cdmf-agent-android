@@ -648,4 +648,7 @@ public class Constants {
 
     // Logcat
     public static final String DEFAULT_LOGCAT_LINES = "100";
+
+    public static final int APP_MONITOR_FREQUENCY = 60000;
+
 }

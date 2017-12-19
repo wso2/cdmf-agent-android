@@ -373,6 +373,7 @@ public class Constants {
 		public static final String RUNTIME_PERMISSION_POLICY = "RUNTIME_PERMISSION_POLICY";
 		public static final String COSU_PROFILE_POLICY = "COSU_PROFILE";
 		public static final String ENABLE_LOCK ="ENABLE_LOCK";
+        public static final String TRIGGER_HEARTBEAT = "TRIGGER_HEARTBEAT";
 
         // Remote session based operations
         public static final String REMOTE_CONNECT = "REMOTE_CONNECT";

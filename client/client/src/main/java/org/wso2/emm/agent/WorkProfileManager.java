@@ -52,7 +52,11 @@ public class WorkProfileManager extends Activity {
                 activity.getApplicationContext().getPackageName());
         // Once the provisioning is done, user is prompted to uninstall the agent in personal profile.
         ApplicationManager applicationManager = new ApplicationManager(this.getApplicationContext());
-        applicationManager.uninstallApplication(Constants.PACKAGE_NAME, null);
+        try {
+            applicationManager.uninstallApplication(Constants.PACKAGE_NAME, null);
+        } catch (AndroidAgentException e) {
+            Log.e(TAG,"App uninstallation failed");
+        }
 
         if (intent.resolveActivity(activity.getPackageManager()) != null) {
             startActivityForResult(intent, REQUEST_PROVISION_MANAGED_PROFILE);

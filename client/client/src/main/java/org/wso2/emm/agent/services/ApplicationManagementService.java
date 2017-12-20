@@ -130,7 +130,11 @@ public class ApplicationManagementService extends IntentService implements APIRe
                 break;
             case Constants.Operation.UNINSTALL_APPLICATION:
                 if (appUri != null) {
-                    applicationManager.uninstallApplication(appUri, null);
+                    try {
+                        applicationManager.uninstallApplication(appUri, null);
+                    } catch (AndroidAgentException e) {
+                        Log.e(TAG, "App uninstallation failed." + e);
+                    }
                 } else {
                     Toast.makeText(context, context.getResources().getString(R.string.toast_app_removal_failed),
                                    Toast.LENGTH_LONG).show();

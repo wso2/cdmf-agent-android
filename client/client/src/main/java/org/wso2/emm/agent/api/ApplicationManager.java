@@ -426,11 +426,16 @@ public class ApplicationManager {
      *
      * @param packageName - Application package name should be passed in as a String.
      */
-    public void uninstallApplication(String packageName, String schedule) {
+    public void uninstallApplication(String packageName, String schedule) throws AndroidAgentException {
         if (packageName != null &&
                 !packageName.contains(resources.getString(R.string.application_package_prefix))) {
             packageName = resources.getString(R.string.application_package_prefix) + packageName;
         }
+
+        if(!this.isPackageInstalled(packageName)){
+            throw new AndroidAgentException("Package is not installed in the device");
+        }
+
         if (schedule != null && !schedule.trim().isEmpty() && !schedule.equals("undefined")) {
             try {
                 AlarmUtils.setOneTimeAlarm(context, schedule, Constants.Operation.UNINSTALL_APPLICATION, null, null, packageName);

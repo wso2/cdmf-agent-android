@@ -95,6 +95,8 @@ public class ApplicationManager {
     private static final String APP_STATE_DOWNLOAD_FAILED = "DOWNLOAD_FAILED";
     private static final String APP_STATE_INSTALL_FAILED = "INSTALL_FAILED";
     private static final String APP_STATE_INSTALLED = "INSTALLED";
+    private static final String APP_STATE_UNINSTALLED = "UNINSTALLED";
+    private static final String APP_STATE_UNINSTALLED_FAILED = "UNINSTALL_FAILED";
     private static final String TAG = ApplicationManager.class.getName();
     private static final String APP_INSTALLATION_ATTEMPT = "APP_INSTALLATION_ATTEMPT";
     private static volatile boolean downloadOngoing = false;
@@ -433,6 +435,9 @@ public class ApplicationManager {
         }
 
         if(!this.isPackageInstalled(packageName)){
+            String message = "Package is not installed in the device or invalid package name";
+            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), APP_STATE_UNINSTALLED_FAILED);
+            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), message);
             throw new AndroidAgentException("Package is not installed in the device");
         }
 
@@ -445,8 +450,12 @@ public class ApplicationManager {
             return; //Will call uninstallApplication method again upon alarm.
         }
         if (Constants.SYSTEM_APP_ENABLED) {
+            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), APP_STATE_UNINSTALLED);
+            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), null);
             CommonUtils.callSystemApp(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION, "", packageName);
         } else {
+            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), APP_STATE_UNINSTALLED);
+            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), null);
             Uri packageURI = Uri.parse(packageName);
             Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, packageURI);
             uninstallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -516,6 +525,14 @@ public class ApplicationManager {
             case APP_STATE_INSTALLED:
                 operation.setStatus(context.getResources().getString(R.string.operation_value_completed));
                 operation.setOperationResponse("Application installation completed");
+                break;
+            case APP_STATE_UNINSTALLED_FAILED:
+                operation.setStatus(context.getResources().getString(R.string.operation_value_error));
+                operation.setOperationResponse(message);
+                break;
+            case APP_STATE_UNINSTALLED:
+                operation.setStatus(context.getResources().getString(R.string.operation_value_completed));
+                operation.setOperationResponse("Application uninstallation completed");
                 break;
             default:
 

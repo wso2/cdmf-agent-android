@@ -705,9 +705,11 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 if (appData.has(getContextResources().getString(R.string.app_schedule))) {
                     schedule = appData.getString(getContextResources().getString(R.string.app_schedule));
                 }
+                int operationId = operation.getId();
+                String operationCode = operation.getCode();
+                Preference.putInt(context, context.getResources().getString(R.string.app_uninstall_id), operationId);
+                Preference.putString(context, context.getResources().getString(R.string.app_uninstall_code), operationCode);
                 getAppList().uninstallApplication(packageName, schedule);
-                operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
-                getResultBuilder().build(operation);
             }
 
             if (Constants.DEBUG_MODE_ENABLED) {

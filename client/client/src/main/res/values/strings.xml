@@ -373,9 +373,13 @@
     <string name="is_automatic_firmware_upgrade">isAutomaticFirmwareUpgrade</string>
     <string name="firmware_upgrade_automatic_retry">autoRetry</string>
     <string name="app_install_failed_message">appInstallFailedMessage</string>
+    <string name="app_uninstall_failed_message">appUnInstallFailedMessage</string>
     <string name="app_install_id">appInstallOperationId</string>
+    <string name="app_uninstall_id">appUninstallOperationId</string>
     <string name="app_install_code">appInstallOperationCode</string>
+    <string name="app_uninstall_code">appUninstallOperationCode</string>
     <string name="app_install_status">appInstallStatus</string>
+    <string name="app_uninstall_status">appUnInstallStatus</string>
     <string name="operation_receivedTimeStamp">receivedTimeStamp</string>
     <string name="operation_createdTimeStamp">createdTimeStamp</string>
     <string name="operation_payLoad">payLoad</string>

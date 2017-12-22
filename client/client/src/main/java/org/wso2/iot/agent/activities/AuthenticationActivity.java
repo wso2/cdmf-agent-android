@@ -159,9 +159,16 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 			etPassword.setFocusable(true);
 			etPassword.requestFocus();
 			String tenantedUserName = Preference.getString(context, Constants.USERNAME);
-			int tenantSeparator = tenantedUserName.lastIndexOf('@');
-			etUsername.setText(tenantedUserName.substring(0, tenantSeparator));
-			etDomain.setText(tenantedUserName.substring(tenantSeparator + 1, tenantedUserName.length()));
+			String nameAndDomain[] = tenantedUserName.split("@");
+			if (nameAndDomain.length == 3) {
+				etUsername.setText(nameAndDomain[0] + "@" + nameAndDomain[1]);
+				etDomain.setText(nameAndDomain[2]);
+			} else if (nameAndDomain.length == 2) {
+				etUsername.setText(nameAndDomain[0]);
+				etDomain.setText(nameAndDomain[1]);
+			} else {
+				etUsername.setText(nameAndDomain[0]);
+			}
 			isReLogin = true;
 			textViewSignIn.setText(R.string.msg_need_to_sign_in);
 		} else if (Constants.CLOUD_MANAGER != null) {

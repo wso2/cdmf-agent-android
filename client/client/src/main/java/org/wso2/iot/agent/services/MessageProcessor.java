@@ -256,6 +256,36 @@ public class MessageProcessor implements APIResultCallBack {
                         R.string.firmware_upgrade_response_message), null);
             }
 
+
+            int applicationUninstallOperationId = Preference.getInt(context, context.getResources().getString(
+                    R.string.app_uninstall_id));
+            String applicationUninstallOperationCode = Preference.getString(context, context.getResources().getString(
+                    R.string.app_uninstall_code));
+            String applicationUninstallOperationStatus = Preference.getString(context, context.getResources().getString(
+                    R.string.app_uninstall_status));
+            String applicationUninstallOperationMessage = Preference.getString(context, context.getResources().getString(
+                    R.string.app_uninstall_failed_message));
+
+            if (applicationUninstallOperationStatus != null && applicationUninstallOperationId != 0 && applicationUninstallOperationCode != null) {
+                Operation applicationOperation = new Operation();
+                ApplicationManager appMgt = new ApplicationManager(context);
+                applicationOperation.setId(applicationUninstallOperationId);
+                applicationOperation.setCode(applicationUninstallOperationCode);
+                applicationOperation = appMgt.getApplicationInstallationStatus(
+                        applicationOperation, applicationUninstallOperationStatus, applicationUninstallOperationMessage);
+                if (replyPayload == null) {
+                    replyPayload = new ArrayList<>();
+                }
+                replyPayload.add(applicationOperation);
+
+                Preference.putString(context, context.getResources().getString(
+                        R.string.app_install_status), null);
+                Preference.putString(context, context.getResources().getString(
+                        R.string.app_install_failed_message), null);
+            }
+
+
+
             int applicationOperationId = Preference.getInt(context, context.getResources().getString(
                     R.string.app_install_id));
             String applicationOperationCode = Preference.getString(context, context.getResources().getString(

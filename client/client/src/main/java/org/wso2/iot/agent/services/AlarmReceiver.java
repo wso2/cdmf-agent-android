@@ -54,7 +54,11 @@ public class AlarmReceiver extends BroadcastReceiver {
 				applicationManager.installApp(appUrl, null, operation);
 			} else if(operationCode != null && operationCode.trim().equals(Constants.Operation.UNINSTALL_APPLICATION)) {
 				String packageUri = intent.getStringExtra(context.getResources().getString(R.string.app_uri));
-				applicationManager.uninstallApplication(packageUri, null);
+				try {
+					applicationManager.uninstallApplication(packageUri, null);
+				} catch (AndroidAgentException e) {
+					Log.e(TAG,"App uninstallation failed");
+				}
 			}
 
 		} else {

@@ -531,8 +531,6 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 		loadInitialActivity();
 	}
 
-
-
 	/**
 	 * Display unregistration confirmation dialog.
 	 */
@@ -568,7 +566,7 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 	 * Load initial activity.
 	 */
 	private void loadInitialActivity() {
-		Preference.putString(context, Constants.PreferenceFlag.IP, null);
+		Preference.clearPreferences(this);
 		Intent intent = new Intent( AlreadyRegisteredActivity.this, SplashActivity.class);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intent);

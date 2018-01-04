@@ -54,6 +54,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.iid.FirebaseInstanceId;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -889,10 +891,19 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 								if(param.getString(context.getString(R.string.shared_pref_config_key)).trim().equals(
 										Constants.PreferenceFlag.NOTIFIER_TYPE)){
 									String type = param.getString(context.getString(R.string.shared_pref_config_value)).trim();
-									if(type.equals(String.valueOf(Constants.NOTIFIER_CHECK))) {
+									if (type.equals(String.valueOf(Constants.NOTIFIER_CHECK))) {
 										Preference.putString(context, Constants.PreferenceFlag.NOTIFIER_TYPE,
 												Constants.NOTIFIER_FCM);
-									}else{
+										String token = FirebaseInstanceId.getInstance().getToken();
+										if(token != null) {
+											if (Constants.DEBUG_MODE_ENABLED){
+												Log.d(TAG, "FCM Token: " + token);
+											}
+										} else {
+											Log.i(TAG, "FCM Token is still null. " +
+													"Will retry again when registering the agent.");
+										}
+									} else {
 										Preference.putString(context, Constants.PreferenceFlag.NOTIFIER_TYPE,
 												Constants.NOTIFIER_LOCAL);
 									}

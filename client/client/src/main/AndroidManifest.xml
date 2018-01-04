@@ -188,10 +188,10 @@
             android:name=".services.NetworkInfoService"
             android:enabled="true" />
         <service android:name=".services.kiosk.KioskLockDownService" />
-
         <service android:name=".services.kiosk.KioskUnlockService" />
-        <service android:name=".services.kiosk.KioskMsgAlarmService"
-            android:enabled="true"/>
+        <service
+            android:name=".services.kiosk.KioskMsgAlarmService"
+            android:enabled="true" />
 
         <activity android:name=".activities.AlreadyRegisteredActivity" />
         <activity
@@ -212,9 +212,9 @@
             android:screenOrientation="portrait"
             android:theme="@android:style/Theme.Holo.Dialog.NoActionBar" />
         <activity
-                android:name=".activities.ScreenShareActivity"
-                android:screenOrientation="portrait"
-                android:theme="@android:style/Theme.Holo.Dialog.NoActionBar" />
+            android:name=".activities.ScreenShareActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Holo.Dialog.NoActionBar" />
         <activity
             android:name=".LockActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -238,15 +238,14 @@
             android:name=".services.AppLockService"
             android:exported="false"
             android:permission="org.wso2.iot.agent.permission.ACCESS" />
-        <service android:name=".InstanceIDListenerService">
+        <service
+            android:name=".services.screenshare.ScreenSharingService"
+            android:exported="false"></service>
+        <service
+            android:name=".services.FCMInstanceIdService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
-        </service>
-
-        <service
-                android:name=".services.screenshare.ScreenSharingService"
-                android:exported="false">
         </service>
 
         <activity
@@ -276,9 +275,9 @@
                 <action android:name="org.ws2.iot.agent.LOCATION_UPDATE" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".services.kiosk.KioskAlarmReceiver"></receiver>
+        <receiver android:name=".services.kiosk.KioskAlarmReceiver" />
 
-        <!--android 7 requirement-->
+        <!-- android 7 requirement -->
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="${applicationId}.provider"

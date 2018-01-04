@@ -206,7 +206,10 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 				missingPermissions.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
 			}
 
-			if (!missingPermissions.isEmpty()) {
+			if (missingPermissions.isEmpty()) {
+				NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+				mNotificationManager.cancel(Constants.PERMISSION_MISSING, Constants.PERMISSION_MISSING_NOTIFICATION_ID);
+			} else {
 				ActivityCompat.requestPermissions(AlreadyRegisteredActivity.this,
 						missingPermissions.toArray(new String[missingPermissions.size()]),
 						110);

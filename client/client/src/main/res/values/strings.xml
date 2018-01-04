@@ -263,7 +263,8 @@
     <string name="dialog_title_system_app_required">SystemApp required</string>
     <string name="dialog_gps_settings">GPS Settings</string>
     <string name="dialog_gps_message">GPS is not enabled. Do you want to go to settings menu to enable GPS?</string>
-    <string name="dialog_please_wait">Please wait</string>
+    <string name="dialog_please_wait">Please wait…</string>
+    <string name="dialog_configuring_fcm">Configuring FCM. This may take few minutes. Please wait…</string>
     <string name="dialog_checking_reg">Checking Registration Info</string>
     <string name="dialog_sender_id">Retrieving server settings</string>
     <string name="dialog_license_agreement">Retrieving policy agreement</string>

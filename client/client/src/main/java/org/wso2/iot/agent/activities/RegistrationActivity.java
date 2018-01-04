@@ -19,12 +19,17 @@ package org.wso2.iot.agent.activities;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.WindowManager;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 
@@ -47,33 +52,48 @@ import java.util.Map;
  * Activity which handles user enrollment.
  */
 public class RegistrationActivity extends Activity implements APIResultCallBack {
+
+	private static final String TAG = RegistrationActivity.class.getSimpleName();
+	private static final int FCM_TOKEN_WAIT_MILLIS = 60000;
+
 	private Context context;
 	private ProgressDialog progressDialog;
-	private DeviceInfoPayload deviceInfoBuilder;
-	private String TAG = RegistrationActivity.class.getSimpleName();
+	private boolean isFCMTokenReceiverRegistered = false;
+
+	private BroadcastReceiver fcmTokenReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			CommonDialogUtils.stopProgressDialog(progressDialog);
+			registerDevice();
+		}
+	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_registration);
 		context = this;
-		if (Constants.NOTIFIER_FCM.equals(Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE))) {
-			registerFCM();
-		}
-		deviceInfoBuilder = new DeviceInfoPayload(context);
-		DeviceInfo deviceInfo = new DeviceInfo(context);
-		String deviceIdentifier = deviceInfo.getDeviceId();
-		Preference.putString(context, Constants.PreferenceFlag.REG_ID, deviceIdentifier);
-		registerDevice();
-
+		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
 	}
 
 	@Override
-	protected void onDestroy(){
-		super.onDestroy();
-		if (progressDialog != null && progressDialog.isShowing()) {
-			progressDialog.dismiss();
-			progressDialog = null;
+	protected void onResume(){
+		super.onResume();
+		if (Constants.NOTIFIER_FCM.equals(Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE))) {
+			registerFCM();
+		} else {
+			registerDevice();
+		}
+	}
+
+	@Override
+	protected void onPause(){
+		super.onPause();
+		CommonDialogUtils.stopProgressDialog(progressDialog);
+		if (isFCMTokenReceiverRegistered) {
+			unregisterReceiver(fcmTokenReceiver);
 		}
 	}
 
@@ -82,6 +102,12 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 				getResources().getString(R.string.dialog_enrolling),
 				getResources().getString(R.string.dialog_please_wait),
 				null);
+
+		DeviceInfoPayload deviceInfoBuilder = new DeviceInfoPayload(context);
+		DeviceInfo deviceInfo = new DeviceInfo(context);
+		String deviceIdentifier = deviceInfo.getDeviceId();
+		Preference.putString(context, Constants.PreferenceFlag.REG_ID, deviceIdentifier);
+
 		String type = Preference.getString(context,
 		                                   context.getResources().getString(R.string.shared_pref_reg_type));
 		String username = Preference.getString(context,
@@ -270,45 +296,29 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 	private void registerFCM() {
 		String token =  FirebaseInstanceId.getInstance().getToken();
 		if(token != null) {
-			Preference.putString(context, Constants.FCM_REG_ID, token);
-		} else {
-			try {
-				CommonUtils.clearAppData(context);
-				displayFCMServicesError();
-			} catch (AndroidAgentException e) {
-				Log.e(TAG, "Failed to clear app data", e);
+			if (Constants.DEBUG_MODE_ENABLED){
+				Log.d(TAG, "FCM Token: " + token);
 			}
-		}
-	}
-
-	/**
-	 * This is used to send the registration Id to MDM server so that the server
-	 * can use it as a reference to identify the device when sending messages to
-	 * Google server.
-	 *
-	 * @throws AndroidAgentException
-	 */
-	public void sendRegistrationId() throws AndroidAgentException {
-		DeviceInfo deviceInfo = new DeviceInfo(context);
-		DeviceInfoPayload deviceInfoPayload = new DeviceInfoPayload(context);
-		deviceInfoPayload.build();
-
-		String replyPayload = deviceInfoPayload.getDeviceInfoPayload();
-		String ipSaved = Constants.DEFAULT_HOST;
-		String prefIP = Preference.getString(context, Constants.PreferenceFlag.IP);
-		if (prefIP != null) {
-			ipSaved = prefIP;
-		}
-		if (ipSaved != null && !ipSaved.isEmpty()) {
-			ServerConfig utils = new ServerConfig();
-			utils.setServerIP(ipSaved);
-
-			String url = utils.getAPIServerURL(context) + Constants.DEVICE_ENDPOINT + deviceInfo.getDeviceId();
-
-			CommonUtils.callSecuredAPI(context, url, org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS.PUT,
-			                           replyPayload, RegistrationActivity.this, Constants.FCM_REGISTRATION_ID_SEND_CODE);
+			Preference.putString(context, Constants.FCM_REG_ID, token);
+			registerDevice();
 		} else {
-			Log.e(TAG, "There is no valid IP to contact the server");
+			Log.w(TAG, "FCM Token is null. Will depend on FCMInstanceIdService.");
+			Preference.removePreference(context, Constants.FCM_REG_ID);
+			progressDialog = CommonDialogUtils.showProgressDialog(RegistrationActivity.this,
+					getResources().getString(R.string.dialog_enrolling),
+					getResources().getString(R.string.dialog_configuring_fcm),
+					null);
+			isFCMTokenReceiverRegistered = true;
+			registerReceiver(fcmTokenReceiver,
+					new IntentFilter(Constants.FCM_TOKEN_REFRESHED_BROADCAST_ACTION));
+			new Handler().postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					unregisterReceiver(fcmTokenReceiver);
+					isFCMTokenReceiverRegistered = false;
+					displayFCMServicesError();
+				}
+			}, FCM_TOKEN_WAIT_MILLIS);
 		}
 	}
 

@@ -59,6 +59,7 @@ public class Constants {
 	public static final String LOCATION_UPDATE_BROADCAST_ACTION = "org.ws2.iot.agent.LOCATION_UPDATE";
 	public static final String SYNC_BROADCAST_ACTION = "org.ws2.iot.agent.SERVER_SYNC";
 	public static final String AGENT_UPDATED_BROADCAST_ACTION = "org.ws2.iot.agent.APPLICATION_UPDATED";
+	public static final String FCM_TOKEN_REFRESHED_BROADCAST_ACTION = "org.ws2.iot.agent.FCM_TOKEN_REFRESHED";
 	public static final String HTTPS_PROTOCOL = "https://";
 	public static final String OWNERSHIP_BYOD = "BYOD";
 	public static final String OWNERSHIP_COPE = "COPE";

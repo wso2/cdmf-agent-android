@@ -163,6 +163,7 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onProfileProvisioningComplete(Context context, Intent intent) {
+        Log.i(TAG, "Profile provisioning completed");
         if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
             DevicePolicyManager devicePolicyManager =
                     (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
@@ -212,7 +213,7 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
             Preference.putBoolean(context,Constants.PreferenceFlag.DEVICE_INITIALIZED, false);
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(launch);
-        } else {
+        } else if (!Preference.hasPreferenceKey(context, Constants.PreferenceFlag.REGISTERED)){
             Intent launch = new Intent(context, EnableProfileActivity.class);
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(launch);

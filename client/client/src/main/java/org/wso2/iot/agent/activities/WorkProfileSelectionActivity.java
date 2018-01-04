@@ -107,6 +107,7 @@ public class WorkProfileSelectionActivity extends AppCompatActivity {
     private void startManagedProfileManager() {
         Intent ManagedProfileManager = new Intent(getApplicationContext(), WorkProfileManager.class);
         startActivity(ManagedProfileManager);
+        finish();
     }
 
     /**

@@ -79,7 +79,6 @@ public class SplashActivity extends Activity {
                 }
             }, AUTO_HIDE_DELAY_MILLIS);
         }
-
     }
 
     private void startActivity() {

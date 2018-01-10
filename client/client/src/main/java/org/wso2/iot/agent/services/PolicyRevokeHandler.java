@@ -17,6 +17,7 @@
 
 package org.wso2.iot.agent.services;
 
+import android.annotation.TargetApi;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -38,13 +39,15 @@ import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * This class is used to revoke the existing policy on the device.
  */
 public class PolicyRevokeHandler {
 
-    private static final String TAG = PolicyOperationsMapper.class.getSimpleName();
+    private static final String TAG = PolicyRevokeHandler.class.getSimpleName();
     private Context context;
     private DevicePolicyManager devicePolicyManager;
     private Resources resources;
@@ -204,11 +207,84 @@ public class PolicyRevokeHandler {
                 case Constants.Operation.COSU_PROFILE_POLICY:
                     revokeCOSUProfilePolicy(operation);
                     break;
+                case Constants.Operation.WORK_PROFILE:
+                    revokeWorkProfile(operation);
+                    break;
                 default:
                     Log.e(TAG, "Operation code: " + operation.getCode() + " is not supported");
                     //throw new AndroidAgentException("Invalid operation code received");
             }
         }
+    }
+
+    private void revokeWorkProfile(Operation operation) throws AndroidAgentException {
+        String enableSystemAppsData;
+        String hideSystemAppsData;
+        String unhideSystemAppsData;
+        String googlePlayAppsData;
+        try {
+            JSONObject profileData = new JSONObject(operation.getPayLoad().toString());
+                        if (!profileData.isNull(resources.getString(R.string.intent_extra_enable_system_apps))) {
+                enableSystemAppsData = (String) profileData.get(resources.getString(
+                        R.string.intent_extra_enable_system_apps));
+                List<String> systemAppList = Arrays.asList(enableSystemAppsData.split(resources.getString(
+                        R.string.split_delimiter)));
+                for (String packageName : systemAppList) {
+                    hideSystemApp(packageName);
+                }
+            }
+            if (!profileData.isNull(resources.getString(R.string.intent_extra_hide_system_apps))) {
+                hideSystemAppsData = (String) profileData.get(resources.getString(
+                        R.string.intent_extra_hide_system_apps));
+                List<String> systemAppList = Arrays.asList(hideSystemAppsData.split(resources.getString(
+                        R.string.split_delimiter)));
+                for (String packageName : systemAppList) {
+                    enableSystemApp(packageName);
+                }
+            }
+            if (!profileData.isNull(resources.getString(R.string.intent_extra_unhide_system_apps))) {
+                unhideSystemAppsData = (String) profileData.get(resources.getString(
+                        R.string.intent_extra_unhide_system_apps));
+                List<String> systemAppList = Arrays.asList(unhideSystemAppsData.split(resources.getString(
+                        R.string.split_delimiter)));
+                for (String packageName : systemAppList) {
+                    hideSystemApp(packageName);
+                }
+            }
+            if (!profileData.isNull(resources.getString(R.string.intent_extra_enable_google_play_apps))) {
+                googlePlayAppsData = (String) profileData.get(resources.getString(
+                        R.string.intent_extra_enable_google_play_apps));
+                List<String> systemAppList = Arrays.asList(googlePlayAppsData.split(resources.getString(
+                        R.string.split_delimiter)));
+                for (String packageName : systemAppList) {
+                    uninstallGooglePlayApps(packageName);
+                }
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Error in revoking work profile configuration policy.", e);
+        }
+    }
+
+    private void uninstallGooglePlayApps(String packageName) {
+        try {
+            applicationManager.uninstallApplication(packageName, null);
+        } catch (AndroidAgentException e) {
+            Log.e(TAG, "Error while trying to uninstall app for revoke work profile policy.", e);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void enableSystemApp(String packageName) {
+        try {
+            devicePolicyManager.enableSystemApp(deviceAdmin, packageName);
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "App is not available on the device to enable. " + e.toString());
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void hideSystemApp(String packageName) {
+        devicePolicyManager.setApplicationHidden(deviceAdmin, packageName, true);
     }
 
     /**

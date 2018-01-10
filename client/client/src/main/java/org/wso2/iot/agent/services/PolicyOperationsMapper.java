@@ -25,7 +25,7 @@ import org.wso2.iot.agent.utils.Constants;
 
 /**
  * This class is used to create specific operation with respect to
- * recieved policy payload.
+ * received policy payload.
  */
 public class PolicyOperationsMapper {
 

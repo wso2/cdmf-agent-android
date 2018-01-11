@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,10 +18,7 @@
 package org.wso2.iot.agent.services.operation;
 
 import android.annotation.TargetApi;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -35,7 +32,6 @@ import org.wso2.iot.agent.beans.AppRestriction;
 import org.wso2.iot.agent.beans.ComplianceFeature;
 import org.wso2.iot.agent.beans.Notification;
 import org.wso2.iot.agent.beans.Operation;
-import org.wso2.iot.agent.services.AppLockService;
 import org.wso2.iot.agent.services.NotificationService;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
@@ -43,7 +39,6 @@ import org.wso2.iot.agent.utils.Preference;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 
@@ -255,7 +250,7 @@ public class OperationManagerWorkProfile extends OperationManager {
             getResultBuilder().build(operation);
 
             if (packageName != null && !packageName.isEmpty()) {
-                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
+                setApplicationHidden(packageName, true);
             }
 
             if (Constants.DEBUG_MODE_ENABLED) {
@@ -283,7 +278,7 @@ public class OperationManagerWorkProfile extends OperationManager {
             getResultBuilder().build(operation);
 
             if (packageName != null && !packageName.isEmpty()) {
-                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, false);
+                setApplicationHidden(packageName, false);
             }
 
             if (Constants.DEBUG_MODE_ENABLED) {
@@ -405,6 +400,7 @@ public class OperationManagerWorkProfile extends OperationManager {
                         R.string.split_delimiter)));
                 for (String packageName : systemAppList) {
                     enableSystemApp(packageName);
+                    setApplicationHidden(packageName, false);
                 }
             }
             if (!profileData.isNull(getContextResources().getString(R.string.intent_extra_hide_system_apps))) {
@@ -415,7 +411,7 @@ public class OperationManagerWorkProfile extends OperationManager {
                 List<String> systemAppList = Arrays.asList(hideSystemAppsData.split(getContextResources().getString(
                         R.string.split_delimiter)));
                 for (String packageName : systemAppList) {
-                    hideSystemApp(packageName);
+                    setApplicationHidden(packageName, true);
                 }
             }
             if (!profileData.isNull(getContextResources().getString(R.string.intent_extra_unhide_system_apps))) {
@@ -426,7 +422,7 @@ public class OperationManagerWorkProfile extends OperationManager {
                 List<String> systemAppList = Arrays.asList(unhideSystemAppsData.split(getContextResources().getString(
                         R.string.split_delimiter)));
                 for (String packageName : systemAppList) {
-                    enableSystemApp(packageName);
+                    setApplicationHidden(packageName, false);
                 }
             }
             if (!profileData.isNull(getContextResources().getString(R.string.intent_extra_enable_google_play_apps))) {
@@ -438,14 +434,12 @@ public class OperationManagerWorkProfile extends OperationManager {
                     enableGooglePlayApps(packageName);
                 }
             }
-
         } catch (JSONException e) {
             operation.setStatus(getContextResources().getString(R.string.operation_value_error));
             operation.setOperationResponse("Error in parsing WORK_PROFILE payload.");
             getResultBuilder().build(operation);
             throw new AndroidAgentException("Invalid JSON format.", e);
         }
-
     }
 
     @Override
@@ -463,7 +457,7 @@ public class OperationManagerWorkProfile extends OperationManager {
         if (Constants.AppRestriction.BLACK_LIST.equals(appRestriction.getRestrictionType())) {
             String disallowedApps = "";
             for (String packageName : appRestriction.getRestrictedList()) {
-                getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
+                setApplicationHidden(packageName, true);
                 disallowedApps = disallowedApps + getContext().getString(R.string.whitelist_package_split_regex) + packageName;
             }
             Preference.putString(getContext(),
@@ -520,7 +514,7 @@ public class OperationManagerWorkProfile extends OperationManager {
                     }
                     if (!isAllowed) {
                         disallowedApps = disallowedApps + getContext().getString(R.string.whitelist_package_split_regex) + packageName;
-                        getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
+                        setApplicationHidden(packageName, true);
                     }
                     isAllowed = false;
                 }
@@ -543,11 +537,6 @@ public class OperationManagerWorkProfile extends OperationManager {
         } catch (IllegalArgumentException e) {
             Log.e(TAG, "App is not available on the device to enable. " + e.toString());
         }
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void hideSystemApp(String packageName) {
-        getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, true);
     }
 
     @Override
@@ -694,6 +683,11 @@ public class OperationManagerWorkProfile extends OperationManager {
         }
         policy.setCompliance(true);
         return policy;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void setApplicationHidden(String packageName, boolean isHidden) {
+        getDevicePolicyManager().setApplicationHidden(getCdmDeviceAdmin(), packageName, isHidden);
     }
 
     @Override

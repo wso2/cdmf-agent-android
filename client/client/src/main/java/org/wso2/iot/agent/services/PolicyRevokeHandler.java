@@ -230,7 +230,7 @@ public class PolicyRevokeHandler {
                 List<String> systemAppList = Arrays.asList(enableSystemAppsData.split(resources.getString(
                         R.string.split_delimiter)));
                 for (String packageName : systemAppList) {
-                    hideSystemApp(packageName);
+                    setApplicationHidden(packageName, true);
                 }
             }
             if (!profileData.isNull(resources.getString(R.string.intent_extra_hide_system_apps))) {
@@ -239,7 +239,7 @@ public class PolicyRevokeHandler {
                 List<String> systemAppList = Arrays.asList(hideSystemAppsData.split(resources.getString(
                         R.string.split_delimiter)));
                 for (String packageName : systemAppList) {
-                    enableSystemApp(packageName);
+                    setApplicationHidden(packageName, false);
                 }
             }
             if (!profileData.isNull(resources.getString(R.string.intent_extra_unhide_system_apps))) {
@@ -248,7 +248,7 @@ public class PolicyRevokeHandler {
                 List<String> systemAppList = Arrays.asList(unhideSystemAppsData.split(resources.getString(
                         R.string.split_delimiter)));
                 for (String packageName : systemAppList) {
-                    hideSystemApp(packageName);
+                    setApplicationHidden(packageName, true);
                 }
             }
             if (!profileData.isNull(resources.getString(R.string.intent_extra_enable_google_play_apps))) {
@@ -274,17 +274,8 @@ public class PolicyRevokeHandler {
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void enableSystemApp(String packageName) {
-        try {
-            devicePolicyManager.enableSystemApp(deviceAdmin, packageName);
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, "App is not available on the device to enable. " + e.toString());
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void hideSystemApp(String packageName) {
-        devicePolicyManager.setApplicationHidden(deviceAdmin, packageName, true);
+    private void setApplicationHidden(String packageName, boolean isHidden) {
+        devicePolicyManager.setApplicationHidden(deviceAdmin, packageName, isHidden);
     }
 
     /**

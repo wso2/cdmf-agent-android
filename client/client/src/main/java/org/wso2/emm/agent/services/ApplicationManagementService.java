@@ -182,6 +182,7 @@ public class ApplicationManagementService extends IntentService implements APIRe
                         getString(R.string.firmware_upgrade_response_id), id);
                 Preference.putBoolean(context, context.getResources().
                         getString(R.string.firmware_upgrade_retry_pending), false);
+                Log.i(TAG, "Log 11 ------------ Operation " + operation + "Operation id : " + id + "Message" + message);
                 break;
             case Constants.Operation.FIRMWARE_UPGRADE_COMPLETE:
             case Constants.Operation.FIRMWARE_INSTALLATION_CANCELED:
@@ -196,6 +197,7 @@ public class ApplicationManagementService extends IntentService implements APIRe
                         getString(R.string.firmware_upgrade_response_id), id);
                 Preference.putBoolean(context, context.getResources().
                         getString(R.string.firmware_upgrade_retry_pending), false);
+                Log.i(TAG, "Log 12 ------------ Operation " + operation + "Operation id : " + id + "Message" + message );
                 break;
             case Constants.Operation.FIRMWARE_UPGRADE_FAILURE:
                 Preference.putInt(context, context.getResources().
@@ -209,6 +211,7 @@ public class ApplicationManagementService extends IntentService implements APIRe
                         getString(R.string.firmware_upgrade_response_id), id);
                 Preference.putBoolean(context, context.getResources().
                         getString(R.string.firmware_upgrade_retry_pending), false);
+                Log.i(TAG, "Log 13 ------------ Operation " + operation + "Operation id : " + id );
                 break;
             case Constants.Operation.FAILED_FIRMWARE_UPGRADE_NOTIFICATION:
                 int retryCount = Preference.getInt(context, context.getResources().
@@ -227,6 +230,7 @@ public class ApplicationManagementService extends IntentService implements APIRe
                             R.string.operation_value_progress));
                     Preference.putInt(context, context.getResources().
                             getString(R.string.firmware_upgrade_response_id), id);
+                    Log.i(TAG, "Log 14 ------------ Operation " + operation + "Operation id : " + id + "Message" + message );
                 } else {
                     Preference.putInt(context, context.getResources().
                             getString(R.string.firmware_upgrade_retries), 0);
@@ -239,6 +243,7 @@ public class ApplicationManagementService extends IntentService implements APIRe
                             R.string.operation_value_error));
                     Preference.putInt(context, context.getResources().
                             getString(R.string.firmware_upgrade_response_id), id);
+                    Log.i(TAG, "Log 15 ------------ Operation " + operation + "Operation id : " + id + "Message" + message);
                 }
                 break;
             case Constants.Operation.GET_ENROLLMENT_STATUS:
@@ -254,6 +259,7 @@ public class ApplicationManagementService extends IntentService implements APIRe
             case Constants.Operation.FIRMWARE_UPGRADE_AUTOMATIC_RETRY:
                 Preference.putBoolean(context, context.getResources().
                         getString(R.string.is_automatic_firmware_upgrade), !"false".equals(message));
+                Log.i(TAG, "Log 16 ------------ Operation " + operation + "Operation id : " + id + "Message" + message);
                 break;
             case Constants.Operation.LOGCAT:
                 Operation logcatOperation = new Operation();

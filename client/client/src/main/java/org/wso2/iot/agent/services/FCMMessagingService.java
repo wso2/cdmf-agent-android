@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  * 
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -38,51 +38,50 @@ import java.util.TimerTask;
  */
 public class FCMMessagingService extends FirebaseMessagingService {
 
-	private static final String TAG = FCMMessagingService.class.getName();
-	private static volatile boolean hasPending = false;
+    private static final String TAG = FCMMessagingService.class.getName();
+    private static volatile boolean hasPending = false;
 
-	@Override
-	public void onMessageReceived(RemoteMessage message){
-		Log.i(TAG, "New FCM notification. Message id: " + message.getMessageId());
-		syncMessages();
-		if (Constants.SYSTEM_APP_ENABLED && Preference.getBoolean(this,
-				getResources().getString(R.string.firmware_upgrade_retry_pending))) {
-			Preference.putBoolean(this,
-					getResources().getString(R.string.firmware_upgrade_retry_pending), false);
-			CommonUtils.callSystemApp(this, Constants.Operation.UPGRADE_FIRMWARE, null, null);
-		}
-	}
+    @Override
+    public void onMessageReceived(RemoteMessage message) {
+        Log.i(TAG, "New FCM notification. Message id: " + message.getMessageId());
+        syncMessages();
+        if (Constants.SYSTEM_APP_ENABLED && Preference.getBoolean(this,
+                getResources().getString(R.string.firmware_upgrade_retry_pending))) {
+            Preference.putBoolean(this,
+                    getResources().getString(R.string.firmware_upgrade_retry_pending), false);
+            CommonUtils.callSystemApp(this, Constants.Operation.UPGRADE_FIRMWARE, null, null);
+        }
+    }
 
-	private void syncMessages() {
-		try {
-			if (Preference.getBoolean(this, Constants.PreferenceFlag.REGISTERED)) {
-				long currentTimeStamp = Calendar.getInstance().getTimeInMillis();
-				if (currentTimeStamp - MessageProcessor.getInvokedTimeStamp() > Constants.DEFAULT_START_INTERVAL) {
-					MessageProcessor messageProcessor = new MessageProcessor(this);
-					messageProcessor.getMessages();
-				} else if (!hasPending) {
-					hasPending = true;
-					new Timer().schedule(new TimerTask() {
-						@Override
-						public void run() {
-							if (Constants.DEBUG_MODE_ENABLED) {
-								Log.d(TAG, "Triggering delayed operation polling.");
-							}
-							hasPending = false;
-							syncMessages();
-						}
-					}, Constants.DEFAULT_START_INTERVAL);
-					if (Constants.DEBUG_MODE_ENABLED) {
-						Log.d(TAG, "Scheduled for delayed operation syncing.");
-					}
-				} else {
-					Log.i(TAG, "Ignoring message since there are ongoing and pending polling.");
-				}
-			}
-		} catch (AndroidAgentException e) {
-			Log.e(TAG, "Failed to perform operation", e);
-		}
-	}
+    private void syncMessages() {
+        try {
+            if (Preference.getBoolean(this, Constants.PreferenceFlag.REGISTERED)) {
+                long currentTimeStamp = Calendar.getInstance().getTimeInMillis();
+                if (currentTimeStamp - MessageProcessor.getInvokedTimeStamp() > Constants.DEFAULT_START_INTERVAL) {
+                    MessageProcessor messageProcessor = new MessageProcessor(this);
+                    messageProcessor.getMessages();
+                } else if (!hasPending) {
+                    hasPending = true;
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            if (Constants.DEBUG_MODE_ENABLED) {
+                                Log.d(TAG, "Triggering delayed operation polling.");
+                            }
+                            hasPending = false;
+                            syncMessages();
+                        }
+                    }, Constants.DEFAULT_START_INTERVAL);
+                    if (Constants.DEBUG_MODE_ENABLED) {
+                        Log.d(TAG, "Scheduled for delayed operation syncing.");
+                    }
+                } else {
+                    Log.i(TAG, "Ignoring message since there are ongoing and pending polling.");
+                }
+            }
+        } catch (AndroidAgentException e) {
+            Log.e(TAG, "Failed to perform operation", e);
+        }
+    }
 
 }
-

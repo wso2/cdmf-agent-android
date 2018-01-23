@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.iot.agent.services;
 
 import android.app.IntentService;
@@ -26,6 +44,7 @@ import org.wso2.iot.agent.services.location.LocationService;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
+
 import java.util.Map;
 
 /**
@@ -144,7 +163,7 @@ public class EnrollmentService extends IntentService implements APIResultCallBac
 
     private boolean isDeviceAdminActive() {
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
-        return devicePolicyManager.isAdminActive(cdmDeviceAdmin);
+        return devicePolicyManager != null && devicePolicyManager.isAdminActive(cdmDeviceAdmin);
     }
 
 
@@ -160,11 +179,8 @@ public class EnrollmentService extends IntentService implements APIResultCallBac
      * Starts server polling task.
      */
     private void startPolling() {
-        String notifier = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
-        if(Constants.NOTIFIER_LOCAL.equals(notifier)) {
-            Log.i(TAG, "EMM auto enrollment, initiating polling task.");
-            LocalNotification.startPolling(context);
-        }
+        Log.i(TAG, "WSO2 IoT Agent auto enrollment, initiating task.");
+        LocalNotification.startPolling(context);
     }
 
     @Override
@@ -356,10 +372,10 @@ public class EnrollmentService extends IntentService implements APIResultCallBac
      * can use it as a reference to identify the device when sending messages to
      * Google server.
      *
-     * @throws AndroidAgentException
+     * @throws AndroidAgentException on error
      */
     public void sendRegistrationId() throws AndroidAgentException {
-        Log.i(TAG, "EMM auto enrollment, GCM ID retrieval successful, updating enrollment");
+        Log.i(TAG, "IoT Agent auto enrollment, FCM ID retrieval successful, updating enrollment");
         DeviceInfo deviceInfo = new DeviceInfo(context);
         DeviceInfoPayload deviceInfoPayload = new DeviceInfoPayload(context);
         deviceInfoPayload.build();

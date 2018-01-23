@@ -169,7 +169,7 @@
                 <action android:name="org.wso2.iot.agent.enrollment.START_SERVICE" />
             </intent-filter>
         </service>
-        <service android:name=".FCMMessagingService">
+        <service android:name=".services.FCMMessagingService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>

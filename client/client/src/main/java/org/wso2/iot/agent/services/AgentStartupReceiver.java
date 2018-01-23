@@ -17,8 +17,6 @@
  */
 package org.wso2.iot.agent.services;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -46,14 +44,13 @@ import org.wso2.iot.agent.utils.Preference;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Broadcast receiver for device boot action used to start agent local
  * notification service at device startup.
  */
 public class AgentStartupReceiver extends BroadcastReceiver {
-    public static final int DEFAULT_INT_VALUE = 0;
+
     public static final int DEFAULT_ID = -1;
     private static final String TAG = AgentStartupReceiver.class.getSimpleName();
     private Resources resources;
@@ -72,6 +69,7 @@ public class AgentStartupReceiver extends BroadcastReceiver {
             Log.e(TAG, "Device is not active");
             return;
         }
+
         this.resources = context.getApplicationContext().getResources();
         int lastRebootOperationId = Preference.getInt(context, resources.getString(R.string.shared_pref_reboot_op_id));
         if (lastRebootOperationId != 0) {
@@ -80,15 +78,23 @@ public class AgentStartupReceiver extends BroadcastReceiver {
             Preference.putString(context, resources.getString(R.string.shared_pref_reboot_result),
                     context.getResources().getString(R.string.operation_value_completed));
         }
-        setRecurringAlarm(context.getApplicationContext());
+
+        setDeviceLock(context.getApplicationContext());
+
         if (!EventRegistry.eventListeningStarted) {
             EventRegistry registerEvent = new EventRegistry(context.getApplicationContext());
             registerEvent.register();
         }
+
         if (!CommonUtils.isServiceRunning(context, LocationService.class)) {
             Intent serviceIntent = new Intent(context, LocationService.class);
             context.startService(serviceIntent);
         }
+
+        if (Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED)) {
+            LocalNotification.startPolling(context);
+        }
+
         if (Intent.ACTION_BOOT_COMPLETED.equals(action) || Constants.AGENT_UPDATED_BROADCAST_ACTION.equals(action)) {
             if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
                 Preference.putBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START, true);
@@ -97,6 +103,7 @@ public class AgentStartupReceiver extends BroadcastReceiver {
                 context.startActivity(i);
             }
         }
+
         if (Intent.ACTION_BOOT_COMPLETED.equals(action)) {
             String policyBundle = Preference.getString(context, Constants.PreferenceFlag.APPLIED_POLICY);
             if (policyBundle != null) {
@@ -127,6 +134,9 @@ public class AgentStartupReceiver extends BroadcastReceiver {
     private boolean isNetworkConnected(Context context, Intent intent) {
         if (intent.getExtras() != null) {
             final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (connectivityManager == null) {
+                return false;
+            }
             final NetworkInfo ni = connectivityManager.getActiveNetworkInfo();
 
             if (ni != null && ni.isConnectedOrConnecting()) {
@@ -142,12 +152,11 @@ public class AgentStartupReceiver extends BroadcastReceiver {
     }
 
     /**
-     * Initiates device notifier on device startup.
+     * Set device lock on device startup if enabled.
      *
      * @param context - Application context.
      */
-    private void setRecurringAlarm(Context context) {
-        String mode = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
+    private void setDeviceLock(Context context) {
         boolean isLocked = Preference.getBoolean(context, Constants.IS_LOCKED);
         String lockMessage = Preference.getString(context, Constants.LOCK_MESSAGE);
 
@@ -171,31 +180,6 @@ public class AgentStartupReceiver extends BroadcastReceiver {
             } catch (JSONException e) {
                 Log.e(TAG, "Error occurred while building hard lock operation payload");
             }
-        }
-
-        int interval = Preference.getInt(context, context.getResources().getString(R.string.shared_pref_frequency));
-        if (interval == DEFAULT_INT_VALUE) {
-            interval = Constants.DEFAULT_INTERVAL;
-        }
-
-        if (mode == null) {
-            mode = Constants.NOTIFIER_LOCAL;
-        }
-
-        if (Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED) && Constants.NOTIFIER_LOCAL.equals(
-                mode.trim().toUpperCase(Locale.ENGLISH))) {
-
-            Intent alarmIntent = new Intent(context, AlarmReceiver.class);
-            PendingIntent recurringAlarmIntent =
-                    PendingIntent.getBroadcast(context,
-                            Constants.DEFAULT_REQUEST_CODE,
-                            alarmIntent,
-                            PendingIntent.FLAG_CANCEL_CURRENT);
-            AlarmManager alarmManager =
-                    (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-            alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Constants.DEFAULT_START_INTERVAL,
-                    interval, recurringAlarmIntent);
-            Log.i(TAG, "Setting up alarm manager for polling every " + interval + " milliseconds.");
         }
     }
 

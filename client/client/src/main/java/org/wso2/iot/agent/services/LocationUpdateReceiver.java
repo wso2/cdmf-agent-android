@@ -28,7 +28,7 @@ public class LocationUpdateReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.hasExtra(Constants.Location.LOCATION)) {
-            location = (Location) intent.getExtra(Constants.Location.LOCATION);
+            location = intent.getParcelableExtra(Constants.Location.LOCATION);
         }
         if (location == null) {
             Log.w(TAG, "Location not received");

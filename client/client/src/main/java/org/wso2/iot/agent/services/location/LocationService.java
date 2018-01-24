@@ -209,6 +209,7 @@ public class LocationService extends Service implements LocationListener {
             }
             if (mFusedLocationClient != null) {
                 mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+                isUpdateRequested = false;
             }
         }
         if (Constants.DEBUG_MODE_ENABLED) {

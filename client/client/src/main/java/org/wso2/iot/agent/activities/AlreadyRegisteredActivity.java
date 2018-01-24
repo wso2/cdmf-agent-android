@@ -604,26 +604,14 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 	 * Stops server polling task.
 	 */
 	private void stopPolling() {
-		String notifier = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
-		if(Constants.NOTIFIER_LOCAL.equals(notifier)) {
-			LocalNotification.stopPolling(context);
-		}
+		LocalNotification.stopPolling(context);
 	}
 
 	/**
 	 * Starts server polling task.
 	 */
 	private void startPolling() {
-		String notifier = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
-		if(Constants.NOTIFIER_LOCAL.equals(notifier) &&
-				!Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED) {
-			LocalNotification.startPolling(context);
-		}
-	}
-	private void stopProgressDialog() {
-		if (progressDialog != null && progressDialog.isShowing()) {
-			progressDialog.dismiss();
-		}
+		LocalNotification.startPolling(context);
 	}
 
 	@Override

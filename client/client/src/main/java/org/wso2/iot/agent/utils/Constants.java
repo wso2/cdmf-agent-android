@@ -189,7 +189,7 @@ public class Constants {
 	/**
 	 * Tag used on log messages.
 	 */
-	public static final String TAG = "WSO2EMM";
+	public static final String TAG = "WSO2IoTAgent";
 	public static final String MIME_TYPE = "text/html";
 	public static final String ENCODING_METHOD = "utf-8";
 	public static final int DEFAULT_REPEAT_COUNT = 0;
@@ -197,11 +197,13 @@ public class Constants {
 	public static final int DEFAULT_REQUEST_CODE = 0;
 	public static final String START_TIME = "startTime";
 	public static final String END_TIME = "endTime";
-	public static boolean ASK_TO_ENABLE_LOCATION = BuildConfig.ASK_TO_ENABLE_LOCATION;
-	public static boolean LOCATION_PUBLISHING_ENABLED = BuildConfig.LOCATION_PUBLISHING_ENABLED;
-	public static boolean WIFI_SCANNING_ENABLED = BuildConfig.WIFI_SCANNING_ENABLED;
-	public static int DEFAULT_INTERVAL = 30000;
-	public static int DEFAULT_START_INTERVAL = 10000;
+	public static final boolean ASK_TO_ENABLE_LOCATION = BuildConfig.ASK_TO_ENABLE_LOCATION;
+	public static final boolean LOCATION_PUBLISHING_ENABLED = BuildConfig.LOCATION_PUBLISHING_ENABLED;
+	public static final boolean WIFI_SCANNING_ENABLED = BuildConfig.WIFI_SCANNING_ENABLED;
+	public static final int DEFAULT_INTERVAL = BuildConfig.DEFAULT_INTERVAL;
+	public static final int DEFAULT_FCM_INTERVAL = BuildConfig.DEFAULT_FCM_INTERVAL;
+	public static final int DEFAULT_START_INTERVAL = BuildConfig.DEFAULT_START_TIME;
+	public static final boolean FCM_FALLBACK_PULL_ENABLED = BuildConfig.FCM_FALLBACK_PULL_ENABLED;
 
 	/**
 	 * HTTP clients

@@ -46,6 +46,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
 import org.wso2.iot.agent.adapters.AppDrawerAdapter;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceInfo;
@@ -57,6 +58,7 @@ import org.wso2.iot.agent.services.LocalNotification;
 import org.wso2.iot.agent.services.kiosk.KioskMsgAlarmService;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -364,10 +366,7 @@ public class KioskActivity extends Activity {
     }
 
     private void startPolling() {
-        String notifier = Preference.
-                getString(getApplicationContext(), Constants.PreferenceFlag.NOTIFIER_TYPE);
-        if (Constants.NOTIFIER_LOCAL.equals(notifier) &&
-                !Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED) {
+        if (!Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED) {
             LocalNotification.startPolling(getApplicationContext());
         }
     }

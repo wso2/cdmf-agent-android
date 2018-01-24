@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.iot.agent.services;
 
 import android.app.admin.DevicePolicyManager;
@@ -56,6 +57,7 @@ import org.wso2.iot.agent.utils.Preference;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
@@ -65,9 +67,11 @@ import java.util.Map;
  */
 public class MessageProcessor implements APIResultCallBack {
 
+    private static final String TAG = MessageProcessor.class.getSimpleName();
+
     private static final String ERROR_STATE = "ERROR";
+    private static volatile long invokedTimestamp = 0;
     private static List<Operation> replyPayload;
-    private String TAG = MessageProcessor.class.getSimpleName();
     private Context context;
     private String deviceId;
     private OperationProcessor operationProcessor;
@@ -98,6 +102,11 @@ public class MessageProcessor implements APIResultCallBack {
             deviceId = deviceInfo.getDeviceId();
             Preference.putString(context, Constants.PreferenceFlag.DEVICE_ID_PREFERENCE_KEY, deviceId);
         }
+        invokedTimestamp = Calendar.getInstance().getTimeInMillis();
+    }
+
+    static long getInvokedTimeStamp() {
+        return invokedTimestamp;
     }
 
     /**
@@ -451,7 +460,9 @@ public class MessageProcessor implements APIResultCallBack {
                         && operationProcessor.getOperationManager() instanceof OperationManagerDeviceOwner) {
                     DevicePolicyManager devicePolicyManager = (DevicePolicyManager)
                             context.getSystemService(Context.DEVICE_POLICY_SERVICE);
-                    devicePolicyManager.reboot(AgentDeviceAdminReceiver.getComponentName(context));
+                    if (devicePolicyManager != null) {
+                        devicePolicyManager.reboot(AgentDeviceAdminReceiver.getComponentName(context));
+                    }
                 } else {
                     try {
                         Process proc = Runtime.getRuntime().exec(new String[]{"su", "-c", "reboot"});

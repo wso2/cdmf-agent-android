@@ -67,7 +67,7 @@ public class LocalNotification {
                 Log.i(TAG, "Polling started! Interval: " + interval);
             } else if (Constants.FCM_FALLBACK_PULL_ENABLED) {
                 interval = Constants.DEFAULT_FCM_INTERVAL;
-                alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, triggerAtMillis,
+                alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMillis,
                         interval, recurringAlarm);
                 Log.i(TAG, "Fallback Polling started! Interval: " + interval);
             } else {

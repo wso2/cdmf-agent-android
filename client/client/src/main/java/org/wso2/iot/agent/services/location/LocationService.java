@@ -66,7 +66,8 @@ public class LocationService extends Service implements LocationListener {
     private FusedLocationProviderClient mFusedLocationClient = null;
     private LocationManager locationManager = null;
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; //If more than 1Km
-    private static final long MIN_TIME_BW_UPDATES = 1000 * 5; //If more than 5 minutes
+    private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 5; //If more than 5 minutes
+    private static final long FASTEST_INTERVAL = 1000 * 60; //Only receive at most once a minute
     private List<String> providers = new ArrayList<>();
     private boolean isUpdateRequested = false;
     private final IBinder mBinder = new LocalBinder();
@@ -254,6 +255,7 @@ public class LocationService extends Service implements LocationListener {
             LocationRequest mLocationRequest = new LocationRequest();
             mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
             mLocationRequest.setInterval(MIN_TIME_BW_UPDATES);
+            mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
 
             // Create LocationSettingsRequest object using location request
             LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();

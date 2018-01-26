@@ -275,7 +275,10 @@ public class PolicyRevokeHandler {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void setApplicationHidden(String packageName, boolean isHidden) {
-        devicePolicyManager.setApplicationHidden(deviceAdmin, packageName, isHidden);
+        if (devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE) ||
+                devicePolicyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
+            devicePolicyManager.setApplicationHidden(deviceAdmin, packageName, isHidden);
+        }
     }
 
     /**

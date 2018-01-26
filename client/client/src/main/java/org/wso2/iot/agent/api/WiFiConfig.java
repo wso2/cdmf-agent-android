@@ -365,7 +365,7 @@ public class WiFiConfig {
         List<WifiConfiguration> configuredNetworks = wifiManager.getConfiguredNetworks();
         boolean isRemoved = false;
         for (WifiConfiguration configuration : configuredNetworks) {
-            if (configuration.SSID.equals(ssid)) {
+            if (configuration.SSID != null && configuration.SSID.equals(ssid)) {
                 wifiManager.removeNetwork(configuration.networkId);
                 wifiManager.saveConfiguration();
                 isRemoved = true;
@@ -385,6 +385,9 @@ public class WiFiConfig {
         List<WifiConfiguration> configuredNetworks = wifiManager.getConfiguredNetworks();
         boolean isAvailable = false;
         for (WifiConfiguration configuration : configuredNetworks) {
+            if (configuration == null || configuration.SSID == null) {
+                continue;
+            }
             if (configuration.SSID.equals(ssid) || configuration.SSID.equals("\"" + ssid + "\"")) {
                 isAvailable = true;
                 break;

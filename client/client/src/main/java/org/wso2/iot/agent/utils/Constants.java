@@ -186,6 +186,7 @@ public class Constants {
 	public static final int APP_LIST_REQUEST_CODE = 313;
 	public static final int DYNAMIC_CLIENT_UNREGISTER_REQUEST_CODE = 314;
 	public static final int SCEP_REQUEST_CODE = 300;
+	public static final int DO_NOT_DISTURB_REQUEST_CODE = 315;
 	/**
 	 * Tag used on log messages.
 	 */

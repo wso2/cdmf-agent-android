@@ -115,6 +115,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	private DeviceInfo deviceInfo;
 	private static final String TAG = AuthenticationActivity.class.getSimpleName();
 	private static final int ACTIVATION_REQUEST = 47;
+    private static final int PERMISSION_REQUEST = 48;
 	private static final String[] SUBSCRIBED_API = new String[]{"android"};
 	private Tenant currentTenant;
 	private DevicePolicyManager devicePolicyManager;
@@ -613,7 +614,10 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 				startDeviceAdminPrompt();
 			}
 		}
-	}
+        if (requestCode == Constants.DO_NOT_DISTURB_REQUEST_CODE) {
+            getConfigurationsFromServer();
+        }
+    }
 
 
 	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -752,7 +756,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 							android.Manifest.permission.ACCESS_COARSE_LOCATION,
 							android.Manifest.permission.ACCESS_FINE_LOCATION,
 							android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
-					110);
+                    PERMISSION_REQUEST);
 		} else {
 			getConfigurationsFromServer();
 		}
@@ -772,10 +776,34 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	public void onRequestPermissionsResult(int requestCode,
 										   @NonNull String[] permissions,
 										   @NonNull int[] grantResults) {
-		if(requestCode == 110){
-			getConfigurationsFromServer();
-		}
-	}
+        if (requestCode == PERMISSION_REQUEST) {
+            NotificationManager notificationManager = (NotificationManager) context
+                    .getSystemService(Context.NOTIFICATION_SERVICE);
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M && !notificationManager
+                    .isNotificationPolicyAccessGranted()) {
+                CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
+                        getResources().getString(R.string.dialog_do_not_distrub_title),
+                        getResources().getString(R.string.dialog_do_not_distrub_message),
+                        getResources().getString(R.string.ok), doNotDisturbClickListener);
+            } else {
+                getConfigurationsFromServer();
+            }
+        }
+    }
+
+    private DialogInterface.OnClickListener doNotDisturbClickListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            // This is to handle permission obtaining for Android N devices where operations such
+            // as mute that can cause a device to go into "do not disturb" will need additional
+            // permission.
+            Intent intent = new Intent(
+                    android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+            startActivityForResult(intent, Constants.DO_NOT_DISTURB_REQUEST_CODE);
+        }
+    };
+
+
 
 
 	/**

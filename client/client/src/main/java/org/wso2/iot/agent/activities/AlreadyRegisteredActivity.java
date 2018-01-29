@@ -206,6 +206,20 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 				missingPermissions.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
 			}
 
+            NotificationManager notificationManager = (NotificationManager) context
+                    .getSystemService(Context.NOTIFICATION_SERVICE);
+            // This is to handle permission obtaining for Android N devices where operations such
+            // as mute that can cause a device to go into "do not disturb" will need additional
+            // permission. Added here as well to support already enrolled devices to optain the
+            // permission without reenrolling.
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M && !notificationManager
+                    .isNotificationPolicyAccessGranted()) {
+                CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
+                        getResources().getString(R.string.dialog_do_not_distrub_title),
+                        getResources().getString(R.string.dialog_do_not_distrub_message),
+                        getResources().getString(R.string.ok), doNotDisturbClickListener);
+            }
+
 			if (missingPermissions.isEmpty()) {
 				NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 				mNotificationManager.cancel(Constants.PERMISSION_MISSING, Constants.PERMISSION_MISSING_NOTIFICATION_ID);
@@ -270,6 +284,17 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
 			loadInitialActivity();
 		}
 	}
+
+    private DialogInterface.OnClickListener doNotDisturbClickListener = new DialogInterface
+            .OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            Intent intent = new Intent(
+                    android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+            startActivityForResult(intent, Constants.DO_NOT_DISTURB_REQUEST_CODE);
+            dialog.dismiss();
+        }
+    };
 
 	@Override
 	protected void onDestroy(){

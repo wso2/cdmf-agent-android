@@ -283,6 +283,10 @@
     <string name="dialog_system_app_required">Please install the WSO2 System App to continue enrollment as a COPE user.</string>
     <string name="dialog_tenants_not_available">You do not have any associated organizations. Please contact your administrator</string>
     <string name="dialog_select_tenant">Select an Organization to register your device with.</string>
+    <string name="dialog_do_not_distrub_title">Permission for do not disturb mode change</string>
+    <string name="dialog_do_not_distrub_message">Some operations such as mute, requires agent
+        application to be able to control do not disturb mode, please enable it from
+        the next screen. After ticking, please press back and return to the agent</string>
 
     <!-- REGISTRATION -->
     <string name="register_button_text">Register</string>

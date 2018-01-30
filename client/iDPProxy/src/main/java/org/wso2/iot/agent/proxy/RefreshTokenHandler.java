@@ -44,7 +44,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class handles the entire functionality of OAuth token expiration and 
+ * This class handles the entire functionality of OAuth token expiration and
  * refresh process.
  */
 
@@ -71,24 +71,27 @@ public class RefreshTokenHandler {
 			return;
 		}
 
-		StringRequest request = new StringRequest(Request.Method.POST, IdentityProxy.getInstance().getAccessTokenURL(),
-		                                          new Response.Listener<String>() {
-			                                          @Override
-			                                          public void onResponse(String response) {
-				                                          Log.d(TAG, response);
-			                                          }
-		                                          },
-		                                          new Response.ErrorListener() {
-			                                          @Override
-			                                          public void onErrorResponse(VolleyError error) {
-				                                          Log.d(TAG, error.toString());
-														  if (error.networkResponse != null) {
-															  Log.w(TAG, error.toString() + " Status code: " + error.networkResponse.statusCode);
-															  processTokenResponse(String.valueOf(error.networkResponse.statusCode),
-																	  new String(error.networkResponse.data));
-														  }
-			                                          }
-		                                          })
+		StringRequest request = new StringRequest(Request.Method.POST,
+				IdentityProxy.getInstance().getAccessTokenURL(),
+				new Response.Listener<String>() {
+					@Override
+					public void onResponse(String response) {
+						if (Constants.DEBUG_ENABLED) {
+							Log.d(TAG, "Token renewal response: " + response);
+						}
+					}
+				},
+				new Response.ErrorListener() {
+					@Override
+					public void onErrorResponse(VolleyError error) {
+						Log.e(TAG, "Error in token renewal. " + error.toString());
+						if (error.networkResponse != null) {
+							Log.w(TAG, error.toString() + " Status code: " + error.networkResponse.statusCode);
+							processTokenResponse(String.valueOf(error.networkResponse.statusCode),
+									new String(error.networkResponse.data));
+						}
+					}
+				})
 		{
 			@Override
 			protected Response<String> parseNetworkResponse(NetworkResponse response) {
@@ -102,8 +105,8 @@ public class RefreshTokenHandler {
 				requestParams.put(Constants.GRANT_TYPE, Constants.REFRESH_TOKEN);
 				requestParams.put(Constants.REFRESH_TOKEN, token.getRefreshToken());
 				requestParams.put(SCOPE_LABEL, PRODUCTION_LABEL);
-				if(Constants.DEBUG_ENABLED && token.getRefreshToken() == null) {
-					Log.d(TAG, "Refresh token is null.");
+				if(token.getRefreshToken() == null) {
+					Log.w(TAG, "Refresh token is null.");
 				}
 				return requestParams;
 			}
@@ -148,7 +151,7 @@ public class RefreshTokenHandler {
 				timeToExpireSecond = Integer.parseInt(response.getString(Constants.EXPIRE_LABEL));
 				Token token = new Token();
 				long expiresOn = new Date().getTime()
-						+ (timeToExpireSecond - Constants.HttpClient.TOKEN_VALIDITY_PERCENTAGE * timeToExpireSecond / 100) * 1000;
+						+ (timeToExpireSecond - (100 - Constants.HttpClient.TOKEN_VALIDITY_PERCENTAGE) * timeToExpireSecond / 100) * 1000;
 				token.setExpiresOn(new Date(expiresOn));
 				token.setRefreshToken(refreshToken);
 				token.setAccessToken(accessToken);
@@ -168,18 +171,21 @@ public class RefreshTokenHandler {
 
 				identityProxy
 						.receiveNewAccessToken(responseCode, Constants.SUCCESS_RESPONSE, token);
-
+			} else if (Constants.ACCESS_FAILURE.equals(responseCode)){
+				identityProxy.receiveNewAccessToken(responseCode, Constants.REFRESH_TOKEN_EXPIRED, null);
 			} else if (responseCode != null) {
+				String errorDescription = Constants.ERROR_LABEL;
 				if (result != null) {
 					JSONObject responseBody = new JSONObject(result);
-					String errorDescription =
-							responseBody.getString(Constants.ERROR_DESCRIPTION_LABEL);
-					identityProxy.receiveNewAccessToken(responseCode, errorDescription, token);
+					errorDescription = responseBody.getString(Constants.ERROR_DESCRIPTION_LABEL);
 				}
+				identityProxy.receiveNewAccessToken(responseCode, errorDescription, null);
+			} else {
+				identityProxy.receiveNewAccessToken(Constants.CLIENT_ERROR, Constants.ERROR_LABEL, null);
 			}
 		} catch (JSONException e) {
-			identityProxy.receiveNewAccessToken(responseCode, null, token);
-			Log.e(TAG, "Invalid JSON." + e);
+			identityProxy.receiveNewAccessToken(responseCode, e.getMessage(), null);
+			Log.e(TAG, "Invalid JSON. " + e);
 		}
 	}
 }

@@ -52,7 +52,7 @@ import java.util.Map;
  * return API results to the client.
  */
 public class APIController implements TokenCallBack {
-	private static final String TAG = "APIController";
+	private static final String TAG = APIController.class.getSimpleName();
 	private Token token;
 	private String clientKey, clientSecret;
 	private APIResultCallBack apiResultCallback;

@@ -394,11 +394,13 @@ public class PolicyRevokeHandler {
      * Revokes screen lock password policy on the device.
      */
     private void revokePasswordPolicy() {
-        devicePolicyManager.setPasswordQuality(deviceAdmin,
-                                               DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
+        devicePolicyManager.setPasswordQuality(deviceAdmin, DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
         devicePolicyManager.setMaximumFailedPasswordsForWipe(deviceAdmin, 0);
         devicePolicyManager.setPasswordExpirationTimeout(deviceAdmin, 0);
         devicePolicyManager.setPasswordMinimumLength(deviceAdmin, 0);
+        devicePolicyManager.setPasswordMinimumLetters(deviceAdmin, 0);
+        devicePolicyManager.setPasswordMinimumSymbols(deviceAdmin, 0);
+        devicePolicyManager.setPasswordMinimumNumeric(deviceAdmin, 0);
     }
 
     /**

@@ -656,4 +656,22 @@ public class Constants {
 
     public static final int APP_MONITOR_FREQUENCY = 60000;
 
+	// Passcode Policy Keys
+	public static final String POLICY_PASSWORD_MAX_FAILED_ATTEMPTS = "maxFailedAttempts";
+	public static final String POLICY_PASSWORD_MIN_LENGTH = "minLength";
+	public static final String POLICY_PASSWORD_PIN_HISTORY = "pinHistory";
+	public static final String POLICY_PASSWORD_MIN_COMPLEX_CHARS = "minComplexChars";
+	public static final String POLICY_PASSWORD_REQUIRE_ALPHANUMERIC = "requireAlphanumeric";
+	public static final String POLICY_PASSWORD_ALLOW_SIMPLE = "allowSimple";
+	public static final String POLICY_PASSWORD_PIN_AGE_IN_DAYS = "maxPINAgeInDays";
+
+	// Intent Extras
+	public static final String INTENT_EXTRA_TYPE = "type";
+	public static final String INTENT_EXTRA_PASSWORD_SETTING = "lock_settings";
+	public static final String INTENT_EXTRA_MESSAGE_TEXT = "messageText";
+
+	//Operation Values
+	public static final String OPERATION_VALUE_COMPLETED = "COMPLETED";
+	public static final String OPERATION_VALUE_ERROR = "ERROR";
+
 }

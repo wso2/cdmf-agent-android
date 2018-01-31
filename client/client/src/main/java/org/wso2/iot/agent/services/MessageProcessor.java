@@ -508,7 +508,7 @@ public class MessageProcessor implements APIResultCallBack {
                     }
                 } else if (Constants.Status.AUTHENTICATION_FAILED.equals(responseStatus) &&
                         org.wso2.iot.agent.proxy.utils.Constants.REFRESH_TOKEN_EXPIRED.equals(response)) {
-                    Log.d(TAG, "Requesting credentials to obtain new token pair.");
+                    Log.i(TAG, "Requesting credentials to obtain new token pair.");
                     LocalNotification.stopPolling(context);
                     Preference.putBoolean(context, Constants.TOKEN_EXPIRED, true);
                     CommonUtils.displayNotification(context,

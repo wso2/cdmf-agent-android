@@ -209,13 +209,6 @@ public class OperationManagerWorkProfile extends OperationManager {
     }
 
     @Override
-    public void setPasswordPolicy(Operation operation) throws AndroidAgentException {
-        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
-        operation.setOperationResponse("Operation not supported.");
-        getResultBuilder().build(operation);
-    }
-
-    @Override
     public void changeLockCode(Operation operation) throws AndroidAgentException {
         operation.setStatus(getContextResources().getString(R.string.operation_value_error));
         operation.setOperationResponse("Operation not supported.");

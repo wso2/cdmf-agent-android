@@ -1488,6 +1488,121 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         return policy;
     }
 
+    public void setPasswordPolicy(Operation operation) throws AndroidAgentException {
+        int specialChars = 1;
+        boolean isAlphanumeric = false, isSimple = false, isComplexCharactorsNeeded = false;
+
+        try {
+            //By default, the password will have at least numbers.
+            getDevicePolicyManager()
+                    .setPasswordQuality(getCdmDeviceAdmin(), DevicePolicyManager.PASSWORD_QUALITY_NUMERIC);
+            JSONObject policyData = new JSONObject(operation.getPayLoad().toString());
+            if (!policyData.isNull(Constants.POLICY_PASSWORD_MAX_FAILED_ATTEMPTS)) {
+                if (!policyData.get(Constants.POLICY_PASSWORD_MAX_FAILED_ATTEMPTS).toString().isEmpty()) {
+                    getDevicePolicyManager().setMaximumFailedPasswordsForWipe(getCdmDeviceAdmin(),
+                            policyData.getInt(Constants.POLICY_PASSWORD_MAX_FAILED_ATTEMPTS));
+                }
+            }
+
+            if (!policyData.isNull(Constants.POLICY_PASSWORD_MIN_LENGTH)) {
+                if (!policyData.get(Constants.POLICY_PASSWORD_MIN_LENGTH).toString().isEmpty()) {
+                    getDevicePolicyManager().setPasswordMinimumLength(getCdmDeviceAdmin(),
+                            policyData.getInt(Constants.POLICY_PASSWORD_MIN_LENGTH));
+                } else {
+                    getDevicePolicyManager()
+                            .setPasswordMinimumLength(getCdmDeviceAdmin(), getDefaultPasswordMinLength());
+                }
+            }
+
+            if (!policyData.isNull(Constants.POLICY_PASSWORD_PIN_HISTORY)) {
+                if (!policyData.get(Constants.POLICY_PASSWORD_PIN_HISTORY).toString().isEmpty()) {
+                    getDevicePolicyManager().setPasswordHistoryLength(getCdmDeviceAdmin(),
+                            policyData.getInt(Constants.POLICY_PASSWORD_PIN_HISTORY));
+                } else {
+                    getDevicePolicyManager().setPasswordHistoryLength(getCdmDeviceAdmin(), getDefaultPasswordLength());
+                }
+            }
+
+            if (!policyData.isNull(Constants.POLICY_PASSWORD_REQUIRE_ALPHANUMERIC)) {
+                if (policyData.get(Constants.POLICY_PASSWORD_REQUIRE_ALPHANUMERIC) instanceof Boolean) {
+                    isAlphanumeric = policyData.getBoolean(Constants.POLICY_PASSWORD_REQUIRE_ALPHANUMERIC);
+                }
+            }
+
+            if (!policyData.isNull(Constants.POLICY_PASSWORD_MIN_COMPLEX_CHARS)) {
+                if (!policyData.get(Constants.POLICY_PASSWORD_MIN_COMPLEX_CHARS).toString().isEmpty()) {
+                    specialChars = policyData.getInt(Constants.POLICY_PASSWORD_MIN_COMPLEX_CHARS);
+                    isComplexCharactorsNeeded = true;
+                }
+            }
+
+            if (!policyData.isNull(Constants.POLICY_PASSWORD_ALLOW_SIMPLE)) {
+                if (policyData.get(Constants.POLICY_PASSWORD_ALLOW_SIMPLE) instanceof Boolean) {
+                    isSimple = policyData.getBoolean(Constants.POLICY_PASSWORD_ALLOW_SIMPLE);
+                }
+            }
+
+            // Is complex and is not simple have similar characteristics.
+            if (isComplexCharactorsNeeded || !isSimple) {
+                getDevicePolicyManager().setPasswordMinimumSymbols(getCdmDeviceAdmin(), specialChars);
+                getDevicePolicyManager()
+                        .setPasswordQuality(getCdmDeviceAdmin(), DevicePolicyManager.PASSWORD_QUALITY_COMPLEX);
+                // If is complex is set as well as isSimple, Complex has higher priority but the
+                // letters are optional.
+                if (isSimple) {
+                    getDevicePolicyManager().setPasswordMinimumLetters(getCdmDeviceAdmin(), 0);
+                }
+            }
+
+            if (isAlphanumeric) {
+                // isComplex has higher priority that alpha numeric.
+                getDevicePolicyManager().setPasswordMinimumLetters(getCdmDeviceAdmin(), 1);
+                if (!isComplexCharactorsNeeded) {
+                    getDevicePolicyManager()
+                            .setPasswordQuality(getCdmDeviceAdmin(), DevicePolicyManager.PASSWORD_QUALITY_ALPHABETIC);
+                    getDevicePolicyManager().setPasswordMinimumLetters(getCdmDeviceAdmin(), 1);
+                }
+                if (!isSimple) {
+                    getDevicePolicyManager()
+                            .setPasswordQuality(getCdmDeviceAdmin(), DevicePolicyManager.PASSWORD_QUALITY_COMPLEX);
+                }
+            } else {
+                // Under any situation, if alphanumeric check is not set, passcode will have no
+                // restriction on letters.
+                getDevicePolicyManager().setPasswordMinimumLetters(getCdmDeviceAdmin(), 0);
+            }
+
+            if (!policyData.isNull(Constants.POLICY_PASSWORD_PIN_AGE_IN_DAYS)) {
+                if (!policyData.get(Constants.POLICY_PASSWORD_PIN_AGE_IN_DAYS).toString().isEmpty()) {
+                    int daysOfExp = policyData.getInt(Constants.POLICY_PASSWORD_PIN_AGE_IN_DAYS);
+                    getDevicePolicyManager().setPasswordExpirationTimeout(getCdmDeviceAdmin(),
+                            daysOfExp * getDayMillisecondsMultiplier());
+                }
+            }
+
+            if (!getDevicePolicyManager().isActivePasswordSufficient()) {
+                Intent intent = new Intent(getContext(), AlertActivity.class);
+                intent.putExtra(Constants.INTENT_EXTRA_TYPE, Constants.INTENT_EXTRA_PASSWORD_SETTING);
+                intent.putExtra(Constants.INTENT_EXTRA_MESSAGE_TEXT,
+                        getContextResources().getString(R.string.policy_violation_password_tail));
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        | Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(intent);
+            }
+
+            operation.setStatus(Constants.OPERATION_VALUE_COMPLETED);
+            getResultBuilder().build(operation);
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Password policy set");
+            }
+        } catch (JSONException e) {
+            operation.setStatus(Constants.OPERATION_VALUE_ERROR);
+            operation.setOperationResponse("Error in parsing PASSWORD_POLICY payload.");
+            getResultBuilder().build(operation);
+            Log.e(TAG, e.getMessage());
+        }
+    }
+
     /**
      * This method is being invoked when get info operation get executed.
      *

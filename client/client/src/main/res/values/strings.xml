@@ -157,19 +157,12 @@
     <string name="intent_extra_stop_ringing">Your phone is ringing</string>
     <string name="intent_extra_alert">alert</string>
     <string name="intent_extra_ring">ring</string>
-    <string name="intent_extra_password_setting">lock_settings</string>
     <string name="intent_extra_profile_name">profileName</string>
     <string name="intent_extra_enable_system_apps">enableSystemApps</string>
     <string name="intent_extra_enable_google_play_apps">enableGooglePlayApps</string>
     <string name="intent_extra_hide_system_apps">hideSystemApps</string>
     <string name="intent_extra_unhide_system_apps">unhideSystemApps</string>
     <!-- POLICY CONFIGURATION FIELDS -->
-    <string name="policy_password_max_failed_attempts">maxFailedAttempts</string>
-    <string name="policy_password_min_length">minLength</string>
-    <string name="policy_password_pin_history">pinHistory</string>
-    <string name="policy_password_min_complex_chars">minComplexChars</string>
-    <string name="policy_password_require_alphanumeric">requireAlphanumeric</string>
-    <string name="policy_password_allow_simple">allowSimple</string>
     <string name="policy_password_pin_age_in_days">maxPINAgeInDays</string>
     <string name="policy_email_display_name">displayname</string>
     <string name="policy_email_username">username</string>

@@ -338,6 +338,13 @@ public class ApplicationManager {
             operationCode = Preference.getString(context, context.getResources().getString(
                     R.string.app_install_code));
 
+            if(operationId == 0){
+                Preference.putInt(context, context.getResources().getString(
+                        R.string.app_install_id), operation.getId());
+                Log.d(TAG, "Currently executing - operation Id " + Preference.getInt(context,
+                        context.getResources().getString(R.string.app_install_id)));
+                }
+
             if (operationId == operation.getId()) {
                 Log.w(TAG, "Ignoring received operation as it has the same operation ID with ongoing operation.");
                 return; //No point of putting same operation again to the pending queue. Hence ignoring.
@@ -348,20 +355,11 @@ public class ApplicationManager {
                 appInstallRequest.setApplicationOperationId(operation.getId());
                 appInstallRequest.setApplicationOperationCode(operation.getCode());
                 appInstallRequest.setAppUrl(url);
+                Log.d(TAG, "Queued operation Id " + appInstallRequest.getApplicationOperationId());
                 AppInstallRequestUtil.addPending(context, appInstallRequest);
                 Log.d(TAG, "Added request to pending queue as there is another installation ongoing.");
                 if (!downloadOngoing) {
                     // Probably installation might ongoing
-                    int attempt = Preference.getInt(context, APP_INSTALLATION_ATTEMPT);
-                    if (attempt >= 1) {
-                        Preference.putInt(context, APP_INSTALLATION_ATTEMPT, 0);
-                        Preference.putInt(context, context.getResources().getString(
-                                R.string.app_install_id), 0);
-                        Preference.putString(context, context.getResources().getString(
-                                R.string.app_install_code), null);
-                    } else {
-                        Preference.putInt(context, APP_INSTALLATION_ATTEMPT, ++attempt);
-                    }
                 } else {
                     downloadOngoing = false; //Let's check whether it is actually ongoing or not.
                 }
@@ -383,10 +381,8 @@ public class ApplicationManager {
      * @param operationCode - Requested operation code.
      */
     public void setupAppDownload(String url, int operationId, String operationCode) {
-        Preference.putInt(context, context.getResources().getString(
-                R.string.app_install_id), operationId);
-        Preference.putString(context, context.getResources().getString(
-                R.string.app_install_code), operationCode);
+        Log.d(TAG, "Setting up app download for the operation Id " + Preference.getInt(context,
+                context.getResources().getString(R.string.app_install_id)));
 
         if (url.contains(Constants.APP_DOWNLOAD_ENDPOINT) && Constants.APP_MANAGER_HOST != null) {
             url = url.substring(url.lastIndexOf("/"), url.length());

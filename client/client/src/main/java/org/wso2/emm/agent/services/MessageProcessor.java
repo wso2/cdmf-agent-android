@@ -170,7 +170,6 @@ public class MessageProcessor implements APIResultCallBack {
 							equals(ERROR_STATE)) {
 						isUpgradeTriggered = true;
 						Preference.putInt(context, "firmwareOperationId", operation.getId());
-						Log.i(TAG, "Log 01 ------------ " + Preference.getInt(context, "firmwareOperationId"));
 					} else if (operation.getCode().equals(Constants.Operation.EXECUTE_SHELL_COMMAND) && !operation.getStatus().
 							equals(ERROR_STATE)) {
 						isShellCommandTriggered = true;
@@ -183,10 +182,9 @@ public class MessageProcessor implements APIResultCallBack {
 					}
 				}
 			}
+
 			int firmwareOperationId = Preference.getInt(context, context.getResources().getString(
 					R.string.firmware_upgrade_response_id));
-			Log.i(TAG, "Log 02 ------------ " + Preference.getInt(context, context.getResources().getString(
-					R.string.firmware_upgrade_response_id)));
 			if (firmwareOperationId != 0) {
 				org.wso2.emm.agent.beans.Operation firmwareOperation = new org.wso2.emm.agent.beans.Operation();
 				firmwareOperation.setId(firmwareOperationId);
@@ -331,7 +329,8 @@ public class MessageProcessor implements APIResultCallBack {
 			Operation applicationOperation = new Operation();
 			applicationOperation.setId(appInstallRequest.getApplicationOperationId());
 			applicationOperation.setCode(appInstallRequest.getApplicationOperationCode());
-			Log.d(TAG, "Try to start app installation from queue.");
+			Log.d(TAG, "Try to start app installation from queue. Operation Id " +
+					appInstallRequest.getApplicationOperationId());
 			applicationManager.installApp(appInstallRequest.getAppUrl(), null, applicationOperation);
 		}
 	}
@@ -356,7 +355,6 @@ public class MessageProcessor implements APIResultCallBack {
 
 			if (isUpgradeTriggered) {
 				String schedule = Preference.getString(context, context.getResources().getString(R.string.pref_key_schedule));
-				Log.i(TAG, "Log 03 ------------ Calling system application");
 				CommonUtils.callSystemApp(context, Constants.Operation.UPGRADE_FIRMWARE, schedule, null);
 			}
 

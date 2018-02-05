@@ -406,18 +406,14 @@ public class CommonUtils {
 								.getResources().getString(R.string.is_automatic_firmware_upgrade))) {
 							boolean isFirmwareUpgradeAutoRetry = Preference.getBoolean(context, context
 									.getResources().getString(R.string.is_automatic_firmware_upgrade));
-							Log.i(TAG, "Log 04 ------------ isFirmwareUpgradeAutoRetry " + isFirmwareUpgradeAutoRetry);
 							upgradeData.put(context.getResources()
 									.getString(R.string.firmware_upgrade_automatic_retry), isFirmwareUpgradeAutoRetry);
 							command = upgradeData.toString();
 							Log.d(TAG, "Updated payload: " + command);
-							Log.i(TAG, "Log 05 ------------ Update payload " + command);
 						} else if (!upgradeData.isNull(context.getResources()
 								.getString(R.string.firmware_upgrade_automatic_retry))){
 							Preference.putBoolean(context, context.getResources()
 									.getString(R.string.is_automatic_firmware_upgrade), upgradeData.getBoolean(context.getResources()
-									.getString(R.string.firmware_upgrade_automatic_retry)));
-							Log.i(TAG, "Log 06 ------------ automatic firmware upgrade " + upgradeData.getBoolean(context.getResources()
 									.getString(R.string.firmware_upgrade_automatic_retry)));
 						} else {
 							upgradeData.put(context.getResources()
@@ -425,16 +421,13 @@ public class CommonUtils {
 							Preference.putBoolean(context, context.getResources()
 									.getString(R.string.is_automatic_firmware_upgrade), false);
 							Log.d(TAG, "Updated payload: " + command);
-							Log.i(TAG, "Log 07 ------------ Updated payload: " + command);
 						}
 					} catch (JSONException e) {
 						Log.e(TAG, "Could not parse Firmware upgrade operation", e);
 					}
 					intent.putExtra("operationId", Preference.getInt(context, "firmwareOperationId"));
-					Log.i(TAG, "Log 08 ------------ firmwareOperationId : " + Preference.getInt(context, "firmwareOperationId"));
 				}
 				intent.putExtra("command", command);
-				Log.i(TAG, "Log 09 ------------ " + command);
 			}
 			context.startServiceAsUser(intent, android.os.Process.myUserHandle());
 		} else {

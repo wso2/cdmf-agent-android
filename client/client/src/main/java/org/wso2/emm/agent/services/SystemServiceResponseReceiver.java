@@ -47,6 +47,7 @@ public class SystemServiceResponseReceiver extends BroadcastReceiver {
                     if (Constants.Code.SUCCESS.equals(code) && result.has("buildDate")) {
                         Preference.putString(context, context.getResources().getString(R.string.shared_pref_os_build_date),
                                              result.getString("buildDate"));
+                        Log.i(TAG, "Firmware operation " + operation + "status " + status + ": " + intent.getStringExtra("payload"));
                     }
                     break;
                 case Constants.Operation.SILENT_INSTALL_APPLICATION:
@@ -64,7 +65,7 @@ public class SystemServiceResponseReceiver extends BroadcastReceiver {
                 case Constants.Operation.GET_FIRMWARE_UPGRADE_PACKAGE_STATUS:
                 case Constants.Operation.GET_FIRMWARE_UPGRADE_DOWNLOAD_PROGRESS:
                 case Constants.Operation.FIRMWARE_UPGRADE_AUTOMATIC_RETRY:
-                    Log.i(TAG, status + ": " + intent.getStringExtra("payload"));
+                    Log.i(TAG, "Firmware operation " + operation + "status " + status + ": " + intent.getStringExtra("payload"));
                     break;
                 default:
                     Log.e(TAG, "Invalid operation code: " + operation);

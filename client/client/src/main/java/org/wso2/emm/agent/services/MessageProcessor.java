@@ -182,6 +182,7 @@ public class MessageProcessor implements APIResultCallBack {
 					}
 				}
 			}
+
 			int firmwareOperationId = Preference.getInt(context, context.getResources().getString(
 					R.string.firmware_upgrade_response_id));
 			if (firmwareOperationId != 0) {
@@ -328,8 +329,8 @@ public class MessageProcessor implements APIResultCallBack {
 			Operation applicationOperation = new Operation();
 			applicationOperation.setId(appInstallRequest.getApplicationOperationId());
 			applicationOperation.setCode(appInstallRequest.getApplicationOperationCode());
-            Log.d(TAG, "Try to start app installation from queue. Operation Id " +
-                    appInstallRequest.getApplicationOperationId());
+			Log.d(TAG, "Try to start app installation from queue. Operation Id " +
+					appInstallRequest.getApplicationOperationId());
 			applicationManager.installApp(appInstallRequest.getAppUrl(), null, applicationOperation);
 		}
 	}

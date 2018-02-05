@@ -343,11 +343,13 @@ public class ApplicationManager {
                         R.string.app_install_id), operation.getId());
                 Log.d(TAG, "Currently executing - operation Id " + Preference.getInt(context,
                         context.getResources().getString(R.string.app_install_id)));
-                }
+            }
 
             if (operationId == operation.getId()) {
-                Log.w(TAG, "Ignoring received operation as it has the same operation ID with ongoing operation.");
-                return; //No point of putting same operation again to the pending queue. Hence ignoring.
+                Log.w(TAG, "Ignoring received operation as it has the same operation ID with " +
+                        "ongoing operation.");
+                return;
+                //No point of putting same operation again to the pending queue. Hence ignoring.
             }
 
             if (operationId != 0 && operationCode != null) {
@@ -381,8 +383,11 @@ public class ApplicationManager {
      * @param operationCode - Requested operation code.
      */
     public void setupAppDownload(String url, int operationId, String operationCode) {
-        Log.d(TAG, "Setting up app download for the operation Id " + Preference.getInt(context,
+        Log.e(TAG, "Setting up app download for the operation Id " + Preference.getInt(context,
                 context.getResources().getString(R.string.app_install_id)));
+
+        Preference.putString(context, context.getResources().getString(
+                R.string.app_install_code), operationCode);
 
         if (url.contains(Constants.APP_DOWNLOAD_ENDPOINT) && Constants.APP_MANAGER_HOST != null) {
             url = url.substring(url.lastIndexOf("/"), url.length());

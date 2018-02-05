@@ -143,6 +143,7 @@ public class OperationProcessor {
 				operationManager.disenrollDevice(operation);
 				break;
 			case Constants.Operation.UPGRADE_FIRMWARE:
+				Log.i(TAG, "Log 10 ------------ Execute Device Management Operation upgrade_firmware");
 				operationManager.upgradeFirmware(operation);
 				break;
 			case Constants.Operation.REBOOT:

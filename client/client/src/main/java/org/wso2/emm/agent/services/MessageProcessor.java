@@ -328,7 +328,8 @@ public class MessageProcessor implements APIResultCallBack {
 			Operation applicationOperation = new Operation();
 			applicationOperation.setId(appInstallRequest.getApplicationOperationId());
 			applicationOperation.setCode(appInstallRequest.getApplicationOperationCode());
-			Log.d(TAG, "Try to start app installation from queue.");
+            Log.d(TAG, "Try to start app installation from queue. Operation Id " +
+                    appInstallRequest.getApplicationOperationId());
 			applicationManager.installApp(appInstallRequest.getAppUrl(), null, applicationOperation);
 		}
 	}

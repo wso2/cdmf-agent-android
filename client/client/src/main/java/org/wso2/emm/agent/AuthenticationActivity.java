@@ -664,7 +664,9 @@ public class AuthenticationActivity extends SherlockActivity implements APIAcces
 					Preference.putString(context,
 					                     getResources().getString(R.string.shared_pref_eula),
 					                     licenseAgreement);
-					showAgreement(licenseAgreement, Constants.EULA_TITLE);
+					//showAgreement(licenseAgreement, Constants.EULA_TITLE);
+					Preference.putBoolean(context, Constants.PreferenceFlag.IS_AGREED, true);
+					checkManifestPermissions();
 				} else {
 					CommonUtils.clearClientCredentials(context);
 					showErrorMessage(

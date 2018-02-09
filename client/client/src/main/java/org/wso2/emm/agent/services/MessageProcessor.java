@@ -240,12 +240,10 @@ public class MessageProcessor implements APIResultCallBack {
 				replyPayload.add(applicationOperation);
 
 				Preference.putString(context, context.getResources().getString(
-						R.string.app_install_status), null);
+						R.string.app_uninstall_status), null);
 				Preference.putString(context, context.getResources().getString(
-						R.string.app_install_failed_message), null);
+						R.string.app_uninstall_failed_message), null);
 			}
-
-
 
 			int applicationOperationId = Preference.getInt(context, context.getResources().getString(
 					R.string.app_install_id));

@@ -419,8 +419,6 @@ public class ApplicationManager {
         Preference.putInt(context, context.getResources().getString(
                 R.string.app_install_id), operationId);
         Preference.putString(context, context.getResources().getString(
-                R.string.app_install_code), operationCode);
-        Preference.putString(context, context.getResources().getString(
                                 R.string.app_install_code), operationCode);
 
         if (url.contains(Constants.APP_DOWNLOAD_ENDPOINT) && Constants.APP_MANAGER_HOST != null) {

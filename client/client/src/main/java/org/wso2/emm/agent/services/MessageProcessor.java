@@ -283,10 +283,7 @@ public class MessageProcessor implements APIResultCallBack {
 							R.string.app_install_id), 0);
 					Preference.putString(context, context.getResources().getString(
 							R.string.app_install_code), null);
-					startPendingInstallation();
 				}
-			} else {
-				startPendingInstallation();
 			}
 
 			if (Preference.hasPreferenceKey(context, Constants.Operation.LOGCAT)){
@@ -326,6 +323,9 @@ public class MessageProcessor implements APIResultCallBack {
 		} else {
 			Log.e(TAG, "There is no valid IP to contact the server");
 		}
+
+		// Try to install apps from queue if there any
+		startPendingInstallation();
 	}
 
 	private void startPendingInstallation(){

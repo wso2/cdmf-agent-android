@@ -362,7 +362,7 @@ public class ApplicationManager {
                 AppInstallRequestUtil.addPending(context, appInstallRequest);
                 if (Constants.DEBUG_MODE_ENABLED) {
                     Log.d(TAG, "Queued operation Id " + appInstallRequest.getApplicationOperationId());
-                    Log.d(TAG, "Added downloadManagerRequest to pending queue as there is another installation ongoing.");
+                    Log.d(TAG, "Added request to pending queue as there is another installation ongoing.");
                 }
                 if (!downloadOngoing) {
                     // Probably installation might be ongoing even if downloadOngoing is false.

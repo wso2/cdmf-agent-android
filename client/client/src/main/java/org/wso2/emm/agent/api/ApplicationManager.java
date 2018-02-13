@@ -253,6 +253,9 @@ public class ApplicationManager {
 
     public boolean isPackageInstalled(String packagename) {
         try {
+            if(packagename == null) {
+                return false;
+            }
             packagename = packagename.replace("package:", "");
             PackageInfo packageInfo = packageManager.
                     getPackageInfo(packagename, PackageManager.GET_ACTIVITIES);

@@ -241,12 +241,18 @@ public class MessageProcessor implements APIResultCallBack {
 				replyPayload.add(applicationOperation);
 
 				Preference.putString(context, context.getResources().getString(
-						R.string.app_install_status), null);
+						R.string.app_uninstall_status), null);
 				Preference.putString(context, context.getResources().getString(
-						R.string.app_install_failed_message), null);
+						R.string.app_uninstall_failed_message), null);
+
+				if (context.getResources().getString(R.string.operation_value_error).equals(applicationOperation.getStatus()) ||
+						context.getResources().getString(R.string.operation_value_completed).equals(applicationOperation.getStatus())){
+					Preference.putInt(context, context.getResources().getString(
+							R.string.app_uninstall_id), 0);
+					Preference.putString(context, context.getResources().getString(
+							R.string.app_uninstall_code), null);
+				}
 			}
-
-
 
 			int applicationOperationId = Preference.getInt(context, context.getResources().getString(
 					R.string.app_install_id));

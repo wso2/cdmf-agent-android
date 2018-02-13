@@ -60,6 +60,7 @@ public class SystemServiceResponseReceiver extends BroadcastReceiver {
                         Preference.putString(context, context.getResources().getString(R.string.app_install_failed_message),
                                              result.getString("appInstallFailedMessage"));
                     }
+                    Log.i(TAG, "Application installation response: " + result.toString());
                     break;
                 case Constants.Operation.UPGRADE_FIRMWARE:
                 case Constants.Operation.GET_FIRMWARE_UPGRADE_PACKAGE_STATUS:

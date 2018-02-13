@@ -74,6 +74,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static com.android.volley.DefaultRetryPolicy.DEFAULT_BACKOFF_MULT;
 
@@ -105,6 +107,7 @@ public class ApplicationManager {
     private PackageManager packageManager;
     private long downloadReference;
     private String appUrl;
+    private static Timer timer;
 
     private BroadcastReceiver downloadReceiver = new BroadcastReceiver() {
         @Override
@@ -250,6 +253,9 @@ public class ApplicationManager {
 
     public boolean isPackageInstalled(String packagename) {
         try {
+            if(packagename.startsWith("package:")) {
+                packagename = packagename.replace("package:", "");
+            }
             PackageInfo packageInfo = packageManager.
                     getPackageInfo(packagename, PackageManager.GET_ACTIVITIES);
             if (packageInfo != null) {
@@ -338,18 +344,9 @@ public class ApplicationManager {
             operationCode = Preference.getString(context, context.getResources().getString(
                     R.string.app_install_code));
 
-            if(operationId == 0){
-                Preference.putInt(context, context.getResources().getString(
-                        R.string.app_install_id), operation.getId());
-                Log.d(TAG, "Currently executing - operation Id " + Preference.getInt(context,
-                        context.getResources().getString(R.string.app_install_id)));
-            }
-
             if (operationId == operation.getId()) {
-                Log.w(TAG, "Ignoring received operation as it has the same operation ID with " +
-                        "ongoing operation.");
-                return;
-                //No point of putting same operation again to the pending queue. Hence ignoring.
+                Log.w(TAG, "Ignoring received operation as it has the same operation ID with ongoing operation.");
+                return; //No point of putting same operation again to the pending queue. Hence ignoring.
             }
 
             if (operationId != 0 && operationCode != null) {
@@ -357,13 +354,47 @@ public class ApplicationManager {
                 appInstallRequest.setApplicationOperationId(operation.getId());
                 appInstallRequest.setApplicationOperationCode(operation.getCode());
                 appInstallRequest.setAppUrl(url);
-                Log.d(TAG, "Queued operation Id " + appInstallRequest.getApplicationOperationId());
                 AppInstallRequestUtil.addPending(context, appInstallRequest);
-                Log.d(TAG, "Added request to pending queue as there is another installation ongoing.");
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    Log.d(TAG, "Queued operation Id " + appInstallRequest.getApplicationOperationId());
+                    Log.d(TAG, "Added request to pending queue as there is another installation ongoing.");
+                }
                 if (!downloadOngoing) {
                     // Probably installation might ongoing
+                    int attempt = Preference.getInt(context, APP_INSTALLATION_ATTEMPT);
+                    if (Constants.DEBUG_MODE_ENABLED) {
+                        Log.d(TAG, "Seems download is not ongoing. Attempt: " + attempt);
+                    }
+                    if (attempt >= 1) {
+                        Preference.putInt(context, APP_INSTALLATION_ATTEMPT, 0);
+                        Preference.putString(context, context.getResources().getString(R.string.app_install_status),
+                                context.getResources().getString(R.string.operation_value_error));
+                        Preference.putString(context, context.getResources().getString(R.string.app_install_failed_message),
+                                "App install aborted as download unresponsive.");
+                        Log.e(TAG, "Clearing previous app installation request as it is not responsive.");
+                    } else {
+                        Preference.putInt(context, APP_INSTALLATION_ATTEMPT, ++attempt);
+                    }
+                    if (timer != null) {
+                        timer.cancel();
+                        timer = null;
+                    }
                 } else {
-                    downloadOngoing = false; //Let's check whether it is actually ongoing or not.
+                    //This is to ensure dead lock won't happen during the process
+                    Log.w(TAG, "Another download is still ongoing.");
+                    if (timer != null) {
+                        timer.cancel();
+                    }
+                    timer = new Timer();
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            downloadOngoing = false;
+                            timer = null;
+                            Log.w(TAG, "Reset downloading flag to prevent dead locks.");
+                        }
+                    }, 600000); // Will set download flag to false after 10 minutes.
+                    //Assumption: No download may unresponsive for more than 10 minutes.
                 }
                 return; //Will call installApp method again once current installation completed.
             }
@@ -371,7 +402,10 @@ public class ApplicationManager {
             operationCode = operation.getCode();
             Preference.putInt(context, APP_INSTALLATION_ATTEMPT, 0);
         }
-
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
         setupAppDownload(url, operationId, operationCode);
     }
 
@@ -383,11 +417,11 @@ public class ApplicationManager {
      * @param operationCode - Requested operation code.
      */
     public void setupAppDownload(String url, int operationId, String operationCode) {
-        Log.e(TAG, "Setting up app download for the operation Id " + Preference.getInt(context,
-                context.getResources().getString(R.string.app_install_id)));
-
+        downloadOngoing = true;
+        Preference.putInt(context, context.getResources().getString(
+                R.string.app_install_id), operationId);
         Preference.putString(context, context.getResources().getString(
-                R.string.app_install_code), operationCode);
+                                R.string.app_install_code), operationCode);
 
         if (url.contains(Constants.APP_DOWNLOAD_ENDPOINT) && Constants.APP_MANAGER_HOST != null) {
             url = url.substring(url.lastIndexOf("/"), url.length());
@@ -414,12 +448,18 @@ public class ApplicationManager {
                 R.string.app_install_status), context.getResources().getString(
                 R.string.app_status_value_download_started));
         if (isDownloadManagerAvailable(context)) {
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Using download manager to download the application");
+            }
             IntentFilter filter = new IntentFilter(
                     DownloadManager.ACTION_DOWNLOAD_COMPLETE);
             context.registerReceiver(downloadReceiver, filter);
             removeExistingFile();
             downloadViaDownloadManager(this.appUrl, resources.getString(R.string.download_mgr_download_file_name));
         } else {
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Using local downloader to download the application");
+            }
             downloadApp(this.appUrl);
         }
     }
@@ -536,7 +576,8 @@ public class ApplicationManager {
                 operation.setOperationResponse("Application uninstallation completed");
                 break;
             default:
-
+                operation.setStatus(context.getResources().getString(R.string.operation_value_error));
+                operation.setOperationResponse(message);
         }
         return operation;
     }
@@ -659,7 +700,6 @@ public class ApplicationManager {
             Log.e(TAG, "Failed to retrieve HTTP client", e);
         }
 
-
         InputStreamVolleyRequest request = new InputStreamVolleyRequest(Request.Method.GET, url,
             new Response.Listener<byte[]>() {
                 @Override
@@ -687,7 +727,6 @@ public class ApplicationManager {
 
                             while ((lengthFile = inStream.read(buffer)) != READ_FAILED) {
                                 outStream.write(buffer, BUFFER_OFFSET, lengthFile);
-                                downloadOngoing = true;
                             }
 
                             String filePath = directory + resources.getString(R.string.application_mgr_download_file_name);

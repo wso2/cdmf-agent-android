@@ -326,8 +326,8 @@ public class ApplicationManager {
         String operationCode = Constants.Operation.INSTALL_APPLICATION;
 
         if (operation != null) {
-            // Get ongoing app installation operation details. These preferences are cleared when
-            // application installation completed or throw an error.
+            // Get ongoing app installation operation details. These preferences are cleared during
+            // reply payload creations which followed by application installation complete or error.
             operationId = Preference.getInt(context, context.getResources().getString(
                     R.string.app_install_id));
             operationCode = Preference.getString(context, context.getResources().getString(
@@ -358,6 +358,9 @@ public class ApplicationManager {
         setupAppDownload(url, operationId, operationCode);
     }
 
+    /**
+     * Cancels ongoing download if there any.
+     */
     public void cancelOngoingDownload(){
         if (downloadReference != -1 && isDownloadManagerAvailable(context)) {
             final DownloadManager downloadManager = (DownloadManager) context

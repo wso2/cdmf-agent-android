@@ -157,6 +157,7 @@ public class MessageProcessor implements APIResultCallBack {
 
 		String requestParams;
 		ObjectMapper mapper = new ObjectMapper();
+        int applicationOperationId = 0;
 		try {
 			requestParams =  mapper.writeValueAsString(replyPayload);
 			if (replyPayload != null) {
@@ -255,7 +256,7 @@ public class MessageProcessor implements APIResultCallBack {
 				}
 			}
 
-			int applicationOperationId = Preference.getInt(context, context.getResources().getString(
+			applicationOperationId = Preference.getInt(context, context.getResources().getString(
 					R.string.app_install_id));
 			String applicationOperationCode = Preference.getString(context, context.getResources().getString(
 					R.string.app_install_code));
@@ -322,6 +323,7 @@ public class MessageProcessor implements APIResultCallBack {
 						R.string.app_install_failed_message), null);
 				if (context.getResources().getString(R.string.operation_value_error).equals(applicationOperation.getStatus()) ||
 						context.getResources().getString(R.string.operation_value_completed).equals(applicationOperation.getStatus())){
+				    applicationOperationId = 0;
 					Preference.putInt(context, context.getResources().getString(
 							R.string.app_install_id), 0);
 					Preference.putString(context, context.getResources().getString(
@@ -377,12 +379,15 @@ public class MessageProcessor implements APIResultCallBack {
 			Log.e(TAG, "There is no valid IP to contact the server");
 		}
 
-		// Try to install apps from queue if there any
-		startPendingInstallation();
+		// Try to install apps from queue if there is no any ongoing installation operation
+        if (applicationOperationId == 0) {
+            startPendingInstallation();
+        }
 	}
 
 	private void startPendingInstallation(){
 		AppInstallRequest appInstallRequest = AppInstallRequestUtil.getPending(context);
+		// Start app installation from queue if app installation request available in the queue
 		if (appInstallRequest != null) {
 			ApplicationManager applicationManager = new ApplicationManager(context.getApplicationContext());
 			Operation applicationOperation = new Operation();

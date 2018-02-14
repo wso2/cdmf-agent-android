@@ -266,6 +266,8 @@ public class MessageProcessor implements APIResultCallBack {
 					Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS);
 
 			if (Constants.AppState.DOWNLOAD_STARTED.equals(appInstallLastStatus)) {
+				// If download is started, we might need to ensure that download is completing
+				// within the time defined in DOWNLOAD_INITIATED_AT constants.
 				long downloadInitiatedAt = Preference.getLong(context,
 						Constants.PreferenceFlag.DOWNLOAD_INITIATED_AT);
 				if (downloadInitiatedAt != 0 && Calendar.getInstance().getTimeInMillis() -
@@ -277,8 +279,15 @@ public class MessageProcessor implements APIResultCallBack {
 					Preference.putString(context,
 							Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS, null);
 					Log.e(TAG, "Clearing app download request as it is not responsive.");
+				} else if (downloadInitiatedAt == 0) {
+					// Setting download initiated timestamp as it is not set already.
+					Preference.putLong(context, Constants.PreferenceFlag.DOWNLOAD_INITIATED_AT,
+							Calendar.getInstance().getTimeInMillis());
 				}
 			} else if (Constants.AppState.DOWNLOAD_COMPLETED.equals(appInstallLastStatus)) {
+				// If download is completed and installation is started, we might need to
+				// ensure that download is completing within the time defined in
+				// DOWNLOAD_INITIATED_AT constants.
 				long installInitiatedAt = Preference.getLong(context,
 						Constants.PreferenceFlag.INSTALLATION_INITIATED_AT);
 				if (installInitiatedAt != 0 && Calendar.getInstance().getTimeInMillis() -
@@ -290,6 +299,10 @@ public class MessageProcessor implements APIResultCallBack {
 					Preference.putString(context,
 							Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS, null);
 					Log.e(TAG, "Clearing previous app installation request as it is not responsive.");
+				} else if (installInitiatedAt == 0) {
+					// Setting installation initiated timestamp as it is not set already.
+					Preference.putLong(context, Constants.PreferenceFlag.INSTALLATION_INITIATED_AT,
+							Calendar.getInstance().getTimeInMillis());
 				}
 			}
 
@@ -314,6 +327,7 @@ public class MessageProcessor implements APIResultCallBack {
 					Preference.putString(context,
 							Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS, null);
 				} else {
+					// Keep last installation status since app installation is not at finite state.
 					Preference.putString(context,
 							Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS, applicationOperationStatus);
 				}

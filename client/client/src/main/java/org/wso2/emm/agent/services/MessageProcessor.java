@@ -266,7 +266,8 @@ public class MessageProcessor implements APIResultCallBack {
 			String appInstallLastStatus = Preference.getString(context,
 					Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS);
 
-			if (Constants.AppState.DOWNLOAD_STARTED.equals(appInstallLastStatus)) {
+			if (Constants.AppState.DOWNLOAD_STARTED.equals(appInstallLastStatus)
+					|| Constants.AppState.DOWNLOAD_RETRY.equals(appInstallLastStatus)) {
 				// If download is started, we might need to ensure that download is completing
 				// within the time defined in DOWNLOAD_INITIATED_AT constants.
 				long downloadInitiatedAt = Preference.getLong(context,

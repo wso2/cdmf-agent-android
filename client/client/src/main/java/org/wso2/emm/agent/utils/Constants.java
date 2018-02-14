@@ -495,6 +495,7 @@ public class Constants {
 		}
 
 		public static final String DOWNLOAD_STARTED = "DOWNLOAD_STARTED";
+		public static final String DOWNLOAD_RETRY = "DOWNLOAD_RETRY";
 		public static final String DOWNLOAD_COMPLETED = "DOWNLOAD_COMPLETED";
 		public static final String DOWNLOAD_FAILED = "DOWNLOAD_FAILED";
 		public static final String INSTALL_FAILED = "INSTALL_FAILED";

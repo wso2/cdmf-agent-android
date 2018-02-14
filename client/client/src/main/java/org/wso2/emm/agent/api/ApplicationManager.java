@@ -526,6 +526,10 @@ public class ApplicationManager {
                 operation.setStatus(context.getResources().getString(R.string.operation_value_progress));
                 operation.setOperationResponse("Application download started");
                 break;
+            case Constants.AppState.DOWNLOAD_RETRY:
+                operation.setStatus(context.getResources().getString(R.string.operation_value_progress));
+                operation.setOperationResponse(message);
+                break;
             case Constants.AppState.DOWNLOAD_COMPLETED:
                 operation.setStatus(context.getResources().getString(R.string.operation_value_progress));
                 operation.setOperationResponse("Application download completed");
@@ -767,9 +771,13 @@ public class ApplicationManager {
 
         volleyDownloadRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 5, DEFAULT_BACKOFF_MULT) {
             public void retry(VolleyError error) throws VolleyError {
-                Log.w(TAG, "Retrying download the apk... " + getCurrentRetryCount());
+                String message = "Download failed due to '" + error.getLocalizedMessage() +
+                        "'. Retrying to download again. Attempt: " + getCurrentRetryCount();
+                Log.w(TAG, message);
                 Preference.putString(context, context.getResources().getString(
-                        R.string.app_install_status), Constants.AppState.DOWNLOAD_STARTED);
+                        R.string.app_install_status), Constants.AppState.DOWNLOAD_RETRY);
+                Preference.putString(context, context.getResources().getString(
+                        R.string.app_install_failed_message), message);
                 super.retry(error);
             }
         });

@@ -389,11 +389,6 @@
     <string name="operation_value_completed">COMPLETED</string>
     <string name="operation_value_error">ERROR</string>
     <string name="operation_value_progress">IN_PROGRESS</string>
-    <string name="app_status_value_download_started">DOWNLOAD_STARTED</string>
-    <string name="app_status_value_download_completed">DOWNLOAD_COMPLETED</string>
-    <string name="app_status_value_download_failed">DOWNLOAD_FAILED</string>
-    <string name="app_status_value_install_failed">INSTALL_FAILED</string>
-    <string name="app_status_value_installed">INSTALLED</string>
     <string name="operation_install">install</string>
     <string name="operation_uninstall">uninstall</string>
 

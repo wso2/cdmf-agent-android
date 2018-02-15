@@ -19,6 +19,7 @@ package org.wso2.emm.agent.services;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
@@ -156,6 +157,7 @@ public class MessageProcessor implements APIResultCallBack {
 
 		String requestParams;
 		ObjectMapper mapper = new ObjectMapper();
+        int applicationOperationId = 0;
 		try {
 			requestParams =  mapper.writeValueAsString(replyPayload);
 			if (replyPayload != null) {
@@ -253,7 +255,7 @@ public class MessageProcessor implements APIResultCallBack {
 				}
 			}
 
-			int applicationOperationId = Preference.getInt(context, context.getResources().getString(
+			applicationOperationId = Preference.getInt(context, context.getResources().getString(
 					R.string.app_install_id));
 			String applicationOperationCode = Preference.getString(context, context.getResources().getString(
 					R.string.app_install_code));
@@ -261,6 +263,51 @@ public class MessageProcessor implements APIResultCallBack {
 					R.string.app_install_status));
 			String applicationOperationMessage = Preference.getString(context, context.getResources().getString(
 					R.string.app_install_failed_message));
+			String appInstallLastStatus = Preference.getString(context,
+					Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS);
+
+			if (Constants.AppState.DOWNLOAD_STARTED.equals(appInstallLastStatus)
+					|| Constants.AppState.DOWNLOAD_RETRY.equals(appInstallLastStatus)) {
+				// If download is started, we might need to ensure that download is completing
+				// within the time defined in DOWNLOAD_INITIATED_AT constants.
+				long downloadInitiatedAt = Preference.getLong(context,
+						Constants.PreferenceFlag.DOWNLOAD_INITIATED_AT);
+				if (downloadInitiatedAt != 0 && Calendar.getInstance().getTimeInMillis() -
+						downloadInitiatedAt > Constants.APP_DOWNLOAD_TIMEOUT) {
+					new ApplicationManager(context).cancelOngoingDownload(); // Cancelling existing downloads if any.
+					applicationOperationStatus = Constants.AppState.INSTALL_FAILED;
+					applicationOperationMessage = "App download unresponsive. Hence aborted.";
+					Preference.putLong(context, Constants.PreferenceFlag.DOWNLOAD_INITIATED_AT, 0);
+					Preference.putString(context,
+							Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS, null);
+					Log.e(TAG, "Clearing app download request as it is not responsive.");
+				} else if (downloadInitiatedAt == 0) {
+					// Setting download initiated timestamp as it is not set already.
+					Preference.putLong(context, Constants.PreferenceFlag.DOWNLOAD_INITIATED_AT,
+							Calendar.getInstance().getTimeInMillis());
+				}
+			} else if (Constants.AppState.DOWNLOAD_COMPLETED.equals(appInstallLastStatus)) {
+				// If download is completed and installation is started, we might need to
+				// ensure that download is completing within the time defined in
+				// DOWNLOAD_INITIATED_AT constants.
+				long installInitiatedAt = Preference.getLong(context,
+						Constants.PreferenceFlag.INSTALLATION_INITIATED_AT);
+				if (installInitiatedAt != 0 && Calendar.getInstance().getTimeInMillis() -
+						installInitiatedAt > Constants.APP_INSTALL_TIMEOUT) {
+					new ApplicationManager(context).cancelOngoingDownload(); // Cancelling existing downloads if any.
+					applicationOperationStatus = Constants.AppState.INSTALL_FAILED;
+					applicationOperationMessage = "App installation unresponsive. Hence aborted.";
+					Preference.putLong(context, Constants.PreferenceFlag.INSTALLATION_INITIATED_AT, 0);
+					Preference.putString(context,
+							Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS, null);
+					Log.e(TAG, "Clearing previous app installation request as it is not responsive.");
+				} else if (installInitiatedAt == 0) {
+					// Setting installation initiated timestamp as it is not set already.
+					Preference.putLong(context, Constants.PreferenceFlag.INSTALLATION_INITIATED_AT,
+							Calendar.getInstance().getTimeInMillis());
+				}
+			}
+
 			if (applicationOperationStatus != null && applicationOperationId != 0 && applicationOperationCode != null) {
 				Operation applicationOperation = new Operation();
 				ApplicationManager appMgt = new ApplicationManager(context);
@@ -268,24 +315,29 @@ public class MessageProcessor implements APIResultCallBack {
 				applicationOperation.setCode(applicationOperationCode);
 				applicationOperation = appMgt.getApplicationInstallationStatus(
 						applicationOperation, applicationOperationStatus, applicationOperationMessage);
-				if (replyPayload == null) {
-					replyPayload = new ArrayList<>();
-				}
-				replyPayload.add(applicationOperation);
+
 				Preference.putString(context, context.getResources().getString(
 						R.string.app_install_status), null);
 				Preference.putString(context, context.getResources().getString(
 						R.string.app_install_failed_message), null);
 				if (context.getResources().getString(R.string.operation_value_error).equals(applicationOperation.getStatus()) ||
 						context.getResources().getString(R.string.operation_value_completed).equals(applicationOperation.getStatus())){
+				    applicationOperationId = 0;
 					Preference.putInt(context, context.getResources().getString(
 							R.string.app_install_id), 0);
 					Preference.putString(context, context.getResources().getString(
 							R.string.app_install_code), null);
-					startPendingInstallation();
+					Preference.putString(context,
+							Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS, null);
+				} else {
+					// Keep last installation status since app installation is not at finite state.
+					Preference.putString(context,
+							Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS, applicationOperationStatus);
 				}
-			} else {
-				startPendingInstallation();
+				if (replyPayload == null) {
+					replyPayload = new ArrayList<>();
+				}
+				replyPayload.add(applicationOperation);
 			}
 
 			if (Preference.hasPreferenceKey(context, Constants.Operation.LOGCAT)){
@@ -325,10 +377,16 @@ public class MessageProcessor implements APIResultCallBack {
 		} else {
 			Log.e(TAG, "There is no valid IP to contact the server");
 		}
+
+		// Try to install apps from queue if there is no any ongoing installation operation
+        if (applicationOperationId == 0) {
+            startPendingInstallation();
+        }
 	}
 
 	private void startPendingInstallation(){
 		AppInstallRequest appInstallRequest = AppInstallRequestUtil.getPending(context);
+		// Start app installation from queue if app installation request available in the queue
 		if (appInstallRequest != null) {
 			ApplicationManager applicationManager = new ApplicationManager(context.getApplicationContext());
 			Operation applicationOperation = new Operation();

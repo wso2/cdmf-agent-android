@@ -58,7 +58,8 @@ public class Constants {
 	public static final String AGENT_PACKAGE = "org.wso2.emm.agent";
 	public static final int FIRMWARE_UPGRADE_RETRY_COUNT = 0;
 	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
-
+	public static final int APP_DOWNLOAD_TIMEOUT = 30 * 60 * 1000;
+	public static final int APP_INSTALL_TIMEOUT = 10 * 60 * 1000;
 
 	// This is used to skip the license
 	public static final boolean SKIP_LICENSE = false;
@@ -483,6 +484,24 @@ public class Constants {
 		public static final String APPLIED_POLICY = "appliedPolicy";
 		public static final String IS_AGREED = "isAgreed";
 		public static final String NOTIFIER_TYPE = "notifierType";
+		public static final String DOWNLOAD_INITIATED_AT = "downloadInitiatedAt";
+		public static final String INSTALLATION_INITIATED_AT = "installationInitiatedAt";
+		public static final String APP_INSTALLATION_LAST_STATUS = "appInstallationLastStatus";
+	}
+
+	public final class AppState {
+		private AppState() {
+			throw new AssertionError();
+		}
+
+		public static final String DOWNLOAD_STARTED = "DOWNLOAD_STARTED";
+		public static final String DOWNLOAD_RETRY = "DOWNLOAD_RETRY";
+		public static final String DOWNLOAD_COMPLETED = "DOWNLOAD_COMPLETED";
+		public static final String DOWNLOAD_FAILED = "DOWNLOAD_FAILED";
+		public static final String INSTALL_FAILED = "INSTALL_FAILED";
+		public static final String INSTALLED = "INSTALLED";
+		public static final String UNINSTALLED = "UNINSTALLED";
+		public static final String UNINSTALLED_FAILED = "UNINSTALL_FAILED";
 	}
 
 	public final class AppRestriction {

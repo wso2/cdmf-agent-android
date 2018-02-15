@@ -771,7 +771,7 @@ public class ApplicationManager {
 
         volleyDownloadRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 5, DEFAULT_BACKOFF_MULT) {
             public void retry(VolleyError error) throws VolleyError {
-                String message = "Download failed due to '" + error.getLocalizedMessage() +
+                String message = "Download failed due to '" + error.toString() +
                         "'. Retrying to download again. Attempt: " + getCurrentRetryCount();
                 Log.w(TAG, message);
                 Preference.putString(context, context.getResources().getString(

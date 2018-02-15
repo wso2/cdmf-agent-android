@@ -220,8 +220,32 @@ public class AppUtils {
         PackageManager pm = context.getPackageManager();
         IPackageDeleteObserver observer = new IPackageDeleteObserver() {
             @Override
-            public void packageDeleted(String s, int i) throws RemoteException {
-                Log.d(TAG, _packageName + " deleted successfully.");
+            public void packageDeleted(String packageName, int returnCode) throws RemoteException {
+                String msg;
+                switch (returnCode) {
+                    case DELETE_SUCCEEDED:
+                        msg = "DELETE_SUCCEEDED";
+                        break;
+                    case DELETE_FAILED_INTERNAL_ERROR:
+                        msg = "DELETE_FAILED_INTERNAL_ERROR";
+                        break;
+                    case DELETE_FAILED_DEVICE_POLICY_MANAGER:
+                        msg = "DELETE_FAILED_DEVICE_POLICY_MANAGER";
+                        break;
+                    case DELETE_FAILED_USER_RESTRICTED:
+                        msg = "DELETE_FAILED_USER_RESTRICTED";
+                        break;
+                    case DELETE_FAILED_OWNER_BLOCKED:
+                        msg = "DELETE_FAILED_OWNER_BLOCKED";
+                        break;
+                    case DELETE_FAILED_ABORTED:
+                        msg = "DELETE_FAILED_ABORTED";
+                        break;
+                    default:
+                        msg = "UNKNOWN";
+                }
+                Log.d(TAG, packageName + " delete callback with status: " + msg);
+
             }
 
             @Override

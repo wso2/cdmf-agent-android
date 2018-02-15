@@ -17,21 +17,17 @@
  */
 package org.wso2.emm.agent.services;
 
-import android.net.Uri;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
+import android.util.Log;
+
 import org.wso2.emm.agent.AndroidAgentException;
 import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.api.ApplicationManager;
 import org.wso2.emm.agent.beans.Operation;
-import org.wso2.emm.agent.utils.CommonUtils;
 import org.wso2.emm.agent.utils.Constants;
-import org.wso2.emm.agent.utils.Preference;
-
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.util.Log;
-import android.widget.Toast;
 
 /**
  * This class is a broadcast receiver which triggers on local notification timeouts.
@@ -53,14 +49,18 @@ public class AlarmReceiver extends BroadcastReceiver {
 				String appUrl = intent.getStringExtra(context.getResources().getString(R.string.app_url));
 				Operation operation = null;
 				if (intent.hasExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload)))				{
-					operation = (Operation) intent.getExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload));
-				}
+                    operation = (Operation) intent.getSerializableExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload));
+                }
 				applicationManager.installApp(appUrl, null, operation);
 			} else if(operationCode != null && operationCode.trim().equals(Constants.Operation.UNINSTALL_APPLICATION)) {
 				String packageUri = intent.getStringExtra(context.getResources().getString(R.string.app_uri));
-				try {
-					applicationManager.uninstallApplication(packageUri, null);
-				} catch (AndroidAgentException e) {
+                Operation operation = null;
+                if (intent.hasExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload))) {
+                    operation = (Operation) intent.getSerializableExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload));
+                }
+                try {
+                    applicationManager.uninstallApplication(packageUri, operation, null);
+                } catch (AndroidAgentException e) {
 					Log.e(TAG, "App uninstallation failed." + e);
 				}
 			}

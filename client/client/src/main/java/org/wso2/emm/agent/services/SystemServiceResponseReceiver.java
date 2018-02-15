@@ -61,6 +61,22 @@ public class SystemServiceResponseReceiver extends BroadcastReceiver {
                     }
                     Log.i(TAG, "Application installation response: " + result.toString());
                     break;
+                case Constants.Operation.SILENT_UNINSTALL_APPLICATION:
+                    int operationId = Preference.getInt(context, context.getResources().getString(
+                            R.string.app_uninstall_id));
+                    if (operationId != 0) {
+                        result = new JSONObject(intent.getStringExtra("payload"));
+                        if (result.has("appUninstallStatus")) {
+                            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status),
+                                    result.getString("appUninstallStatus"));
+                        }
+                        if (Constants.Code.FAILURE.equals(code) && result.has("appUninstallFailedMessage")) {
+                            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message),
+                                    result.getString("appUninstallFailedMessage"));
+                        }
+                        Log.i(TAG, "Application uninstallation response: " + result.toString());
+                    }
+                    break;
                 case Constants.Operation.UPGRADE_FIRMWARE:
                 case Constants.Operation.GET_FIRMWARE_UPGRADE_PACKAGE_STATUS:
                 case Constants.Operation.GET_FIRMWARE_UPGRADE_DOWNLOAD_PROGRESS:

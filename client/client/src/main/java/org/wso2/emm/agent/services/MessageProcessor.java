@@ -249,9 +249,8 @@ public class MessageProcessor implements APIResultCallBack {
 				isUpgradeTriggered = false;
 			}
 
-			int applicationUninstallOperationId = Preference.getInt(context, context.getResources().getString(
-			appUninstallOperationId = Preference.getInt(context, context.getResources().getString(
-					R.string.app_uninstall_id));
+			appUninstallOperationId = Preference.getInt(context, context.getResources()
+					.getString(R.string.app_uninstall_id));
 			String applicationUninstallOperationCode = Preference.getString(context,
 					context.getResources().getString(R.string.app_uninstall_code));
 			String applicationUninstallOperationStatus = Preference.getString(context,

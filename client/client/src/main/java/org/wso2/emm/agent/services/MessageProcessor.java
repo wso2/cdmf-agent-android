@@ -158,7 +158,7 @@ public class MessageProcessor implements APIResultCallBack {
 
 		String requestParams;
 		ObjectMapper mapper = new ObjectMapper();
-        int applicationOperationId = 0;
+		int applicationOperationId = 0;
 		int firmwareUpgradeOperationId = 0;
 		try {
 			requestParams =  mapper.writeValueAsString(replyPayload);
@@ -212,12 +212,12 @@ public class MessageProcessor implements APIResultCallBack {
 						R.string.firmware_upgrade_response_status)));
 				boolean isRetryPending = Preference.getBoolean(context, context.getResources().
 						getString(R.string.firmware_upgrade_retry_pending));
-				if ("ERROR".equals(Preference.getString(context, context.getResources().getString(
+				if (ERROR_STATE.equals(Preference.getString(context, context.getResources().getString(
 						R.string.firmware_upgrade_response_status)))) {
 					isUpgradeTriggered = false;
 				}
 				if (isRetryPending) {
-                    isUpgradeTriggered = true;
+					isUpgradeTriggered = true;
 					int retryCount = Preference.getInt(context, context.getResources().
 							getString(R.string.firmware_upgrade_retries));
 					firmwareOperation.setOperationResponse("Attempt " + retryCount +

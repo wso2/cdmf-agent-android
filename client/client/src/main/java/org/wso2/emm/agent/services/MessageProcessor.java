@@ -74,6 +74,7 @@ public class MessageProcessor implements APIResultCallBack {
 	private DevicePolicyManager devicePolicyManager;
 	private static final int ACTIVATION_REQUEST = 47;
 	private static final String ERROR_STATE = "ERROR";
+	private static final String COMPLETE_STATE = "COMPLETED";
 	private String shellCommand = null;
 
 	/**
@@ -160,6 +161,7 @@ public class MessageProcessor implements APIResultCallBack {
 		ObjectMapper mapper = new ObjectMapper();
         int appInstallOperationId = 0;
 		int appUninstallOperationId = 0;
+		int firmwareUpgradeOperationId = 0;
 		try {
 			requestParams =  mapper.writeValueAsString(replyPayload);
 			if (replyPayload != null) {
@@ -170,10 +172,22 @@ public class MessageProcessor implements APIResultCallBack {
 					} else if (operation.getCode().equals(Constants.Operation.REBOOT) && !operation.getStatus().
 							equals(ERROR_STATE)) {
 						isRebootTriggered = true;
-					} else if (operation.getCode().equals(Constants.Operation.UPGRADE_FIRMWARE) && !operation.getStatus().
-							equals(ERROR_STATE)) {
-						isUpgradeTriggered = true;
+					} else if (operation.getCode().equals(Constants.Operation.UPGRADE_FIRMWARE)) {
+						if(!operation.getStatus().equals(COMPLETE_STATE) && !operation.getStatus().equals(ERROR_STATE))
+						Log.i(TAG, "operation status at the moment is " + operation.getStatus());
+						//Initially when the operation status is In Progress, 'isUpgradeTriggered'
+						// is set to 'true' to call the system app. After initial call, to prevent
+						// calling system app again and again for the same operation Id following
+						// check is added.
+						int opId = Preference.getInt(context, "firmwareOperationId");
+						if(opId == operation.getId()){
+							isUpgradeTriggered = false;
+						} else {
+							isUpgradeTriggered = true;
+						}
 						Preference.putInt(context, "firmwareOperationId", operation.getId());
+						//Operation Id of the received replypayload is stored
+						firmwareUpgradeOperationId = operation.getId();
 					} else if (operation.getCode().equals(Constants.Operation.EXECUTE_SHELL_COMMAND) && !operation.getStatus().
 							equals(ERROR_STATE)) {
 						isShellCommandTriggered = true;
@@ -188,7 +202,11 @@ public class MessageProcessor implements APIResultCallBack {
 			}
 			int firmwareOperationId = Preference.getInt(context, context.getResources().getString(
 					R.string.firmware_upgrade_response_id));
+
 			if (firmwareOperationId != 0) {
+				//If there's a firmwareResponseId that means the operation is already triggered.
+				// Therefore cleaning the operation Id set above
+				firmwareUpgradeOperationId = 0;
 				org.wso2.emm.agent.beans.Operation firmwareOperation = new org.wso2.emm.agent.beans.Operation();
 				firmwareOperation.setId(firmwareOperationId);
 				firmwareOperation.setCode(Constants.Operation.UPGRADE_FIRMWARE);
@@ -196,8 +214,12 @@ public class MessageProcessor implements APIResultCallBack {
 						R.string.firmware_upgrade_response_status)));
 				boolean isRetryPending = Preference.getBoolean(context, context.getResources().
 						getString(R.string.firmware_upgrade_retry_pending));
+				if (ERROR_STATE.equals(Preference.getString(context, context.getResources().getString(
+						R.string.firmware_upgrade_response_status)))) {
+					isUpgradeTriggered = false;
+				}
 				if (isRetryPending) {
-                    isUpgradeTriggered = true;
+					isUpgradeTriggered = true;
 					int retryCount = Preference.getInt(context, context.getResources().
 							getString(R.string.firmware_upgrade_retries));
 					firmwareOperation.setOperationResponse("Attempt " + retryCount +
@@ -222,6 +244,12 @@ public class MessageProcessor implements APIResultCallBack {
 						R.string.firmware_upgrade_response_message), null);
 			}
 
+			//if there's no new firmware upgrade operation this will prevent calling system app
+			if (firmwareUpgradeOperationId == 0){
+				isUpgradeTriggered = false;
+			}
+
+			int applicationUninstallOperationId = Preference.getInt(context, context.getResources().getString(
 			appUninstallOperationId = Preference.getInt(context, context.getResources().getString(
 					R.string.app_uninstall_id));
 			String applicationUninstallOperationCode = Preference.getString(context,

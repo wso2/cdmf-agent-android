@@ -709,9 +709,6 @@ public class OTAServerManager {
         try {
             wakeLock.acquire();
             Log.d(TAG, "Verifying upgrade package");
-            Intent serviceIntent = new Intent();
-            serviceIntent.setAction("org.wso2.emm.system.service.services.PowerButtonService");
-            context.startService(serviceIntent);
             RecoverySystem.verifyPackage(recoveryFile, recoveryVerifyListener, null);
         } catch (IOException e) {
             reportInstallError(OTAStateChangeListener.ERROR_PACKAGE_VERIFY_FAILED);

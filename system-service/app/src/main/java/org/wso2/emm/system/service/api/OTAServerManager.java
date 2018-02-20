@@ -532,8 +532,10 @@ public class OTAServerManager {
                                     serverManager.stateChangeListener.onStateOrProgress(OTAStateChangeListener.STATE_IN_DOWNLOADING,
                                             OTAStateChangeListener.ERROR_PACKAGE_INSTALL_FAILED, null, DEFAULT_STATE_INFO_CODE);
                                 }
+                                downloading = false;
+                                downloadReference = 0L;
                                 cursor.close();
-                                break;
+                                return;
                             }
 
                             int bytesDownloaded = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));

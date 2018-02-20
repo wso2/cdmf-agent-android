@@ -239,9 +239,10 @@ public class ApplicationManager {
 
     public boolean isPackageInstalled(String packagename) {
         try {
-            if(packagename.startsWith("package:")) {
-                packagename = packagename.replace("package:", "");
+            if(packagename == null) {
+                return false;
             }
+            packagename = packagename.replace("package:", "");
             PackageInfo packageInfo = packageManager.
                     getPackageInfo(packagename, PackageManager.GET_ACTIVITIES);
             if (packageInfo != null) {
@@ -348,7 +349,7 @@ public class ApplicationManager {
                 AppInstallRequestUtil.addPending(context, appInstallRequest);
                 if (Constants.DEBUG_MODE_ENABLED) {
                     Log.d(TAG, "Queued operation Id " + appInstallRequest.getApplicationOperationId());
-                    Log.d(TAG, "Added downloadManagerRequest to pending queue as there is another installation ongoing.");
+                    Log.d(TAG, "Added request to pending queue as there is another installation ongoing.");
                 }
                 return; //Will call installApp method again once current installation completed.
             }

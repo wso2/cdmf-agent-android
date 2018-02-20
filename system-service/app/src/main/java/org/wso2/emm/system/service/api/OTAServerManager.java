@@ -38,6 +38,7 @@ import android.os.PowerManager.WakeLock;
 import android.os.RecoverySystem;
 import android.os.StatFs;
 import android.os.SystemProperties;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -51,6 +52,7 @@ import org.json.JSONObject;
 import org.wso2.emm.system.service.MainActivity;
 import org.wso2.emm.system.service.R;
 import org.wso2.emm.system.service.services.NotificationActionReceiver;
+import org.wso2.emm.system.service.services.PowerButtonService;
 import org.wso2.emm.system.service.utils.CommonUtils;
 import org.wso2.emm.system.service.utils.Constants;
 import org.wso2.emm.system.service.utils.FileUtils;
@@ -707,6 +709,9 @@ public class OTAServerManager {
         try {
             wakeLock.acquire();
             Log.d(TAG, "Verifying upgrade package");
+            Intent serviceIntent = new Intent();
+            serviceIntent.setAction("org.wso2.emm.system.service.services.PowerButtonService");
+            context.startService(serviceIntent);
             RecoverySystem.verifyPackage(recoveryFile, recoveryVerifyListener, null);
         } catch (IOException e) {
             reportInstallError(OTAStateChangeListener.ERROR_PACKAGE_VERIFY_FAILED);

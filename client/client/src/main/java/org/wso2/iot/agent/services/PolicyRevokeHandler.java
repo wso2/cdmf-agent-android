@@ -187,6 +187,13 @@ public class PolicyRevokeHandler {
                 case Constants.Operation.DISALLOW_DEBUGGING_FEATURES:
                 case Constants.Operation.DISALLOW_INSTALL_APPS:
                 case Constants.Operation.DISALLOW_INSTALL_UNKNOWN_SOURCES:
+                    boolean isUnknownSourcesDisallowed = Preference.getBoolean(context,
+                            Constants.PreferenceFlag.DISALLOW_UNKNOWN_SOURCES);
+                    if (isUnknownSourcesDisallowed) {
+                        Preference.putBoolean(context,
+                                Constants.PreferenceFlag.DISALLOW_UNKNOWN_SOURCES, false);
+                        CommonUtils.allowUnknownSourcesForProfile(context, true);
+                    }
                 case Constants.Operation.DISALLOW_MODIFY_ACCOUNTS:
                 case Constants.Operation.DISALLOW_OUTGOING_BEAM:
                 case Constants.Operation.DISALLOW_SHARE_LOCATION:

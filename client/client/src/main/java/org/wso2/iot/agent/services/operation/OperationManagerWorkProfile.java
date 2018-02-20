@@ -349,6 +349,11 @@ public class OperationManagerWorkProfile extends OperationManager {
         String key = operation.getCode();
         operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
         getResultBuilder().build(operation);
+        if (Constants.Operation.DISALLOW_INSTALL_UNKNOWN_SOURCES.equals(key)) {
+            Preference.putBoolean(getContext(),
+                    Constants.PreferenceFlag.DISALLOW_UNKNOWN_SOURCES, isEnable);
+            CommonUtils.allowUnknownSourcesForProfile(getContext(), !isEnable);
+        }
         if (isEnable) {
             getDevicePolicyManager().addUserRestriction(getCdmDeviceAdmin(), getPermissionConstantValue(key));
             if (Constants.DEBUG_MODE_ENABLED) {

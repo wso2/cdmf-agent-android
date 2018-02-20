@@ -573,6 +573,7 @@ public class Constants {
 		public static final String DEVICE_ID_PREFERENCE_KEY = "deviceId";
 		public static final String LAST_SERVER_CALL = "lastServerCall";
 		public static final String DEVICE_INITIALIZED = "false";
+		public static final String DISALLOW_UNKNOWN_SOURCES = "DISALLOW_UNKNOWN_SOURCES";
 
 		private PreferenceFlag() {
 			throw new AssertionError();

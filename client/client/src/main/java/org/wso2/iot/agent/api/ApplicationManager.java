@@ -318,7 +318,9 @@ public class ApplicationManager {
         if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
             installPackage(fileUri);
         }else{
-
+            boolean isUnknownSourcesDisallowed = Preference.getBoolean(context,
+                    Constants.PreferenceFlag.DISALLOW_UNKNOWN_SOURCES);
+            CommonUtils.allowUnknownSourcesForProfile(context, !isUnknownSourcesDisallowed);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
                 intent.setDataAndType(fileUri, resources.getString(R.string.application_mgr_mime));

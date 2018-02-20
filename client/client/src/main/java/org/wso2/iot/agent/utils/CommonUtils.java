@@ -32,6 +32,8 @@ import android.content.res.Resources;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
+import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Base64;
@@ -729,6 +731,20 @@ public class CommonUtils {
 	private static int getTimeDistanceInMinutes(long time) {
 		long timeDistance = currentDate().getTime() - time;
 		return Math.round((Math.abs(timeDistance) / 1000) / 60);
+	}
+
+	public static void allowUnknownSourcesForProfile(final Context context, final boolean isEnabled) {
+		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+			final DevicePolicyManager manager = (DevicePolicyManager) context
+					.getSystemService(Context.DEVICE_POLICY_SERVICE);
+			if (manager != null && manager.isProfileOwnerApp(context.getApplicationContext()
+					.getPackageName())) {
+				final ComponentName cdmAdmin = new ComponentName(context, AgentDeviceAdminReceiver.class);
+				manager.setSecureSetting(cdmAdmin, Settings.Secure.INSTALL_NON_MARKET_APPS,
+						isEnabled ? "1" : "0");
+				Log.i(TAG, "Enable unknown sources: " + String.valueOf(isEnabled));
+			}
+		}
 	}
 
 }

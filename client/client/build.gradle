@@ -36,8 +36,8 @@ android {
         targetSdkVersion 25
         multiDexEnabled true
 
-        versionCode 3010030
-        versionName "3.1.30"
+        versionCode 3010031
+        versionName "3.1.31"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 

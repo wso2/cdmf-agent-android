@@ -507,7 +507,7 @@ public class ApplicationManager {
                     Log.d(TAG, "Added request to pending queue as there is another uninstallation ongoing.");
                 }
                 return; //Will call uninstallApplication method again once current uninstallation completed.
-            }else{
+            } else {
                 operationId = operation.getId();
                 operationCode = operation.getCode();
             }

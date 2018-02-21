@@ -38,7 +38,7 @@ android {
         config {
             keyAlias 'platform'
             keyPassword 'android'
-            storeFile file('../../swordfish.keystore')
+            storeFile file('../../example.keystore')
             storePassword 'android'
         }
     }

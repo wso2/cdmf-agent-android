@@ -30,7 +30,7 @@ public class Constants {
 	public static final String DEFAULT_OTA_SERVER_PROTOCOL = "http";
 	public static final String DEFAULT_OTA_SERVER_SUB_DIRECTORY = null;
 	public static final int DEFAULT_OTA_SERVER_PORT = 80;
-	public static final int REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE = 50;
+	public static final int REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE = 5;
 	public static final String DEFAULT_OTA_BUILD_PROP_FILE = "build.prop";
 	public static final String DEFAULT_OTA_ZIP_FILE = ".ota.zip";
 	public static final String UPDATE_PACKAGE_NAME = "update.zip";
@@ -49,8 +49,8 @@ public class Constants {
 	public static final String FIRMWARE_INSTALL_CANCEL_ACTION = "FIRMWARE_INSTALL_CANCEL_ACTION";
 	public static final boolean SILENT_FIRMWARE_INSTALLATION = true;
 	public static final boolean OTA_DOWNLOAD_PROGRESS_BAR_ENABLED = true;
-	public static final int OTA_DOWNLOAD_PERCENTAGE_FACTOR = 2;
-	public static final int FIRMWARE_DOWNLOAD_TIMEOUT = 10*60*1000; //Time in milliseconds(Example 10 minutes).
+	public static final int OTA_DOWNLOAD_PERCENTAGE_FACTOR = 5;
+	public static final int FIRMWARE_DOWNLOAD_TIMEOUT = 5*60*1000; //Time in milliseconds(Example 10 minutes).
 	/**
 	 * Read_TIMEOUT = SO timeout(the time since the last byte has been received)
 	 */

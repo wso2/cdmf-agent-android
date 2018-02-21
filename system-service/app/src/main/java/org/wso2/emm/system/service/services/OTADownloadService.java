@@ -22,29 +22,15 @@ public class OTADownloadService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         boolean isAvailabledownloadReference = Preference.getBoolean(this, this.getResources().getString(R.string.download_manager_reference_id_available));
-        int downloadManagerSuccessState = Preference.getInt(this, this.getResources().getString(R.string.download_manager_success_state));
-        int downloadManagerDefaultErrorCode = Preference.getInt(this, this.getResources().getString(R.string.download_manager_default_error_code));
-        int downloadManagerDefaultStateInfoCode = Preference.getInt(this, this.getResources().getString(R.string.download_manager_default_state_info_code));
-        boolean downloadManagerCompletionSuccessful = Preference.getBoolean(this, this.getResources().getString(R.string.download_manager_completion_successful));
-        boolean verificationStartFlag = Preference.getBoolean(this, this.getResources().getString(R.string.verification_start_flag));
-        boolean packageInstallationStartFlag = Preference.getBoolean(this, this.getResources().getString(R.string.package_installation_start_flag));
         Log.d(TAG, "Download manager reference id availability: " + isAvailabledownloadReference);
 
         if (isAvailabledownloadReference) {
+            Log.i(TAG, "Partially downloaded OTA file will be resumed");
             OTADownload otaDownload = new OTADownload(this);
             OTAServerManager otaServerManager = otaDownload.getOtaServerManager();
             otaServerManager.startDownloadUpgradePackage(otaServerManager);
-        } else if (downloadManagerCompletionSuccessful && !verificationStartFlag) {
-            OTADownload otaDownload = new OTADownload(this);
-            OTAServerManager otaServerManager = otaDownload.getOtaServerManager();
-            OTAServerManager.OTAStateChangeListener otaStateChangeListener = otaServerManager.getOTAStateChangeListener();
-            otaStateChangeListener.onStateOrProgress(downloadManagerSuccessState,
-                    downloadManagerDefaultErrorCode, null, downloadManagerDefaultStateInfoCode);
-        } else if (downloadManagerCompletionSuccessful && !packageInstallationStartFlag) {
-            OTADownload otaDownload = new OTADownload(this);
-            OTAServerManager otaServerManager = otaDownload.getOtaServerManager();
-            otaServerManager.startInstallUpgradePackage();
         } else {
+            Log.i(TAG, "No existing OTA download needs to be resumed");
             stopSelf();
         }
         return Service.START_STICKY;

@@ -18,6 +18,7 @@ import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.api.DeviceInfo;
 import org.wso2.emm.agent.beans.ServerConfig;
 import org.wso2.emm.agent.events.EventRegistry;
+import org.wso2.emm.agent.proxy.IdentityProxy;
 import org.wso2.emm.agent.proxy.authenticators.AuthenticatorFactory;
 import org.wso2.emm.agent.proxy.authenticators.ClientAuthenticator;
 import org.wso2.emm.agent.proxy.interfaces.APIResultCallBack;

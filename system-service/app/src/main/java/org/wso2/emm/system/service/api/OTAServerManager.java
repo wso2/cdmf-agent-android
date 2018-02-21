@@ -52,7 +52,6 @@ import org.json.JSONObject;
 import org.wso2.emm.system.service.MainActivity;
 import org.wso2.emm.system.service.R;
 import org.wso2.emm.system.service.services.NotificationActionReceiver;
-import org.wso2.emm.system.service.services.PowerButtonService;
 import org.wso2.emm.system.service.utils.CommonUtils;
 import org.wso2.emm.system.service.utils.Constants;
 import org.wso2.emm.system.service.utils.FileUtils;

@@ -445,7 +445,8 @@ public class ApplicationManager {
      *
      * @param packageName - Application package name should be passed in as a String.
      */
-    public void uninstallApplication(String packageName, Operation operation, String schedule) throws AndroidAgentException {
+    public void uninstallApplication(String packageName, Operation operation, String schedule)
+            throws AndroidAgentException {
         if (packageName != null &&
                 !packageName.contains(resources.getString(R.string.application_package_prefix))) {
             packageName = resources.getString(R.string.application_package_prefix) + packageName;
@@ -472,7 +473,8 @@ public class ApplicationManager {
 
         if (schedule != null && !schedule.trim().isEmpty() && !schedule.equals("undefined")) {
             try {
-                AlarmUtils.setOneTimeAlarm(context, schedule, Constants.Operation.UNINSTALL_APPLICATION, operation, null, packageName);
+                AlarmUtils.setOneTimeAlarm(context, schedule,
+                        Constants.Operation.UNINSTALL_APPLICATION, operation, null, packageName);
             } catch (ParseException e) {
                 Log.e(TAG, "One time alarm time string parsing failed." + e);
             }
@@ -488,7 +490,8 @@ public class ApplicationManager {
                     R.string.app_uninstall_code));
 
             if (operationId == operation.getId()) {
-                Log.w(TAG, "Ignoring received operation as it has the same operation ID with ongoing operation.");
+                Log.w(TAG, "Ignoring received operation as it has the same operation ID with " +
+                        "ongoing operation.");
                 return; //No point of putting same operation again to the pending queue. Hence ignoring.
             }
 
@@ -501,8 +504,10 @@ public class ApplicationManager {
                 //Add uninstallation operation to pending queue
                 AppManagementRequestUtil.addPendingUninstall(context, appUninstallRequest);
                 if (Constants.DEBUG_MODE_ENABLED) {
-                    Log.d(TAG, "Queued operation Id " + appUninstallRequest.getApplicationOperationId());
-                    Log.d(TAG, "Added request to pending queue as there is another uninstallation ongoing.");
+                    Log.d(TAG, "Queued operation Id " + appUninstallRequest
+                            .getApplicationOperationId());
+                    Log.d(TAG, "Added request to pending queue as there is another " +
+                            "uninstallation ongoing.");
                 }
                 return; //Will call uninstallApplication method again once current uninstallation completed.
             }else{

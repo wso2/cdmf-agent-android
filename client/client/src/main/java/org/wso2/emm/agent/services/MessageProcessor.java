@@ -17,30 +17,7 @@
  */
 package org.wso2.emm.agent.services;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
-
 import android.app.admin.DevicePolicyManager;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.wso2.emm.agent.AndroidAgentException;
-import org.wso2.emm.agent.R;
-import org.wso2.emm.agent.api.ApplicationManager;
-import org.wso2.emm.agent.api.DeviceInfo;
-import org.wso2.emm.agent.beans.AppInstallRequest;
-import org.wso2.emm.agent.beans.Operation;
-import org.wso2.emm.agent.beans.ServerConfig;
-import org.wso2.emm.agent.proxy.interfaces.APIResultCallBack;
-import org.wso2.emm.agent.proxy.utils.Constants.HTTP_METHODS;
-import org.wso2.emm.agent.services.operation.OperationProcessor;
-import org.wso2.emm.agent.utils.AppInstallRequestUtil;
-import org.wso2.emm.agent.utils.Constants;
-import org.wso2.emm.agent.utils.Preference;
-import org.wso2.emm.agent.utils.CommonUtils;
-
 import android.content.Context;
 import android.util.Log;
 
@@ -51,6 +28,30 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.Gson;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.wso2.emm.agent.AndroidAgentException;
+import org.wso2.emm.agent.R;
+import org.wso2.emm.agent.api.ApplicationManager;
+import org.wso2.emm.agent.api.DeviceInfo;
+import org.wso2.emm.agent.beans.AppInstallRequest;
+import org.wso2.emm.agent.beans.AppUninstallRequest;
+import org.wso2.emm.agent.beans.Operation;
+import org.wso2.emm.agent.beans.ServerConfig;
+import org.wso2.emm.agent.proxy.interfaces.APIResultCallBack;
+import org.wso2.emm.agent.proxy.utils.Constants.HTTP_METHODS;
+import org.wso2.emm.agent.services.operation.OperationProcessor;
+import org.wso2.emm.agent.utils.AppManagementRequestUtil;
+import org.wso2.emm.agent.utils.CommonUtils;
+import org.wso2.emm.agent.utils.Constants;
+import org.wso2.emm.agent.utils.Preference;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class handles all the functionalities related to coordinating the retrieval
@@ -158,7 +159,8 @@ public class MessageProcessor implements APIResultCallBack {
 
 		String requestParams;
 		ObjectMapper mapper = new ObjectMapper();
-		int applicationOperationId = 0;
+        int appInstallOperationId = 0;
+		int appUninstallOperationId = 0;
 		int firmwareUpgradeOperationId = 0;
 		try {
 			requestParams =  mapper.writeValueAsString(replyPayload);
@@ -247,22 +249,37 @@ public class MessageProcessor implements APIResultCallBack {
 				isUpgradeTriggered = false;
 			}
 
-			int applicationUninstallOperationId = Preference.getInt(context, context.getResources().getString(
-					R.string.app_uninstall_id));
-			String applicationUninstallOperationCode = Preference.getString(context, context.getResources().getString(
-					R.string.app_uninstall_code));
-			String applicationUninstallOperationStatus = Preference.getString(context, context.getResources().getString(
-					R.string.app_uninstall_status));
-			String applicationUninstallOperationMessage = Preference.getString(context, context.getResources().getString(
+			appUninstallOperationId = Preference.getInt(context, context.getResources()
+					.getString(R.string.app_uninstall_id));
+			String applicationUninstallOperationCode = Preference.getString(context,
+					context.getResources().getString(R.string.app_uninstall_code));
+			String applicationUninstallOperationStatus = Preference.getString(context,
+					context.getResources().getString(R.string.app_uninstall_status));
+			String applicationUninstallOperationMessage = Preference.getString(context,
+					context.getResources().getString(
 					R.string.app_uninstall_failed_message));
+			long uninstallInitiatedAt = Preference.getLong(context,
+					Constants.PreferenceFlag.UNINSTALLATION_INITIATED_AT);
 
-			if (applicationUninstallOperationStatus != null && applicationUninstallOperationId != 0 && applicationUninstallOperationCode != null) {
-				Operation applicationOperation = new Operation();
+			// If uninstallation is started, we might need to ensure that uninstallation
+			// is completing within the time defined in APP_UNINSTALL_TIMEOUT constants.
+			if (uninstallInitiatedAt != 0 && Calendar.getInstance().getTimeInMillis() -
+					uninstallInitiatedAt > Constants.APP_UNINSTALL_TIMEOUT) {
+				applicationUninstallOperationStatus = context.getResources()
+						.getString(R.string.operation_value_error);
+				applicationUninstallOperationMessage = "App uninstallation unresponsive. Hence aborted.";
+				Preference.putLong(context, Constants.PreferenceFlag.UNINSTALLATION_INITIATED_AT, 0);
+				Log.e(TAG, "Clearing app uninstall request as it is not responsive.");
+			}
+
+			if (applicationUninstallOperationStatus != null && appUninstallOperationId != 0
+					&& applicationUninstallOperationCode != null) {
 				ApplicationManager appMgt = new ApplicationManager(context);
-				applicationOperation.setId(applicationUninstallOperationId);
-				applicationOperation.setCode(applicationUninstallOperationCode);
-				applicationOperation = appMgt.getApplicationInstallationStatus(
-						applicationOperation, applicationUninstallOperationStatus, applicationUninstallOperationMessage);
+				Operation applicationOperation = new Operation();
+				applicationOperation.setId(appUninstallOperationId);
+				applicationOperation = appMgt.getApplicationStatus(applicationOperation,
+						applicationUninstallOperationStatus, applicationUninstallOperationMessage);
+
 				if (replyPayload == null) {
 					replyPayload = new ArrayList<>();
 				}
@@ -273,23 +290,28 @@ public class MessageProcessor implements APIResultCallBack {
 				Preference.putString(context, context.getResources().getString(
 						R.string.app_uninstall_failed_message), null);
 
-				if (context.getResources().getString(R.string.operation_value_error).equals(applicationOperation.getStatus()) ||
-						context.getResources().getString(R.string.operation_value_completed).equals(applicationOperation.getStatus())){
+				if (context.getResources().getString(R.string.operation_value_error)
+						.equals(applicationOperation.getStatus()) ||
+						context.getResources().getString(R.string.operation_value_completed)
+								.equals(applicationOperation.getStatus())){
+					appUninstallOperationId = 0;
 					Preference.putInt(context, context.getResources().getString(
 							R.string.app_uninstall_id), 0);
 					Preference.putString(context, context.getResources().getString(
 							R.string.app_uninstall_code), null);
+					Preference.putLong(context,
+							Constants.PreferenceFlag.UNINSTALLATION_INITIATED_AT, 0);
 				}
 			}
 
-			applicationOperationId = Preference.getInt(context, context.getResources().getString(
+			appInstallOperationId = Preference.getInt(context, context.getResources().getString(
 					R.string.app_install_id));
-			String applicationOperationCode = Preference.getString(context, context.getResources().getString(
-					R.string.app_install_code));
-			String applicationOperationStatus = Preference.getString(context, context.getResources().getString(
-					R.string.app_install_status));
-			String applicationOperationMessage = Preference.getString(context, context.getResources().getString(
-					R.string.app_install_failed_message));
+			String applicationOperationCode = Preference.getString(context,
+					context.getResources().getString(R.string.app_install_code));
+			String applicationOperationStatus = Preference.getString(context,
+					context.getResources().getString(R.string.app_install_status));
+			String applicationOperationMessage = Preference.getString(context,
+					context.getResources().getString(R.string.app_install_failed_message));
 			String appInstallLastStatus = Preference.getString(context,
 					Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS);
 
@@ -335,12 +357,12 @@ public class MessageProcessor implements APIResultCallBack {
 				}
 			}
 
-			if (applicationOperationStatus != null && applicationOperationId != 0 && applicationOperationCode != null) {
+			if (applicationOperationStatus != null && appInstallOperationId != 0 && applicationOperationCode != null) {
 				Operation applicationOperation = new Operation();
 				ApplicationManager appMgt = new ApplicationManager(context);
-				applicationOperation.setId(applicationOperationId);
+				applicationOperation.setId(appInstallOperationId);
 				applicationOperation.setCode(applicationOperationCode);
-				applicationOperation = appMgt.getApplicationInstallationStatus(
+				applicationOperation = appMgt.getApplicationStatus(
 						applicationOperation, applicationOperationStatus, applicationOperationMessage);
 
 				Preference.putString(context, context.getResources().getString(
@@ -349,7 +371,7 @@ public class MessageProcessor implements APIResultCallBack {
 						R.string.app_install_failed_message), null);
 				if (context.getResources().getString(R.string.operation_value_error).equals(applicationOperation.getStatus()) ||
 						context.getResources().getString(R.string.operation_value_completed).equals(applicationOperation.getStatus())){
-				    applicationOperationId = 0;
+				    appInstallOperationId = 0;
 					Preference.putInt(context, context.getResources().getString(
 							R.string.app_install_id), 0);
 					Preference.putString(context, context.getResources().getString(
@@ -406,22 +428,53 @@ public class MessageProcessor implements APIResultCallBack {
 		}
 
 		// Try to install apps from queue if there is no any ongoing installation operation
-        if (applicationOperationId == 0) {
+        if (appInstallOperationId == 0) {
             startPendingInstallation();
         }
+
+		// Try to uninstall apps from queue if there is no any ongoing uninstallation operation
+		if (appUninstallOperationId == 0) {
+			startPendingUninstallation();
+		}
 	}
 
 	private void startPendingInstallation(){
-		AppInstallRequest appInstallRequest = AppInstallRequestUtil.getPending(context);
+		AppInstallRequest appInstallRequest = AppManagementRequestUtil.getPendingInstall(context);
 		// Start app installation from queue if app installation request available in the queue
 		if (appInstallRequest != null) {
 			ApplicationManager applicationManager = new ApplicationManager(context.getApplicationContext());
 			Operation applicationOperation = new Operation();
 			applicationOperation.setId(appInstallRequest.getApplicationOperationId());
 			applicationOperation.setCode(appInstallRequest.getApplicationOperationCode());
-            Log.d(TAG, "Try to start app installation from queue. Operation Id " +
-                    appInstallRequest.getApplicationOperationId());
+			Log.d(TAG, "Try to start app installation from queue. Operation Id " +
+					appInstallRequest.getApplicationOperationId());
 			applicationManager.installApp(appInstallRequest.getAppUrl(), null, applicationOperation);
+		}
+	}
+
+	private void startPendingUninstallation(){
+		AppUninstallRequest appUninstallRequest = AppManagementRequestUtil.getPendingUninstall(context);
+		// Start app uninstall from queue if app uninstall request available in the queue
+		if (appUninstallRequest != null) {
+			ApplicationManager applicationManager = new ApplicationManager(context.getApplicationContext());
+			Operation applicationOperation = new Operation();
+			applicationOperation.setId(appUninstallRequest.getApplicationOperationId());
+			applicationOperation.setCode(appUninstallRequest.getApplicationOperationCode());
+			Log.d(TAG, "Try to start app uninstallation from queue. Operation Id " +
+					appUninstallRequest.getApplicationOperationId());
+			try {
+				applicationManager.uninstallApplication(appUninstallRequest.getPackageName(),
+						applicationOperation, null);
+			} catch (AndroidAgentException e) {
+				Preference.putInt(context, context.getResources().getString(
+						R.string.app_uninstall_id), applicationOperation.getId());
+				Preference.putString(context, context.getResources().getString(
+						R.string.app_uninstall_code), applicationOperation.getCode());
+				Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status),
+						Constants.AppState.UNINSTALL_FAILED);
+				Preference.putString(context,
+						context.getResources().getString(R.string.app_uninstall_failed_message), e.getMessage());
+			}
 		}
 	}
 

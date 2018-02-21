@@ -473,8 +473,7 @@ public class MessageProcessor implements APIResultCallBack {
 				Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status),
 						Constants.AppState.UNINSTALL_FAILED);
 				Preference.putString(context,
-						context.getResources().getString(R.string.app_uninstall_failed_message),
-						e.getMessage());
+						context.getResources().getString(R.string.app_uninstall_failed_message), e.getMessage());
 			}
 		}
 	}

@@ -72,7 +72,8 @@ public class SystemServiceResponseReceiver extends BroadcastReceiver {
                                     result.getString("appUninstallStatus"));
                         }
                         if (Constants.Code.FAILURE.equals(code) && result.has("appUninstallFailedMessage")) {
-                            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message),
+                            Preference.putString(context,
+                                    context.getResources().getString(R.string.app_uninstall_failed_message),
                                     result.getString("appUninstallFailedMessage"));
                         }
                         Log.i(TAG, "Application uninstallation response: " + result.toString());

@@ -43,20 +43,25 @@ public class AlarmReceiver extends BroadcastReceiver {
 		}
 
 		if (intent.hasExtra(context.getResources().getString(R.string.alarm_scheduled_operation))) {
-			String operationCode = intent.getStringExtra(context.getResources().getString(R.string.alarm_scheduled_operation));
-			ApplicationManager applicationManager = new ApplicationManager(context.getApplicationContext());
+			String operationCode = intent.getStringExtra(context.getResources()
+					.getString(R.string.alarm_scheduled_operation));
+			ApplicationManager applicationManager = new ApplicationManager(context
+					.getApplicationContext());
 			if(operationCode != null && operationCode.trim().equals(Constants.Operation.INSTALL_APPLICATION)) {
 				String appUrl = intent.getStringExtra(context.getResources().getString(R.string.app_url));
 				Operation operation = null;
-				if (intent.hasExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload)))				{
-                    operation = (Operation) intent.getSerializableExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload));
+				if (intent.hasExtra(context.getResources()
+						.getString(R.string.alarm_scheduled_operation_payload))) {
+                    operation = (Operation) intent.getSerializableExtra(context.getResources()
+							.getString(R.string.alarm_scheduled_operation_payload));
                 }
 				applicationManager.installApp(appUrl, null, operation);
 			} else if(operationCode != null && operationCode.trim().equals(Constants.Operation.UNINSTALL_APPLICATION)) {
 				String packageUri = intent.getStringExtra(context.getResources().getString(R.string.app_uri));
                 Operation operation = null;
                 if (intent.hasExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload))) {
-                    operation = (Operation) intent.getSerializableExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload));
+                    operation = (Operation) intent.getSerializableExtra(context.getResources()
+							.getString(R.string.alarm_scheduled_operation_payload));
                 }
                 try {
                     applicationManager.uninstallApplication(packageUri, operation, null);

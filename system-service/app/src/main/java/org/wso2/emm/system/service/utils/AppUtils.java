@@ -23,7 +23,6 @@ import android.content.pm.IPackageDeleteObserver;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 import org.json.JSONException;
@@ -196,7 +195,8 @@ public class AppUtils {
                                 msg = "UNKNOWN_ERROR";
                         }
                     }
-                    String error = "Package installation failed due to an internal error with code: " + returnCode + " and message: " + msg;
+                    String error = "Package installation failed due to an internal error with code: " + returnCode +
+                            " and message: " + msg;
                     Log.e(TAG, error);
                     publishAppInstallStatus(context, INSTALL_FAILED_STATUS, error);
                 }
@@ -260,16 +260,16 @@ public class AppUtils {
             result.put("appInstallStatus", status);
             if (error != null) {
                 result.put("appInstallFailedMessage", error);
-                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION, Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR,
-                        result.toString());
+                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION,
+                        Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR, result.toString());
             } else {
-                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION, Constants.Code.SUCCESS, Constants.Status.SUCCESSFUL,
-                        result.toString());
+                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION,
+                        Constants.Code.SUCCESS, Constants.Status.SUCCESSFUL, result.toString());
             }
         } catch (JSONException e) {
             Log.e(TAG, "Failed to create JSON object when publishing App install status.");
-            CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION, Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR,
-                    String.valueOf(DEFAULT_STATE_INFO_CODE));
+            CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION,
+                    Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR, String.valueOf(DEFAULT_STATE_INFO_CODE));
         }
     }
 
@@ -280,16 +280,16 @@ public class AppUtils {
             result.put("appUninstallStatus", status);
             if (error != null) {
                 result.put("appUninstallFailedMessage", error);
-                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION, Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR,
-                        result.toString());
+                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION,
+                        Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR, result.toString());
             } else {
-                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION, Constants.Code.SUCCESS, Constants.Status.SUCCESSFUL,
-                        result.toString());
+                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION,
+                        Constants.Code.SUCCESS, Constants.Status.SUCCESSFUL, result.toString());
             }
         } catch (JSONException e) {
             Log.e(TAG, "Failed to create JSON object when publishing App uninstall status.");
-            CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION, Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR,
-                    String.valueOf(DEFAULT_STATE_INFO_CODE));
+            CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION,
+                    Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR, String.valueOf(DEFAULT_STATE_INFO_CODE));
         }
     }
 

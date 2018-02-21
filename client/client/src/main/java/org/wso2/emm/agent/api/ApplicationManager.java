@@ -490,8 +490,7 @@ public class ApplicationManager {
                     R.string.app_uninstall_code));
 
             if (operationId == operation.getId()) {
-                Log.w(TAG, "Ignoring received operation as it has the same operation ID with " +
-                        "ongoing operation.");
+                Log.w(TAG, "Ignoring received operation as it has the same operation ID with ongoing operation.");
                 return; //No point of putting same operation again to the pending queue. Hence ignoring.
             }
 
@@ -504,10 +503,8 @@ public class ApplicationManager {
                 //Add uninstallation operation to pending queue
                 AppManagementRequestUtil.addPendingUninstall(context, appUninstallRequest);
                 if (Constants.DEBUG_MODE_ENABLED) {
-                    Log.d(TAG, "Queued operation Id " + appUninstallRequest
-                            .getApplicationOperationId());
-                    Log.d(TAG, "Added request to pending queue as there is another " +
-                            "uninstallation ongoing.");
+                    Log.d(TAG, "Queued operation Id " + appUninstallRequest.getApplicationOperationId());
+                    Log.d(TAG, "Added request to pending queue as there is another uninstallation ongoing.");
                 }
                 return; //Will call uninstallApplication method again once current uninstallation completed.
             }else{
@@ -526,8 +523,10 @@ public class ApplicationManager {
             CommonUtils.callSystemApp(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION, "", packageName);
         } else {
             if (operation != null) {
-                Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), Constants.AppState.UNINSTALLED);
-                Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), null);
+                Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status),
+                        Constants.AppState.UNINSTALLED);
+                Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message),
+                        null);
             }
             Uri packageURI = Uri.parse(packageName);
             Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, packageURI);

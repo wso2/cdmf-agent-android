@@ -17,13 +17,18 @@
  */
 package org.wso2.emm.agent.services;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
-
 import android.app.admin.DevicePolicyManager;
+import android.content.Context;
+import android.util.Log;
+
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.gson.Gson;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.emm.agent.AndroidAgentException;
@@ -37,20 +42,15 @@ import org.wso2.emm.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.emm.agent.proxy.utils.Constants.HTTP_METHODS;
 import org.wso2.emm.agent.services.operation.OperationProcessor;
 import org.wso2.emm.agent.utils.AppInstallRequestUtil;
+import org.wso2.emm.agent.utils.CommonUtils;
 import org.wso2.emm.agent.utils.Constants;
 import org.wso2.emm.agent.utils.Preference;
-import org.wso2.emm.agent.utils.CommonUtils;
 
-import android.content.Context;
-import android.util.Log;
-
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.gson.Gson;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class handles all the functionalities related to coordinating the retrieval
@@ -161,14 +161,39 @@ public class MessageProcessor implements APIResultCallBack {
 		int applicationOperationId = 0;
 		int firmwareUpgradeOperationId = 0;
 		try {
-			requestParams =  mapper.writeValueAsString(replyPayload);
+			if (Preference.getBoolean(context, context.getResources().getString(R.string.shared_pref_reboot_done))) {
+				if (replyPayload == null) {
+					replyPayload = new ArrayList<>();
+				}
+				int lastRebootOperationId = Preference.getInt(context, context.getResources().getString(R.string.shared_pref_reboot_op_id));
+				for (org.wso2.emm.agent.beans.Operation operation : replyPayload) {
+					if (lastRebootOperationId == operation.getId()) {
+						replyPayload.remove(operation);
+						break;
+					}
+				}
+
+				JSONObject result = new JSONObject();
+				result.put(context.getResources().getString(R.string.operation_status), Constants.SYSTEM_APP_ENABLED);
+
+				org.wso2.emm.agent.beans.Operation rebootOperation = new org.wso2.emm.agent.beans.Operation();
+				rebootOperation.setId(lastRebootOperationId);
+				rebootOperation.setCode(Constants.Operation.REBOOT);
+				rebootOperation.setPayLoad(result.toString());
+				rebootOperation.setStatus(context.getResources().getString(R.string.operation_value_completed));
+				replyPayload.add(rebootOperation);
+
+				Preference.removePreference(context, context.getResources().getString(R.string.shared_pref_reboot_done));
+				Preference.removePreference(context, context.getResources().getString(R.string.shared_pref_reboot_op_id));
+			}
 			if (replyPayload != null) {
 				for (org.wso2.emm.agent.beans.Operation operation : replyPayload) {
 					if (operation.getCode().equals(Constants.Operation.WIPE_DATA) && !operation.getStatus().
 							equals(ERROR_STATE)) {
 						isWipeTriggered = true;
-					} else if (operation.getCode().equals(Constants.Operation.REBOOT) && !operation.getStatus().
-							equals(ERROR_STATE)) {
+					} else if (operation.getCode().equals(Constants.Operation.REBOOT) && operation.getStatus().
+							equals(context.getResources().getString(R.string.operation_value_pending))) {
+						operation.setStatus(context.getResources().getString(R.string.operation_value_progress));
 						isRebootTriggered = true;
 					} else if (operation.getCode().equals(Constants.Operation.UPGRADE_FIRMWARE)) {
 						if(!operation.getStatus().equals(COMPLETE_STATE) && !operation.getStatus().equals(ERROR_STATE))
@@ -386,6 +411,8 @@ public class MessageProcessor implements APIResultCallBack {
 			throw new AndroidAgentException("Issue in json generation", e);
 		} catch (IOException e) {
 			throw new AndroidAgentException("Issue in parsing stream", e);
+		} catch (JSONException e) {
+			throw new AndroidAgentException("Issue in adding value to JSON", e);
 		}
 		if (Constants.DEBUG_MODE_ENABLED) {
 			Log.d(TAG, "Reply Payload: " + requestParams);

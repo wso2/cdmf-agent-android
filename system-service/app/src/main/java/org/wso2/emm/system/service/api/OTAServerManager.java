@@ -21,7 +21,6 @@ package org.wso2.emm.system.service.api;
 import android.app.DownloadManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -32,20 +31,13 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Build;
-import android.os.Environment;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.os.RecoverySystem;
-import android.os.StatFs;
 import android.os.SystemProperties;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-
-import com.google.android.util.AbstractMessageParser;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -57,29 +49,20 @@ import org.wso2.emm.system.service.utils.Constants;
 import org.wso2.emm.system.service.utils.FileUtils;
 import org.wso2.emm.system.service.utils.Preference;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -112,6 +95,9 @@ public class OTAServerManager {
     private static volatile boolean downloadOngoing = false;
     private static final int DOWNLOAD_PERCENTAGE_TOTAL = 100;
     private static final int DOWNLOADER_INCREMENT = 10;
+    private NotificationManager mNotificationManager = null;
+    private final static int OTA_NOTIFICATION_ID_START = 362738283;
+    private final static int OTA_NOTIFICATION_ID_PROGRESS = 362738284;
 
     private int corePoolSize = 60;
     private int maximumPoolSize = 80;
@@ -131,7 +117,7 @@ public class OTAServerManager {
             Log.d(TAG, "Verify progress " + progress);
             if (stateChangeListener != null) {
                 stateChangeListener.onStateOrProgress(OTAStateChangeListener.MESSAGE_VERIFY_PROGRESS,
-                                                      DEFAULT_STATE_ERROR_CODE, null, progress);
+                        DEFAULT_STATE_ERROR_CODE, null, progress);
             }
         }
     };
@@ -141,10 +127,7 @@ public class OTAServerManager {
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "OTA Wakelock");
         this.context = context;
-    }
-
-    public OTAStateChangeListener getOTAStateChangeListener(){
-        return stateChangeListener;
+        mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
     public void setStateChangeListener(OTAStateChangeListener stateChangeListener) {
@@ -218,7 +201,7 @@ public class OTAServerManager {
         if (progress != published) {
             publishFirmwareDownloadProgress(progress);
             Preference.putString(context, context.getResources().getString(R.string.firmware_download_progress),
-                                 String.valueOf(progress));
+                    String.valueOf(progress));
             Log.d(TAG, "Download Progress - " + progress + "% - Downloaded:" + downloaded + "/" + total);
             if (progress == 100) {
                 Preference.putString(context, context.getResources().getString(R.string.firmware_download_progress),
@@ -228,7 +211,7 @@ public class OTAServerManager {
 
         if (this.stateChangeListener != null && progress != cacheProgress) {
             this.stateChangeListener.onStateOrProgress(OTAStateChangeListener.MESSAGE_DOWNLOAD_PROGRESS,
-                                                       DEFAULT_STATE_INFO_CODE, null, progress);
+                    DEFAULT_STATE_INFO_CODE, null, progress);
             cacheProgress = progress;
         }
     }
@@ -249,21 +232,21 @@ public class OTAServerManager {
     void reportCheckingError(int error) {
         if (this.stateChangeListener != null) {
             this.stateChangeListener.onStateOrProgress(OTAStateChangeListener.STATE_IN_CHECKED,
-                                                       error, null, DEFAULT_STATE_INFO_CODE);
+                    error, null, DEFAULT_STATE_INFO_CODE);
         }
     }
 
     void reportDownloadError(int error) {
         if (this.stateChangeListener != null) {
             this.stateChangeListener.onStateOrProgress(OTAStateChangeListener.STATE_IN_DOWNLOADING,
-                                                       error, null, DEFAULT_STATE_INFO_CODE);
+                    error, null, DEFAULT_STATE_INFO_CODE);
         }
     }
 
     void reportInstallError(int error) {
         if (this.stateChangeListener != null) {
             this.stateChangeListener.onStateOrProgress(OTAStateChangeListener.STATE_IN_UPGRADING,
-                                                       error, null, DEFAULT_STATE_INFO_CODE);
+                    error, null, DEFAULT_STATE_INFO_CODE);
         }
     }
 
@@ -365,7 +348,11 @@ public class OTAServerManager {
 
         if (level != 0) {// don't delete top level folder
             if (!dontDeleteTheseFolders.contains(fileOrDirectory.getName())) {
-                Log.i(TAG, "erasing file: " + fileOrDirectory.getAbsolutePath() + " of size: " + fileOrDirectory.length());
+                if (fileOrDirectory.isDirectory()){
+                    Log.i(TAG, "erasing folder: " + fileOrDirectory.getAbsolutePath());
+                } else {
+                    Log.i(TAG, "erasing file: " + fileOrDirectory.getAbsolutePath() + " of size: " + fileOrDirectory.length());
+                }
                 if (!fileOrDirectory.delete()) {
                     Log.e(TAG, "couldn't erase: " + fileOrDirectory.getName());
                 }
@@ -379,6 +366,7 @@ public class OTAServerManager {
         boolean isAvailabledownloadReference = Preference.getBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available));
         if (!isAvailabledownloadReference) {
             if (asyncTask != null) {
+                Log.i(TAG, "Canceling existing task");
                 asyncTask.cancel(true);
             }
 
@@ -442,9 +430,10 @@ public class OTAServerManager {
                     Preference.putBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available), true);
                     Preference.putLong(context, context.getResources().getString(R.string.download_manager_start_time), startTimeStamp);
                     if (Constants.DEBUG_MODE_ENABLED) {
-                        Log.d(TAG, String.valueOf(Preference.getLong(context, context.getResources().getString(R.string.download_manager_reference_id))));
+                        Log.d(TAG, "download manager reference id: " + String.valueOf(Preference.getLong(context, context.getResources().getString(R.string.download_manager_reference_id))));
                     }
                 } else {
+                    Log.i(TAG, "Resuming firmware download after reboot");
                     downloadReference = Preference.getLong(context, context.getResources().getString(R.string.download_manager_reference_id));
                     //Save the timestamp if the download is resumed after a reboot or any other interrupt.
                     startTimeStamp = Preference.getLong(context, context.getResources().getString(R.string.download_manager_start_time));
@@ -465,6 +454,9 @@ public class OTAServerManager {
                         int cursorFixAttempts = 0;
                         Cursor cursor = null;
                         DownloadManager.Query query = null;
+
+                        sendNotification(OTA_NOTIFICATION_ID_START, context.getString(R.string.txt_ota_start_download_text), context.getString(R.string.txt_ota_start_download_title), true);
+
 
                         while (downloading) {
                             downloadOngoing = true;
@@ -522,6 +514,7 @@ public class OTAServerManager {
                                 Preference.putBoolean(context, context.getResources().getString(R.string.download_manager_reference_id_available), false);
                                 Preference.putLong(context, context.getResources().getString(R.string.download_manager_reference_id), -1);
                                 String message = "Download took more than the maximum allowed time; aborting";
+                                sendNotification(OTA_NOTIFICATION_ID_START, context.getString(R.string.txt_ota_failure_download_text), context.getString(R.string.txt_ota_start_download_title), false);
                                 Log.e(TAG, message);
                                 CommonUtils.sendBroadcast(context, Constants.Operation.UPGRADE_FIRMWARE, Constants.Code.FAILURE,
                                         Constants.Status.CONNECTION_FAILED, message);
@@ -587,6 +580,7 @@ public class OTAServerManager {
                                             break;
                                     }
                                     Log.w(TAG, "Download paused. Reason: " + reasonString + " (code: " + reason + ")");
+                                    sendNotification(OTA_NOTIFICATION_ID_START, context.getString(R.string.txt_ota_paused_text), context.getString(R.string.txt_ota_start_download_title), true);
                                 }
                                 isPaused = true;
                                 cursor.close();
@@ -642,6 +636,7 @@ public class OTAServerManager {
 
                                 if (isPaused) {
                                     Log.i(TAG, "Download resuming.");
+                                    sendNotification(OTA_NOTIFICATION_ID_START, context.getString(R.string.txt_ota_start_download_text), context.getString(R.string.txt_ota_start_download_title), true);
                                 }
                                 isPaused = false;
 
@@ -684,6 +679,8 @@ public class OTAServerManager {
                             }
                         }
                         downloadOngoing = false;
+                        mNotificationManager.cancel(OTA_NOTIFICATION_ID_START);
+                        mNotificationManager.cancel(OTA_NOTIFICATION_ID_PROGRESS);
                     }
                 }
                 ).start();
@@ -693,13 +690,19 @@ public class OTAServerManager {
         }.executeOnExecutor(threadPoolExecutor);
     }
 
-    public long getFreeDiskSpace() {
-        StatFs statFs = new StatFs(FileUtils.getUpgradePackageDirectory());
-        long freeDiskSpace = (long) statFs.getAvailableBlocks() * (long) statFs.getBlockSize();
-        /*if (Constants.DEBUG_MODE_ENABLED) {
-            Log.d(TAG, "Free disk space: " + freeDiskSpace);
-        }*/
-        return freeDiskSpace;
+    private void sendNotification(int id, String messageText, String messageTitle, boolean ongoing){
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(context)
+                        .setSmallIcon(R.drawable.notification)
+                        .setContentTitle(messageTitle)
+                        .setContentText(messageText)
+                        .setStyle(new NotificationCompat.BigTextStyle().bigText(messageText))
+                        .setPriority(android.app.Notification.PRIORITY_MAX)
+                        .setOngoing(ongoing)
+                        .setOnlyAlertOnce(true);
+
+
+        mNotificationManager.notify(id, builder.build());
     }
 
     public void startVerifyUpgradePackage() {
@@ -910,7 +913,7 @@ public class OTAServerManager {
                     if (parser != null) {
                         if (stateChangeListener != null) {
                             stateChangeListener.onStateOrProgress(OTAStateChangeListener.STATE_IN_CHECKED,
-                                                                  OTAStateChangeListener.NO_ERROR, parser, DEFAULT_STATE_INFO_CODE);
+                                    OTAStateChangeListener.NO_ERROR, parser, DEFAULT_STATE_INFO_CODE);
                         }
                     } else {
                         reportCheckingError(OTAStateChangeListener.ERROR_CANNOT_FIND_SERVER);

@@ -27,6 +27,7 @@ import android.content.res.Resources;
 import android.location.Location;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -619,20 +620,26 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         JSONObject result = new JSONObject();
 
         try {
-            String status = resources.getString(R.string.shared_pref_default_status);
-            result.put(resources.getString(R.string.operation_status), status);
+            result.put(resources.getString(R.string.operation_status), Constants.SYSTEM_APP_ENABLED);
             operation.setPayLoad(result.toString());
 
-            if (status.equals(resources.getString(R.string.shared_pref_default_status))) {
-                operation.setStatus(resources.getString(R.string.operation_value_completed));
+            if (Constants.SYSTEM_APP_ENABLED) {
+                int lastRebootOperationId = Preference.getInt(context, resources.getString(R.string.shared_pref_reboot_op_id));
+                if (lastRebootOperationId == operation.getId()) {
+                    Log.d(TAG,"Ignoring duplicated reboot operation");
+                    return; //Ignoring duplicate reboot operation
+                } else {
+                    Preference.removePreference(context, resources.getString(R.string.shared_pref_reboot_done));
+                    Preference.putInt(context, resources.getString(R.string.shared_pref_reboot_op_id), operation.getId());
+                }
+                operation.setStatus(resources.getString(R.string.operation_value_pending));
                 resultBuilder.build(operation);
 
                 if (Constants.DEBUG_MODE_ENABLED) {
                     Log.d(TAG, "Reboot initiated.");
                 }
             } else {
-                Toast.makeText(context, resources.getString(R.string.toast_message_reboot_failed),
-                               Toast.LENGTH_LONG).show();
+                Log.e(TAG, resources.getString(R.string.toast_message_reboot_failed));
                 operation.setStatus(resources.getString(R.string.operation_value_error));
                 operation.setOperationResponse(resources.getString(R.string.toast_message_reboot_failed));
                 resultBuilder.build(operation);

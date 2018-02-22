@@ -347,6 +347,7 @@ public class Constants {
 		public static final String FIRMWARE_INSTALLATION_CANCELED = "FIRMWARE_INSTALLATION_CANCELED";
 		public static final String GET_FIRMWARE_BUILD_DATE = "FIRMWARE_BUILD_DATE";
 		public static final String LOGCAT = "LOGCAT";
+		public static final String TRIGGER_HEARTBEAT = "TRIGGER_HEARTBEAT";
 		public static final String FIRMWARE_UPGRADE_AUTOMATIC_RETRY = "FIRMWARE_UPGRADE_AUTOMATIC_RETRY";
 	}
 

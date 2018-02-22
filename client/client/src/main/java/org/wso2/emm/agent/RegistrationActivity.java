@@ -17,17 +17,6 @@
  */
 package org.wso2.emm.agent;
 
-import java.util.Map;
-import org.wso2.emm.agent.api.DeviceInfo;
-import org.wso2.emm.agent.beans.ServerConfig;
-import org.wso2.emm.agent.proxy.interfaces.APIResultCallBack;
-import org.wso2.emm.agent.proxy.utils.Constants.HTTP_METHODS;
-import org.wso2.emm.agent.services.DeviceInfoPayload;
-import org.wso2.emm.agent.utils.CommonDialogUtils;
-import org.wso2.emm.agent.utils.Constants;
-import org.wso2.emm.agent.utils.Preference;
-import org.wso2.emm.agent.utils.CommonUtils;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -41,6 +30,18 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import org.wso2.emm.agent.api.DeviceInfo;
+import org.wso2.emm.agent.beans.ServerConfig;
+import org.wso2.emm.agent.proxy.interfaces.APIResultCallBack;
+import org.wso2.emm.agent.proxy.utils.Constants.HTTP_METHODS;
+import org.wso2.emm.agent.services.DeviceInfoPayload;
+import org.wso2.emm.agent.utils.CommonDialogUtils;
+import org.wso2.emm.agent.utils.CommonUtils;
+import org.wso2.emm.agent.utils.Constants;
+import org.wso2.emm.agent.utils.Preference;
+
+import java.util.Map;
 
 /**
  * Activity which handles user enrollment.

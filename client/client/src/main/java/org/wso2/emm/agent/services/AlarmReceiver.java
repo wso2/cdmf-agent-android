@@ -17,21 +17,17 @@
  */
 package org.wso2.emm.agent.services;
 
-import android.net.Uri;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
+import android.util.Log;
+
 import org.wso2.emm.agent.AndroidAgentException;
 import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.api.ApplicationManager;
 import org.wso2.emm.agent.beans.Operation;
-import org.wso2.emm.agent.utils.CommonUtils;
 import org.wso2.emm.agent.utils.Constants;
-import org.wso2.emm.agent.utils.Preference;
-
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.util.Log;
-import android.widget.Toast;
 
 /**
  * This class is a broadcast receiver which triggers on local notification timeouts.

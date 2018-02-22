@@ -23,6 +23,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.provider.Settings;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -52,6 +53,19 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(final Context context, Intent intent) {
+		this.resources = context.getApplicationContext().getResources();
+		int lastRebootOperationId = Preference.getInt(context, resources.getString(R.string.shared_pref_reboot_op_id));
+		if (lastRebootOperationId != 0) {
+			Preference.putBoolean(context, resources.getString(R.string.shared_pref_reboot_done), true);
+		}
+
+		boolean isDeviceProvisioned = Settings.Global.getInt(context.getContentResolver(), Settings.Global.DEVICE_PROVISIONED, 0) == 1;
+        if (!isDeviceProvisioned && !intent.getAction().equals("com.verifone.wso2.START_MDM")){
+            Log.d(TAG, "Device not yet provisioned. MDM agent not started.");
+            return;
+        }
+
+        Log.d(TAG, "Device already provisioned. MDM agent starting.");
 		setRecurringAlarm(context.getApplicationContext());
 		if(!EventRegistry.eventListeningStarted) {
 			EventRegistry registerEvent = new EventRegistry(context.getApplicationContext());
@@ -64,7 +78,6 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 	 * @param context - Application context.
 	 */
 	private void setRecurringAlarm(Context context) {
-		this.resources = context.getApplicationContext().getResources();
 		String mode = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
 		boolean isLocked = Preference.getBoolean(context, Constants.IS_LOCKED);
 		String lockMessage = Preference.getString(context, Constants.LOCK_MESSAGE);

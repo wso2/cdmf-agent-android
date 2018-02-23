@@ -49,13 +49,14 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import org.wso2.emm.agent.AndroidAgentException;
 import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.beans.AppInstallRequest;
+import org.wso2.emm.agent.beans.AppUninstallRequest;
 import org.wso2.emm.agent.beans.DeviceAppInfo;
 import org.wso2.emm.agent.beans.Operation;
 import org.wso2.emm.agent.beans.ServerConfig;
 import org.wso2.emm.agent.proxy.IDPTokenManagerException;
 import org.wso2.emm.agent.proxy.utils.ServerUtilities;
 import org.wso2.emm.agent.utils.AlarmUtils;
-import org.wso2.emm.agent.utils.AppInstallRequestUtil;
+import org.wso2.emm.agent.utils.AppManagementRequestUtil;
 import org.wso2.emm.agent.utils.CommonUtils;
 import org.wso2.emm.agent.utils.Constants;
 import org.wso2.emm.agent.utils.Preference;
@@ -346,7 +347,7 @@ public class ApplicationManager {
                 appInstallRequest.setApplicationOperationCode(operation.getCode());
                 appInstallRequest.setAppUrl(url);
                 //Add installation operation to pending queue
-                AppInstallRequestUtil.addPending(context, appInstallRequest);
+                AppManagementRequestUtil.addPendingInstall(context, appInstallRequest);
                 if (Constants.DEBUG_MODE_ENABLED) {
                     Log.d(TAG, "Queued operation Id " + appInstallRequest.getApplicationOperationId());
                     Log.d(TAG, "Added request to pending queue as there is another installation ongoing.");
@@ -444,7 +445,8 @@ public class ApplicationManager {
      *
      * @param packageName - Application package name should be passed in as a String.
      */
-    public void uninstallApplication(String packageName, String schedule) throws AndroidAgentException {
+    public void uninstallApplication(String packageName, Operation operation, String schedule)
+            throws AndroidAgentException {
         if (packageName != null &&
                 !packageName.contains(resources.getString(R.string.application_package_prefix))) {
             packageName = resources.getString(R.string.application_package_prefix) + packageName;
@@ -452,26 +454,80 @@ public class ApplicationManager {
 
         if(!this.isPackageInstalled(packageName)){
             String message = "Package is not installed in the device or invalid package name";
-            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), Constants.AppState.UNINSTALLED_FAILED);
-            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), message);
+            if (operation != null) {
+                Preference.putInt(context,
+                        context.getResources().getString(R.string.app_uninstall_id),
+                        operation.getId());
+                Preference.putString(context,
+                        context.getResources().getString(R.string.app_uninstall_code),
+                        operation.getCode());
+                Preference.putString(context,
+                        context.getResources().getString(R.string.app_uninstall_status),
+                        Constants.AppState.UNINSTALL_FAILED);
+                Preference.putString(context,
+                        context.getResources().getString(R.string.app_uninstall_failed_message),
+                        message);
+            }
             throw new AndroidAgentException("Package is not installed in the device");
         }
 
         if (schedule != null && !schedule.trim().isEmpty() && !schedule.equals("undefined")) {
             try {
-                AlarmUtils.setOneTimeAlarm(context, schedule, Constants.Operation.UNINSTALL_APPLICATION, null, null, packageName);
+                AlarmUtils.setOneTimeAlarm(context, schedule,
+                        Constants.Operation.UNINSTALL_APPLICATION, operation, null, packageName);
             } catch (ParseException e) {
                 Log.e(TAG, "One time alarm time string parsing failed." + e);
             }
             return; //Will call uninstallApplication method again upon alarm.
         }
+
+        if (operation != null) {
+            // Get ongoing app uninstallation operation details. These preferences are cleared during
+            // reply payload creations which followed by application uninstallation complete or error.
+            int operationId = Preference.getInt(context, context.getResources().getString(
+                    R.string.app_uninstall_id));
+            String operationCode = Preference.getString(context, context.getResources().getString(
+                    R.string.app_uninstall_code));
+
+            if (operationId == operation.getId()) {
+                Log.w(TAG, "Ignoring received operation as it has the same operation ID with ongoing operation.");
+                return; //No point of putting same operation again to the pending queue. Hence ignoring.
+            }
+
+            //Check if there any ongoing operations in the state machine.
+            if (operationId != 0 && operationCode != null) {
+                AppUninstallRequest appUninstallRequest = new AppUninstallRequest();
+                appUninstallRequest.setApplicationOperationId(operation.getId());
+                appUninstallRequest.setApplicationOperationCode(operation.getCode());
+                appUninstallRequest.setPackageName(packageName);
+                //Add uninstallation operation to pending queue
+                AppManagementRequestUtil.addPendingUninstall(context, appUninstallRequest);
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    Log.d(TAG, "Queued operation Id " + appUninstallRequest.getApplicationOperationId());
+                    Log.d(TAG, "Added request to pending queue as there is another uninstallation ongoing.");
+                }
+                return; //Will call uninstallApplication method again once current uninstallation completed.
+            } else {
+                operationId = operation.getId();
+                operationCode = operation.getCode();
+            }
+            Preference.putInt(context,
+                    context.getResources().getString(R.string.app_uninstall_id), operationId);
+            Preference.putString(context,
+                    context.getResources().getString(R.string.app_uninstall_code), operationCode);
+            Preference.putLong(context, Constants.PreferenceFlag.UNINSTALLATION_INITIATED_AT,
+                    Calendar.getInstance().getTimeInMillis());
+        }
+
         if (Constants.SYSTEM_APP_ENABLED) {
-            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), Constants.AppState.UNINSTALLED);
-            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), null);
             CommonUtils.callSystemApp(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION, "", packageName);
         } else {
-            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), Constants.AppState.UNINSTALLED);
-            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), null);
+            if (operation != null) {
+                Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status),
+                        Constants.AppState.UNINSTALLED);
+                Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message),
+                        null);
+            }
             Uri packageURI = Uri.parse(packageName);
             Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, packageURI);
             uninstallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -520,7 +576,7 @@ public class ApplicationManager {
         return packageManager.getInstalledApplications(PackageManager.GET_META_DATA);
     }
 
-    public Operation getApplicationInstallationStatus(Operation operation, String status, String message) {
+    public Operation getApplicationStatus(Operation operation, String status, String message) {
         switch (status) {
             case Constants.AppState.DOWNLOAD_STARTED:
                 operation.setStatus(context.getResources().getString(R.string.operation_value_progress));
@@ -546,7 +602,7 @@ public class ApplicationManager {
                 operation.setStatus(context.getResources().getString(R.string.operation_value_completed));
                 operation.setOperationResponse("Application installation completed");
                 break;
-            case Constants.AppState.UNINSTALLED_FAILED:
+            case Constants.AppState.UNINSTALL_FAILED:
                 operation.setStatus(context.getResources().getString(R.string.operation_value_error));
                 operation.setOperationResponse(message);
                 break;

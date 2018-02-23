@@ -23,7 +23,6 @@ import android.content.pm.IPackageDeleteObserver;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 import org.json.JSONException;
@@ -37,14 +36,11 @@ import static android.content.pm.PackageManager.*;
 public class AppUtils {
 
     private static final String TAG = "AppUtils";
-    private static final int DELETE_ALL_USERS = 0x00000002;
-    private static final int INSTALL_ALL_USERS = 0x00000040;
-    private static final int INSTALL_ALLOW_DOWNGRADE = 0x00000080;
-    private static final int INSTALL_REPLACE_EXISTING = 0x00000002;
-    public static final int INSTALL_SUCCEEDED = 1;
     private static final int DEFAULT_STATE_INFO_CODE = 0;
     private static final String INSTALL_FAILED_STATUS = "INSTALL_FAILED";
     private static final String INSTALL_SUCCESS_STATUS = "INSTALLED";
+    private static final String UNINSTALL_FAILED_STATUS = "UNINSTALL_FAILED";
+    private static final String UNINSTALL_SUCCESS_STATUS = "UNINSTALLED";
     private static final String PACKAGE_PREFIX = "package:";
 
     /**
@@ -195,9 +191,12 @@ public class AppUtils {
                             case INSTALL_FAILED_THEME_UNKNOWN_ERROR:
                                 msg = "INSTALL_FAILED_THEME_UNKNOWN_ERROR";
                                 break;
+                            default:
+                                msg = "UNKNOWN_ERROR";
                         }
                     }
-                    String error = "Package installation failed due to an internal error with code: " + returnCode + " and message: " + msg;
+                    String error = "Package installation failed due to an internal error with code: " + returnCode +
+                            " and message: " + msg;
                     Log.e(TAG, error);
                     publishAppInstallStatus(context, INSTALL_FAILED_STATUS, error);
                 }
@@ -212,13 +211,12 @@ public class AppUtils {
      * @param context - Application context.
      * @param  packageName - App package name.
      */
-    public static void silentUninstallApp(Context context, String packageName) {
+    public static void silentUninstallApp(final Context context, String packageName) {
         if (packageName != null && packageName.contains(PACKAGE_PREFIX)) {
             packageName = packageName.replace(PACKAGE_PREFIX, "");
         }
-        final String _packageName = packageName;
         PackageManager pm = context.getPackageManager();
-        IPackageDeleteObserver observer = new IPackageDeleteObserver() {
+        IPackageDeleteObserver.Stub observer = new IPackageDeleteObserver.Stub() {
             @Override
             public void packageDeleted(String packageName, int returnCode) throws RemoteException {
                 String msg;
@@ -242,15 +240,14 @@ public class AppUtils {
                         msg = "DELETE_FAILED_ABORTED";
                         break;
                     default:
-                        msg = "UNKNOWN";
+                        msg = "UNKNOWN_ERROR";
                 }
                 Log.d(TAG, packageName + " delete callback with status: " + msg);
-
-            }
-
-            @Override
-            public IBinder asBinder() {
-                return null;
+                if (returnCode == DELETE_SUCCEEDED) {
+                    publishAppUninstallStatus(context, UNINSTALL_SUCCESS_STATUS, null);
+                } else {
+                    publishAppUninstallStatus(context, UNINSTALL_FAILED_STATUS, msg);
+                }
             }
         };
         pm.deletePackage(packageName, observer, DELETE_ALL_USERS);
@@ -263,16 +260,36 @@ public class AppUtils {
             result.put("appInstallStatus", status);
             if (error != null) {
                 result.put("appInstallFailedMessage", error);
-                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION, Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR,
-                        result.toString());
+                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION,
+                        Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR, result.toString());
             } else {
-                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION, Constants.Code.SUCCESS, Constants.Status.SUCCESSFUL,
-                        result.toString());
+                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION,
+                        Constants.Code.SUCCESS, Constants.Status.SUCCESSFUL, result.toString());
             }
         } catch (JSONException e) {
             Log.e(TAG, "Failed to create JSON object when publishing App install status.");
-            CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION, Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR,
-                          String.valueOf(DEFAULT_STATE_INFO_CODE));
+            CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION,
+                    Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR, String.valueOf(DEFAULT_STATE_INFO_CODE));
+        }
+    }
+
+    private static void publishAppUninstallStatus(Context context, String status, String error) {
+        JSONObject result = new JSONObject();
+
+        try {
+            result.put("appUninstallStatus", status);
+            if (error != null) {
+                result.put("appUninstallFailedMessage", error);
+                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION,
+                        Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR, result.toString());
+            } else {
+                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION,
+                        Constants.Code.SUCCESS, Constants.Status.SUCCESSFUL, result.toString());
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to create JSON object when publishing App uninstall status.");
+            CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION,
+                    Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR, String.valueOf(DEFAULT_STATE_INFO_CODE));
         }
     }
 

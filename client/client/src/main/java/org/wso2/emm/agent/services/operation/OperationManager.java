@@ -576,7 +576,8 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         try {
             JSONObject appData = new JSONObject(operation.getPayLoad().toString());
             type = appData.getString(getContextResources().getString(R.string.app_type));
-
+            operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
+            getResultBuilder().build(operation);
             if (getContextResources().getString(R.string.intent_extra_web).equalsIgnoreCase(type)) {
                 String appUrl = appData.getString(getContextResources().getString(R.string.app_url));
                 String name = appData.getString(getContextResources().getString(R.string.intent_extra_name));
@@ -592,12 +593,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 if (appData.has(getContextResources().getString(R.string.app_schedule))) {
                     schedule = appData.getString(getContextResources().getString(R.string.app_schedule));
                 }
-                int operationId = operation.getId();
-                String operationCode = operation.getCode();
-                Preference.putInt(context, context.getResources().getString(R.string.app_uninstall_id), operationId);
-                Preference.putString(context, context.getResources().getString(R.string.app_uninstall_code), operationCode);
-                getAppList().uninstallApplication(packageName, schedule);
-
+                getAppList().uninstallApplication(packageName, operation, schedule);
             }
 
             if (Constants.DEBUG_MODE_ENABLED) {

@@ -131,7 +131,7 @@ public class ApplicationManagementService extends IntentService implements APIRe
             case Constants.Operation.UNINSTALL_APPLICATION:
                 if (appUri != null) {
                     try {
-                        applicationManager.uninstallApplication(appUri, null);
+                        applicationManager.uninstallApplication(appUri, null, null);
                     } catch (AndroidAgentException e) {
                         Log.e(TAG, "App uninstallation failed." + e);
                     }

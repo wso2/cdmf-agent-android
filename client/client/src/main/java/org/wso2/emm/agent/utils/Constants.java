@@ -47,6 +47,7 @@ public class Constants {
 	// This value must be set to a value other than null.
 	public static final String DEFAULT_OWNERSHIP = null;
 	public static final String PENDING_APP_INSTALLATIONS = "PENDING_APP_INSTALLATIONS";
+	public static final String PENDING_APP_UNINSTALLATIONS = "PENDING_APP_UNINSTALLATIONS";
 	// This is set to override the server host name retrieving screen. If overriding is not
 	// needed, set this to null.
 	public static final String DEFAULT_HOST = null;
@@ -57,6 +58,7 @@ public class Constants {
 	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 	public static final int APP_DOWNLOAD_TIMEOUT = 30 * 60 * 1000;
 	public static final int APP_INSTALL_TIMEOUT = 10 * 60 * 1000;
+	public static final int APP_UNINSTALL_TIMEOUT = 1 * 60 * 1000;
 
 	// This is used to skip the license
 	public static final boolean SKIP_LICENSE = false;
@@ -484,6 +486,7 @@ public class Constants {
 		public static final String NOTIFIER_TYPE = "notifierType";
 		public static final String DOWNLOAD_INITIATED_AT = "downloadInitiatedAt";
 		public static final String INSTALLATION_INITIATED_AT = "installationInitiatedAt";
+		public static final String UNINSTALLATION_INITIATED_AT = "uninstallationInitiatedAt";
 		public static final String APP_INSTALLATION_LAST_STATUS = "appInstallationLastStatus";
 	}
 
@@ -499,7 +502,7 @@ public class Constants {
 		public static final String INSTALL_FAILED = "INSTALL_FAILED";
 		public static final String INSTALLED = "INSTALLED";
 		public static final String UNINSTALLED = "UNINSTALLED";
-		public static final String UNINSTALLED_FAILED = "UNINSTALL_FAILED";
+		public static final String UNINSTALL_FAILED = "UNINSTALL_FAILED";
 	}
 
 	public final class AppRestriction {

@@ -18,6 +18,7 @@
 package org.wso2.emm.agent.beans;
 
 import android.content.Context;
+
 import org.wso2.emm.agent.utils.Constants;
 import org.wso2.emm.agent.utils.Preference;
 

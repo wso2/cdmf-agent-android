@@ -38,15 +38,14 @@ public class AlarmReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		if (Constants.DEBUG_MODE_ENABLED) {
-			Log.d(TAG, "Recurring alarm; requesting alarm service.");
-		}
-
 		if (intent.hasExtra(context.getResources().getString(R.string.alarm_scheduled_operation))) {
 			String operationCode = intent.getStringExtra(context.getResources()
 					.getString(R.string.alarm_scheduled_operation));
 			ApplicationManager applicationManager = new ApplicationManager(context
 					.getApplicationContext());
+			if (Constants.DEBUG_MODE_ENABLED) {
+				Log.d(TAG, "Triggering scheduled operation: " + operationCode);
+			}
 			if(operationCode != null && operationCode.trim().equals(Constants.Operation.INSTALL_APPLICATION)) {
 				String appUrl = intent.getStringExtra(context.getResources().getString(R.string.app_url));
 				Operation operation = null;
@@ -55,7 +54,11 @@ public class AlarmReceiver extends BroadcastReceiver {
                     operation = (Operation) intent.getSerializableExtra(context.getResources()
 							.getString(R.string.alarm_scheduled_operation_payload));
                 }
-				applicationManager.installApp(appUrl, null, operation);
+				try {
+					applicationManager.installApp(appUrl, null, operation);
+				} catch (AndroidAgentException e) {
+					Log.e(TAG, "This is very unlikely to happen since schedule is null");
+				}
 			} else if(operationCode != null && operationCode.trim().equals(Constants.Operation.UNINSTALL_APPLICATION)) {
 				String packageUri = intent.getStringExtra(context.getResources().getString(R.string.app_uri));
                 Operation operation = null;
@@ -71,13 +74,16 @@ public class AlarmReceiver extends BroadcastReceiver {
 			}
 
 		} else {
+			if (Constants.DEBUG_MODE_ENABLED) {
+				Log.d(TAG, "Recurring alarm; Polling pending operations");
+			}
 			OperationTask operationTask = new OperationTask();
 			operationTask.execute(context);
 		}
 
 	}
 
-	private class OperationTask extends AsyncTask<Context, Void, Void> {
+	private static class OperationTask extends AsyncTask<Context, Void, Void> {
 
 		@Override
 		protected Void doInBackground(Context... params) {

@@ -95,7 +95,7 @@ public class ApplicationManagementService extends IntentService implements APIRe
         if ((operationCode != null)) {
             Log.d(TAG, "The operation code is: " + operationCode);
 
-            Log.i(TAG, "Will now executing the command ..." + operationCode);
+            Log.d(TAG, "Will now execute the command ..." + operationCode);
             boolean isRegistered = Preference.getBoolean(this.getApplicationContext(), Constants.PreferenceFlag.REGISTERED);
             if (isRegistered && Constants.CATALOG_APP_PACKAGE_NAME.equals(intent.getPackage())) {
                 doTask(operationCode);
@@ -122,10 +122,14 @@ public class ApplicationManagementService extends IntentService implements APIRe
                 break;
             case Constants.Operation.INSTALL_APPLICATION:
                 if (appUri != null) {
-                    applicationManager.installApp(appUri, null, null);
+                    try {
+                        applicationManager.installApp(appUri, null, null);
+                    } catch (AndroidAgentException e) {
+                        Log.e(TAG, "This is very unlikely to happen since schedule is null");
+                    }
                 } else {
                     Toast.makeText(context, context.getResources().getString(R.string.toast_app_installation_failed),
-                                   Toast.LENGTH_LONG).show();
+                            Toast.LENGTH_LONG).show();
                 }
                 break;
             case Constants.Operation.UNINSTALL_APPLICATION:
@@ -137,7 +141,7 @@ public class ApplicationManagementService extends IntentService implements APIRe
                     }
                 } else {
                     Toast.makeText(context, context.getResources().getString(R.string.toast_app_removal_failed),
-                                   Toast.LENGTH_LONG).show();
+                            Toast.LENGTH_LONG).show();
                 }
                 break;
             case Constants.Operation.WEBCLIP:
@@ -150,7 +154,7 @@ public class ApplicationManagementService extends IntentService implements APIRe
                     }
                 } else {
                     Toast.makeText(context, context.getResources().getString(R.string.toast_app_installation_failed),
-                                   Toast.LENGTH_LONG).show();
+                            Toast.LENGTH_LONG).show();
                 }
                 break;
             case Constants.Operation.UNINSTALL_WEBCLIP:
@@ -163,7 +167,7 @@ public class ApplicationManagementService extends IntentService implements APIRe
                     }
                 } else {
                     Toast.makeText(context, context.getResources().getString(R.string.toast_app_installation_failed),
-                                   Toast.LENGTH_LONG).show();
+                            Toast.LENGTH_LONG).show();
                 }
                 break;
             case Constants.Operation.GET_APP_DOWNLOAD_PROGRESS:
@@ -269,6 +273,11 @@ public class ApplicationManagementService extends IntentService implements APIRe
                 Gson operationGson = new Gson();
                 Preference.putString(context, Constants.Operation.LOGCAT, operationGson.toJson(logcatOperation));
                 break;
+            case Constants.Operation.TRIGGER_HEARTBEAT:
+                Log.i(TAG, "Triggering heartbeat");
+                Intent alarmIntent = new Intent(context, AlarmReceiver.class);
+                sendBroadcast(alarmIntent);
+                break;
             default:
                 Log.e(TAG, "Invalid operation code received");
                 break;
@@ -288,8 +297,8 @@ public class ApplicationManagementService extends IntentService implements APIRe
         if (ipSaved != null && !ipSaved.isEmpty()) {
             utils.setServerIP(ipSaved);
             CommonUtils.callSecuredAPI(context, utils.getAPIServerURL(context) + Constants.APP_LIST_ENDPOINT,
-                                       org.wso2.emm.agent.proxy.utils.Constants.HTTP_METHODS.GET, null,
-                                       ApplicationManagementService.this, Constants.APP_LIST_REQUEST_CODE
+                    org.wso2.emm.agent.proxy.utils.Constants.HTTP_METHODS.GET, null,
+                    ApplicationManagementService.this, Constants.APP_LIST_REQUEST_CODE
             );
         } else {
             Log.e(TAG, "There is no valid IP to contact the server");

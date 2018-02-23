@@ -52,8 +52,8 @@ public class Preference {
 	public static void putString(Context context, String key, String value) {
 		SharedPreferences mainPref =
 				context.getSharedPreferences(context.getResources()
-				                                    .getString(R.string.shared_pref_package),
-				                             Context.MODE_PRIVATE
+								.getString(R.string.shared_pref_package),
+						Context.MODE_PRIVATE
 				);
 		Editor editor = mainPref.edit();
 		editor.putString(key, value);
@@ -68,8 +68,8 @@ public class Preference {
 	public static String getString(Context context, String key) {
 		SharedPreferences mainPref =
 				context.getSharedPreferences(context.getResources()
-				                                    .getString(R.string.shared_pref_package),
-				                             Context.MODE_PRIVATE
+								.getString(R.string.shared_pref_package),
+						Context.MODE_PRIVATE
 				);
 		return mainPref.getString(key, null);
 	}
@@ -83,8 +83,8 @@ public class Preference {
 	public static void putFloat(Context context, String key, float value) {
 		SharedPreferences mainPref =
 				context.getSharedPreferences(context.getResources()
-				                                    .getString(R.string.shared_pref_package),
-				                             Context.MODE_PRIVATE
+								.getString(R.string.shared_pref_package),
+						Context.MODE_PRIVATE
 				);
 		Editor editor = mainPref.edit();
 		editor.putFloat(key, value);
@@ -99,8 +99,8 @@ public class Preference {
 	public static float getFloat(Context context, String key) {
 		SharedPreferences mainPref =
 				context.getSharedPreferences(context.getResources()
-				                                    .getString(R.string.shared_pref_package),
-				                             Context.MODE_PRIVATE
+								.getString(R.string.shared_pref_package),
+						Context.MODE_PRIVATE
 				);
 		return mainPref.getFloat(key, DEFAULT_INDEX);
 	}
@@ -114,8 +114,8 @@ public class Preference {
 	public static void putInt(Context context, String key, int value) {
 		SharedPreferences mainPref =
 				context.getSharedPreferences(context.getResources()
-						                             .getString(R.string.shared_pref_package),
-				                             Context.MODE_PRIVATE
+								.getString(R.string.shared_pref_package),
+						Context.MODE_PRIVATE
 				);
 		Editor editor = mainPref.edit();
 		editor.putInt(key, value);
@@ -130,8 +130,8 @@ public class Preference {
 	public static int getInt(Context context, String key) {
 		SharedPreferences mainPref =
 				context.getSharedPreferences(context.getResources()
-						                             .getString(R.string.shared_pref_package),
-				                             Context.MODE_PRIVATE
+								.getString(R.string.shared_pref_package),
+						Context.MODE_PRIVATE
 				);
 		return mainPref.getInt(key, DEFAULT_INDEX);
 	}
@@ -145,8 +145,8 @@ public class Preference {
 	public static void putBoolean(Context context, String key, boolean value) {
 		SharedPreferences mainPref =
 				context.getSharedPreferences(context.getResources()
-						                             .getString(R.string.shared_pref_package),
-				                             Context.MODE_PRIVATE
+								.getString(R.string.shared_pref_package),
+						Context.MODE_PRIVATE
 				);
 		Editor editor = mainPref.edit();
 		editor.putBoolean(key, value);
@@ -161,8 +161,8 @@ public class Preference {
 	public static boolean getBoolean(Context context, String key) {
 		SharedPreferences mainPref =
 				context.getSharedPreferences(context.getResources()
-						                             .getString(R.string.shared_pref_package),
-				                             Context.MODE_PRIVATE
+								.getString(R.string.shared_pref_package),
+						Context.MODE_PRIVATE
 				);
 		return mainPref.getBoolean(key, false);
 	}
@@ -174,8 +174,8 @@ public class Preference {
 	public static void clearPreferences(Context context) {
 		SharedPreferences mainPref =
 				context.getSharedPreferences(context.getResources()
-						                             .getString(R.string.shared_pref_package),
-				                             Context.MODE_PRIVATE
+								.getString(R.string.shared_pref_package),
+						Context.MODE_PRIVATE
 				);
 		mainPref.edit().clear().commit();
 	}

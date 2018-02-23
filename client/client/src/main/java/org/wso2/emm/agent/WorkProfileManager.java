@@ -18,16 +18,12 @@
 package org.wso2.emm.agent;
 
 import android.app.Activity;
-import android.app.admin.DevicePolicyManager;
-import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
 import org.wso2.emm.agent.api.ApplicationManager;
-import org.wso2.emm.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.emm.agent.utils.Constants;
 
 import static android.app.admin.DevicePolicyManager.ACTION_PROVISION_MANAGED_PROFILE;

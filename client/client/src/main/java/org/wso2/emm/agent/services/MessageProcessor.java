@@ -17,7 +17,6 @@
  */
 package org.wso2.emm.agent.services;
 
-import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.util.Log;
 
@@ -68,11 +67,8 @@ public class MessageProcessor implements APIResultCallBack {
 	private ObjectMapper mapper;
 	private boolean isWipeTriggered = false;
 	private boolean isRebootTriggered = false;
-	private int operationId;
 	private boolean isUpgradeTriggered = false;
 	private boolean isShellCommandTriggered = false;
-	private DevicePolicyManager devicePolicyManager;
-	private static final int ACTIVATION_REQUEST = 47;
 	private static final String ERROR_STATE = "ERROR";
 	private static final String COMPLETE_STATE = "COMPLETED";
 	private String shellCommand = null;
@@ -90,8 +86,6 @@ public class MessageProcessor implements APIResultCallBack {
 		mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-		this.devicePolicyManager =
-				(DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
 
 		if (deviceId == null) {
 			DeviceInfo deviceInfo = new DeviceInfo(context.getApplicationContext());
@@ -159,43 +153,72 @@ public class MessageProcessor implements APIResultCallBack {
 
 		String requestParams;
 		ObjectMapper mapper = new ObjectMapper();
-        int appInstallOperationId = 0;
-		int appUninstallOperationId = 0;
+		int appInstallOperationId;
+		int appUninstallOperationId;
 		int firmwareUpgradeOperationId = 0;
 		try {
-			requestParams =  mapper.writeValueAsString(replyPayload);
+			if (Preference.getBoolean(context, context.getResources().getString(R.string.shared_pref_reboot_done))) {
+				if (replyPayload == null) {
+					replyPayload = new ArrayList<>();
+				}
+				int lastRebootOperationId = Preference.getInt(context, context.getResources().getString(R.string.shared_pref_reboot_op_id));
+				for (org.wso2.emm.agent.beans.Operation operation : replyPayload) {
+					if (lastRebootOperationId == operation.getId()) {
+						replyPayload.remove(operation);
+						break;
+					}
+				}
+
+				JSONObject result = new JSONObject();
+				result.put(context.getResources().getString(R.string.operation_status), Constants.SYSTEM_APP_ENABLED);
+
+				org.wso2.emm.agent.beans.Operation rebootOperation = new org.wso2.emm.agent.beans.Operation();
+				rebootOperation.setId(lastRebootOperationId);
+				rebootOperation.setCode(Constants.Operation.REBOOT);
+				rebootOperation.setPayLoad(result.toString());
+				rebootOperation.setStatus(context.getResources().getString(R.string.operation_value_completed));
+				replyPayload.add(rebootOperation);
+
+				Preference.removePreference(context, context.getResources().getString(R.string.shared_pref_reboot_done));
+				Preference.removePreference(context, context.getResources().getString(R.string.shared_pref_reboot_op_id));
+			}
 			if (replyPayload != null) {
 				for (org.wso2.emm.agent.beans.Operation operation : replyPayload) {
-					if (operation.getCode().equals(Constants.Operation.WIPE_DATA) && !operation.getStatus().
-							equals(ERROR_STATE)) {
+					if (operation == null) {
+						continue;
+					}
+					if (Constants.Operation.WIPE_DATA.equals(operation.getCode())
+							&& !ERROR_STATE.equals(operation.getStatus())) {
 						isWipeTriggered = true;
-					} else if (operation.getCode().equals(Constants.Operation.REBOOT) && !operation.getStatus().
-							equals(ERROR_STATE)) {
+					} else if (Constants.Operation.REBOOT.equals(operation.getCode()) && context.getResources()
+							.getString(R.string.operation_value_pending).equals(operation.getStatus())) {
+						operation.setStatus(context.getResources().getString(R.string.operation_value_progress));
 						isRebootTriggered = true;
-					} else if (operation.getCode().equals(Constants.Operation.UPGRADE_FIRMWARE)) {
-						if(!operation.getStatus().equals(COMPLETE_STATE) && !operation.getStatus().equals(ERROR_STATE))
-						Log.i(TAG, "operation status at the moment is " + operation.getStatus());
+					} else if (Constants.Operation.UPGRADE_FIRMWARE.equals(operation.getCode())) {
+						if (!COMPLETE_STATE.equals(operation.getStatus())
+								&& !ERROR_STATE.equals(operation.getStatus())) {
+							Log.i(TAG, "operation status at the moment is " + operation.getStatus());
+						}
 						//Initially when the operation status is In Progress, 'isUpgradeTriggered'
 						// is set to 'true' to call the system app. After initial call, to prevent
 						// calling system app again and again for the same operation Id following
 						// check is added.
 						int opId = Preference.getInt(context, "firmwareOperationId");
-						if(opId == operation.getId()){
-							isUpgradeTriggered = false;
-						} else {
-							isUpgradeTriggered = true;
-						}
+						isUpgradeTriggered = opId != operation.getId();
 						Preference.putInt(context, "firmwareOperationId", operation.getId());
 						//Operation Id of the received replypayload is stored
 						firmwareUpgradeOperationId = operation.getId();
-					} else if (operation.getCode().equals(Constants.Operation.EXECUTE_SHELL_COMMAND) && !operation.getStatus().
-							equals(ERROR_STATE)) {
-						isShellCommandTriggered = true;
-						try {
-							JSONObject payload = new JSONObject(operation.getPayLoad().toString());
-							shellCommand = (String) payload.get(context.getResources().getString(R.string.shared_pref_command));
-						} catch (JSONException e) {
-							throw new AndroidAgentException("Invalid JSON format.", e);
+					} else if (Constants.Operation.EXECUTE_SHELL_COMMAND.equals(operation.getCode())
+							&& !ERROR_STATE.equals(operation.getStatus())) {
+						if (operation.getPayLoad() != null) {
+							try {
+								JSONObject payload = new JSONObject(operation.getPayLoad().toString());
+								shellCommand = (String) payload.get(context.getResources()
+										.getString(R.string.shared_pref_command));
+								isShellCommandTriggered = true;
+							} catch (JSONException e) {
+								throw new AndroidAgentException("Invalid JSON format.", e);
+							}
 						}
 					}
 				}
@@ -269,7 +292,8 @@ public class MessageProcessor implements APIResultCallBack {
 						.getString(R.string.operation_value_error);
 				applicationUninstallOperationMessage = "App uninstallation unresponsive. Hence aborted.";
 				Preference.putLong(context, Constants.PreferenceFlag.UNINSTALLATION_INITIATED_AT, 0);
-				Log.e(TAG, "Clearing app uninstall request as it is not responsive.");
+				Log.e(TAG, "Clearing app uninstall request " + appUninstallOperationId +
+						" as it is not responsive.");
 			}
 
 			if (applicationUninstallOperationStatus != null && appUninstallOperationId != 0
@@ -277,6 +301,7 @@ public class MessageProcessor implements APIResultCallBack {
 				ApplicationManager appMgt = new ApplicationManager(context);
 				Operation applicationOperation = new Operation();
 				applicationOperation.setId(appUninstallOperationId);
+				applicationOperation.setCode(applicationUninstallOperationCode);
 				applicationOperation = appMgt.getApplicationStatus(applicationOperation,
 						applicationUninstallOperationStatus, applicationUninstallOperationMessage);
 
@@ -329,7 +354,8 @@ public class MessageProcessor implements APIResultCallBack {
 					Preference.putLong(context, Constants.PreferenceFlag.DOWNLOAD_INITIATED_AT, 0);
 					Preference.putString(context,
 							Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS, null);
-					Log.e(TAG, "Clearing app download request as it is not responsive.");
+					Log.e(TAG, "Clearing app download request " + appInstallOperationId +
+							" as it is not responsive.");
 				} else if (downloadInitiatedAt == 0) {
 					// Setting download initiated timestamp as it is not set already.
 					Preference.putLong(context, Constants.PreferenceFlag.DOWNLOAD_INITIATED_AT,
@@ -349,7 +375,8 @@ public class MessageProcessor implements APIResultCallBack {
 					Preference.putLong(context, Constants.PreferenceFlag.INSTALLATION_INITIATED_AT, 0);
 					Preference.putString(context,
 							Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS, null);
-					Log.e(TAG, "Clearing previous app installation request as it is not responsive.");
+					Log.e(TAG, "Clearing previous app installation request " + appInstallOperationId +
+							" as it is not responsive.");
 				} else if (installInitiatedAt == 0) {
 					// Setting installation initiated timestamp as it is not set already.
 					Preference.putLong(context, Constants.PreferenceFlag.INSTALLATION_INITIATED_AT,
@@ -408,6 +435,8 @@ public class MessageProcessor implements APIResultCallBack {
 			throw new AndroidAgentException("Issue in json generation", e);
 		} catch (IOException e) {
 			throw new AndroidAgentException("Issue in parsing stream", e);
+		} catch (JSONException e) {
+			throw new AndroidAgentException("Issue in adding value to JSON", e);
 		}
 		if (Constants.DEBUG_MODE_ENABLED) {
 			Log.d(TAG, "Reply Payload: " + requestParams);
@@ -448,7 +477,11 @@ public class MessageProcessor implements APIResultCallBack {
 			applicationOperation.setCode(appInstallRequest.getApplicationOperationCode());
 			Log.d(TAG, "Try to start app installation from queue. Operation Id " +
 					appInstallRequest.getApplicationOperationId());
-			applicationManager.installApp(appInstallRequest.getAppUrl(), null, applicationOperation);
+			try {
+				applicationManager.installApp(appInstallRequest.getAppUrl(), null, applicationOperation);
+			} catch (AndroidAgentException e) {
+				Log.e(TAG, "This is very unlikely to happen since schedule is null");
+			}
 		}
 	}
 

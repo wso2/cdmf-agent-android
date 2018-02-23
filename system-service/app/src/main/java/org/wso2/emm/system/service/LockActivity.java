@@ -2,7 +2,6 @@ package org.wso2.emm.system.service;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -63,11 +62,8 @@ public class LockActivity extends Activity {
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Hard lock is disabled");
         }
-        Intent intent = new Intent(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_HOME);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                        Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+        finish();
+
     }
 
     @Override

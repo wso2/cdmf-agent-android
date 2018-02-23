@@ -211,6 +211,9 @@ public class EMMSystemService extends IntentService {
                         case Constants.Operation.GET_FIRMWARE_UPGRADE_DOWNLOAD_PROGRESS:
                             doTask(operationCode);
                             break;
+                        case Constants.Operation.TRIGGER_HEARTBEAT:
+                            CommonUtils.callAgentApp(context, Constants.Operation.TRIGGER_HEARTBEAT, 0, null);
+                            break;
                         default:
                             Log.e(TAG, "Invalid operation code: " + operationCode);
                             break;
@@ -709,10 +712,19 @@ public class EMMSystemService extends IntentService {
     }
 
     private void disableHardLock() {
-        Intent intent = new Intent(context, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
+        Log.i(TAG, "Disabling hard lock");
+
+        Thread t1 = new Thread() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(context, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
                         Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
+
+                startActivityAsUser(intent, android.os.Process.myUserHandle());
+            }
+        };
+        t1.start();
     }
 
     private void publishFirmwareBuildDate() {

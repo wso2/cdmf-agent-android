@@ -17,8 +17,6 @@
  */
 package org.wso2.emm.agent.services;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -42,16 +40,19 @@ import java.util.Locale;
  * notification service at device startup.
  */
 public class DeviceStartupIntentReceiver extends BroadcastReceiver {
-	private static final int DEFAULT_TIME_MILLISECONDS = 0;
-	private static final int DEFAULT_REQUEST_CODE = 0;
-	public static final int DEFAULT_INDEX = 0;
+
 	public static final int DEFAULT_ID = -1;
-	public static final int DEFAULT_INTERVAL = 30000;
 	private Resources resources;
     private static final String TAG = "DeviceStartupIntent";
 
 	@Override
 	public void onReceive(final Context context, Intent intent) {
+		this.resources = context.getApplicationContext().getResources();
+		int lastRebootOperationId = Preference.getInt(context, resources.getString(R.string.shared_pref_reboot_op_id));
+		if (lastRebootOperationId != 0) {
+			Preference.putBoolean(context, resources.getString(R.string.shared_pref_reboot_done), true);
+		}
+
 		setRecurringAlarm(context.getApplicationContext());
 		if(!EventRegistry.eventListeningStarted) {
 			EventRegistry registerEvent = new EventRegistry(context.getApplicationContext());
@@ -64,7 +65,6 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 	 * @param context - Application context.
 	 */
 	private void setRecurringAlarm(Context context) {
-		this.resources = context.getApplicationContext().getResources();
 		String mode = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
 		boolean isLocked = Preference.getBoolean(context, Constants.IS_LOCKED);
 		String lockMessage = Preference.getString(context, Constants.LOCK_MESSAGE);
@@ -91,30 +91,13 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 			}
 		}
 
-		int interval = Preference.getInt(context, context.getResources().getString(R.string.shared_pref_frequency));
-		if(interval == DEFAULT_INDEX){
-			interval = DEFAULT_INTERVAL;
-		}
-
 		if(mode == null) {
 			mode = Constants.NOTIFIER_LOCAL;
 		}
 
 		if (Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED) && Constants.NOTIFIER_LOCAL.equals(
 				mode.trim().toUpperCase(Locale.ENGLISH))) {
-			long startTime =  DEFAULT_TIME_MILLISECONDS;
-
-			Intent alarmIntent = new Intent(context, AlarmReceiver.class);
-			PendingIntent recurringAlarmIntent =
-					PendingIntent.getBroadcast(context,
-					                           DEFAULT_REQUEST_CODE,
-					                           alarmIntent,
-					                           PendingIntent.FLAG_CANCEL_CURRENT);
-			AlarmManager alarmManager =
-					(AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, startTime,
-			                          interval, recurringAlarmIntent);
-			Log.d(TAG, "Setting up alarm manager for polling every " + interval + " milliseconds.");
+			LocalNotification.startPolling(context);
 		}
 	}
 

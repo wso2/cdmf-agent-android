@@ -314,12 +314,14 @@ public class ApplicationManager {
      * @param schedule - If update/installation is scheduled, schedule information should be passed.
      * @param operation - App installation operation.
      */
-    public void installApp(String url, String schedule, Operation operation) {
+    public void installApp(String url, String schedule, Operation operation) throws AndroidAgentException {
         if (schedule != null && !schedule.trim().isEmpty() && !schedule.equals("undefined")) {
             try {
                 AlarmUtils.setOneTimeAlarm(context, schedule, Constants.Operation.INSTALL_APPLICATION, operation, url, null);
             } catch (ParseException e) {
-                Log.e(TAG, "One time alarm time string parsing failed." + e);
+                String message = "Scheduling failed due to " + e.getMessage();
+                Log.e(TAG, message, e);
+                throw new AndroidAgentException(message, e);
             }
             return; //Will call installApp method again upon alarm.
         }
@@ -336,7 +338,8 @@ public class ApplicationManager {
                     R.string.app_install_code));
 
             if (operationId == operation.getId()) {
-                Log.w(TAG, "Ignoring received operation as it has the same operation ID with ongoing operation.");
+                Log.w(TAG, "Ignoring received operation " + operationId +
+                        " as it has the same operation ID with ongoing operation.");
                 return; //No point of putting same operation again to the pending queue. Hence ignoring.
             }
 
@@ -447,36 +450,15 @@ public class ApplicationManager {
      */
     public void uninstallApplication(String packageName, Operation operation, String schedule)
             throws AndroidAgentException {
-        if (packageName != null &&
-                !packageName.contains(resources.getString(R.string.application_package_prefix))) {
-            packageName = resources.getString(R.string.application_package_prefix) + packageName;
-        }
-
-        if(!this.isPackageInstalled(packageName)){
-            String message = "Package is not installed in the device or invalid package name";
-            if (operation != null) {
-                Preference.putInt(context,
-                        context.getResources().getString(R.string.app_uninstall_id),
-                        operation.getId());
-                Preference.putString(context,
-                        context.getResources().getString(R.string.app_uninstall_code),
-                        operation.getCode());
-                Preference.putString(context,
-                        context.getResources().getString(R.string.app_uninstall_status),
-                        Constants.AppState.UNINSTALL_FAILED);
-                Preference.putString(context,
-                        context.getResources().getString(R.string.app_uninstall_failed_message),
-                        message);
-            }
-            throw new AndroidAgentException("Package is not installed in the device");
-        }
 
         if (schedule != null && !schedule.trim().isEmpty() && !schedule.equals("undefined")) {
             try {
                 AlarmUtils.setOneTimeAlarm(context, schedule,
                         Constants.Operation.UNINSTALL_APPLICATION, operation, null, packageName);
             } catch (ParseException e) {
-                Log.e(TAG, "One time alarm time string parsing failed." + e);
+                String message = "Scheduling failed due to " + e.getMessage();
+                Log.e(TAG, message, e);
+                throw new AndroidAgentException(message, e);
             }
             return; //Will call uninstallApplication method again upon alarm.
         }
@@ -490,7 +472,8 @@ public class ApplicationManager {
                     R.string.app_uninstall_code));
 
             if (operationId == operation.getId()) {
-                Log.w(TAG, "Ignoring received operation as it has the same operation ID with ongoing operation.");
+                Log.w(TAG, "Ignoring received operation " + operationId +
+                        " as it has the same operation ID with ongoing operation.");
                 return; //No point of putting same operation again to the pending queue. Hence ignoring.
             }
 
@@ -517,6 +500,30 @@ public class ApplicationManager {
                     context.getResources().getString(R.string.app_uninstall_code), operationCode);
             Preference.putLong(context, Constants.PreferenceFlag.UNINSTALLATION_INITIATED_AT,
                     Calendar.getInstance().getTimeInMillis());
+        }
+
+        if (packageName != null &&
+                !packageName.contains(resources.getString(R.string.application_package_prefix))) {
+            packageName = resources.getString(R.string.application_package_prefix) + packageName;
+        }
+
+        if(!this.isPackageInstalled(packageName)){
+            String message = "Package '" + packageName + "' is not installed in the device or invalid package name";
+            if (operation != null) {
+                Preference.putInt(context,
+                        context.getResources().getString(R.string.app_uninstall_id),
+                        operation.getId());
+                Preference.putString(context,
+                        context.getResources().getString(R.string.app_uninstall_code),
+                        operation.getCode());
+                Preference.putString(context,
+                        context.getResources().getString(R.string.app_uninstall_status),
+                        Constants.AppState.UNINSTALL_FAILED);
+                Preference.putString(context,
+                        context.getResources().getString(R.string.app_uninstall_failed_message),
+                        message);
+            }
+            throw new AndroidAgentException("Package '" + packageName + "' is not installed in the device");
         }
 
         if (Constants.SYSTEM_APP_ENABLED) {

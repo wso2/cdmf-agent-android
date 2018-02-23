@@ -17,17 +17,6 @@
  */
 package org.wso2.emm.agent.services;
 
-import java.util.Map;
-
-import org.wso2.emm.agent.AndroidAgentException;
-import org.wso2.emm.agent.R;
-import org.wso2.emm.agent.beans.ServerConfig;
-import org.wso2.emm.agent.proxy.interfaces.APIResultCallBack;
-import org.wso2.emm.agent.proxy.utils.Constants.HTTP_METHODS;
-import org.wso2.emm.agent.utils.Constants;
-import org.wso2.emm.agent.utils.Preference;
-import org.wso2.emm.agent.utils.CommonUtils;
-
 import android.app.admin.DeviceAdminReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -35,6 +24,17 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.util.Log;
 import android.widget.Toast;
+
+import org.wso2.emm.agent.AndroidAgentException;
+import org.wso2.emm.agent.R;
+import org.wso2.emm.agent.beans.ServerConfig;
+import org.wso2.emm.agent.proxy.interfaces.APIResultCallBack;
+import org.wso2.emm.agent.proxy.utils.Constants.HTTP_METHODS;
+import org.wso2.emm.agent.utils.CommonUtils;
+import org.wso2.emm.agent.utils.Constants;
+import org.wso2.emm.agent.utils.Preference;
+
+import java.util.Map;
 
 /**
  * This is the component that is responsible for actual device administration.

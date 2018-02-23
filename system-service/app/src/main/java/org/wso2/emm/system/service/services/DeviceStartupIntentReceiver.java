@@ -21,14 +21,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.os.Debug;
 import android.util.Log;
+
 import org.wso2.emm.system.service.R;
-import org.wso2.emm.system.service.api.OTADownload;
-import org.wso2.emm.system.service.api.OTAServerManager;
 import org.wso2.emm.system.service.utils.AlarmUtils;
 import org.wso2.emm.system.service.utils.Constants;
 import org.wso2.emm.system.service.utils.Preference;
+
 import java.text.ParseException;
 
 /**
@@ -44,6 +43,7 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 	public void onReceive(final Context context, Intent intent) {
 
 		if ("android.intent.action.BOOT_COMPLETED".equals(intent.getAction())) {
+			Log.i(TAG, "Device rebooted; checking if OTA download needs to be resumed");
 			Intent pushIntent = new Intent(context, OTADownloadService.class);
 			context.startService(pushIntent);
 		}

@@ -18,9 +18,6 @@
 
 package org.wso2.emm.agent.utils;
 
-import android.app.Service;
-import android.util.Log;
-
 /**
  * This class holds all the constants used throughout the application.
  */
@@ -61,7 +58,7 @@ public class Constants {
 	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 	public static final int APP_DOWNLOAD_TIMEOUT = 30 * 60 * 1000;
 	public static final int APP_INSTALL_TIMEOUT = 10 * 60 * 1000;
-	public static final int APP_UNINSTALL_TIMEOUT = 1 * 60 * 1000;
+	public static final int APP_UNINSTALL_TIMEOUT = 10 * 60 * 1000;
 
 	// This is used to skip the license
 	public static final boolean SKIP_LICENSE = false;
@@ -349,6 +346,7 @@ public class Constants {
 		public static final String FIRMWARE_INSTALLATION_CANCELED = "FIRMWARE_INSTALLATION_CANCELED";
 		public static final String GET_FIRMWARE_BUILD_DATE = "FIRMWARE_BUILD_DATE";
 		public static final String LOGCAT = "LOGCAT";
+		public static final String TRIGGER_HEARTBEAT = "TRIGGER_HEARTBEAT";
 		public static final String FIRMWARE_UPGRADE_AUTOMATIC_RETRY = "FIRMWARE_UPGRADE_AUTOMATIC_RETRY";
 	}
 

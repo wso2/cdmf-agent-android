@@ -159,8 +159,8 @@ public class MessageProcessor implements APIResultCallBack {
 
 		String requestParams;
 		ObjectMapper mapper = new ObjectMapper();
-        int appInstallOperationId = 0;
-		int appUninstallOperationId = 0;
+		int appInstallOperationId;
+		int appUninstallOperationId;
 		int firmwareUpgradeOperationId = 0;
 		try {
 			if (Preference.getBoolean(context, context.getResources().getString(R.string.shared_pref_reboot_done))) {

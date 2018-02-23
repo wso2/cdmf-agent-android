@@ -467,9 +467,6 @@ public class OTAServerManager {
 
                             if (cursor != null && cursor.moveToFirst()) {
                                 lengthOfFile = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
-                                if (Constants.DEBUG_MODE_ENABLED) {
-                                    Log.d(TAG, "Update package file size:" + lengthOfFile);
-                                }
                             } else {
                                 cursorFixAttempts++;
                                 if (cursor != null) {

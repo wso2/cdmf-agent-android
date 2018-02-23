@@ -58,7 +58,7 @@ public class Constants {
 	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 	public static final int APP_DOWNLOAD_TIMEOUT = 30 * 60 * 1000;
 	public static final int APP_INSTALL_TIMEOUT = 10 * 60 * 1000;
-	public static final int APP_UNINSTALL_TIMEOUT = 1 * 60 * 1000;
+	public static final int APP_UNINSTALL_TIMEOUT = 10 * 60 * 1000;
 
 	// This is used to skip the license
 	public static final boolean SKIP_LICENSE = false;

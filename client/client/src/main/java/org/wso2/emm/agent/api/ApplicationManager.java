@@ -314,12 +314,14 @@ public class ApplicationManager {
      * @param schedule - If update/installation is scheduled, schedule information should be passed.
      * @param operation - App installation operation.
      */
-    public void installApp(String url, String schedule, Operation operation) {
+    public void installApp(String url, String schedule, Operation operation) throws AndroidAgentException {
         if (schedule != null && !schedule.trim().isEmpty() && !schedule.equals("undefined")) {
             try {
                 AlarmUtils.setOneTimeAlarm(context, schedule, Constants.Operation.INSTALL_APPLICATION, operation, url, null);
             } catch (ParseException e) {
-                Log.e(TAG, "One time alarm time string parsing failed." + e);
+                String message = "Scheduling failed due to " + e.getMessage();
+                Log.e(TAG, message, e);
+                throw new AndroidAgentException(message, e);
             }
             return; //Will call installApp method again upon alarm.
         }
@@ -454,7 +456,9 @@ public class ApplicationManager {
                 AlarmUtils.setOneTimeAlarm(context, schedule,
                         Constants.Operation.UNINSTALL_APPLICATION, operation, null, packageName);
             } catch (ParseException e) {
-                Log.e(TAG, "One time alarm time string parsing failed." + e);
+                String message = "Scheduling failed due to " + e.getMessage();
+                Log.e(TAG, message, e);
+                throw new AndroidAgentException(message, e);
             }
             return; //Will call uninstallApplication method again upon alarm.
         }

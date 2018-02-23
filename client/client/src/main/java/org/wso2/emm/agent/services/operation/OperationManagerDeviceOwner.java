@@ -24,7 +24,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
-import android.widget.Toast;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -170,11 +170,17 @@ public class OperationManagerDeviceOwner extends OperationManager {
                     appUrl = data.getString(getContextResources().getString(R.string.app_url));
                     if(data.has(getContextResources().getString(R.string.app_schedule))){
                         schedule = data.getString(getContextResources().getString(R.string.app_schedule));
+                        operation.setOperationResponse("Scheduling to execute at " + schedule);
                     }
                     operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
                     getResultBuilder().build(operation);
-                    getAppList().installApp(appUrl, schedule, operation);
-
+                    try {
+                        getAppList().installApp(appUrl, schedule, operation);
+                    } catch (AndroidAgentException e) {
+                        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+                        operation.setOperationResponse(e.getMessage());
+                        getResultBuilder().build(operation);
+                    }
                 } else if (type.equalsIgnoreCase(getContextResources().getString(R.string.intent_extra_public))) {
                     appUrl = data.getString(getContextResources().getString(R.string.app_identifier));
                     operation.setStatus(getContextResources().getString(R.string.operation_value_progress));

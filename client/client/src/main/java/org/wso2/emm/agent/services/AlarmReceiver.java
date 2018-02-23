@@ -54,7 +54,11 @@ public class AlarmReceiver extends BroadcastReceiver {
                     operation = (Operation) intent.getSerializableExtra(context.getResources()
 							.getString(R.string.alarm_scheduled_operation_payload));
                 }
-				applicationManager.installApp(appUrl, null, operation);
+				try {
+					applicationManager.installApp(appUrl, null, operation);
+				} catch (AndroidAgentException e) {
+					Log.e(TAG, "This is very unlikely to happen since schedule is null");
+				}
 			} else if(operationCode != null && operationCode.trim().equals(Constants.Operation.UNINSTALL_APPLICATION)) {
 				String packageUri = intent.getStringExtra(context.getResources().getString(R.string.app_uri));
                 Operation operation = null;

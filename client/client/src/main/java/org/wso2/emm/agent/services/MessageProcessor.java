@@ -477,7 +477,11 @@ public class MessageProcessor implements APIResultCallBack {
 			applicationOperation.setCode(appInstallRequest.getApplicationOperationCode());
 			Log.d(TAG, "Try to start app installation from queue. Operation Id " +
 					appInstallRequest.getApplicationOperationId());
-			applicationManager.installApp(appInstallRequest.getAppUrl(), null, applicationOperation);
+			try {
+				applicationManager.installApp(appInstallRequest.getAppUrl(), null, applicationOperation);
+			} catch (AndroidAgentException e) {
+				Log.e(TAG, "This is very unlikely to happen since schedule is null");
+			}
 		}
 	}
 

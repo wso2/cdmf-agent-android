@@ -122,7 +122,11 @@ public class ApplicationManagementService extends IntentService implements APIRe
                 break;
             case Constants.Operation.INSTALL_APPLICATION:
                 if (appUri != null) {
-                    applicationManager.installApp(appUri, null, null);
+                    try {
+                        applicationManager.installApp(appUri, null, null);
+                    } catch (AndroidAgentException e) {
+                        Log.e(TAG, "This is very unlikely to happen since schedule is null");
+                    }
                 } else {
                     Toast.makeText(context, context.getResources().getString(R.string.toast_app_installation_failed),
                             Toast.LENGTH_LONG).show();

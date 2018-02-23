@@ -17,13 +17,10 @@
  */
 package org.wso2.emm.agent.services;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.provider.Settings;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -43,11 +40,8 @@ import java.util.Locale;
  * notification service at device startup.
  */
 public class DeviceStartupIntentReceiver extends BroadcastReceiver {
-	private static final int DEFAULT_TIME_MILLISECONDS = 0;
-	private static final int DEFAULT_REQUEST_CODE = 0;
-	public static final int DEFAULT_INDEX = 0;
+
 	public static final int DEFAULT_ID = -1;
-	public static final int DEFAULT_INTERVAL = 30000;
 	private Resources resources;
     private static final String TAG = "DeviceStartupIntent";
 
@@ -59,13 +53,6 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 			Preference.putBoolean(context, resources.getString(R.string.shared_pref_reboot_done), true);
 		}
 
-		boolean isDeviceProvisioned = Settings.Global.getInt(context.getContentResolver(), Settings.Global.DEVICE_PROVISIONED, 0) == 1;
-        if (!isDeviceProvisioned && !intent.getAction().equals("com.verifone.wso2.START_MDM")){
-            Log.d(TAG, "Device not yet provisioned. MDM agent not started.");
-            return;
-        }
-
-        Log.d(TAG, "Device already provisioned. MDM agent starting.");
 		setRecurringAlarm(context.getApplicationContext());
 		if(!EventRegistry.eventListeningStarted) {
 			EventRegistry registerEvent = new EventRegistry(context.getApplicationContext());
@@ -104,30 +91,13 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 			}
 		}
 
-		int interval = Preference.getInt(context, context.getResources().getString(R.string.shared_pref_frequency));
-		if(interval == DEFAULT_INDEX){
-			interval = DEFAULT_INTERVAL;
-		}
-
 		if(mode == null) {
 			mode = Constants.NOTIFIER_LOCAL;
 		}
 
 		if (Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED) && Constants.NOTIFIER_LOCAL.equals(
 				mode.trim().toUpperCase(Locale.ENGLISH))) {
-			long startTime =  DEFAULT_TIME_MILLISECONDS;
-
-			Intent alarmIntent = new Intent(context, AlarmReceiver.class);
-			PendingIntent recurringAlarmIntent =
-					PendingIntent.getBroadcast(context,
-					                           DEFAULT_REQUEST_CODE,
-					                           alarmIntent,
-					                           PendingIntent.FLAG_CANCEL_CURRENT);
-			AlarmManager alarmManager =
-					(AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, startTime,
-			                          interval, recurringAlarmIntent);
-			Log.d(TAG, "Setting up alarm manager for polling every " + interval + " milliseconds.");
+			LocalNotification.startPolling(context);
 		}
 	}
 

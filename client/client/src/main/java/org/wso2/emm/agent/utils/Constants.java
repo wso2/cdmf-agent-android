@@ -18,9 +18,6 @@
 
 package org.wso2.emm.agent.utils;
 
-import android.app.Service;
-import android.util.Log;
-
 /**
  * This class holds all the constants used throughout the application.
  */

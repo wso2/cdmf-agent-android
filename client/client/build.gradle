@@ -86,12 +86,12 @@ android {
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
             // System service specific configurations.
             // SYSTEM_APP_ENABLED: This is to set if the system app will also be installed.
-            // If this is set org.wso2.emm.system.service must also be available in the device.
+            // If this is set org.wso2.iot.system.service must also be available in the device.
             buildConfigField "boolean", "SYSTEM_APP_ENABLED", "false"
             // SYSTEM_SERVICE_PACKAGE: If system service app is in use, the package name of it is
             // defined here so that the agent knows the package name of the system service to
             // contact.
-            buildConfigField "String", "SYSTEM_SERVICE_PACKAGE", "\"org.wso2.emm.system.service\""
+            buildConfigField "String", "SYSTEM_SERVICE_PACKAGE", "\"org.wso2.iot.system.service\""
             // HIDE_UNREGISTER_BUTTON: Hide the unregister button after enrollment so that  the
             // unenrollment can only be done remotely.
             buildConfigField "boolean", "HIDE_UNREGISTER_BUTTON", "false"
@@ -213,12 +213,12 @@ android {
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
             // System service specific configurations.
             // SYSTEM_APP_ENABLED: This is to set if the system app will also be installed.
-            // If this is set org.wso2.emm.system.service must also be available in the device.
+            // If this is set org.wso2.iot.system.service must also be available in the device.
             buildConfigField "boolean", "SYSTEM_APP_ENABLED", "false"
             // SYSTEM_SERVICE_PACKAGE: If system service app is in use, the package name of it is
             // defined here so that the agent knows the package name of the system service to
             // contact.
-            buildConfigField "String", "SYSTEM_SERVICE_PACKAGE", "\"org.wso2.emm.system.service\""
+            buildConfigField "String", "SYSTEM_SERVICE_PACKAGE", "\"org.wso2.iot.system.service\""
             // HIDE_UNREGISTER_BUTTON: Hide the unregister button after enrollment so that  the
             // unenrollment can only be done remotely.
             buildConfigField "boolean", "HIDE_UNREGISTER_BUTTON", "false"
@@ -342,7 +342,7 @@ android {
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
             // System service specific configurations.
             // SYSTEM_APP_ENABLED: This is to set if the system app will also be installed.
-            // If this is set org.wso2.emm.system.service must also be available in the device.
+            // If this is set org.wso2.iot.system.service must also be available in the device.
             buildConfigField "boolean", "SYSTEM_APP_ENABLED", "true"
             // SYSTEM_SERVICE_PACKAGE: If system service app is in use, the package name of it is
             // defined here so that the agent knows the package name of the system service to
@@ -473,7 +473,7 @@ android {
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
             // System service specific configurations.
             // SYSTEM_APP_ENABLED: This is to set if the system app will also be installed.
-            // If this is set org.wso2.emm.system.service must also be available in the device.
+            // If this is set org.wso2.iot.system.service must also be available in the device.
             buildConfigField "boolean", "SYSTEM_APP_ENABLED", "false"
             // SYSTEM_SERVICE_PACKAGE: If system service app is in use, the package name of it is
             // defined here so that the agent knows the package name of the system service to
@@ -602,7 +602,7 @@ android {
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
             // System service specific configurations.
             // SYSTEM_APP_ENABLED: This is to set if the system app will also be installed.
-            // If this is set org.wso2.emm.system.service must also be available in the device.
+            // If this is set org.wso2.iot.system.service must also be available in the device.
             buildConfigField "boolean", "SYSTEM_APP_ENABLED", "false"
             // SYSTEM_SERVICE_PACKAGE: If system service app is in use, the package name of it is
             // defined here so that the agent knows the package name of the system service to

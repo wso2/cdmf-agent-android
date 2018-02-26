@@ -425,6 +425,10 @@ public class CommonUtils {
 					} catch (JSONException e) {
 						Log.e(TAG, "Could not parse Firmware upgrade operation", e);
 					}
+					if (Constants.DEBUG_MODE_ENABLED) {
+						Log.d(TAG, "Firmware Upgrade Operation Id that is sent to the system app : " + Preference.getInt
+								(context, "firmwareOperationId"));
+					}
 					intent.putExtra("operationId", Preference.getInt(context, "firmwareOperationId"));
 				}
 				intent.putExtra("command", command);

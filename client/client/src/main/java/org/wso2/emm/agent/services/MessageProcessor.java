@@ -72,6 +72,7 @@ public class MessageProcessor implements APIResultCallBack {
 	private static final String ERROR_STATE = "ERROR";
 	private static final String COMPLETE_STATE = "COMPLETED";
 	private String shellCommand = null;
+	private List<Integer> queuedFirmwareOperationlist = new ArrayList<>();
 
 	/**
 	 * Local notification message handler.
@@ -195,34 +196,91 @@ public class MessageProcessor implements APIResultCallBack {
 						operation.setStatus(context.getResources().getString(R.string.operation_value_progress));
 						isRebootTriggered = true;
 					} else if (Constants.Operation.UPGRADE_FIRMWARE.equals(operation.getCode())) {
-						if (!COMPLETE_STATE.equals(operation.getStatus())
-								&& !ERROR_STATE.equals(operation.getStatus())) {
-							Log.i(TAG, "operation status at the moment is " + operation.getStatus());
-						}
-						//Initially when the operation status is In Progress, 'isUpgradeTriggered'
-						// is set to 'true' to call the system app. After initial call, to prevent
-						// calling system app again and again for the same operation Id following
-						// check is added.
-						int opId = Preference.getInt(context, "firmwareOperationId");
-						isUpgradeTriggered = opId != operation.getId();
-						Preference.putInt(context, "firmwareOperationId", operation.getId());
-						//Operation Id of the received replypayload is stored
-						firmwareUpgradeOperationId = operation.getId();
-					} else if (Constants.Operation.EXECUTE_SHELL_COMMAND.equals(operation.getCode())
-							&& !ERROR_STATE.equals(operation.getStatus())) {
-						if (operation.getPayLoad() != null) {
-							try {
-								JSONObject payload = new JSONObject(operation.getPayLoad().toString());
-								shellCommand = (String) payload.get(context.getResources()
-										.getString(R.string.shared_pref_command));
-								isShellCommandTriggered = true;
-							} catch (JSONException e) {
-								throw new AndroidAgentException("Invalid JSON format.", e);
+                        if ((!COMPLETE_STATE.equals(operation.getStatus()) && !ERROR_STATE.equals(operation.getStatus
+                                ()))) {
+							//All the IN_PROGRESS state firmware operations should will come into this block
+							int opId = Preference.getInt(context, "firmwareOperationId");
+							int erroneousId = Preference.getInt(context, "LastErroneousFirmwareOperationId");
+							if (Constants.DEBUG_MODE_ENABLED) {
+								Log.d(TAG, "operation status at the moment is " + operation.getStatus());
+                                Log.d(TAG, "Received Operation Id : " + operation.getId());
+                                Log.d(TAG, "Current Operation Id : " + Preference.getInt(context,
+                                        "firmwareOperationId"));
+                                Log.d(TAG, "Last operation Id with ERROR state : " + Preference.getInt(context,
+                                        "LastErroneousFirmwareOperationId"));
 							}
+                            //Initially when the operation status is In Progress, 'isUpgradeTriggered'
+                            // is set to 'true' to call the system app. After initial call, to prevent
+                            // calling system app again and again for the same operation Id following
+                            // checks are added.
+							if(erroneousId!= 0 && operation.getId() == erroneousId){
+								isUpgradeTriggered = false;
+							} else if (opId == operation.getId()){
+								if (Constants.DEBUG_MODE_ENABLED) {
+									Log.d(TAG, "isUpgradeTriggered is set to false");
+								}
+								isUpgradeTriggered = false;
+							} else if (opId == 0) {
+								Preference.putInt(context, "firmwareOperationId", operation.getId());
+								isUpgradeTriggered = true;
+							} else if (operation.getId() != 0 && operation.getId() != opId){
+								Log.e(TAG, "This is a new Firmware upgrade operation but one operation is still on " +
+                                        "going");
+								queuedFirmwareOperationlist.add(operation.getId());
+							}
+                            //Operation Id of the received reply payload is stored
+                            firmwareUpgradeOperationId = operation.getId();
+						}
+					} else if (Constants.Operation.EXECUTE_SHELL_COMMAND.equals(operation.getCode()) && !ERROR_STATE
+                            .equals(operation.getStatus())){
+						isShellCommandTriggered = true;
+						try {
+							JSONObject payload = new JSONObject(operation.getPayLoad().toString());
+							shellCommand = (String) payload.get(context.getResources().getString(R.string.shared_pref_command));
+						} catch (JSONException e) {
+							throw new AndroidAgentException("Invalid JSON format.", e);
 						}
 					}
 				}
 			}
+
+			if(ERROR_STATE.equals(Preference.getString(context, context.getResources().getString(
+					R.string.firmware_upgrade_response_status)))){
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    Log.d(TAG, "Firmware operation state is ERROR");
+                }
+				Preference.putInt(context, "LastErroneousFirmwareOperationId", Preference.getInt(context,
+						"firmwareOperationId"));
+				Preference.putInt(context, "firmwareOperationId", 0);
+				isUpgradeTriggered = false;
+			}
+
+			if (COMPLETE_STATE.equals(Preference.getString(context, context.getResources().getString(R.string
+					.firmware_upgrade_response_status)))) {
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    Log.d(TAG, "Firmware operation state is SUCCESSFUL");
+                }
+				Preference.putInt(context, "firmwareOperationId", 0);
+				isUpgradeTriggered = false;
+			}
+
+			if (!queuedFirmwareOperationlist.isEmpty()){
+				for (int queuedOperationId : queuedFirmwareOperationlist) {
+					org.wso2.emm.agent.beans.Operation firmwareOperation = new org.wso2.emm.agent.beans.Operation();
+					firmwareOperation.setId(queuedOperationId);
+					firmwareOperation.setCode(Constants.Operation.UPGRADE_FIRMWARE);
+					firmwareOperation.setStatus(ERROR_STATE);
+					firmwareOperation.setOperationResponse("There is an already running firmware upgrade operation");
+					if (replyPayload != null) {
+						replyPayload.add(firmwareOperation);
+					} else {
+						replyPayload = new ArrayList<>();
+						replyPayload.add(firmwareOperation);
+					}
+				}
+				queuedFirmwareOperationlist = new ArrayList<>();
+			}
+
 			int firmwareOperationId = Preference.getInt(context, context.getResources().getString(
 					R.string.firmware_upgrade_response_id));
 
@@ -237,10 +295,6 @@ public class MessageProcessor implements APIResultCallBack {
 						R.string.firmware_upgrade_response_status)));
 				boolean isRetryPending = Preference.getBoolean(context, context.getResources().
 						getString(R.string.firmware_upgrade_retry_pending));
-				if (ERROR_STATE.equals(Preference.getString(context, context.getResources().getString(
-						R.string.firmware_upgrade_response_status)))) {
-					isUpgradeTriggered = false;
-				}
 				if (isRetryPending) {
 					isUpgradeTriggered = true;
 					int retryCount = Preference.getInt(context, context.getResources().
@@ -261,8 +315,7 @@ public class MessageProcessor implements APIResultCallBack {
 				Preference.putInt(context, context.getResources().getString(
 						R.string.firmware_upgrade_response_id), 0);
 				Preference.putString(context, context.getResources().getString(
-						R.string.firmware_upgrade_response_status), context.getResources().getString(
-						R.string.operation_value_error));
+						R.string.firmware_upgrade_response_status), null);
 				Preference.putString(context, context.getResources().getString(
 						R.string.firmware_upgrade_response_message), null);
 			}
@@ -531,6 +584,9 @@ public class MessageProcessor implements APIResultCallBack {
 
 			if (isUpgradeTriggered) {
 				String schedule = Preference.getString(context, context.getResources().getString(R.string.pref_key_schedule));
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    Log.d(TAG, "Firmware upgrade operation passed to system app");
+                }
 				CommonUtils.callSystemApp(context, Constants.Operation.UPGRADE_FIRMWARE, schedule, null);
 			}
 

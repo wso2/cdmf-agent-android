@@ -231,8 +231,8 @@ public class MessageProcessor implements APIResultCallBack {
                             //Operation Id of the received reply payload is stored
                             firmwareUpgradeOperationId = operation.getId();
 						}
-					} else if (operation.getCode().equals(Constants.Operation.EXECUTE_SHELL_COMMAND) && !operation
-                            .getStatus().equals(ERROR_STATE)) {
+					} else if (Constants.Operation.EXECUTE_SHELL_COMMAND.equals(operation.getCode()) && !ERROR_STATE
+                            .equals(operation.getStatus())){
 						isShellCommandTriggered = true;
 						try {
 							JSONObject payload = new JSONObject(operation.getPayLoad().toString());

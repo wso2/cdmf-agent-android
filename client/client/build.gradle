@@ -128,7 +128,7 @@ android {
             buildConfigField("boolean", "DEBUG_MODE_ENABLED", "false")
             // Under COSU mode, this will enable an area in the screen to exit from screen pinned
             // mode. This MUST be set to false in production, if COSU is used.
-            buildConfigField("boolean", "COSU_SECRET_EXIT", "true")
+            buildConfigField("boolean", "COSU_SECRET_EXIT", "false")
         }
         debug {
             debuggable true
@@ -139,7 +139,7 @@ android {
             buildConfigField("boolean", "DEBUG_MODE_ENABLED", "true")
             // Under COSU mode, this will enable an area in the screen to exit from screen pinned
             // mode. This MUST be set to false in production, if COSU is used.
-            buildConfigField("boolean", "COSU_SECRET_EXIT", "false")
+            buildConfigField("boolean", "COSU_SECRET_EXIT", "true")
         }
     }
 
@@ -214,9 +214,6 @@ android {
             buildConfigField("boolean", "LOCATION_PUBLISHING_ENABLED", "false")
             //Collect WiFi scan results
             buildConfigField("boolean", "WIFI_SCANNING_ENABLED", "true")
-
-            // Provide fallback for :iDPProxy library
-            matchingFallbacks = ['standalone']
         }
         autoEnrollmentEnabled {
             dimension "enrollment"

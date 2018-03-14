@@ -23,13 +23,59 @@ import android.content.pm.IPackageDeleteObserver;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static android.content.pm.PackageManager.*;
+import static android.content.pm.PackageManager.DELETE_FAILED_ABORTED;
+import static android.content.pm.PackageManager.DELETE_FAILED_DEVICE_POLICY_MANAGER;
+import static android.content.pm.PackageManager.DELETE_FAILED_INTERNAL_ERROR;
+import static android.content.pm.PackageManager.DELETE_FAILED_OWNER_BLOCKED;
+import static android.content.pm.PackageManager.DELETE_FAILED_USER_RESTRICTED;
+import static android.content.pm.PackageManager.DELETE_SUCCEEDED;
+import static android.content.pm.PackageManager.INSTALL_FAILED_ABORTED;
+import static android.content.pm.PackageManager.INSTALL_FAILED_ALREADY_EXISTS;
+import static android.content.pm.PackageManager.INSTALL_FAILED_CONFLICTING_PROVIDER;
+import static android.content.pm.PackageManager.INSTALL_FAILED_CONTAINER_ERROR;
+import static android.content.pm.PackageManager.INSTALL_FAILED_CPU_ABI_INCOMPATIBLE;
+import static android.content.pm.PackageManager.INSTALL_FAILED_DEXOPT;
+import static android.content.pm.PackageManager.INSTALL_FAILED_DUPLICATE_PACKAGE;
+import static android.content.pm.PackageManager.INSTALL_FAILED_DUPLICATE_PERMISSION;
+import static android.content.pm.PackageManager.INSTALL_FAILED_INSUFFICIENT_STORAGE;
+import static android.content.pm.PackageManager.INSTALL_FAILED_INTERNAL_ERROR;
+import static android.content.pm.PackageManager.INSTALL_FAILED_INVALID_APK;
+import static android.content.pm.PackageManager.INSTALL_FAILED_INVALID_INSTALL_LOCATION;
+import static android.content.pm.PackageManager.INSTALL_FAILED_INVALID_URI;
+import static android.content.pm.PackageManager.INSTALL_FAILED_MEDIA_UNAVAILABLE;
+import static android.content.pm.PackageManager.INSTALL_FAILED_MISSING_FEATURE;
+import static android.content.pm.PackageManager.INSTALL_FAILED_MISSING_SHARED_LIBRARY;
+import static android.content.pm.PackageManager.INSTALL_FAILED_NEWER_SDK;
+import static android.content.pm.PackageManager.INSTALL_FAILED_NO_MATCHING_ABIS;
+import static android.content.pm.PackageManager.INSTALL_FAILED_NO_SHARED_USER;
+import static android.content.pm.PackageManager.INSTALL_FAILED_OLDER_SDK;
+import static android.content.pm.PackageManager.INSTALL_FAILED_PACKAGE_CHANGED;
+import static android.content.pm.PackageManager.INSTALL_FAILED_REPLACE_COULDNT_DELETE;
+import static android.content.pm.PackageManager.INSTALL_FAILED_SHARED_USER_INCOMPATIBLE;
+import static android.content.pm.PackageManager.INSTALL_FAILED_TEST_ONLY;
+import static android.content.pm.PackageManager.INSTALL_FAILED_UID_CHANGED;
+import static android.content.pm.PackageManager.INSTALL_FAILED_UPDATE_INCOMPATIBLE;
+import static android.content.pm.PackageManager.INSTALL_FAILED_USER_RESTRICTED;
+import static android.content.pm.PackageManager.INSTALL_FAILED_VERIFICATION_FAILURE;
+import static android.content.pm.PackageManager.INSTALL_FAILED_VERIFICATION_TIMEOUT;
+import static android.content.pm.PackageManager.INSTALL_FAILED_VERSION_DOWNGRADE;
+import static android.content.pm.PackageManager.INSTALL_PARSE_FAILED_BAD_MANIFEST;
+import static android.content.pm.PackageManager.INSTALL_PARSE_FAILED_BAD_PACKAGE_NAME;
+import static android.content.pm.PackageManager.INSTALL_PARSE_FAILED_BAD_SHARED_USER_ID;
+import static android.content.pm.PackageManager.INSTALL_PARSE_FAILED_CERTIFICATE_ENCODING;
+import static android.content.pm.PackageManager.INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES;
+import static android.content.pm.PackageManager.INSTALL_PARSE_FAILED_MANIFEST_EMPTY;
+import static android.content.pm.PackageManager.INSTALL_PARSE_FAILED_MANIFEST_MALFORMED;
+import static android.content.pm.PackageManager.INSTALL_PARSE_FAILED_NOT_APK;
+import static android.content.pm.PackageManager.INSTALL_PARSE_FAILED_NO_CERTIFICATES;
+import static android.content.pm.PackageManager.INSTALL_PARSE_FAILED_UNEXPECTED_EXCEPTION;
+import static android.content.pm.PackageManager.NO_NATIVE_LIBRARIES;
 
 /**
  * Utility class to hold app operations.
@@ -41,10 +87,12 @@ public class AppUtils {
     private static final int INSTALL_ALL_USERS = 0x00000040;
     private static final int INSTALL_ALLOW_DOWNGRADE = 0x00000080;
     private static final int INSTALL_REPLACE_EXISTING = 0x00000002;
-    public static final int INSTALL_SUCCEEDED = 1;
+    private static final int INSTALL_SUCCEEDED = 1;
     private static final int DEFAULT_STATE_INFO_CODE = 0;
     private static final String INSTALL_FAILED_STATUS = "INSTALL_FAILED";
     private static final String INSTALL_SUCCESS_STATUS = "INSTALLED";
+    private static final String UNINSTALL_FAILED_STATUS = "UNINSTALL_FAILED";
+    private static final String UNINSTALL_SUCCESS_STATUS = "UNINSTALLED";
     private static final String PACKAGE_PREFIX = "package:";
 
     /**
@@ -187,10 +235,11 @@ public class AppUtils {
                                 msg = "INSTALL_FAILED_ABORTED";
                                 break;
                             default:
-                                msg = "UNKNOWN";
+                                msg = "UNKNOWN_ERROR";
                         }
                     }
-                    String error = "Package installation failed due to an internal error with code: " + returnCode + " and message: " + msg;
+                    String error = "Package installation failed due to an internal error with code: " + returnCode +
+                            " and message: " + msg;
                     Log.e(TAG, error);
                     publishAppInstallStatus(context, INSTALL_FAILED_STATUS, error);
                 }
@@ -205,21 +254,43 @@ public class AppUtils {
      * @param context - Application context.
      * @param  packageName - App package name.
      */
-    public static void silentUninstallApp(Context context, String packageName) {
+    public static void silentUninstallApp(final Context context, String packageName) {
         if (packageName != null && packageName.contains(PACKAGE_PREFIX)) {
             packageName = packageName.replace(PACKAGE_PREFIX, "");
         }
-        final String _packageName = packageName;
         PackageManager pm = context.getPackageManager();
-        IPackageDeleteObserver observer = new IPackageDeleteObserver() {
+        IPackageDeleteObserver.Stub observer = new IPackageDeleteObserver.Stub() {
             @Override
-            public void packageDeleted(String s, int i) throws RemoteException {
-                Log.d(TAG, _packageName + " deleted successfully.");
-            }
-
-            @Override
-            public IBinder asBinder() {
-                return null;
+            public void packageDeleted(String packageName, int returnCode) throws RemoteException {
+                String msg;
+                switch (returnCode) {
+                    case DELETE_SUCCEEDED:
+                        msg = "DELETE_SUCCEEDED";
+                        break;
+                    case DELETE_FAILED_INTERNAL_ERROR:
+                        msg = "DELETE_FAILED_INTERNAL_ERROR";
+                        break;
+                    case DELETE_FAILED_DEVICE_POLICY_MANAGER:
+                        msg = "DELETE_FAILED_DEVICE_POLICY_MANAGER";
+                        break;
+                    case DELETE_FAILED_USER_RESTRICTED:
+                        msg = "DELETE_FAILED_USER_RESTRICTED";
+                        break;
+                    case DELETE_FAILED_OWNER_BLOCKED:
+                        msg = "DELETE_FAILED_OWNER_BLOCKED";
+                        break;
+                    case DELETE_FAILED_ABORTED:
+                        msg = "DELETE_FAILED_ABORTED";
+                        break;
+                    default:
+                        msg = "UNKNOWN_ERROR";
+                }
+                Log.d(TAG, packageName + " delete callback with status: " + msg);
+                if (returnCode == DELETE_SUCCEEDED) {
+                    publishAppUninstallStatus(context, UNINSTALL_SUCCESS_STATUS, null);
+                } else {
+                    publishAppUninstallStatus(context, UNINSTALL_FAILED_STATUS, msg);
+                }
             }
         };
         pm.deletePackage(packageName, observer, DELETE_ALL_USERS);
@@ -232,16 +303,36 @@ public class AppUtils {
             result.put("appInstallStatus", status);
             if (error != null) {
                 result.put("appInstallFailedMessage", error);
-                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION, Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR,
-                        result.toString());
+                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION,
+                        Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR, result.toString());
             } else {
-                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION, Constants.Code.SUCCESS, Constants.Status.SUCCESSFUL,
-                        result.toString());
+                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION,
+                        Constants.Code.SUCCESS, Constants.Status.SUCCESSFUL, result.toString());
             }
         } catch (JSONException e) {
             Log.e(TAG, "Failed to create JSON object when publishing App install status.");
-            CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION, Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR,
-                          String.valueOf(DEFAULT_STATE_INFO_CODE));
+            CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_INSTALL_APPLICATION,
+                    Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR, String.valueOf(DEFAULT_STATE_INFO_CODE));
+        }
+    }
+
+    private static void publishAppUninstallStatus(Context context, String status, String error) {
+        JSONObject result = new JSONObject();
+
+        try {
+            result.put("appUninstallStatus", status);
+            if (error != null) {
+                result.put("appUninstallFailedMessage", error);
+                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION,
+                        Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR, result.toString());
+            } else {
+                CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION,
+                        Constants.Code.SUCCESS, Constants.Status.SUCCESSFUL, result.toString());
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to create JSON object when publishing App uninstall status.");
+            CommonUtils.sendBroadcast(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION,
+                    Constants.Code.FAILURE, Constants.Status.INTERNAL_ERROR, String.valueOf(DEFAULT_STATE_INFO_CODE));
         }
     }
 

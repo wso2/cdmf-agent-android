@@ -26,4 +26,17 @@
     <string name="download_manager_reference_id">downloadManagerReferenceId</string>
     <string name="download_manager_start_time">downloadManagerStartTime</string>
     <string name="download_manager_reference_id_available">downloadManagerReferenceIdAvailable</string>
+    <string name="download_manager_success_state">downloadManagerSuccessState</string>
+    <string name="download_manager_default_error_code">downloadManagerDefaultErrorCode</string>
+    <string name="download_manager_default_state_info_code">downloadManagerDefaultStateInfoCode</string>
+    <string name="download_manager_completion_successful">downloadManagerCompletionSuccessful</string>
+    <string name="verification_start_flag">verificationStartFlag</string>
+    <string name="package_installation_start_flag">packageInstallationStartFlag</string>
+    <string name="txt_ota_download_manager_title">Downloading firmware upgrade</string>
+    <string name="txt_ota_download_manager_description">Your device will reboot after downloading</string>
+    <string name="txt_ota_start_download_title">Firmware upgrade</string>
+    <string name="txt_ota_start_download_text">A firmware upgrade is downloading. After download completion, the device will reboot.</string>
+    <string name="txt_ota_paused_text">Download is paused; please check your network connection.</string>
+    <string name="txt_ota_failure_download_text">Error when downloading update package.</string>
+    <string name="txt_ota_progress_download_text">Your device will reboot soon!"</string>
 </resources>

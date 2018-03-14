@@ -26,6 +26,9 @@ import android.widget.TextView;
 
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.api.DeviceInfo;
+import org.wso2.iot.agent.api.DeviceState;
+import org.wso2.iot.agent.utils.Constants;
+import org.wso2.iot.agent.utils.Response;
 
 /**
  * Activity which displays device information.
@@ -40,7 +43,15 @@ public class DisclaimerActivity extends Activity {
         btnContinue.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), AuthenticationActivity.class);
+                Class<?> nextActivityClass;
+                if (Constants.IS_CLOUD) {
+                    nextActivityClass = AuthenticationActivity.class;
+                }else if (hasWorkProfileCapability()) {
+                    nextActivityClass = WorkProfileSelectionActivity.class;
+                } else {
+                    nextActivityClass = ServerConfigsActivity.class;
+                }
+                Intent intent = new Intent(getApplicationContext(), nextActivityClass);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
                 finish();
@@ -53,6 +64,15 @@ public class DisclaimerActivity extends Activity {
                 finish();
             }
         });
+    }
+
+    /**
+     * Check capability to have a separate managed profile.
+     */
+    private boolean hasWorkProfileCapability() {
+        DeviceState state = new DeviceState(this);
+        Response androidForWorkCompatibility = state.evaluateAndroidForWorkCompatibility();
+        return androidForWorkCompatibility.getCode();
     }
 
 }

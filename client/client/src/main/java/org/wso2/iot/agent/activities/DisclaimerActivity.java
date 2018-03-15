@@ -46,7 +46,7 @@ public class DisclaimerActivity extends Activity {
                 Class<?> nextActivityClass;
                 if (Constants.IS_CLOUD) {
                     nextActivityClass = AuthenticationActivity.class;
-                }else if (hasWorkProfileCapability()) {
+                } else if (hasWorkProfileCapability()) {
                     nextActivityClass = WorkProfileSelectionActivity.class;
                 } else {
                     nextActivityClass = ServerConfigsActivity.class;

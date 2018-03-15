@@ -32,6 +32,7 @@ public class Constants {
 
 	public static final boolean IS_CLOUD = "release".equalsIgnoreCase(BuildConfig.BUILD_TYPE.trim());
 	public static final boolean DEBUG_MODE_ENABLED = BuildConfig.DEBUG_MODE_ENABLED;
+	public static final boolean DISCLAIMER_ENABLED = BuildConfig.DISCLAIMER_ENABLED;
 	public static final boolean SYSTEM_APP_ENABLED = BuildConfig.SYSTEM_APP_ENABLED;
 	public static final boolean AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED =
 			BuildConfig.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED;

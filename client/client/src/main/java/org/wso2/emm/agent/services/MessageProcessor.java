@@ -146,9 +146,9 @@ public class MessageProcessor implements APIResultCallBack {
 		long currentTime = System.currentTimeMillis();
 		if (isInCriticalPath) {
 			// We need to make sure sync won't stale under any circumstances.
-			// So we are allowing time up to default http time out for a single sync.
-			if (lastSyncAt + org.wso2.emm.agent.proxy.utils.Constants.HttpClient.DEFAULT_TIME_OUT
-					> currentTime) {
+			// So we are allowing time up to default http timeout for a single sync.
+			if (lastSyncAt < currentTime
+					&& lastSyncAt + org.wso2.emm.agent.proxy.utils.Constants.HttpClient.DEFAULT_TIME_OUT > currentTime) {
 				Log.w(TAG, "Ignoring polling attempt since another polling is ongoing.");
 				return;
 			}

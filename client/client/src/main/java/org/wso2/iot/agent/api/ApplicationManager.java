@@ -123,7 +123,7 @@ public class ApplicationManager {
 
             if (downloadReference == referenceId) {
                 String downloadDirectoryPath = Environment.getExternalStoragePublicDirectory(Environment.
-                                                                                         DIRECTORY_DOWNLOADS).getPath();
+                        DIRECTORY_DOWNLOADS).getPath();
                 File file = new File(downloadDirectoryPath, resources.getString(R.string.download_mgr_download_file_name));
                 if (file.exists()) {
                     Preference.putString(context, context.getResources().getString(
@@ -131,14 +131,14 @@ public class ApplicationManager {
                             R.string.app_status_value_download_completed));
                     PackageManager pm = context.getPackageManager();
                     PackageInfo info = pm.getPackageArchiveInfo(downloadDirectoryPath + File.separator + resources.
-                                                                    getString(R.string.download_mgr_download_file_name),
-                                                                PackageManager.GET_ACTIVITIES);
+                                    getString(R.string.download_mgr_download_file_name),
+                            PackageManager.GET_ACTIVITIES);
                     if (info != null && info.packageName != null) {
                         Preference.putString(context, context.getResources().getString(R.string.shared_pref_installed_app),
-                                             info.packageName);
+                                info.packageName);
                     }
                     Preference.putString(context, context.getResources().getString(R.string.shared_pref_installed_file),
-                                         resources.getString(R.string.download_mgr_download_file_name));
+                            resources.getString(R.string.download_mgr_download_file_name));
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         Uri apkURI = FileProvider.getUriForFile(
@@ -168,7 +168,7 @@ public class ApplicationManager {
         this.context = context;
         this.resources = context.getResources();
         this.packageManager = context.getPackageManager();
-        this.policyManager = (DevicePolicyManager)context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        this.policyManager = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
     }
 
     /**
@@ -319,16 +319,16 @@ public class ApplicationManager {
      * @param fileUri - File URI should be passed in as a String.
      */
     public void startInstallerIntent(Uri fileUri) {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
-                policyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
+                policyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
             Uri packageFileUri;
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
                 packageFileUri = convertContentUriToFileUri(fileUri);
             else
                 packageFileUri = fileUri;
 
             installPackage(packageFileUri);
-        }else{
+        } else {
             boolean isUnknownSourcesDisallowed = Preference.getBoolean(context,
                     Constants.PreferenceFlag.DISALLOW_UNKNOWN_SOURCES);
             CommonUtils.allowUnknownSourcesForProfile(context, !isUnknownSourcesDisallowed);
@@ -432,9 +432,9 @@ public class ApplicationManager {
     /**
      * Installs an application to the device.
      *
-     * @param url - APK Url should be passed in as a String.
-     * @param schedule - If update/installation is scheduled, schedule information should be passed.
-     * @param  operation - App installation operation.
+     * @param url       - APK Url should be passed in as a String.
+     * @param schedule  - If update/installation is scheduled, schedule information should be passed.
+     * @param operation - App installation operation.
      */
     public void installApp(String url, String schedule, Operation operation) {
         if (schedule != null && !schedule.trim().isEmpty() && !schedule.equals("undefined") && !schedule.equals("false")) {
@@ -516,9 +516,9 @@ public class ApplicationManager {
                 R.string.app_install_status), context.getResources().getString(
                 R.string.app_status_value_download_started));
 
-        if(Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU){
+        if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
             downloadApp(this.appUrl);
-        }else if (isDownloadManagerAvailable(context) && !url.contains(Constants.HTTPS_PROTOCOL)) {
+        } else if (isDownloadManagerAvailable(context) && !url.contains(Constants.HTTPS_PROTOCOL)) {
             IntentFilter filter = new IntentFilter(
                     DownloadManager.ACTION_DOWNLOAD_COMPLETE);
             context.registerReceiver(downloadReceiver, filter);
@@ -537,13 +537,13 @@ public class ApplicationManager {
     public void uninstallApplication(String packageName, String schedule) throws AndroidAgentException {
         String packageUriString = packageName;
         if (packageName != null) {
-            if(!packageName.contains(resources.getString(R.string.application_package_prefix)))
+            if (!packageName.contains(resources.getString(R.string.application_package_prefix)))
                 packageUriString = resources.getString(R.string.application_package_prefix) + packageName;
             else
                 packageName = packageName.replace(resources.getString(R.string.application_package_prefix), "");
         }
 
-        if(!this.isPackageInstalled(packageName)){
+        if (!this.isPackageInstalled(packageName)) {
             String message = "Package is not installed in the device or invalid package name";
             Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), APP_STATE_UNINSTALLED_FAILED);
             Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), message);
@@ -564,13 +564,12 @@ public class ApplicationManager {
             CommonUtils.callSystemApp(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION, "", packageUriString);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
                 policyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
-            if(silentlyUninstallApplication(packageName))
+            if (silentlyUninstallApplication(packageName))
                 Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), APP_STATE_UNINSTALLED);
             else
                 Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), APP_STATE_UNINSTALLED_FAILED);
             Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), null);
-        }
-        else {
+        } else {
             Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), APP_STATE_UNINSTALLED);
             Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), null);
             Uri packageUri = Uri.parse(packageUriString);
@@ -591,8 +590,11 @@ public class ApplicationManager {
                 PackageInstaller.SessionParams.MODE_FULL_INSTALL);
         params.setAppPackageName(packageName);
         int sessionId;
-        try { sessionId = packageManager.getPackageInstaller().createSession(params); }
-        catch(IOException e) { return false; }
+        try {
+            sessionId = packageManager.getPackageInstaller().createSession(params);
+        } catch (IOException e) {
+            return false;
+        }
         packageManager.getPackageInstaller().uninstall(packageName, PendingIntent.getBroadcast(context,
                 sessionId, new Intent("android.intent.action.MAIN"), 0).getIntentSender());
         return true;
@@ -615,8 +617,8 @@ public class ApplicationManager {
         bookmarkIntent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, actionIntent);
         bookmarkIntent.putExtra(Intent.EXTRA_SHORTCUT_NAME, title);
         bookmarkIntent.putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE,
-                                Intent.ShortcutIconResource.fromContext(context,
-                                                                        R.drawable.ic_bookmark)
+                Intent.ShortcutIconResource.fromContext(context,
+                        R.drawable.ic_bookmark)
         );
         if (operationType != null) {
             if (resources.getString(R.string.operation_install).equalsIgnoreCase(operationType)) {
@@ -684,18 +686,18 @@ public class ApplicationManager {
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
         intent.setClassName(resources.getString(R.string.android_download_manager_ui_resolver),
-                            resources.getString(R.string.android_download_manager_list_resolver));
+                resources.getString(R.string.android_download_manager_list_resolver));
         return context.getPackageManager().queryIntentActivities(intent,
-                                                                 PackageManager.MATCH_DEFAULT_ONLY).size() > 0;
+                PackageManager.MATCH_DEFAULT_ONLY).size() > 0;
     }
 
     private void removeExistingFile() {
         String directory = Environment.getExternalStorageDirectory().getPath() +
-                           resources.getString(R.string.application_mgr_download_location);
+                resources.getString(R.string.application_mgr_download_location);
         File file = new File(directory);
         file.mkdirs();
         File outputFile = new File(file,
-                                   resources.getString(R.string.application_mgr_download_file_name));
+                resources.getString(R.string.application_mgr_download_file_name));
 
         if (outputFile.exists()) {
             outputFile.delete();
@@ -718,7 +720,7 @@ public class ApplicationManager {
         // Restrict the types of networks over which this download may
         // proceed.
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI
-                                       | DownloadManager.Request.NETWORK_MOBILE);
+                | DownloadManager.Request.NETWORK_MOBILE);
         // Set whether this download may proceed over a roaming connection.
         request.setAllowedOverRoaming(true);
         // Set the title of this download, to be displayed in notifications
@@ -743,7 +745,7 @@ public class ApplicationManager {
                     Cursor cursor = downloadManager.query(query);
                     cursor.moveToFirst();
                     int bytesDownloaded = cursor.getInt(cursor.getColumnIndex(DownloadManager.
-                                                                                      COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                            COLUMN_BYTES_DOWNLOADED_SO_FAR));
                     int bytesTotal = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
                     if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.
                             STATUS_SUCCESSFUL) {
@@ -772,7 +774,7 @@ public class ApplicationManager {
                     }
 
                     Preference.putString(context, resources.getString(R.string.app_download_progress),
-                                         String.valueOf(progress));
+                            String.valueOf(progress));
                     cursor.close();
                 }
                 downloadOngoing = false;
@@ -795,95 +797,94 @@ public class ApplicationManager {
 
 
         InputStreamVolleyRequest request = new InputStreamVolleyRequest(Request.Method.GET, url,
-            new Response.Listener<byte[]>() {
-                @Override
-                public void onResponse(byte[] response) {
-                    if (response != null) {
-                        FileOutputStream outStream = null;
-                        InputStream inStream = null;
-                        try {
-                            String directory = Environment.getExternalStorageDirectory().getPath() +
-                                               resources.getString(R.string.application_mgr_download_location);
-                            File file = new File(directory);
-                            file.mkdirs();
-                            File outputFile = new File(file,
-                                               resources.getString(R.string.application_mgr_download_file_name));
+                new Response.Listener<byte[]>() {
+                    @Override
+                    public void onResponse(byte[] response) {
+                        if (response != null) {
+                            FileOutputStream outStream = null;
+                            InputStream inStream = null;
+                            try {
+                                String directory = Environment.getExternalStorageDirectory().getPath() +
+                                        resources.getString(R.string.application_mgr_download_location);
+                                File file = new File(directory);
+                                file.mkdirs();
+                                File outputFile = new File(file,
+                                        resources.getString(R.string.application_mgr_download_file_name));
 
-                            if (outputFile.exists()) {
-                                outputFile.delete();
+                                if (outputFile.exists()) {
+                                    outputFile.delete();
+                                }
+
+                                outStream = new FileOutputStream(outputFile);
+                                inStream = new ByteArrayInputStream(response);
+
+                                byte[] buffer = new byte[BUFFER_SIZE];
+                                int lengthFile;
+
+                                while ((lengthFile = inStream.read(buffer)) != READ_FAILED) {
+                                    outStream.write(buffer, BUFFER_OFFSET, lengthFile);
+                                    downloadOngoing = true;
+                                }
+
+                                String filePath = directory + resources.getString(R.string.application_mgr_download_file_name);
+                                Preference.putString(context, context.getResources().getString(
+                                        R.string.app_install_status), context.getResources().getString(
+                                        R.string.app_status_value_download_completed));
+
+                                //android 7 and later versions require file URIs from a provider
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                    Uri apkURI = FileProvider.getUriForFile(
+                                            context,
+                                            context.getApplicationContext()
+                                                    .getPackageName() + ".provider", new File(filePath));
+                                    triggerInstallation(apkURI);
+
+                                } else {
+                                    triggerInstallation(Uri.fromFile(new File(filePath)));
+                                }
+
+                            } catch (IOException e) {
+                                String error = "File download/save failure in AppUpdator.";
+                                Log.e(TAG, error, e);
+                                Preference.putString(context, context.getResources().getString(
+                                        R.string.app_install_status), context.getResources().getString(
+                                        R.string.app_status_value_download_failed));
+                                Preference.putString(context, context.getResources().getString(
+                                        R.string.app_install_failed_message), error);
+                            } catch (IllegalArgumentException e) {
+                                String error = "Error occurred while sending 'Get' request due to empty host name";
+                                Log.e(TAG, error);
+                                Preference.putString(context, context.getResources().getString(
+                                        R.string.app_install_status), context.getResources().getString(
+                                        R.string.app_status_value_download_failed));
+                                Preference.putString(context, context.getResources().getString(
+                                        R.string.app_install_failed_message), error);
+                            } finally {
+                                StreamHandler.closeOutputStream(outStream, TAG);
+                                StreamHandler.closeInputStream(inStream, TAG);
+                                downloadOngoing = false;
                             }
-
-                            outStream = new FileOutputStream(outputFile);
-                            inStream = new ByteArrayInputStream(response);
-
-                            byte[] buffer = new byte[BUFFER_SIZE];
-                            int lengthFile;
-
-                            while ((lengthFile = inStream.read(buffer)) != READ_FAILED) {
-                                outStream.write(buffer, BUFFER_OFFSET, lengthFile);
-                                downloadOngoing = true;
-                            }
-
-                            String filePath = directory + resources.getString(R.string.application_mgr_download_file_name);
-                            Preference.putString(context, context.getResources().getString(
-                                    R.string.app_install_status), context.getResources().getString(
-                                    R.string.app_status_value_download_completed));
-
-                            //android 7 and later versions require file URIs from a provider
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                Uri apkURI = FileProvider.getUriForFile(
-                                        context,
-                                        context.getApplicationContext()
-                                                .getPackageName() + ".provider", new File(filePath));
-                                triggerInstallation(apkURI);
-
-                            } else {
-                                triggerInstallation(Uri.fromFile(new File(filePath)));
-                            }
-
-                        } catch (IOException e) {
-                            String error = "File download/save failure in AppUpdator.";
-                            Log.e(TAG, error, e);
+                        } else {
                             Preference.putString(context, context.getResources().getString(
                                     R.string.app_install_status), context.getResources().getString(
                                     R.string.app_status_value_download_failed));
                             Preference.putString(context, context.getResources().getString(
-                                    R.string.app_install_failed_message), error);
-                        } catch (IllegalArgumentException e) {
-                            String error = "Error occurred while sending 'Get' request due to empty host name";
-                            Log.e(TAG, error);
-                            Preference.putString(context, context.getResources().getString(
-                                    R.string.app_install_status), context.getResources().getString(
-                                    R.string.app_status_value_download_failed));
-                            Preference.putString(context, context.getResources().getString(
-                                    R.string.app_install_failed_message), error);
-                        } finally {
-                            StreamHandler.closeOutputStream(outStream, TAG);
-                            StreamHandler.closeInputStream(inStream, TAG);
-                            downloadOngoing = false;
+                                    R.string.app_install_failed_message), "File download failed.");
                         }
-                    } else {
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, error.toString());
                         Preference.putString(context, context.getResources().getString(
                                 R.string.app_install_status), context.getResources().getString(
                                 R.string.app_status_value_download_failed));
                         Preference.putString(context, context.getResources().getString(
-                                R.string.app_install_failed_message), "File download failed.");
+                                R.string.app_install_failed_message), error.toString());
+                        downloadOngoing = false;
                     }
-                }
-            },
-            new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Log.e(TAG, error.toString());
-                    Preference.putString(context, context.getResources().getString(
-                            R.string.app_install_status), context.getResources().getString(
-                            R.string.app_status_value_download_failed));
-                    Preference.putString(context, context.getResources().getString(
-                            R.string.app_install_failed_message), error.toString());
-                    downloadOngoing = false;
-                }
-            }, null)
-        {
+                }, null) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String, String> headers = new HashMap<>();
@@ -909,7 +910,7 @@ public class ApplicationManager {
         request.setRetryPolicy(new DefaultRetryPolicy(
                 Constants.RetryPolicy.DEFAULT_TIME_OUT,
                 Constants.RetryPolicy.DEFAULT_MAX_RETRIES,
-                Constants.RetryPolicy.DEFAULT_BACKOFF_MULT){
+                Constants.RetryPolicy.DEFAULT_BACKOFF_MULT) {
             public void retry(VolleyError error) throws VolleyError {
                 Log.w(TAG, "Retrying download the apk... " + getCurrentRetryCount());
                 super.retry(error);

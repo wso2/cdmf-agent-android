@@ -75,6 +75,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 
 		} else {
 			if (Constants.DEBUG_MODE_ENABLED) {
+				Log.v(TAG, intent.toUri(0));
 				Log.d(TAG, "Recurring alarm; Polling pending operations");
 			}
 			OperationTask operationTask = new OperationTask();

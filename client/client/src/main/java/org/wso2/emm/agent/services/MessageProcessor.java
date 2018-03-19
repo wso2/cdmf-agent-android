@@ -63,6 +63,8 @@ public class MessageProcessor implements APIResultCallBack {
 	private String deviceId;
 	private static final String DEVICE_ID_PREFERENCE_KEY = "deviceId";
 	private static List<org.wso2.emm.agent.beans.Operation> replyPayload;
+	private static volatile boolean isInCriticalPath = true;
+	private static volatile long lastSyncAt = 0L;
 	private OperationProcessor operationProcessor;
 	private ObjectMapper mapper;
 	private boolean isWipeTriggered = false;
@@ -141,6 +143,18 @@ public class MessageProcessor implements APIResultCallBack {
 	 * Call the message retrieval end point of the server to get messages pending.
 	 */
 	public void getMessages() throws AndroidAgentException {
+		long currentTime = System.currentTimeMillis();
+		if (isInCriticalPath) {
+			// We need to make sure sync won't stale under any circumstances.
+			// So we are allowing time up to default http time out for a single sync.
+			if (lastSyncAt + org.wso2.emm.agent.proxy.utils.Constants.HttpClient.DEFAULT_TIME_OUT
+					> currentTime) {
+				Log.w(TAG, "Ignoring polling attempt since another polling is ongoing.");
+				return;
+			}
+		}
+		isInCriticalPath = true;
+		lastSyncAt = currentTime;
 		String ipSaved = Constants.DEFAULT_HOST;
 		String prefIP = Preference.getString(context.getApplicationContext(), Constants.PreferenceFlag.IP);
 		if (prefIP != null) {
@@ -606,6 +620,7 @@ public class MessageProcessor implements APIResultCallBack {
 					}
 				}
 			}
+			isInCriticalPath = false;
 		}
 	}
 

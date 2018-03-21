@@ -83,18 +83,20 @@ public class RuntimeInfo {
                     for (String column : columns) {
                         if (!column.equals("")) {
                             String[] keyValue = column.split("%");
-                            property = new Device.Property();
-                            property.setName(keyValue[1]);
-                            property.setValue(keyValue[0] + "%");
-                            properties.add(property);
+                            if (keyValue.length == 2) {
+                                property = new Device.Property();
+                                property.setName(keyValue[1]);
+                                property.setValue(keyValue[0] + "%");
+                                properties.add(property);
+                            }
                         } else {
                             continue;
                         }
                     }
                     break;
                 /**
-                 * Below condition is written specially for OnePlus 5T device which has a different
-                 * details format than standard Android
+                 * Below condition is written specially for OnePlus 5T device which has a
+                 * different details format than vanilla Android
                   */
                 } else if (topCommandRow.contains("sys")) {
                     String[] columns = topCommandRow.split(", ");

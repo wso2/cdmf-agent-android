@@ -20,10 +20,12 @@ package org.wso2.iot.agent.api;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.os.Build;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.beans.Application;
 import org.wso2.iot.agent.beans.Device;
@@ -60,18 +62,60 @@ public class RuntimeInfo {
     public List<Device.Property> getCPUInfo() throws AndroidAgentException {
         List<Device.Property> properties = new ArrayList<>();
         Device.Property property;
-
-        for (String topCommandRow : topCommandRows) {
-            if (topCommandRow != null && !topCommandRow.isEmpty()) {
+        if (Build.VERSION.SDK_INT < 26) {
+            for (String topCommandRow : topCommandRows) {
                 String[] columns = topCommandRow.split(", ");
                 for (String column : columns) {
-                    String[] keyValue = column.split(" ");
-                    property = new Device.Property();
-                    property.setName(keyValue[0]);
-                    property.setValue(keyValue[1]);
-                    properties.add(property);
+                    if (!column.equals("")) {
+                        String[] keyValue = column.split(" ");
+                        property = new Device.Property();
+                        property.setName(keyValue[0]);
+                        property.setValue(keyValue[1]);
+                        properties.add(property);
+                    } else {
+                        continue;
+                    }
                 }
                 break;
+            }
+        } else {
+            for (String topCommandRow : topCommandRows) {
+                if (topCommandRow.contains("%cpu")) {
+                    String[] columns = topCommandRow.split(" ");
+                    for (String column : columns) {
+                        if (!column.equals("")) {
+                            String[] keyValue = column.split("%");
+                            property = new Device.Property();
+                            property.setName(keyValue[1]);
+                            property.setValue(keyValue[0] + "%");
+                            properties.add(property);
+                        } else {
+                            continue;
+                        }
+                    }
+                    break;
+                /**
+                 * Below condition is written specially for OnePlus 5T device which has a different
+                 * details format than standard Android
+                  */
+                } else if (topCommandRow.contains("sys")) {
+                    String[] columns = topCommandRow.split(", ");
+                    for (String column : columns) {
+                        String[] keyValue = column.split(" ");
+                        for (String value : keyValue) {
+                            if (value.contains("[")) {
+                                keyValue = ArrayUtils.removeElement(keyValue,value);
+                            }
+                        }
+                        if (keyValue.length > 0) {
+                            property = new Device.Property();
+                            property.setName(keyValue[0]);
+                            property.setValue(keyValue[1]);
+                            properties.add(property);
+                        }
+                    }
+                    break;
+                }
             }
         }
         return properties;

@@ -64,19 +64,17 @@ public class RuntimeInfo {
         Device.Property property;
         if (Build.VERSION.SDK_INT < 26) {
             for (String topCommandRow : topCommandRows) {
-                String[] columns = topCommandRow.split(", ");
-                for (String column : columns) {
-                    if (!column.equals("")) {
+                if (topCommandRow != null && !topCommandRow.isEmpty()) {
+                    String[] columns = topCommandRow.split(", ");
+                    for (String column : columns) {
                         String[] keyValue = column.split(" ");
                         property = new Device.Property();
                         property.setName(keyValue[0]);
                         property.setValue(keyValue[1]);
                         properties.add(property);
-                    } else {
-                        continue;
                     }
+                    break;
                 }
-                break;
             }
         } else {
             for (String topCommandRow : topCommandRows) {

@@ -236,11 +236,38 @@ public class MessageProcessor implements APIResultCallBack {
 								isUpgradeTriggered = false;
 							} else if (opId == 0) {
 								Preference.putInt(context, "firmwareOperationId", operation.getId());
+								Preference.putLong(context,
+										Constants.PreferenceFlag.FIRMWARE_UPGRADE_INITIATED_AT,
+										System.currentTimeMillis());
 								isUpgradeTriggered = true;
 							} else if (operation.getId() != 0 && operation.getId() != opId){
-								Log.e(TAG, "This is a new Firmware upgrade operation but one operation is still on " +
-                                        "going");
-								queuedFirmwareOperationlist.add(operation.getId());
+								long previousUpgradeInitiatedAt = Preference.getLong(context,
+										Constants.PreferenceFlag.FIRMWARE_UPGRADE_INITIATED_AT);
+								currentTime = System.currentTimeMillis();
+								if (previousUpgradeInitiatedAt < currentTime && previousUpgradeInitiatedAt
+										+ Constants.FIRMWARE_DOWNLOAD_OPERATION_TIMEOUT > currentTime) {
+									Log.e(TAG, "This is a new Firmware upgrade operation but one operation " +
+											"is still on going");
+									queuedFirmwareOperationlist.add(operation.getId());
+								} else {
+									Preference.putInt(context, "firmwareOperationId", operation.getId());
+									Preference.putLong(context,
+											Constants.PreferenceFlag.FIRMWARE_UPGRADE_INITIATED_AT,
+											System.currentTimeMillis());
+									org.wso2.emm.agent.beans.Operation firmwareOperation
+											= new org.wso2.emm.agent.beans.Operation();
+									firmwareOperation.setId(opId);
+									firmwareOperation.setCode(Constants.Operation.UPGRADE_FIRMWARE);
+									firmwareOperation.setStatus(ERROR_STATE);
+									firmwareOperation.setOperationResponse("Operation timed out.");
+									if (replyPayload != null) {
+										replyPayload.add(firmwareOperation);
+									} else {
+										replyPayload = new ArrayList<>();
+										replyPayload.add(firmwareOperation);
+									}
+									isUpgradeTriggered = true;
+								}
 							}
                             //Operation Id of the received reply payload is stored
                             firmwareUpgradeOperationId = operation.getId();

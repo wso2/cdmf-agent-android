@@ -63,6 +63,9 @@ public class RuntimeInfo {
         List<Device.Property> properties = new ArrayList<>();
         Device.Property property;
         if (Build.VERSION.SDK_INT < 26) {
+            /**
+             * Below code block is for reading CPU info data of devices below Android 26
+             */
             for (String topCommandRow : topCommandRows) {
                 if (topCommandRow != null && !topCommandRow.isEmpty()) {
                     String[] columns = topCommandRow.split(", ");
@@ -78,6 +81,10 @@ public class RuntimeInfo {
             }
         } else {
             for (String topCommandRow : topCommandRows) {
+                /**
+                 * Below code block is for reading CPU info data of devices above and equal
+                 * Android 26
+                 */
                 if (topCommandRow.contains("%cpu")) {
                     String[] columns = topCommandRow.split(" ");
                     for (String column : columns) {
@@ -89,15 +96,13 @@ public class RuntimeInfo {
                                 property.setValue(keyValue[0] + "%");
                                 properties.add(property);
                             }
-                        } else {
-                            continue;
                         }
                     }
                     break;
                 /**
-                 * Below condition is written specially for OnePlus 5T device which has a
-                 * different details format than vanilla Android
-                  */
+                 * Below code block is for reading CPU info data of specific devices with custom
+                 * format
+                 */
                 } else if (topCommandRow.contains("sys")) {
                     String[] columns = topCommandRow.split(", ");
                     for (String column : columns) {

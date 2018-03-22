@@ -19,6 +19,7 @@
 package org.wso2.emm.system.service;
 
 import android.annotation.TargetApi;
+import android.app.DownloadManager;
 import android.app.IntentService;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
@@ -456,6 +457,22 @@ public class EMMSystemService extends IntentService {
      */
     public void upgradeFirmware(final boolean isStatusCheck) {
         Log.i(TAG, "An upgrade has been requested");
+        boolean isDownloadReferenceAvailable = Preference.getBoolean(this,
+                getResources().getString(R.string.download_manager_reference_id_available));
+        Log.d(TAG, "Download manager reference id availability: " + isDownloadReferenceAvailable);
+        long downloadReference = Preference.getLong(this,
+                getResources().getString(R.string.download_manager_reference_id));
+        if (isDownloadReferenceAvailable && downloadReference > 0) {
+            DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+            if (downloadManager != null) {
+                downloadManager.remove(downloadReference);
+            }
+            Preference.putBoolean(this,
+                    getResources().getString(R.string.download_manager_reference_id_available), false);
+            Preference.putLong(this,
+                    getResources().getString(R.string.download_manager_reference_id), -1);
+            Log.i(TAG, "Removed stale download: " + downloadReference);
+        }
 
         Preference.putBoolean(context, context.getResources().getString(R.string.
                                                                                 firmware_status_check_in_progress), isStatusCheck);

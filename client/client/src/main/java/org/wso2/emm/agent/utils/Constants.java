@@ -59,6 +59,8 @@ public class Constants {
 	public static final int APP_DOWNLOAD_TIMEOUT = 30 * 60 * 1000;
 	public static final int APP_INSTALL_TIMEOUT = 10 * 60 * 1000;
 	public static final int APP_UNINSTALL_TIMEOUT = 10 * 60 * 1000;
+    //Should be grater than FIRMWARE_DOWNLOAD_TIMEOUT in the system service.
+    public static final int FIRMWARE_DOWNLOAD_OPERATION_TIMEOUT = 6 * 60 * 1000;
 
 	// This is used to skip the license
 	public static final boolean SKIP_LICENSE = false;
@@ -484,6 +486,7 @@ public class Constants {
 		public static final String APPLIED_POLICY = "appliedPolicy";
 		public static final String IS_AGREED = "isAgreed";
 		public static final String NOTIFIER_TYPE = "notifierType";
+		public static final String FIRMWARE_UPGRADE_INITIATED_AT = "firmwareUpgradeInitiatedAt";
 		public static final String DOWNLOAD_INITIATED_AT = "downloadInitiatedAt";
 		public static final String INSTALLATION_INITIATED_AT = "installationInitiatedAt";
 		public static final String UNINSTALLATION_INITIATED_AT = "uninstallationInitiatedAt";

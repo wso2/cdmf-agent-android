@@ -254,7 +254,8 @@ public class MessageProcessor implements APIResultCallBack {
 									Preference.putLong(context,
 											Constants.PreferenceFlag.FIRMWARE_UPGRADE_INITIATED_AT,
 											System.currentTimeMillis());
-									org.wso2.emm.agent.beans.Operation firmwareOperation = new org.wso2.emm.agent.beans.Operation();
+									org.wso2.emm.agent.beans.Operation firmwareOperation
+											= new org.wso2.emm.agent.beans.Operation();
 									firmwareOperation.setId(opId);
 									firmwareOperation.setCode(Constants.Operation.UPGRADE_FIRMWARE);
 									firmwareOperation.setStatus(ERROR_STATE);

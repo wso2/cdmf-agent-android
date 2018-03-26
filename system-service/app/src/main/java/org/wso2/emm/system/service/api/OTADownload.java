@@ -167,7 +167,7 @@ public class OTADownload implements OTAServerManager.OTAStateChangeListener {
                 }
                 String message = "Software is up to date:" + Build.VERSION.RELEASE + ", " + Build.ID;
                 Log.i(TAG, message);
-                CommonUtils.callAgentApp(context, Constants.Operation.FIRMWARE_UPGRADE_COMPLETE, Preference.getInt(
+                CommonUtils.callAgentApp(context, Constants.Operation.FIRMWARE_UPGRADE_FAILURE, Preference.getInt(
                         context, context.getResources().getString(R.string.operation_id)), "No upgrades available. " + message);
             } else if (checkNetworkOnline()) {
                 new AsyncTask<Void, Void, Long>() {
@@ -232,7 +232,8 @@ public class OTADownload implements OTAServerManager.OTAStateChangeListener {
                                     .getString(R.string.firmware_upgrade_automatic_retry));
 
                             if (checkNetworkOnline()) {
-                                if (getBatteryLevel(context) >= Constants.REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE) {
+                                int batteryLevel = getBatteryLevel(context);
+                                if (batteryLevel >= Constants.REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE_DOWNLOAD) {
                                     otaServerManager.startDownloadUpgradePackage(otaServerManager);
                                 } else if (isAutomaticRetry) {
                                     String message =  "Upgrade download has been differed due to insufficient battery level.";
@@ -241,6 +242,7 @@ public class OTADownload implements OTAServerManager.OTAStateChangeListener {
                                             Constants.Status.BATTERY_LEVEL_INSUFFICIENT_TO_DOWNLOAD);
                                     CommonUtils.sendBroadcast(context, Constants.Operation.UPGRADE_FIRMWARE, Constants.Code.PENDING,
                                             Constants.Status.BATTERY_LEVEL_INSUFFICIENT_TO_DOWNLOAD, message);
+                                    otaServerManager.setNotification(context, context.getResources().getString(R.string.upgrade_differed_due_to_battery, Constants.REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE_DOWNLOAD), false);
                                 } else {
                                     String message = "Upgrade download has been failed due to insufficient battery level.";
                                     Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
@@ -250,6 +252,7 @@ public class OTADownload implements OTAServerManager.OTAStateChangeListener {
                                             Constants.Status.BATTERY_LEVEL_INSUFFICIENT_TO_DOWNLOAD, message);
                                     CommonUtils.callAgentApp(context, Constants.Operation.FIRMWARE_UPGRADE_FAILURE, Preference.getInt(
                                             context, context.getResources().getString(R.string.operation_id)), message);
+                                    otaServerManager.setNotification(context, context.getResources().getString(R.string.upgrade_failed_due_to_battery), false);
                                 }
                             } else {
                                 String message = "Connection failure when starting upgrade download.";

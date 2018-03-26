@@ -117,8 +117,8 @@ public class MessageProcessor implements APIResultCallBack {
 			}
 
 
-		// check whether if there are any dismissed notifications to be sent
-		operationProcessor.checkPreviousNotifications();
+			// check whether if there are any dismissed notifications to be sent
+			operationProcessor.checkPreviousNotifications();
 
 		} catch (JsonProcessingException e) {
 			Log.e(TAG,  "Issue in json parsing", e);

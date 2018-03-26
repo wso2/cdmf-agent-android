@@ -30,7 +30,8 @@ public class Constants {
 	public static final String DEFAULT_OTA_SERVER_PROTOCOL = "http";
 	public static final String DEFAULT_OTA_SERVER_SUB_DIRECTORY = null;
 	public static final int DEFAULT_OTA_SERVER_PORT = 80;
-	public static final int REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE = 5;
+	public static final int REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE_DOWNLOAD = 0;
+	public static final int REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE_INSTALL = 25;
 	public static final String DEFAULT_OTA_BUILD_PROP_FILE = "build.prop";
 	public static final String DEFAULT_OTA_ZIP_FILE = ".ota.zip";
 	public static final String UPDATE_PACKAGE_NAME = "update.zip";
@@ -44,6 +45,8 @@ public class Constants {
 	public static final String ADMIN_MESSAGE = "message";
 	public static final String IS_LOCKED = "lock";
 	public static final int FIRMWARE_UPGRADE_CONNECTIVITY_TIMEOUT = 10000;
+
+
 	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 	public static final String FIRMWARE_INSTALL_CONFIRM_ACTION = "FIRMWARE_INSTALL_CONFIRM_ACTION";
 	public static final String FIRMWARE_INSTALL_CANCEL_ACTION = "FIRMWARE_INSTALL_CANCEL_ACTION";

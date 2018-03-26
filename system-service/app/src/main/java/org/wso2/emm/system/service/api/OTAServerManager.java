@@ -414,8 +414,8 @@ public class OTAServerManager {
                     // Set the title of this download, to be displayed in notifications
                     if (Constants.OTA_DOWNLOAD_PROGRESS_BAR_ENABLED) {
                         request.setVisibleInDownloadsUi(true);
-                        request.setTitle("Downloading firmware upgrade");
-                        request.setDescription("WSO2 Agent");
+                        request.setTitle(context.getString(R.string.txt_ota_download_manager_title));
+                        request.setDescription(context.getString(R.string.txt_ota_download_manager_description));
                         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
                     } else {
                         request.setVisibleInDownloadsUi(false);
@@ -449,7 +449,6 @@ public class OTAServerManager {
                         int previousPercentage = 0;
                         String otaPackageName = null;
 
-                        long pauseTimeStamp = 0l;
                         boolean isPaused = false;
                         int cursorFixAttempts = 0;
                         Cursor cursor = null;
@@ -733,8 +732,9 @@ public class OTAServerManager {
         try {
             wakeLock.acquire();
             boolean isAutomaticRetryEnabled = Preference.getBoolean(context, context.getResources().getString(R.string.firmware_upgrade_automatic_retry));
-            if (getBatteryLevel(context) >= Constants.REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE) {
-                Log.d(TAG, "Installing upgrade package");
+            int batteryLevel = getBatteryLevel(context);
+            if (batteryLevel >= Constants.REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE_INSTALL) {
+                Log.i(TAG, "Installing upgrade package");
                 if (isAutomaticRetryEnabled || Constants.SILENT_FIRMWARE_INSTALLATION) {
                     CommonUtils.callAgentApp(context, Constants.Operation.FIRMWARE_UPGRADE_COMPLETE, Preference.getInt(
                             context, context.getResources().getString(R.string.operation_id)), "Starting firmware upgrade");
@@ -745,9 +745,9 @@ public class OTAServerManager {
                 }
             } else if (isAutomaticRetryEnabled) {
                 Preference.putString(context, context.getResources().getString(R.string.upgrade_install_status),
-                                     Constants.Status.BATTERY_LEVEL_INSUFFICIENT_TO_INSTALL);
-                Log.e(TAG, "Upgrade installation differed due to insufficient battery level.");
-                setNotification(context, context.getResources().getString(R.string.upgrade_differed_due_to_battery), false);
+                        Constants.Status.BATTERY_LEVEL_INSUFFICIENT_TO_INSTALL);
+                Log.e(TAG, "Upgrade installation deferred due to insufficient battery level.");
+                setNotification(context, context.getResources().getString(R.string.upgrade_differed_due_to_battery, Constants.REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE_INSTALL), false);
             } else {
                 Preference.putString(context, context.getResources().getString(R.string.upgrade_install_status),
                         Constants.Status.BATTERY_LEVEL_INSUFFICIENT_TO_INSTALL);
@@ -776,7 +776,7 @@ public class OTAServerManager {
 
     }
 
-    private void setNotification(Context context, String notificationMessage, boolean isUserInput) {
+    void setNotification(Context context, String notificationMessage, boolean isUserInput) {
         int requestID = (int) System.currentTimeMillis();
         NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         Intent notificationIntent = new Intent(context, MainActivity.class);
@@ -786,7 +786,7 @@ public class OTAServerManager {
                 .setSmallIcon(R.drawable.notification)
                 .setContentTitle("Message from EMM")
                 .setStyle(new NotificationCompat.BigTextStyle()
-                                  .bigText(notificationMessage))
+                        .bigText(notificationMessage))
                 .setContentText(notificationMessage).setAutoCancel(true);
 
         if (isUserInput) {
@@ -807,13 +807,14 @@ public class OTAServerManager {
 
     private int getBatteryLevel(Context context) {
         Intent batteryIntent = context.registerReceiver(null,
-                                                        new IntentFilter(
-                                                                Intent.ACTION_BATTERY_CHANGED));
+                new IntentFilter(
+                        Intent.ACTION_BATTERY_CHANGED));
         int level = 0;
         if (batteryIntent != null) {
             level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
         }
 
+        Log.d(TAG, "battery level: " + level);
         return level;
     }
 

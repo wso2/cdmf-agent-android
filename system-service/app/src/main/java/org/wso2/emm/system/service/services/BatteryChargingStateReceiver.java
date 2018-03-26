@@ -40,25 +40,26 @@ public class BatteryChargingStateReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         int level = intent.getIntExtra("level", 0);
-        if (Constants.DEBUG_MODE_ENABLED) {
-            Log.d(TAG, "Battery Level: " + Integer.toString(level) + "%");
-        }
-        if (Preference.getBoolean(context, context.getResources().getString(R.string.firmware_upgrade_automatic_retry)) && level >= Constants.
-                REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE) {
-            String status = Preference.getString(context, context.getResources().getString(R.string.upgrade_install_status));
-            if (Constants.Status.BATTERY_LEVEL_INSUFFICIENT_TO_INSTALL.equals(status)){
-                try {
-                    OTAServerManager manager = new OTAServerManager(context);
-                    manager.startInstallUpgradePackage();
-                } catch (MalformedURLException e) {
-                    Log.e(TAG, "Firmware upgrade failed due to a file URI issue" + e);
+        if (Preference.getBoolean(context, context.getResources().getString(R.string.firmware_upgrade_automatic_retry))){
+            if (level >= Constants.REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE_INSTALL) {
+                String status = Preference.getString(context, context.getResources().getString(R.string.upgrade_install_status));
+                if (Constants.Status.BATTERY_LEVEL_INSUFFICIENT_TO_INSTALL.equals(status)) {
+                    try {
+                        OTAServerManager manager = new OTAServerManager(context);
+                        manager.startInstallUpgradePackage();
+                    } catch (MalformedURLException e) {
+                        Log.e(TAG, "Firmware upgrade failed due to a file URI issue" + e);
+                    }
                 }
             }
-            status = Preference.getString(context, context.getResources().getString(R.string.upgrade_download_status));
-            if (Constants.Status.BATTERY_LEVEL_INSUFFICIENT_TO_DOWNLOAD.equals(status)){
-                Log.i(TAG, "Starting firmware download again upon network connectivity established.");
-                OTADownload otaDownload = new OTADownload(context);
-                otaDownload.startOTA();
+
+            if (level >= Constants.REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE_DOWNLOAD) {
+                String status = Preference.getString(context, context.getResources().getString(R.string.upgrade_download_status));
+                if (Constants.Status.BATTERY_LEVEL_INSUFFICIENT_TO_DOWNLOAD.equals(status)) {
+                    Log.i(TAG, "Starting firmware download again upon network connectivity established.");
+                    OTADownload otaDownload = new OTADownload(context);
+                    otaDownload.startOTA();
+                }
             }
         }
     }

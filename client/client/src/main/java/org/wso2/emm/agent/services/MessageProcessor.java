@@ -195,9 +195,33 @@ public class MessageProcessor implements APIResultCallBack {
 				Preference.removePreference(context, context.getResources().getString(R.string.shared_pref_reboot_done));
 				Preference.removePreference(context, context.getResources().getString(R.string.shared_pref_reboot_op_id));
 			}
+
+			int firmwareOperationId = Preference.getInt(context, "firmwareOperationId");
+			long previousUpgradeInitiatedAt = Preference.getLong(context,
+					Constants.PreferenceFlag.FIRMWARE_UPGRADE_INITIATED_AT);
+			if (firmwareOperationId > 0 && (previousUpgradeInitiatedAt > currentTime || previousUpgradeInitiatedAt
+					+ Constants.FIRMWARE_DOWNLOAD_OPERATION_TIMEOUT < currentTime)) {
+				// Set previously staled firmware upgrade status to ERROR.
+				org.wso2.emm.agent.beans.Operation firmwareOperation
+						= new org.wso2.emm.agent.beans.Operation();
+				firmwareOperation.setCode(Constants.Operation.UPGRADE_FIRMWARE);
+				firmwareOperation.setStatus(ERROR_STATE);
+				firmwareOperation.setId(firmwareOperationId);
+				firmwareOperation.setOperationResponse("Operation timed out.");
+				if (replyPayload == null) {
+					replyPayload = new ArrayList<>();
+				}
+				replyPayload.add(firmwareOperation);
+				Log.e(TAG, "Firmware upgrade operation '" + firmwareOperation.getId()
+						+ "' failed. " + firmwareOperation.getOperationResponse());
+				Preference.putInt(context, "firmwareOperationId", 0);
+				Preference.putLong(context,
+						Constants.PreferenceFlag.FIRMWARE_UPGRADE_INITIATED_AT, 0);
+				firmwareOperationId = 0;
+			}
+
 			if (replyPayload != null) {
 				isUpgradeTriggered = false;
-				List<org.wso2.emm.agent.beans.Operation> replyOperations = new ArrayList<>();
 				for (org.wso2.emm.agent.beans.Operation operation : replyPayload) {
 					if (operation == null) {
 						continue;
@@ -209,11 +233,11 @@ public class MessageProcessor implements APIResultCallBack {
 							.getString(R.string.operation_value_pending).equals(operation.getStatus())) {
 						operation.setStatus(context.getResources().getString(R.string.operation_value_progress));
 						isRebootTriggered = true;
-					} else if (Constants.Operation.UPGRADE_FIRMWARE.equals(operation.getCode())) {
+					} else if (Constants.Operation.UPGRADE_FIRMWARE.equals(operation.getCode())
+							&& IN_PROGRESS_STATE.equals(operation.getStatus())) {
 						//All the IN_PROGRESS state firmware operations should will come into this block
-						int opId = Preference.getInt(context, "firmwareOperationId");
 						if (Constants.DEBUG_MODE_ENABLED) {
-							Log.d(TAG, "Ongoing Operation Id : " + opId);
+							Log.d(TAG, "Ongoing Operation Id : " + firmwareOperationId);
 							Log.d(TAG, "Received Operation status: " + operation.getStatus());
 							Log.d(TAG, "Received Operation Id : " + operation.getId());
 						}
@@ -222,12 +246,12 @@ public class MessageProcessor implements APIResultCallBack {
 						// calling system app again and again for the same operation Id following
 						// checks are added.
 						boolean hasUpgrade = false;
-						if (opId == operation.getId()) {
-							Log.w(TAG, "Ignoring duplicate firmware upgrade operation: " + opId);
-						} else if (opId == 0) {
+						if (firmwareOperationId == operation.getId()) {
+							Log.w(TAG, "Ignoring duplicate firmware upgrade operation: " + firmwareOperationId);
+						} else if (firmwareOperationId == 0) {
 							hasUpgrade = true;
-						} else if (operation.getId() != 0 && operation.getId() != opId) {
-							long previousUpgradeInitiatedAt = Preference.getLong(context,
+						} else if (operation.getId() != 0 && operation.getId() != firmwareOperationId) {
+							previousUpgradeInitiatedAt = Preference.getLong(context,
 									Constants.PreferenceFlag.FIRMWARE_UPGRADE_INITIATED_AT);
 							currentTime = System.currentTimeMillis();
 							if (previousUpgradeInitiatedAt < currentTime && previousUpgradeInitiatedAt
@@ -235,29 +259,22 @@ public class MessageProcessor implements APIResultCallBack {
 								// Set currently received firmware upgrade status to ERROR.
 								operation.setStatus(ERROR_STATE);
 								operation.setOperationResponse("There is an already ongoing firmware " +
-										"upgrade operation with id " + opId);
+										"upgrade operation with id " + firmwareOperationId);
 								Log.e(TAG, "Firmware upgrade operation '" + operation.getId()
 										+ "' failed. " + operation.getOperationResponse());
 							} else {
 								hasUpgrade = true;
-								// Set previously staled firmware upgrade status to ERROR.
-								org.wso2.emm.agent.beans.Operation firmwareOperation
-										= new org.wso2.emm.agent.beans.Operation();
-								firmwareOperation.setCode(Constants.Operation.UPGRADE_FIRMWARE);
-								firmwareOperation.setStatus(ERROR_STATE);
-								firmwareOperation.setId(opId);
-								firmwareOperation.setOperationResponse("Operation timed out.");
-								replyOperations.add(firmwareOperation);
-								Log.e(TAG, "Firmware upgrade operation '" + firmwareOperation.getId()
-										+ "' failed. " + firmwareOperation.getOperationResponse());
+								if (Constants.DEBUG_MODE_ENABLED){
+									Log.d(TAG, "Starting firmware upgrade as previous firmware upgrade time out.");
+								}
 							}
 						}
 						if (hasUpgrade) {
 							isUpgradeTriggered = true;
-							Preference.putInt(context, "firmwareOperationId", operation.getId());
+							firmwareOperationId = operation.getId();
+							Preference.putInt(context, "firmwareOperationId", firmwareOperationId);
 							Preference.putLong(context,
-									Constants.PreferenceFlag.FIRMWARE_UPGRADE_INITIATED_AT,
-									System.currentTimeMillis());
+									Constants.PreferenceFlag.FIRMWARE_UPGRADE_INITIATED_AT, currentTime);
 						}
 						if (Constants.DEBUG_MODE_ENABLED) {
 							Log.d(TAG, "isUpgradeTriggered is set to: " + isUpgradeTriggered);
@@ -273,14 +290,13 @@ public class MessageProcessor implements APIResultCallBack {
 						}
 					}
 				}
-				replyPayload.addAll(replyOperations);
 			}
 
-			int firmwareOperationId = Preference.getInt(context, context.getResources().getString(
+			int firmwareOperationResponseId = Preference.getInt(context, context.getResources().getString(
 					R.string.firmware_upgrade_response_id));
-			if (firmwareOperationId != 0) {
+			if (firmwareOperationResponseId != 0) {
 				org.wso2.emm.agent.beans.Operation firmwareOperation = new org.wso2.emm.agent.beans.Operation();
-				firmwareOperation.setId(firmwareOperationId);
+				firmwareOperation.setId(firmwareOperationResponseId);
 				firmwareOperation.setCode(Constants.Operation.UPGRADE_FIRMWARE);
 				firmwareOperation.setStatus(Preference.getString(context, context.getResources().getString(
 						R.string.firmware_upgrade_response_status)));
@@ -297,16 +313,16 @@ public class MessageProcessor implements APIResultCallBack {
 					firmwareOperation.setOperationResponse(Preference.getString(context, context.getResources().getString(
 							R.string.firmware_upgrade_response_message)));
 				}
-				if (replyPayload != null) {
-					replyPayload.add(firmwareOperation);
-				} else {
+				if (replyPayload == null) {
 					replyPayload = new ArrayList<>();
-					replyPayload.add(firmwareOperation);
 				}
+				replyPayload.add(firmwareOperation);
 				int opId = Preference.getInt(context, "firmwareOperationId");
-				if (firmwareOperationId == opId && !IN_PROGRESS_STATE.equals(firmwareOperation.getStatus())) {
+				if (firmwareOperationResponseId == opId && !IN_PROGRESS_STATE.equals(firmwareOperation.getStatus())) {
 					// Only clear firmwareOperationId if operation comes to finite state.
 					Preference.putInt(context, "firmwareOperationId", 0);
+					Preference.putLong(context,
+							Constants.PreferenceFlag.FIRMWARE_UPGRADE_INITIATED_AT, 0);
 				}
 				Preference.putInt(context, context.getResources().getString(
 						R.string.firmware_upgrade_response_id), 0);

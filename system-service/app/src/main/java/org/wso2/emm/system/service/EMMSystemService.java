@@ -227,7 +227,9 @@ public class EMMSystemService extends IntentService {
 
         //Checking is there any interrupted firmware download is there
         String status = Preference.getString(context, context.getResources().getString(R.string.upgrade_download_status));
-        if (Constants.Status.OTA_UPGRADE_ONGOING.equals(status)) {
+        boolean isDownloadReferenceAvailable = Preference.getBoolean(context,
+                context.getResources().getString(R.string.download_manager_reference_id_available));
+        if (!isDownloadReferenceAvailable && Constants.Status.OTA_UPGRADE_ONGOING.equals(status)) {
             Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
                     Constants.Status.REQUEST_PLACED);
             Timer timeoutTimer = new Timer();

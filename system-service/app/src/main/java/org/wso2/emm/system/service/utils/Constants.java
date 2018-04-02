@@ -141,6 +141,7 @@ public class Constants {
 		public static final String SUCCESSFUL = "2000";
 		public static final String OTA_UPGRADE_ONGOING = "2001";
 		public static final String REQUEST_PLACED = "2002";
+		public static final String DOWNLOAD_PAUSED = "2003";
 		public static final String USER_CANCELED = "3000";
 		public static final String NO_HISTORY = "3001";
 		public static final String MALFORMED_REQUEST = "4000";

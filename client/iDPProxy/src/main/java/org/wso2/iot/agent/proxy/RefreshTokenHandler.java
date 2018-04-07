@@ -51,7 +51,6 @@ import java.util.Map;
 public class RefreshTokenHandler {
 	private static final String TAG = "RefreshTokenHandler";
 	private static final String SCOPE_LABEL = "scope";
-	private static final String PRODUCTION_LABEL = "PRODUCTION";
 	private static final String COLON = ":";
 	private Token token;
 
@@ -85,6 +84,7 @@ public class RefreshTokenHandler {
 					@Override
 					public void onErrorResponse(VolleyError error) {
 						Log.e(TAG, "Error in token renewal. " + error.toString());
+						Log.w(TAG, "Refresh token used: " + token.getRefreshToken());
 						if (error.networkResponse != null) {
 							Log.w(TAG, error.toString() + " Status code: " + error.networkResponse.statusCode);
 							processTokenResponse(String.valueOf(error.networkResponse.statusCode),
@@ -104,7 +104,6 @@ public class RefreshTokenHandler {
 				Map<String, String> requestParams = new HashMap<>();
 				requestParams.put(Constants.GRANT_TYPE, Constants.REFRESH_TOKEN);
 				requestParams.put(Constants.REFRESH_TOKEN, token.getRefreshToken());
-				requestParams.put(SCOPE_LABEL, PRODUCTION_LABEL);
 				if(token.getRefreshToken() == null) {
 					Log.w(TAG, "Refresh token is null.");
 				}

@@ -18,7 +18,6 @@
 
 package org.wso2.iot.agent.api;
 
-import android.annotation.TargetApi;
 import android.app.DownloadManager;
 import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
@@ -290,8 +289,7 @@ public class ApplicationManager {
 
     public boolean isPackageInstalled(String packagename) {
         try {
-            PackageInfo packageInfo = packageManager.
-                    getPackageInfo(packagename, 0);
+            PackageInfo packageInfo = packageManager.getPackageInfo(packagename, 0);
             if (packageInfo != null) {
                 return true;
             }
@@ -318,15 +316,15 @@ public class ApplicationManager {
      *
      * @param fileUri - File URI should be passed in as a String.
      */
-    public void startInstallerIntent(Uri fileUri) {
+    private void startInstallerIntent(Uri fileUri) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
                 policyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
             Uri packageFileUri;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 packageFileUri = convertContentUriToFileUri(fileUri);
-            else
+            } else {
                 packageFileUri = fileUri;
-
+            }
             installPackage(packageFileUri);
         } else {
             boolean isUnknownSourcesDisallowed = Preference.getBoolean(context,
@@ -337,18 +335,16 @@ public class ApplicationManager {
                 intent.setDataAndType(fileUri, resources.getString(R.string.application_mgr_mime));
                 intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 context.startActivity(intent);
-
             } else {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setDataAndType(fileUri, resources.getString(R.string.application_mgr_mime));
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);
             }
-
         }
     }
 
-    public Uri convertContentUriToFileUri(Uri contentUri) {
+    private Uri convertContentUriToFileUri(Uri contentUri) {
         String uriString = contentUri.toString();
         uriString = "file://" + Environment.getExternalStorageDirectory() +
                 uriString.replace("content://org.wso2.iot.agent.provider/external_files", "");
@@ -356,7 +352,7 @@ public class ApplicationManager {
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    public boolean installPackage(Uri fileUri) {
+    private boolean installPackage(Uri fileUri) {
 
         InputStream in;
         OutputStream out;
@@ -537,10 +533,11 @@ public class ApplicationManager {
     public void uninstallApplication(String packageName, String schedule) throws AndroidAgentException {
         String packageUriString = packageName;
         if (packageName != null) {
-            if (!packageName.contains(resources.getString(R.string.application_package_prefix)))
+            if (!packageName.contains(resources.getString(R.string.application_package_prefix))) {
                 packageUriString = resources.getString(R.string.application_package_prefix) + packageName;
-            else
+            } else {
                 packageName = packageName.replace(resources.getString(R.string.application_package_prefix), "");
+            }
         }
 
         if (!this.isPackageInstalled(packageName)) {
@@ -564,10 +561,11 @@ public class ApplicationManager {
             CommonUtils.callSystemApp(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION, "", packageUriString);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
                 policyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
-            if (silentlyUninstallApplication(packageName))
+            if (silentlyUninstallApplication(packageName)) {
                 Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), APP_STATE_UNINSTALLED);
-            else
+            } else {
                 Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), APP_STATE_UNINSTALLED_FAILED);
+            }
             Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), null);
         } else {
             Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), APP_STATE_UNINSTALLED);
@@ -585,7 +583,7 @@ public class ApplicationManager {
      * @param packageName - Application package name should be passed in as a String.
      */
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    public boolean silentlyUninstallApplication(String packageName) {
+    private boolean silentlyUninstallApplication(String packageName) {
         PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(
                 PackageInstaller.SessionParams.MODE_FULL_INSTALL);
         params.setAppPackageName(packageName);

@@ -19,10 +19,10 @@
 package org.wso2.iot.agent;
 
 import android.app.AlarmManager;
-import android.app.Application;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 
 import com.splunk.mint.Mint;
@@ -31,7 +31,7 @@ import org.wso2.iot.agent.services.EnrollmentService;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 
-public class AgentApplication extends Application {
+public class AgentApplication extends MultiDexApplication {
 
     // Configs
     private int requestCode = 0;

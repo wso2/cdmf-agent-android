@@ -88,7 +88,7 @@ public class SplashActivity extends Activity {
             instantiatedActivityClass = AlreadyRegisteredActivity.class;
         } else if (Preference.hasPreferenceKey(this, Constants.TOKEN_EXPIRED)) {
             instantiatedActivityClass = AuthenticationActivity.class;
-        } else if (Constants.IS_CLOUD) {
+        } else if (Constants.DISCLAIMER_ENABLED) {
             instantiatedActivityClass = DisclaimerActivity.class;
         } else if (hasWorkProfileCapability()) {
             instantiatedActivityClass = WorkProfileSelectionActivity.class;

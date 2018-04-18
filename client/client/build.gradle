@@ -36,8 +36,8 @@ android {
         targetSdkVersion 25
         multiDexEnabled true
 
-        versionCode 3010031
-        versionName "3.1.31"
+        versionCode 3010032
+        versionName "3.1.32"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -52,6 +52,8 @@ android {
             }
             // DEBUG_MODE_ENABLED: Make the agent print the debug logs.
             buildConfigField "boolean", "DEBUG_MODE_ENABLED", "false"
+            // DISCLAIMER_ENABLED: Show disclaimer activity before start registrations.
+            buildConfigField "boolean", "DISCLAIMER_ENABLED", "true"
             // ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE: Setting this to true will make the
             // App list response to the service to include system apps as well.
             buildConfigField "boolean", "ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE", "false"
@@ -86,12 +88,12 @@ android {
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
             // System service specific configurations.
             // SYSTEM_APP_ENABLED: This is to set if the system app will also be installed.
-            // If this is set org.wso2.emm.system.service must also be available in the device.
+            // If this is set org.wso2.iot.system.service must also be available in the device.
             buildConfigField "boolean", "SYSTEM_APP_ENABLED", "false"
             // SYSTEM_SERVICE_PACKAGE: If system service app is in use, the package name of it is
             // defined here so that the agent knows the package name of the system service to
             // contact.
-            buildConfigField "String", "SYSTEM_SERVICE_PACKAGE", "\"org.wso2.emm.system.service\""
+            buildConfigField "String", "SYSTEM_SERVICE_PACKAGE", "\"org.wso2.iot.system.service\""
             // HIDE_UNREGISTER_BUTTON: Hide the unregister button after enrollment so that  the
             // unenrollment can only be done remotely.
             buildConfigField "boolean", "HIDE_UNREGISTER_BUTTON", "false"
@@ -179,6 +181,8 @@ android {
         staging {
             // DEBUG_MODE_ENABLED: Make the agent print the debug logs.
             buildConfigField "boolean", "DEBUG_MODE_ENABLED", "true"
+            // DISCLAIMER_ENABLED: Show disclaimer activity before start registrations.
+            buildConfigField "boolean", "DISCLAIMER_ENABLED", "true"
             // ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE: Setting this to true will make the
             // App list response to the service to include system apps as well.
             buildConfigField "boolean", "ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE", "false"
@@ -213,12 +217,12 @@ android {
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
             // System service specific configurations.
             // SYSTEM_APP_ENABLED: This is to set if the system app will also be installed.
-            // If this is set org.wso2.emm.system.service must also be available in the device.
+            // If this is set org.wso2.iot.system.service must also be available in the device.
             buildConfigField "boolean", "SYSTEM_APP_ENABLED", "false"
             // SYSTEM_SERVICE_PACKAGE: If system service app is in use, the package name of it is
             // defined here so that the agent knows the package name of the system service to
             // contact.
-            buildConfigField "String", "SYSTEM_SERVICE_PACKAGE", "\"org.wso2.emm.system.service\""
+            buildConfigField "String", "SYSTEM_SERVICE_PACKAGE", "\"org.wso2.iot.system.service\""
             // HIDE_UNREGISTER_BUTTON: Hide the unregister button after enrollment so that  the
             // unenrollment can only be done remotely.
             buildConfigField "boolean", "HIDE_UNREGISTER_BUTTON", "false"
@@ -308,6 +312,8 @@ android {
             // DEBUG_MODE_ENABLED: Make the agent print the debug logs.
             // Make this false in production.
             buildConfigField "boolean", "DEBUG_MODE_ENABLED", "true"
+            // DISCLAIMER_ENABLED: Show disclaimer activity before start registrations.
+            buildConfigField "boolean", "DISCLAIMER_ENABLED", "false"
             // ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE: Setting this to true will make the
             // App list response to the service to include system apps as well.
             buildConfigField "boolean", "ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE", "false"
@@ -342,7 +348,7 @@ android {
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
             // System service specific configurations.
             // SYSTEM_APP_ENABLED: This is to set if the system app will also be installed.
-            // If this is set org.wso2.emm.system.service must also be available in the device.
+            // If this is set org.wso2.iot.system.service must also be available in the device.
             buildConfigField "boolean", "SYSTEM_APP_ENABLED", "true"
             // SYSTEM_SERVICE_PACKAGE: If system service app is in use, the package name of it is
             // defined here so that the agent knows the package name of the system service to
@@ -439,6 +445,8 @@ android {
             // DEBUG_MODE_ENABLED: Make the agent print the debug logs.
             // Make this false in production.
             buildConfigField "boolean", "DEBUG_MODE_ENABLED", "false"
+            // DISCLAIMER_ENABLED: Show disclaimer activity before start registrations.
+            buildConfigField "boolean", "DISCLAIMER_ENABLED", "true"
             // ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE: Setting this to true will make the
             // App list response to the service to include system apps as well.
             buildConfigField "boolean", "ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE", "false"
@@ -473,7 +481,7 @@ android {
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
             // System service specific configurations.
             // SYSTEM_APP_ENABLED: This is to set if the system app will also be installed.
-            // If this is set org.wso2.emm.system.service must also be available in the device.
+            // If this is set org.wso2.iot.system.service must also be available in the device.
             buildConfigField "boolean", "SYSTEM_APP_ENABLED", "false"
             // SYSTEM_SERVICE_PACKAGE: If system service app is in use, the package name of it is
             // defined here so that the agent knows the package name of the system service to
@@ -568,6 +576,8 @@ android {
             // DEBUG_MODE_ENABLED: Make the agent print the debug logs.
             // Make this false in production.
             buildConfigField "boolean", "DEBUG_MODE_ENABLED", "true"
+            // DISCLAIMER_ENABLED: Show disclaimer activity before start registrations.
+            buildConfigField "boolean", "DISCLAIMER_ENABLED", "true"
             // ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE: Setting this to true will make the
             // App list response to the service to include system apps as well.
             buildConfigField "boolean", "ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE", "false"
@@ -602,7 +612,7 @@ android {
             buildConfigField "String", "CATALOG_APP_PACKAGE_NAME", "\"org.wso2.app.catalog\""
             // System service specific configurations.
             // SYSTEM_APP_ENABLED: This is to set if the system app will also be installed.
-            // If this is set org.wso2.emm.system.service must also be available in the device.
+            // If this is set org.wso2.iot.system.service must also be available in the device.
             buildConfigField "boolean", "SYSTEM_APP_ENABLED", "false"
             // SYSTEM_SERVICE_PACKAGE: If system service app is in use, the package name of it is
             // defined here so that the agent knows the package name of the system service to
@@ -764,6 +774,8 @@ dependencies {
     compile 'com.jcraft:jsch:0.1.54'
     compile 'commons-net:commons-net:3.3'
     compile "org.java-websocket:Java-WebSocket:1.3.0"
+    compile "org.apache.commons:commons-lang3:3.6"
+    compile 'com.android.support:multidex:1.0.1'
 }
 
 apply plugin: 'com.google.gms.google-services'

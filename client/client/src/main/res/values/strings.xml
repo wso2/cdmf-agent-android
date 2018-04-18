@@ -363,10 +363,10 @@
 \n\n- Set screen lock password expiration: This permission is required to allow you to remotely set an expiration time for your screen lock password.
 \n\n- Set storage encryption: This permission is required to allow remote encryption of your device storage.
 \n\n- Disable cameras: This is required to for you to remotely allow/disallow camera usage on your device.
-\n\nYou will be prompted to Activate Device Admin after registering your device with WSO2 Device cloud and by clicking "Activate" you consent to this App having access to the above administrator functions on your device.
+\n\nYou will be prompted to Activate Device Admin after registering your device with WSO2 IoT Server and by clicking "Activate" you consent to this App having access to the above administrator functions on your device.
 \n\nYou can revoke your consent at anytime by opening WSO2 Device Management Agent app and clicking on "Unregister" or by going to Settings \-\>Security \-\> Device Administrators and Deactivating WSO2 Device Management Agent.
-\n\nAll remote operations can only be triggered from the Device Management Console in the WSO2 Device Cloud and can only be performed by authorized user.
-\n\nAll data sent to the WSO2 Device cloud is only accessible to the authorized user and can be permanently removed if needed.
+\n\nAll remote operations can only be triggered from the Device Management Console in the WSO2 IoT Server and can only be performed by authorized user.
+\n\nAll data sent to the WSO2 IoT Server is only accessible to the authorized user and can be permanently removed if needed.
     </string>
     <string name="hint_retype_pin">Retype PIN Code</string>
     <string name="lbl_pin_title">Please enter PIN code</string>

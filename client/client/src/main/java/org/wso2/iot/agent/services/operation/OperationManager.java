@@ -32,6 +32,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -1187,6 +1188,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @throws TransportHandlerException - Throws when session connection has an error
      * @throws JSONException             - Throws when error occurs while parsing the payload
      */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void screenCapture(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException,
             JSONException {
         String action;
@@ -1253,6 +1255,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      * @throws TransportHandlerException - Throws when session connection has an error
      * @throws JSONException             - Throws when error occurs while parsing the payload
      */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void processInputInject(org.wso2.iot.agent.beans.Operation operation) throws TransportHandlerException,
             JSONException {
         if (Constants.SYSTEM_APP_ENABLED && ScreenSharingService.isScreenShared) {

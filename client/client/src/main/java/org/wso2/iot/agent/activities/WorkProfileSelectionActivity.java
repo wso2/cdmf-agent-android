@@ -77,8 +77,9 @@ public class WorkProfileSelectionActivity extends AppCompatActivity {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void manageAndroidForWorkReception() {
         if (manager.isProfileOwnerApp(getApplicationContext().getPackageName())) {
-                /* If the managed profile is already set up, we show the enrollment screen. */
+            /* If the managed profile is already set up, we show the enrollment screen. */
             skipToEnrollment();
+            finish();
         } else {
             displayProfileProvisionPromptScreen();
         }

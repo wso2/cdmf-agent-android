@@ -56,12 +56,14 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.beans.AppInstallRequest;
+import org.wso2.iot.agent.beans.AppUninstallRequest;
 import org.wso2.iot.agent.beans.DeviceAppInfo;
 import org.wso2.iot.agent.beans.Operation;
+import org.wso2.iot.agent.beans.ServerConfig;
 import org.wso2.iot.agent.proxy.IDPTokenManagerException;
 import org.wso2.iot.agent.proxy.utils.ServerUtilities;
 import org.wso2.iot.agent.utils.AlarmUtils;
-import org.wso2.iot.agent.utils.AppInstallRequestUtil;
+import org.wso2.iot.agent.utils.AppManagementRequestUtil;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
@@ -79,40 +81,36 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.android.volley.DefaultRetryPolicy.DEFAULT_BACKOFF_MULT;
 
 /**
  * This class handles all the functionalities required for managing application
  * installation and un-installation.
  */
 public class ApplicationManager {
+
+    private static final String TAG = ApplicationManager.class.getName();
+
     private static final int SYSTEM_APPS_DISABLED_FLAG = 0;
     private static final int MAX_URL_HASH = 32;
     private static final int COMPRESSION_LEVEL = 100;
     private static final int BUFFER_SIZE = 1024;
     private static final int READ_FAILED = -1;
     private static final int BUFFER_OFFSET = 0;
-    private static final int DOWNLOAD_PERCENTAGE_TOTAL = 100;
-    private static final int DOWNLOADER_INCREMENT = 10;
     private static final String ACTION_INSTALL_COMPLETE = "INSTALL_COMPLETED";
-    private static final String APP_STATE_DOWNLOAD_STARTED = "DOWNLOAD_STARTED";
-    private static final String APP_STATE_DOWNLOAD_COMPLETED = "DOWNLOAD_COMPLETED";
-    private static final String APP_STATE_DOWNLOAD_FAILED = "DOWNLOAD_FAILED";
-    private static final String APP_STATE_INSTALL_FAILED = "INSTALL_FAILED";
-    private static final String APP_STATE_INSTALLED = "INSTALLED";
-    private static final String APP_STATE_UNINSTALLED = "UNINSTALLED";
-    private static final String APP_STATE_UNINSTALLED_FAILED = "UNINSTALL_FAILED";
-    private static final String TAG = ApplicationManager.class.getName();
-    private static final String APP_INSTALLATION_ATTEMPT = "APP_INSTALLATION_ATTEMPT";
-    private static volatile boolean downloadOngoing = false;
+
     private Context context;
     private Resources resources;
     private PackageManager packageManager;
     private DevicePolicyManager policyManager;
-    private long downloadReference;
+    private static long downloadReference = -1;
     private String appUrl;
+    private static InputStreamVolleyRequest volleyDownloadRequest;
 
     private BroadcastReceiver downloadReceiver = new BroadcastReceiver() {
         @Override
@@ -126,12 +124,11 @@ public class ApplicationManager {
                 File file = new File(downloadDirectoryPath, resources.getString(R.string.download_mgr_download_file_name));
                 if (file.exists()) {
                     Preference.putString(context, context.getResources().getString(
-                            R.string.app_install_status), context.getResources().getString(
-                            R.string.app_status_value_download_completed));
+                            R.string.app_install_status), Constants.AppState.DOWNLOAD_COMPLETED);
                     PackageManager pm = context.getPackageManager();
                     PackageInfo info = pm.getPackageArchiveInfo(downloadDirectoryPath + File.separator + resources.
-                                    getString(R.string.download_mgr_download_file_name),
-                            PackageManager.GET_ACTIVITIES);
+                                                                    getString(R.string.download_mgr_download_file_name),
+                                                                PackageManager.GET_ACTIVITIES);
                     if (info != null && info.packageName != null) {
                         Preference.putString(context, context.getResources().getString(R.string.shared_pref_installed_app),
                                 info.packageName);
@@ -154,8 +151,7 @@ public class ApplicationManager {
 
                 } else {
                     Preference.putString(context, context.getResources().getString(
-                            R.string.app_install_status), context.getResources().getString(
-                            R.string.app_status_value_download_failed));
+                            R.string.app_install_status), Constants.AppState.DOWNLOAD_FAILED);
                     Preference.putString(context, context.getResources().getString(
                             R.string.app_install_failed_message), "App file creation failed on the device.");
                 }
@@ -301,12 +297,13 @@ public class ApplicationManager {
 
     private void triggerInstallation(Uri fileUri) {
         if (Constants.SYSTEM_APP_ENABLED) {
+            Preference.putLong(context, Constants.PreferenceFlag.INSTALLATION_INITIATED_AT,
+                    Calendar.getInstance().getTimeInMillis());
             CommonUtils.callSystemApp(context, Constants.Operation.SILENT_INSTALL_APPLICATION, "",
                     fileUri.toString());
         } else {
             Preference.putString(context, context.getResources().getString(
-                    R.string.app_install_status), context.getResources().getString(
-                    R.string.app_status_value_installed));
+                    R.string.app_install_status), Constants.AppState.INSTALLED);
             startInstallerIntent(fileUri);
         }
     }
@@ -432,12 +429,14 @@ public class ApplicationManager {
      * @param schedule  - If update/installation is scheduled, schedule information should be passed.
      * @param operation - App installation operation.
      */
-    public void installApp(String url, String schedule, Operation operation) {
+    public void installApp(String url, String schedule, Operation operation) throws AndroidAgentException {
         if (schedule != null && !schedule.trim().isEmpty() && !schedule.equals("undefined") && !schedule.equals("false")) {
             try {
                 AlarmUtils.setOneTimeAlarm(context, schedule, Constants.Operation.INSTALL_APPLICATION, operation, url, null);
             } catch (ParseException e) {
-                Log.e(TAG, "One time alarm time string parsing failed." + e);
+                String message = "Scheduling failed due to " + e.getMessage();
+                Log.e(TAG, message, e);
+                throw new AndroidAgentException(message, e);
             }
             return; //Will call installApp method again upon alarm.
         }
@@ -446,46 +445,57 @@ public class ApplicationManager {
         String operationCode = Constants.Operation.INSTALL_APPLICATION;
 
         if (operation != null) {
+            // Get ongoing app installation operation details. These preferences are cleared during
+            // reply payload creations which followed by application installation complete or error.
             operationId = Preference.getInt(context, context.getResources().getString(
                     R.string.app_install_id));
             operationCode = Preference.getString(context, context.getResources().getString(
                     R.string.app_install_code));
 
             if (operationId == operation.getId()) {
-                Log.w(TAG, "Ignoring received operation as it has the same operation ID with ongoing operation.");
+                Log.w(TAG, "Ignoring received operation " + operationId +
+                        " as it has the same operation ID with ongoing operation.");
                 return; //No point of putting same operation again to the pending queue. Hence ignoring.
             }
 
+            //Check if there any ongoing operations in the state machine.
             if (operationId != 0 && operationCode != null) {
                 AppInstallRequest appInstallRequest = new AppInstallRequest();
                 appInstallRequest.setApplicationOperationId(operation.getId());
                 appInstallRequest.setApplicationOperationCode(operation.getCode());
                 appInstallRequest.setAppUrl(url);
-                AppInstallRequestUtil.addPending(context, appInstallRequest);
-                Log.d(TAG, "Added request to pending queue as there is another installation ongoing.");
-                if (!downloadOngoing) {
-                    // Probably installation might ongoing
-                    int attempt = Preference.getInt(context, APP_INSTALLATION_ATTEMPT);
-                    if (attempt >= 1) {
-                        Preference.putInt(context, APP_INSTALLATION_ATTEMPT, 0);
-                        Preference.putInt(context, context.getResources().getString(
-                                R.string.app_install_id), 0);
-                        Preference.putString(context, context.getResources().getString(
-                                R.string.app_install_code), null);
-                    } else {
-                        Preference.putInt(context, APP_INSTALLATION_ATTEMPT, ++attempt);
-                    }
-                } else {
-                    downloadOngoing = false; //Let's check whether it is actually ongoing or not.
+                //Add installation operation to pending queue
+                AppManagementRequestUtil.addPendingInstall(context, appInstallRequest);
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    Log.d(TAG, "Queued operation Id " + appInstallRequest.getApplicationOperationId());
+                    Log.d(TAG, "Added request to pending queue as there is another installation ongoing.");
                 }
                 return; //Will call installApp method again once current installation completed.
             }
             operationId = operation.getId();
             operationCode = operation.getCode();
-            Preference.putInt(context, APP_INSTALLATION_ATTEMPT, 0);
         }
-
         setupAppDownload(url, operationId, operationCode);
+    }
+
+    /**
+     * Cancels ongoing download if there any.
+     */
+    public void cancelOngoingDownload(){
+        if (downloadReference != -1 && isDownloadManagerAvailable(context)) {
+            final DownloadManager downloadManager = (DownloadManager) context
+                    .getSystemService(Context.DOWNLOAD_SERVICE);
+            if (downloadManager == null) {
+                return;
+            }
+            downloadManager.remove(downloadReference);
+            downloadReference = -1;
+        } else {
+            if (volleyDownloadRequest != null){
+                volleyDownloadRequest.cancel();
+                volleyDownloadRequest = null;
+            }
+        }
     }
 
     /**
@@ -504,23 +514,46 @@ public class ApplicationManager {
         if (url.contains(Constants.APP_DOWNLOAD_ENDPOINT) && Constants.APP_MANAGER_HOST != null) {
             url = url.substring(url.lastIndexOf("/"), url.length());
             this.appUrl = Constants.APP_MANAGER_HOST + Constants.APP_DOWNLOAD_ENDPOINT + url;
+        } else if (url.contains(Constants.APP_DOWNLOAD_ENDPOINT)) {
+            url = url.substring(url.lastIndexOf("/"), url.length());
+            String ipSaved = Constants.DEFAULT_HOST;
+            String prefIP = Preference.getString(context, Constants.PreferenceFlag.IP);
+            if (prefIP != null) {
+                ipSaved = prefIP;
+            }
+            ServerConfig utils = new ServerConfig();
+            if (ipSaved != null && !ipSaved.isEmpty()) {
+                utils.setServerIP(ipSaved);
+                this.appUrl = utils.getAPIServerURL(context) + Constants.APP_DOWNLOAD_ENDPOINT + url;
+            } else {
+                String errorText = "There is no valid IP to contact the server";
+                Preference.putString(context, context.getResources().getString(
+                        R.string.app_install_status), Constants.AppState.DOWNLOAD_FAILED);
+                Preference.putString(context, context.getResources().getString(
+                        R.string.app_install_failed_message), errorText);
+                Log.e(TAG, errorText);
+                return;
+            }
         } else {
             this.appUrl = url;
         }
 
+        Preference.putLong(context, Constants.PreferenceFlag.DOWNLOAD_INITIATED_AT,
+                Calendar.getInstance().getTimeInMillis());
         Preference.putString(context, context.getResources().getString(
-                R.string.app_install_status), context.getResources().getString(
-                R.string.app_status_value_download_started));
-
-        if (Constants.DEFAULT_OWNERSHIP == Constants.OWNERSHIP_COSU) {
-            downloadApp(this.appUrl);
-        } else if (isDownloadManagerAvailable(context) && !url.contains(Constants.HTTPS_PROTOCOL)) {
-            IntentFilter filter = new IntentFilter(
-                    DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+                R.string.app_install_status), Constants.AppState.DOWNLOAD_STARTED);
+        if (isDownloadManagerAvailable(context)) {
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Using download manager to download the application");
+            }
+            IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
             context.registerReceiver(downloadReceiver, filter);
             removeExistingFile();
             downloadViaDownloadManager(this.appUrl, resources.getString(R.string.download_mgr_download_file_name));
         } else {
+            if (Constants.DEBUG_MODE_ENABLED) {
+                Log.d(TAG, "Using local downloader to download the application");
+            }
             downloadApp(this.appUrl);
         }
     }
@@ -530,48 +563,108 @@ public class ApplicationManager {
      *
      * @param packageName - Application package name should be passed in as a String.
      */
-    public void uninstallApplication(String packageName, String schedule) throws AndroidAgentException {
-        String packageUriString = packageName;
-        if (packageName != null) {
-            if (!packageName.contains(resources.getString(R.string.application_package_prefix))) {
-                packageUriString = resources.getString(R.string.application_package_prefix) + packageName;
-            } else {
-                packageName = packageName.replace(resources.getString(R.string.application_package_prefix), "");
-            }
-        }
-
-        if (!this.isPackageInstalled(packageName)) {
-            String message = "Package is not installed in the device or invalid package name";
-            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), APP_STATE_UNINSTALLED_FAILED);
-            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), message);
-            throw new AndroidAgentException("Package is not installed in the device");
-        }
+    public void uninstallApplication(String packageName, Operation operation, String schedule)
+            throws AndroidAgentException {
 
         if (schedule != null && !schedule.trim().isEmpty() && !schedule.equals("undefined")) {
             try {
-                AlarmUtils.setOneTimeAlarm(context, schedule, Constants.Operation.UNINSTALL_APPLICATION, null, null, packageName);
+                AlarmUtils.setOneTimeAlarm(context, schedule,
+                        Constants.Operation.UNINSTALL_APPLICATION, operation, null, packageName);
             } catch (ParseException e) {
-                Log.e(TAG, "One time alarm time string parsing failed." + e);
+                String message = "Scheduling failed due to " + e.getMessage();
+                Log.e(TAG, message, e);
+                throw new AndroidAgentException(message, e);
             }
             return; //Will call uninstallApplication method again upon alarm.
         }
+
+        if (operation != null) {
+            // Get ongoing app uninstallation operation details. These preferences are cleared during
+            // reply payload creations which followed by application uninstallation complete or error.
+            int operationId = Preference.getInt(context, context.getResources().getString(
+                    R.string.app_uninstall_id));
+            String operationCode = Preference.getString(context, context.getResources().getString(
+                    R.string.app_uninstall_code));
+
+            if (operationId == operation.getId()) {
+                Log.w(TAG, "Ignoring received operation " + operationId +
+                        " as it has the same operation ID with ongoing operation.");
+                return; //No point of putting same operation again to the pending queue. Hence ignoring.
+            }
+
+            //Check if there any ongoing operations in the state machine.
+            if (operationId != 0 && operationCode != null) {
+                AppUninstallRequest appUninstallRequest = new AppUninstallRequest();
+                appUninstallRequest.setApplicationOperationId(operation.getId());
+                appUninstallRequest.setApplicationOperationCode(operation.getCode());
+                appUninstallRequest.setPackageName(packageName);
+                //Add uninstallation operation to pending queue
+                AppManagementRequestUtil.addPendingUninstall(context, appUninstallRequest);
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    Log.d(TAG, "Queued operation Id " + appUninstallRequest.getApplicationOperationId());
+                    Log.d(TAG, "Added request to pending queue as there is another uninstallation ongoing.");
+                }
+                return; //Will call uninstallApplication method again once current uninstallation completed.
+            } else {
+                operationId = operation.getId();
+                operationCode = operation.getCode();
+            }
+            Preference.putInt(context,
+                    context.getResources().getString(R.string.app_uninstall_id), operationId);
+            Preference.putString(context,
+                    context.getResources().getString(R.string.app_uninstall_code), operationCode);
+            Preference.putLong(context, Constants.PreferenceFlag.UNINSTALLATION_INITIATED_AT,
+                    Calendar.getInstance().getTimeInMillis());
+        }
+
+        if (packageName != null &&
+                !packageName.contains(resources.getString(R.string.application_package_prefix))) {
+            packageName = resources.getString(R.string.application_package_prefix) + packageName;
+        }
+
+        if(!this.isPackageInstalled(packageName)){
+            String message = "Package '" + packageName + "' is not installed in the device or invalid package name";
+            if (operation != null) {
+                Preference.putInt(context,
+                        context.getResources().getString(R.string.app_uninstall_id),
+                        operation.getId());
+                Preference.putString(context,
+                        context.getResources().getString(R.string.app_uninstall_code),
+                        operation.getCode());
+                Preference.putString(context,
+                        context.getResources().getString(R.string.app_uninstall_status),
+                        Constants.AppState.UNINSTALL_FAILED);
+                Preference.putString(context,
+                        context.getResources().getString(R.string.app_uninstall_failed_message),
+                        message);
+            }
+            throw new AndroidAgentException("Package '" + packageName + "' is not installed in the device");
+        }
+
         if (Constants.SYSTEM_APP_ENABLED) {
-            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), APP_STATE_UNINSTALLED);
-            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), null);
-            CommonUtils.callSystemApp(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION, "", packageUriString);
+            CommonUtils.callSystemApp(context, Constants.Operation.SILENT_UNINSTALL_APPLICATION, "", packageName);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
                 policyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
-            if (silentlyUninstallApplication(packageName)) {
-                Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), APP_STATE_UNINSTALLED);
-            } else {
-                Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), APP_STATE_UNINSTALLED_FAILED);
+            boolean isUninstalled = silentlyUninstallApplication(packageName);
+            if (operation != null) {
+                if (isUninstalled) {
+                    Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status),
+                            Constants.AppState.UNINSTALLED);
+                } else {
+                    Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status),
+                            Constants.AppState.UNINSTALL_FAILED);
+                }
+                Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), null);
             }
-            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), null);
         } else {
-            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status), APP_STATE_UNINSTALLED);
-            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message), null);
-            Uri packageUri = Uri.parse(packageUriString);
-            Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, packageUri);
+            if (operation != null) {
+                Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status),
+                        Constants.AppState.UNINSTALLED);
+                Preference.putString(context, context.getResources().getString(R.string.app_uninstall_failed_message),
+                        null);
+            }
+            Uri packageURI = Uri.parse(packageName);
+            Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, packageURI);
             uninstallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(uninstallIntent);
         }
@@ -639,38 +732,43 @@ public class ApplicationManager {
         return packageManager.getInstalledApplications(PackageManager.GET_META_DATA);
     }
 
-    public Operation getApplicationInstallationStatus(Operation operation, String status, String message) {
+    public Operation getApplicationStatus(Operation operation, String status, String message) {
         switch (status) {
-            case APP_STATE_DOWNLOAD_STARTED:
+            case Constants.AppState.DOWNLOAD_STARTED:
                 operation.setStatus(context.getResources().getString(R.string.operation_value_progress));
                 operation.setOperationResponse("Application download started");
                 break;
-            case APP_STATE_DOWNLOAD_COMPLETED:
+            case Constants.AppState.DOWNLOAD_RETRY:
+                operation.setStatus(context.getResources().getString(R.string.operation_value_progress));
+                operation.setOperationResponse(message);
+                break;
+            case Constants.AppState.DOWNLOAD_COMPLETED:
                 operation.setStatus(context.getResources().getString(R.string.operation_value_progress));
                 operation.setOperationResponse("Application download completed");
                 break;
-            case APP_STATE_DOWNLOAD_FAILED:
+            case Constants.AppState.DOWNLOAD_FAILED:
                 operation.setStatus(context.getResources().getString(R.string.operation_value_error));
                 operation.setOperationResponse(message);
                 break;
-            case APP_STATE_INSTALL_FAILED:
+            case Constants.AppState.INSTALL_FAILED:
                 operation.setStatus(context.getResources().getString(R.string.operation_value_error));
                 operation.setOperationResponse(message);
                 break;
-            case APP_STATE_INSTALLED:
+            case Constants.AppState.INSTALLED:
                 operation.setStatus(context.getResources().getString(R.string.operation_value_completed));
                 operation.setOperationResponse("Application installation completed");
                 break;
-            case APP_STATE_UNINSTALLED_FAILED:
+            case Constants.AppState.UNINSTALL_FAILED:
                 operation.setStatus(context.getResources().getString(R.string.operation_value_error));
                 operation.setOperationResponse(message);
                 break;
-            case APP_STATE_UNINSTALLED:
+            case Constants.AppState.UNINSTALLED:
                 operation.setStatus(context.getResources().getString(R.string.operation_value_completed));
                 operation.setOperationResponse("Application uninstallation completed");
                 break;
             default:
-
+                operation.setStatus(context.getResources().getString(R.string.operation_value_error));
+                operation.setOperationResponse(message);
         }
         return operation;
     }
@@ -710,10 +808,8 @@ public class ApplicationManager {
      */
     private void downloadViaDownloadManager(String url, String appName) {
         final DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-        Uri downloadUri = Uri
-                .parse(url);
-        DownloadManager.Request request = new DownloadManager.Request(
-                downloadUri);
+        Uri downloadUri = Uri.parse(url);
+        DownloadManager.Request request = new DownloadManager.Request(downloadUri);
 
         // Restrict the types of networks over which this download may
         // proceed.
@@ -735,9 +831,7 @@ public class ApplicationManager {
             @Override
             public void run() {
                 boolean downloading = true;
-                int progress = 0;
                 while (downloading) {
-                    downloadOngoing = true;
                     DownloadManager.Query query = new DownloadManager.Query();
                     query.setFilterById(downloadReference);
                     Cursor cursor = downloadManager.query(query);
@@ -753,8 +847,7 @@ public class ApplicationManager {
                             STATUS_FAILED) {
                         downloading = false;
                         Preference.putString(context, context.getResources().getString(
-                                R.string.app_install_status), context.getResources().getString(
-                                R.string.app_status_value_download_failed));
+                                R.string.app_install_status), Constants.AppState.DOWNLOAD_FAILED);
                         Preference.putString(context, context.getResources().getString(
                                 R.string.app_install_failed_message), "App download failed due to a connection issue.");
                     }
@@ -762,20 +855,20 @@ public class ApplicationManager {
                     if (bytesTotal > 0) {
                         downloadProgress = (int) ((bytesDownloaded * 100l) / bytesTotal);
                     }
-                    if (downloadProgress != DOWNLOAD_PERCENTAGE_TOTAL) {
-                        progress += DOWNLOADER_INCREMENT;
-                    } else {
-                        progress = DOWNLOAD_PERCENTAGE_TOTAL;
-                        Preference.putString(context, context.getResources().getString(
-                                R.string.app_install_status), context.getResources().getString(
-                                R.string.app_status_value_download_completed));
-                    }
-
-                    Preference.putString(context, resources.getString(R.string.app_download_progress),
-                            String.valueOf(progress));
+                    Preference.putString(context,
+                            context.getResources().getString(R.string.app_download_progress),
+                            String.valueOf(downloadProgress));
                     cursor.close();
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        Log.e(TAG, "Download manager monitoring interrupted.", e);
+                    }
                 }
-                downloadOngoing = false;
+                Preference.putString(context,
+                        context.getResources().getString(R.string.app_download_progress), "100");
+                Preference.putString(context, context.getResources().getString(
+                        R.string.app_install_status), Constants.AppState.DOWNLOAD_COMPLETED);
             }
         }).start();
     }
@@ -793,96 +886,78 @@ public class ApplicationManager {
             Log.e(TAG, "Failed to retrieve HTTP client", e);
         }
 
+        volleyDownloadRequest = new InputStreamVolleyRequest(Request.Method.GET, url,
+            new Response.Listener<byte[]>() {
+                @Override
+                public void onResponse(byte[] response) {
+                    if (response != null) {
+                        FileOutputStream outStream = null;
+                        InputStream inStream = null;
+                        try {
+                            String directory = Environment.getExternalStorageDirectory().getPath() +
+                                               resources.getString(R.string.application_mgr_download_location);
+                            File file = new File(directory);
+                            file.mkdirs();
+                            File outputFile = new File(file,
+                                               resources.getString(R.string.application_mgr_download_file_name));
 
-        InputStreamVolleyRequest request = new InputStreamVolleyRequest(Request.Method.GET, url,
-                new Response.Listener<byte[]>() {
-                    @Override
-                    public void onResponse(byte[] response) {
-                        if (response != null) {
-                            FileOutputStream outStream = null;
-                            InputStream inStream = null;
-                            try {
-                                String directory = Environment.getExternalStorageDirectory().getPath() +
-                                        resources.getString(R.string.application_mgr_download_location);
-                                File file = new File(directory);
-                                file.mkdirs();
-                                File outputFile = new File(file,
-                                        resources.getString(R.string.application_mgr_download_file_name));
-
-                                if (outputFile.exists()) {
-                                    outputFile.delete();
-                                }
-
-                                outStream = new FileOutputStream(outputFile);
-                                inStream = new ByteArrayInputStream(response);
-
-                                byte[] buffer = new byte[BUFFER_SIZE];
-                                int lengthFile;
-
-                                while ((lengthFile = inStream.read(buffer)) != READ_FAILED) {
-                                    outStream.write(buffer, BUFFER_OFFSET, lengthFile);
-                                    downloadOngoing = true;
-                                }
-
-                                String filePath = directory + resources.getString(R.string.application_mgr_download_file_name);
-                                Preference.putString(context, context.getResources().getString(
-                                        R.string.app_install_status), context.getResources().getString(
-                                        R.string.app_status_value_download_completed));
-
-                                //android 7 and later versions require file URIs from a provider
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                    Uri apkURI = FileProvider.getUriForFile(
-                                            context,
-                                            context.getApplicationContext()
-                                                    .getPackageName() + ".provider", new File(filePath));
-                                    triggerInstallation(apkURI);
-
-                                } else {
-                                    triggerInstallation(Uri.fromFile(new File(filePath)));
-                                }
-
-                            } catch (IOException e) {
-                                String error = "File download/save failure in AppUpdator.";
-                                Log.e(TAG, error, e);
-                                Preference.putString(context, context.getResources().getString(
-                                        R.string.app_install_status), context.getResources().getString(
-                                        R.string.app_status_value_download_failed));
-                                Preference.putString(context, context.getResources().getString(
-                                        R.string.app_install_failed_message), error);
-                            } catch (IllegalArgumentException e) {
-                                String error = "Error occurred while sending 'Get' request due to empty host name";
-                                Log.e(TAG, error);
-                                Preference.putString(context, context.getResources().getString(
-                                        R.string.app_install_status), context.getResources().getString(
-                                        R.string.app_status_value_download_failed));
-                                Preference.putString(context, context.getResources().getString(
-                                        R.string.app_install_failed_message), error);
-                            } finally {
-                                StreamHandler.closeOutputStream(outStream, TAG);
-                                StreamHandler.closeInputStream(inStream, TAG);
-                                downloadOngoing = false;
+                            if (outputFile.exists()) {
+                                outputFile.delete();
                             }
-                        } else {
+
+                            outStream = new FileOutputStream(outputFile);
+                            inStream = new ByteArrayInputStream(response);
+
+                            byte[] buffer = new byte[BUFFER_SIZE];
+                            int lengthFile;
+
+                            while ((lengthFile = inStream.read(buffer)) != READ_FAILED) {
+                                outStream.write(buffer, BUFFER_OFFSET, lengthFile);
+                            }
+
+                            String filePath = directory + resources.getString(R.string.application_mgr_download_file_name);
                             Preference.putString(context, context.getResources().getString(
-                                    R.string.app_install_status), context.getResources().getString(
-                                    R.string.app_status_value_download_failed));
+                                    R.string.app_install_status), Constants.AppState.DOWNLOAD_COMPLETED);
+                            triggerInstallation(Uri.fromFile(new File(filePath)));
+                        } catch (IOException e) {
+                            String error = "File download/save failure in App download.";
+                            Log.e(TAG, error, e);
                             Preference.putString(context, context.getResources().getString(
-                                    R.string.app_install_failed_message), "File download failed.");
+                                    R.string.app_install_status), Constants.AppState.DOWNLOAD_FAILED);
+                            Preference.putString(context, context.getResources().getString(
+                                    R.string.app_install_failed_message), error);
+                        } catch (IllegalArgumentException e) {
+                            String error = "Error occurred while sending 'Get' request due to empty host name";
+                            Log.e(TAG, error);
+                            Preference.putString(context, context.getResources().getString(
+                                    R.string.app_install_status), Constants.AppState.DOWNLOAD_FAILED);
+                            Preference.putString(context, context.getResources().getString(
+                                    R.string.app_install_failed_message), error);
+                        } finally {
+                            StreamHandler.closeOutputStream(outStream, TAG);
+                            StreamHandler.closeInputStream(inStream, TAG);
                         }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e(TAG, error.toString());
+                    } else {
                         Preference.putString(context, context.getResources().getString(
-                                R.string.app_install_status), context.getResources().getString(
-                                R.string.app_status_value_download_failed));
+                                R.string.app_install_status), Constants.AppState.DOWNLOAD_FAILED);
                         Preference.putString(context, context.getResources().getString(
-                                R.string.app_install_failed_message), error.toString());
-                        downloadOngoing = false;
+                                R.string.app_install_failed_message), "File download failed.");
                     }
-                }, null) {
+                    volleyDownloadRequest = null;
+                }
+            },
+            new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.e(TAG, error.toString());
+                    Preference.putString(context, context.getResources().getString(
+                            R.string.app_install_status), Constants.AppState.DOWNLOAD_FAILED);
+                    Preference.putString(context, context.getResources().getString(
+                            R.string.app_install_failed_message), error.toString());
+                    volleyDownloadRequest = null;
+                }
+            }, null)
+        {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String, String> headers = new HashMap<>();
@@ -905,17 +980,21 @@ public class ApplicationManager {
                 }
             }
         };
-        request.setRetryPolicy(new DefaultRetryPolicy(
-                Constants.RetryPolicy.DEFAULT_TIME_OUT,
-                Constants.RetryPolicy.DEFAULT_MAX_RETRIES,
-                Constants.RetryPolicy.DEFAULT_BACKOFF_MULT) {
+
+        volleyDownloadRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 5, DEFAULT_BACKOFF_MULT) {
             public void retry(VolleyError error) throws VolleyError {
-                Log.w(TAG, "Retrying download the apk... " + getCurrentRetryCount());
+                String message = "Download failed due to '" + error.toString() +
+                        "'. Retrying to download again. Attempt: " + getCurrentRetryCount();
+                Log.w(TAG, message);
+                Preference.putString(context, context.getResources().getString(
+                        R.string.app_install_status), Constants.AppState.DOWNLOAD_RETRY);
+                Preference.putString(context, context.getResources().getString(
+                        R.string.app_install_failed_message), message);
                 super.retry(error);
             }
         });
 
-        queue.add(request);
+        queue.add(volleyDownloadRequest);
     }
 
 }

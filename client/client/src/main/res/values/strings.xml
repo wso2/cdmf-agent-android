@@ -218,6 +218,7 @@
     <string name="shared_pref_false_status">false</string>
     <string name="shared_pref_os_build_date">firmwareBuildDate</string>
     <string name="shared_pref_reboot_op_id">rebootOpId</string>
+    <string name="shared_pref_reboot_done">rebootDone</string>
     <string name="shared_pref_reboot_status">rebootStatus</string>
     <string name="shared_pref_reboot_result">rebootResult</string>
 

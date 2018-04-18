@@ -32,15 +32,18 @@ public class Constants {
 	public static final String DEFAULT_OTA_SERVER_PROTOCOL = BuildConfig.DEFAULT_OTA_SERVER_PROTOCOL;
 	public static final String DEFAULT_OTA_SERVER_SUB_DIRECTORY = BuildConfig.DEFAULT_OTA_SERVER_SUB_DIRECTORY;
 	public static final int DEFAULT_OTA_SERVER_PORT = BuildConfig.DEFAULT_OTA_SERVER_PORT;
-	public static final int REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE = BuildConfig.REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE;
+	public static final int REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE_DOWNLOAD = 0;
+	public static final int REQUIRED_BATTERY_LEVEL_TO_FIRMWARE_UPGRADE_INSTALL = 25;
 	public static final String DEFAULT_OTA_BUILD_PROP_FILE = BuildConfig.DEFAULT_OTA_BUILD_PROP_FILE;
 	public static final String DEFAULT_OTA_ZIP_FILE = BuildConfig.DEFAULT_OTA_ZIP_FILE;
 	public static final String UPDATE_PACKAGE_NAME = BuildConfig.UPDATE_PACKAGE_NAME;
 	public static final boolean DEBUG_MODE_ENABLED = BuildConfig.DEBUG_MODE_ENABLED;
 	public static final boolean SILENT_FIRMWARE_INSTALLATION = BuildConfig.SILENT_FIRMWARE_INSTALLATION;
 	public static final int FIRMWARE_UPGRADE_CONNECTIVITY_TIMEOUT = BuildConfig.FIRMWARE_UPGRADE_CONNECTIVITY_TIMEOUT;
+	/**
+	 * Read_TIMEOUT = SO timeout(the time since the last byte has been received)
+	 */
 	public static final int FIRMWARE_UPGRADE_READ_TIMEOUT = BuildConfig.FIRMWARE_UPGRADE_READ_TIMEOUT;
-
 	public static final int DEFAULT_NOTIFICATION_CODE = 100;
 	public static final String STATUS = "status";
 	public static final String PAYLOAD = "payload";
@@ -48,6 +51,7 @@ public class Constants {
 	public static final String OPERATION = "operation";
 	public static final String ADMIN_MESSAGE = "message";
 	public static final String IS_LOCKED = "lock";
+
 	public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 	public static final String FIRMWARE_INSTALL_CONFIRM_ACTION = "FIRMWARE_INSTALL_CONFIRM_ACTION";
 	public static final String FIRMWARE_INSTALL_CANCEL_ACTION = "FIRMWARE_INSTALL_CANCEL_ACTION";
@@ -145,6 +149,7 @@ public class Constants {
 		public static final String SUCCESSFUL = "2000";
 		public static final String OTA_UPGRADE_ONGOING = "2001";
 		public static final String REQUEST_PLACED = "2002";
+		public static final String DOWNLOAD_PAUSED = "2003";
 		public static final String USER_CANCELED = "3000";
 		public static final String NO_HISTORY = "3001";
 		public static final String MALFORMED_REQUEST = "4000";

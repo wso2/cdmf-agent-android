@@ -19,6 +19,7 @@
 package org.wso2.iot.system.service;
 
 import android.annotation.TargetApi;
+import android.app.DownloadManager;
 import android.app.IntentService;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
@@ -117,6 +118,7 @@ public class SystemService extends IntentService {
 
 
     private static String[] AUTHORIZED_PINNING_APPS;
+    private static String AGENT_PACKAGE_NAME;
 
     public SystemService() {
         super(TAG);
@@ -129,7 +131,7 @@ public class SystemService extends IntentService {
         devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
         mUserManager = (UserManager) getSystemService(Context.USER_SERVICE);
         wmgr = (WindowManager) getSystemService(WINDOW_SERVICE);
-        String AGENT_PACKAGE_NAME = context.getPackageName();
+        AGENT_PACKAGE_NAME = context.getPackageName();
         AUTHORIZED_PINNING_APPS = new String[]{AGENT_PACKAGE_NAME, Constants.AGENT_APP_PACKAGE_NAME};
         if (!devicePolicyManager.isAdminActive(cdmDeviceAdmin)) {
             startAdmin();
@@ -230,7 +232,9 @@ public class SystemService extends IntentService {
 
         //Checking is there any interrupted firmware download is there
         String status = Preference.getString(context, context.getResources().getString(R.string.upgrade_download_status));
-        if (Constants.Status.OTA_UPGRADE_ONGOING.equals(status)) {
+        boolean isDownloadReferenceAvailable = Preference.getBoolean(context,
+                context.getResources().getString(R.string.download_manager_reference_id_available));
+        if (!isDownloadReferenceAvailable && Constants.Status.OTA_UPGRADE_ONGOING.equals(status)) {
             Preference.putString(context, context.getResources().getString(R.string.upgrade_download_status),
                     Constants.Status.REQUEST_PLACED);
             Timer timeoutTimer = new Timer();
@@ -523,6 +527,22 @@ public class SystemService extends IntentService {
      */
     public void upgradeFirmware(final boolean isStatusCheck) {
         Log.i(TAG, "An upgrade has been requested");
+        boolean isDownloadReferenceAvailable = Preference.getBoolean(this,
+                getResources().getString(R.string.download_manager_reference_id_available));
+        Log.d(TAG, "Download manager reference id availability: " + isDownloadReferenceAvailable);
+        long downloadReference = Preference.getLong(this,
+                getResources().getString(R.string.download_manager_reference_id));
+        if (isDownloadReferenceAvailable && downloadReference > 0) {
+            DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+            if (downloadManager != null) {
+                downloadManager.remove(downloadReference);
+            }
+            Preference.putBoolean(this,
+                    getResources().getString(R.string.download_manager_reference_id_available), false);
+            Preference.putLong(this,
+                    getResources().getString(R.string.download_manager_reference_id), -1);
+            Log.i(TAG, "Removed stale download: " + downloadReference);
+        }
 
         Preference.putBoolean(context, context.getResources().getString(R.string.
                 firmware_status_check_in_progress), isStatusCheck);

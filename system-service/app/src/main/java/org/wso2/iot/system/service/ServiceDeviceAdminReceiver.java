@@ -41,7 +41,7 @@ public class ServiceDeviceAdminReceiver extends DeviceAdminReceiver {
     public void onDisabled(Context context, Intent intent) {
         // TODO Auto-generated method stub
         super.onDisabled(context, intent);
-        Log.i("Device Admin", "Disables");
+        Log.d("Device Admin", "Disabled");
 
     }
 

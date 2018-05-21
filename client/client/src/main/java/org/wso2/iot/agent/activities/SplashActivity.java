@@ -19,6 +19,8 @@
 package org.wso2.iot.agent.activities;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,6 +33,7 @@ import org.wso2.iot.agent.KioskActivity;
 import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.api.DeviceState;
 import org.wso2.iot.agent.services.EnrollmentService;
+import org.wso2.iot.agent.utils.CommonDialogUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
 import org.wso2.iot.agent.utils.Response;
@@ -72,10 +75,29 @@ public class SplashActivity extends Activity {
             decorView.setSystemUiVisibility(uiOptions);
             /* New Handler to start the WorkProfileSelectionActivity
              * and close this Splash-Screen after some seconds.*/
+            DeviceState state = new DeviceState(this);
+            final Response deviceCompatibility = state.evaluateCompatibility();
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    startActivity();
+                    if (deviceCompatibility.equals(Response.COMPATIBLE)) {
+                        startActivity();
+                    } else {
+                        AlertDialog.Builder builder = CommonDialogUtils
+                                .getAlertDialogWithOneButton(SplashActivity.this,
+                                        SplashActivity.this.getResources()
+                                                .getString(deviceCompatibility.getDescriptionResourceID()),
+                                        SplashActivity.this.getResources()
+                                                .getString(R.string.button_ok),
+                                        new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface arg0, int arg1) {
+                                                SplashActivity.this.finish();
+                                            }
+                                        }
+                                );
+                        builder.show();
+                    }
                 }
             }, AUTO_HIDE_DELAY_MILLIS);
         }

@@ -91,8 +91,7 @@ public class SplashActivity extends Activity {
                                                 .getString(R.string.button_ok),
                                         new DialogInterface.OnClickListener() {
                                             @Override
-                                            public void onClick(DialogInterface arg0,
-                                                                int arg1) {
+                                            public void onClick(DialogInterface arg0, int arg1) {
                                                 SplashActivity.this.finish();
                                             }
                                         }

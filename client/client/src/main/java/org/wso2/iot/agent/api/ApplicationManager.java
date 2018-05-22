@@ -347,7 +347,8 @@ public class ApplicationManager {
     private Uri convertContentUriToFileUri(Uri contentUri) {
         String uriString = contentUri.toString();
         uriString = "file://" + Environment.getExternalStorageDirectory() +
-                uriString.replace("content://org.wso2.iot.agent.provider/external_files", "");
+                uriString.replace("content://" + Constants.AGENT_PACKAGE
+                        + ".provider/external_files", "");
         return Uri.parse(uriString);
     }
 
@@ -367,7 +368,7 @@ public class ApplicationManager {
             // set params
             int sessionId = packageInstaller.createSession(params);
             PackageInstaller.Session session = packageInstaller.openSession(sessionId);
-            out = session.openWrite("WSO2", 0, -1);
+            out = session.openWrite(Constants.AGENT_PACKAGE, 0, -1);
             byte[] buffer = new byte[65536];
             int c;
             while ((c = in.read(buffer)) != -1) {

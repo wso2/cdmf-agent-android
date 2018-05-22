@@ -212,8 +212,10 @@ public class AlreadyRegisteredActivity extends AppCompatActivity implements APIR
             // as mute that can cause a device to go into "do not disturb" will need additional
             // permission. Added here as well to support already enrolled devices to optain the
             // permission without reenrolling.
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M && !notificationManager
-                    .isNotificationPolicyAccessGranted()) {
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M
+					&& !devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)
+					&& notificationManager != null
+					&& !notificationManager.isNotificationPolicyAccessGranted()) {
                 CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
                         getResources().getString(R.string.dialog_do_not_distrub_title),
                         getResources().getString(R.string.dialog_do_not_distrub_message),

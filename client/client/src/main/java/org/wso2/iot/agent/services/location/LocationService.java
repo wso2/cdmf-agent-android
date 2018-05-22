@@ -49,6 +49,7 @@ import org.wso2.iot.agent.R;
 import org.wso2.iot.agent.activities.AlreadyRegisteredActivity;
 import org.wso2.iot.agent.events.beans.EventPayload;
 import org.wso2.iot.agent.events.publisher.HttpDataPublisher;
+import org.wso2.iot.agent.services.LocationUpdateReceiver;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 
@@ -122,7 +123,7 @@ public class LocationService extends Service implements LocationListener {
                         + android.os.Build.VERSION.SDK_INT);
             }
         }
-        if (Build.VERSION.SDK_INT >= 23
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                 && ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ContextCompat.checkSelfPermission(this,
@@ -168,7 +169,7 @@ public class LocationService extends Service implements LocationListener {
     }
 
     private void broadcastLocation(Location location) {
-        Intent broadcastIntent = new Intent();
+        Intent broadcastIntent = new Intent(this, LocationUpdateReceiver.class);
         broadcastIntent.setAction(Constants.LOCATION_UPDATE_BROADCAST_ACTION);
         broadcastIntent.putExtra(Constants.Location.LOCATION, location);
         sendBroadcast(broadcastIntent);
@@ -192,7 +193,7 @@ public class LocationService extends Service implements LocationListener {
     @Override
     public void onDestroy() {
         if (isUpdateRequested) {
-            if (Build.VERSION.SDK_INT >= 23
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                     && ContextCompat.checkSelfPermission(this,
                     android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                     && ContextCompat.checkSelfPermission(this,
@@ -222,7 +223,7 @@ public class LocationService extends Service implements LocationListener {
      * In this method, it gets the latest location updates from gps/ network.
      */
     private void requestLocationUpdates() {
-        if (Build.VERSION.SDK_INT >= 23
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                 && ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ContextCompat.checkSelfPermission(this,

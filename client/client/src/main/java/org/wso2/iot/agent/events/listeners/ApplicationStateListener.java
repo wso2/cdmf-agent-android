@@ -40,6 +40,7 @@ import org.wso2.iot.agent.events.beans.ApplicationStatus;
 import org.wso2.iot.agent.events.beans.EventPayload;
 import org.wso2.iot.agent.events.publisher.HttpDataPublisher;
 import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
+import org.wso2.iot.agent.services.AgentStartupReceiver;
 import org.wso2.iot.agent.services.AppLockService;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
@@ -134,7 +135,7 @@ public class ApplicationStateListener extends BroadcastReceiver implements Alert
             }
             if (Intent.ACTION_PACKAGE_REPLACED.equals(intent.getAction()) &&
                     Constants.AGENT_PACKAGE.equals(packageName)) {
-                Intent broadcastIntent = new Intent();
+                Intent broadcastIntent = new Intent(context, AgentStartupReceiver.class);
                 broadcastIntent.setAction(Constants.AGENT_UPDATED_BROADCAST_ACTION);
                 context.sendBroadcast(broadcastIntent);
             }

@@ -779,8 +779,10 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
         if (requestCode == PERMISSION_REQUEST) {
             NotificationManager notificationManager = (NotificationManager) context
                     .getSystemService(Context.NOTIFICATION_SERVICE);
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M && !notificationManager
-                    .isNotificationPolicyAccessGranted()) {
+			if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M
+					&& !devicePolicyManager.isProfileOwnerApp(Constants.AGENT_PACKAGE)
+					&& notificationManager != null
+					&& !notificationManager.isNotificationPolicyAccessGranted()) {
                 CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
                         getResources().getString(R.string.dialog_do_not_distrub_title),
                         getResources().getString(R.string.dialog_do_not_distrub_message),

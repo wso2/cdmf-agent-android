@@ -48,6 +48,7 @@ import org.json.JSONObject;
 import org.wso2.iot.agent.AlertActivity;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.R;
+import org.wso2.iot.agent.activities.AlreadyRegisteredActivity;
 import org.wso2.iot.agent.activities.ScreenShareActivity;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceInfo;
@@ -880,14 +881,20 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         } else {
             operation.setStatus(resources.getString(R.string.operation_value_completed));
             resultBuilder.build(operation);
+            NotificationManager notificationManager = (NotificationManager)
+                    context.getSystemService(Context.NOTIFICATION_SERVICE);
+            Intent intent = new Intent(context, AlreadyRegisteredActivity.class);
             NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                     .setSmallIcon(R.drawable.ic_lock_white_24dp)
                     .setContentTitle(context.getString(R.string.alert_message))
                     .setContentText(message)
                     .setAutoCancel(true)
-                    .setContentIntent(PendingIntent.getActivity(context, 0, new Intent(), 0));
-            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.notify(0, mBuilder.build());
+                    .setContentIntent(PendingIntent.getActivity(context, 0, intent, 0));
+            if (notificationManager != null) {
+                notificationManager.notify(0, mBuilder.build());
+            } else {
+                Log.w(TAG, "Unable to retrieve notification manager.");
+            }
             devicePolicyManager.lockNow();
         }
 
@@ -1141,7 +1148,6 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      *
      * @param operation Operation received to start session
      * @throws AndroidAgentException Throws when error occur while connecting to session
-     *
      */
     public void connectToRemoteSession(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
         try {

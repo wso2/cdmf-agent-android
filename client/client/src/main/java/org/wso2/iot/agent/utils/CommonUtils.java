@@ -677,7 +677,11 @@ public class CommonUtils {
 		mBuilder.setContentIntent(resultPendingIntent);
 
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-		mNotificationManager.notify(tag, id, mBuilder.build());
+		if (mNotificationManager != null) {
+			mNotificationManager.notify(tag, id, mBuilder.build());
+		} else {
+			Log.w(TAG, "Unable to retrieve notification manager.");
+		}
 	}
 
 	public static Date currentDate() {

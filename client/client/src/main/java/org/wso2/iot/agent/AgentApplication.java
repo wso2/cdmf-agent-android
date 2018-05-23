@@ -27,6 +27,7 @@ import android.util.Log;
 
 import com.splunk.mint.Mint;
 
+import org.wso2.iot.agent.services.AgentStartupReceiver;
 import org.wso2.iot.agent.services.EnrollmentService;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
@@ -51,7 +52,7 @@ public class AgentApplication extends MultiDexApplication {
                     alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
                             relaunchDelay, pendingIntent);
                 } else {
-                    Intent intent = new Intent();
+                    Intent intent = new Intent(AgentApplication.this, AgentStartupReceiver.class);
                     intent.setAction("org.ws2.iot.agent.APPLICATION_CRASHED");
                     sendBroadcast(intent);
                 }

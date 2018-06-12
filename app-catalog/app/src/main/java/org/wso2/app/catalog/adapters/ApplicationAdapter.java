@@ -18,7 +18,10 @@
 package org.wso2.app.catalog.adapters;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -113,6 +116,12 @@ public class ApplicationAdapter extends ArrayAdapter<Application> implements Fil
                                             getString(R.string.operation_install));
                                 } catch (AppCatalogException e) {
                                     Log.e(TAG, "Cannot create Webclip due to invalid operation type." + e);
+                                }
+                            } else if (Constants.ApplicationPayload.TYPE_PUBLIC.equals(data.getAppType().trim())) {
+                                try {
+                                    activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.GOOGLE_PLAY_APP_URI + data.getPackageName())));
+                                } catch (ActivityNotFoundException e) {
+                                    activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.GOOGLE_PLAY_WEB_URI + data.getPackageName())));
                                 }
                             } else {
                                 applicationManager.installApp(data.getAppUrl(), data.getPackageName());

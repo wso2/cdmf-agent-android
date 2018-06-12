@@ -18,7 +18,6 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.wso2.emm.agent"
-    android:sharedUserId="android.uid.system"
     android:versionCode="2">
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />

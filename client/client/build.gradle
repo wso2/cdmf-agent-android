@@ -34,23 +34,10 @@ android {
         multiDexEnabled true
     }
 
-    signingConfigs {
-        config {
-            keyAlias 'platform'
-            keyPassword 'android'
-            storeFile file('../../example.keystore')
-            storePassword 'android'
-        }
-    }
-
     buildTypes {
-        debug{
-            signingConfig signingConfigs.config
-        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-            signingConfig signingConfigs.config
 
             applicationVariants.all { variant ->
                 variant.outputs.each { output ->

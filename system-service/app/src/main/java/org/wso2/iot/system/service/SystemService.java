@@ -700,7 +700,7 @@ public class SystemService extends IntentService {
                     Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             intent.putExtra(Constants.ADMIN_MESSAGE, message);
             intent.putExtra(Constants.IS_LOCKED, true);
-            context.startActivity(intent);
+            startActivityAsUser(intent, android.os.Process.myUserHandle());
         } else {
             Log.e(TAG, "Device owner is not set, hence executing default lock");
             devicePolicyManager.lockNow();
@@ -779,10 +779,20 @@ public class SystemService extends IntentService {
     }
 
     private void disableHardLock() {
-        Intent intent = new Intent(context, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
+        Log.i(TAG, "Disabling hard lock");
+
+        Thread t1 = new Thread() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(context, LockActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                        Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY |
+                        Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                intent.putExtra(Constants.IS_LOCKED, false);
+                startActivityAsUser(intent, android.os.Process.myUserHandle());
+            }
+        };
+        t1.start();
     }
 
     private void publishFirmwareBuildDate() {

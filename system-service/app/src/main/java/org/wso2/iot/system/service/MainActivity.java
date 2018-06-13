@@ -51,11 +51,7 @@ public class MainActivity extends Activity {
                                        getResources().getString(R.string.device_admin_enable_alert));
             startActivityForResult(deviceAdminIntent, ACTIVATION_REQUEST);
         } else {
-            Intent intent = new Intent(Intent.ACTION_MAIN);
-            intent.addCategory(Intent.CATEGORY_HOME);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                            Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
+            finish();
         }
     }
 
@@ -63,11 +59,11 @@ public class MainActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == ACTIVATION_REQUEST) {
             if (resultCode == Activity.RESULT_OK) {
-                finish();
                 Log.i("onActivityResult", "Administration enabled!");
             } else {
                 Log.i("onActivityResult", "Administration enable FAILED!");
             }
+            finish();
         }
     }
 

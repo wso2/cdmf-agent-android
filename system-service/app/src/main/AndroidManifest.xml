@@ -62,13 +62,12 @@
 
         <activity
                 android:name=".MainActivity"
-                android:exported="true"
-                android:screenOrientation="portrait">
+                android:configChanges="orientation|keyboardHidden|screenSize"
+                android:exported="true">
         </activity>
 
         <activity
                 android:name=".LockActivity"
-                android:screenOrientation="portrait"
                 android:configChanges="orientation|keyboardHidden|screenSize"
                 android:label="@string/title_activity_lock">
         </activity>

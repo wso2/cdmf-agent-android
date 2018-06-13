@@ -59,11 +59,11 @@ public class LockActivity extends Activity {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void disablePinnedActivity() {
         adminMessage.setText(getResources().getString(R.string.txt_unlock_activity));
+        stopLockTask();
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Hard lock is disabled");
         }
         finish();
-
     }
 
     @Override

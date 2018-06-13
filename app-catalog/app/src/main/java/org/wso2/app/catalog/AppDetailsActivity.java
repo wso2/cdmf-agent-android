@@ -18,9 +18,11 @@
 package org.wso2.app.catalog;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -128,9 +130,15 @@ public class AppDetailsActivity extends Activity {
                     if(Constants.ApplicationPayload.TYPE_WEB_CLIP.equals(application.getAppType().trim())) {
                         try {
                             applicationManager.manageWebAppBookmark(application.getAppUrl(), application.getName(),
-                                                        context.getResources().getString(R.string.operation_install));
+                                    context.getResources().getString(R.string.operation_install));
                         } catch (AppCatalogException e) {
                             Log.e(TAG, "Cannot create WebClip due to invalid operation type." + e);
+                        }
+                    } else if (Constants.ApplicationPayload.TYPE_PUBLIC.equals(application.getAppType().trim())) {
+                        try {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.GOOGLE_PLAY_APP_URI + application.getPackageName())));
+                        } catch (ActivityNotFoundException e) {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.GOOGLE_PLAY_WEB_URI + application.getPackageName())));
                         }
                     } else {
                         applicationManager.installApp(application.getAppUrl(), application.getPackageName());

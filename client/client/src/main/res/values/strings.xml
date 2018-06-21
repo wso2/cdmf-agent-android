@@ -237,6 +237,7 @@
     <string name="error_authentication_failed">Incorrect login information. Please try again.</string>
     <string name="error_network_unavailable">Network connectivity is unavailable. Please check your network connectivity.</string>
     <string name="error_for_all_unknown_registration_failures">Cannot proceed the registration. Please contact administrator.</string>
+    <string name="error_for_gcm_unavailability">Google Play services not available</string>
     <string name="error_for_all_unknown_authentication_failures">Cannot proceed the authentication. Please contact administrator.</string>
     <string name="error_for_all_unknown_unregister_failures">Cannot unregister the device. Please contact administrator.</string>
     <string name="error_for_all_unknown_notification_failures">Cannot execute the notification. Please contact administrator.</string>
@@ -249,8 +250,10 @@
     <string name="error_wifi_policy">\nYou are not using company WIFI account, please change your WIFI configuration \n</string>
     <string name="error_work_profile_policy">\nYour work-profile configurations are not adhering to the policy, please undo if any customizations have been done. \n</string>
 
+
     <!-- DIALOG TITLES AND MESSAGES -->
     <string name="dialog_authenticate">Authenticating</string>
+    <string name="dialog_title_system_app_required">WSO2 System App required</string>
     <string name="dialog_gps_settings">GPS Settings</string>
     <string name="dialog_gps_message">GPS is not enabled. Do you want to go to settings menu to enable GPS?</string>
     <string name="dialog_please_wait">Please wait</string>
@@ -266,6 +269,7 @@
     <string name="dialog_init_end"> device, are you sure you want to proceed ?</string>
     <string name="dialog_init_end_general"> are you sure you want to proceed ?</string>
     <string name="dialog_unregister">You are trying to unregister from EMM. Are you sure you want to proceed ?</string>
+    <string name="dialog_system_app_required">WSO2 System service application not installed</string>
 
 
     <!-- REGISTRATION -->

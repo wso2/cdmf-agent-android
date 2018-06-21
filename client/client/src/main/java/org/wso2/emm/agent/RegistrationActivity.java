@@ -24,7 +24,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -39,9 +38,12 @@ import org.wso2.emm.agent.services.DeviceInfoPayload;
 import org.wso2.emm.agent.utils.CommonDialogUtils;
 import org.wso2.emm.agent.utils.CommonUtils;
 import org.wso2.emm.agent.utils.Constants;
+import org.wso2.emm.agent.utils.FCMRegistrationUtil;
 import org.wso2.emm.agent.utils.Preference;
 
 import java.util.Map;
+
+import com.google.firebase.iid.FirebaseInstanceId;
 
 /**
  * Activity which handles user enrollment.
@@ -75,7 +77,25 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		DeviceInfo deviceInfo = new DeviceInfo(context);
 		deviceIdentifier = deviceInfo.getDeviceId();
 		Preference.putString(context, Constants.PreferenceFlag.REG_ID, deviceIdentifier);
-		registerDevice();
+
+		// If the notification type is gcm, before registering the device, make sure that particular device has google
+		// play services installed
+		if (Constants.NOTIFIER_GCM.equals(Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE))) {
+			if (FCMRegistrationUtil.isPlayServicesInstalled(this.getApplicationContext())) {
+				registerDevice();
+			} else {
+				try {
+					CommonDialogUtils.stopProgressDialog(progressDialog);
+					CommonUtils.clearAppData(context);
+					displayGooglePlayServicesError();
+				} catch (AndroidAgentException e) {
+					Log.e(TAG, "Failed to clear app data", e);
+				}
+			}
+		} else {
+			registerDevice();
+		}
+
 	}
 
 	private void registerDevice() {
@@ -197,6 +217,20 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 		});
 	}
 
+	/**
+	 * Display google play services error
+	 */
+	private void displayGooglePlayServicesError() {
+		RegistrationActivity.this.runOnUiThread(new Runnable() {
+			@Override public void run() {
+				alertDialog = CommonDialogUtils.getAlertDialogWithOneButtonAndTitle(context,
+						getResources().getString(R.string.title_head_registration_error),
+						getResources().getString(R.string.error_for_gcm_unavailability),
+						getResources().getString(R.string.button_ok), registrationFailedOKBtnClickListerner);
+			}
+		});
+	}
+
 	@Override
 	public void onReceiveAPIResult(Map<String, String> result, int requestCode) {
 		DeviceInfo info = new DeviceInfo(context);
@@ -223,6 +257,7 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
 			loadAlreadyRegisteredActivity();
 		} else if (requestCode == Constants.GCM_REGISTRATION_ID_SEND_CODE && result != null) {
 			String status = result.get(Constants.STATUS_KEY);
+			Log.e("onReceiveAPIResult","GCM_REGISTRATION_ID_SEND_CODE "+status);
 			if (!(Constants.Status.SUCCESSFUL.equals(status) || Constants.Status.ACCEPT.equals(status))) {
 				displayConnectionError();
 			} else {
@@ -241,34 +276,22 @@ public class RegistrationActivity extends Activity implements APIResultCallBack 
      * to the MDM server so that it can send notifications to the device.
      */
 	private void registerGCM() {
-		new AsyncTask<Void, Void, String>() {
-			String senderId = Preference.getString(context, context.getResources().getString(R.string.shared_pref_sender_id));
-			GCMRegistrationManager registrationManager = new GCMRegistrationManager(context, RegistrationActivity.this, senderId);
-
-			@Override
-			protected String doInBackground(Void... params) {
-				return registrationManager.registerWithGoogle();
+		String token =  FirebaseInstanceId.getInstance().getToken();
+		if(token != null) {
+			Preference.putString(context, Constants.GCM_REG_ID, token);
+			try {
+				sendRegistrationId();
+			} catch (AndroidAgentException e) {
+				Log.e(TAG, "Error while sending registration Id");
 			}
-
-			@Override
-			protected void onPostExecute(String regId) {
-				Preference.putString(context, Constants.GCM_REG_ID, regId);
-				if (regId != null) {
-					try {
-						sendRegistrationId();
-					} catch (AndroidAgentException e) {
-						Log.e(TAG, "Error while sending registration Id");
-					}
-				} else {
-					try {
-						CommonUtils.clearAppData(context);
-						displayInternalServerError();
-					} catch (AndroidAgentException e) {
-						Log.e(TAG, "Failed to clear app data", e);
-					}
-				}
+		} else {
+			try {
+				CommonUtils.clearAppData(context);
+				displayGooglePlayServicesError();
+			} catch (AndroidAgentException e) {
+				Log.e(TAG, "Failed to clear app data", e);
 			}
-		}.execute();
+		}
 	}
 
 	/**

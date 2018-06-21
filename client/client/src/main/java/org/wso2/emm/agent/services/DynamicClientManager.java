@@ -148,6 +148,11 @@ public class DynamicClientManager {
                                                           @Override
                                                           public void onErrorResponse(VolleyError error) {
                                                               Log.d(TAG, error.toString());
+
+                                                              Map<String, String> responseParams = new HashMap<>();
+                                                              responseParams.put(org.wso2.emm.agent.proxy.utils.Constants.SERVER_RESPONSE_BODY, error.toString());
+                                                              responseParams.put(org.wso2.emm.agent.proxy.utils.Constants.SERVER_RESPONSE_STATUS, "404");
+                                                              apiResultCallback.onReceiveAPIResult(responseParams, requestCode);
                                                           }
                                                       })
 

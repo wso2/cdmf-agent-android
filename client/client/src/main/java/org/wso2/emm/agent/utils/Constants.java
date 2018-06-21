@@ -25,8 +25,8 @@ public class Constants {
 
 	public static final boolean DEBUG_MODE_ENABLED = true;
 	public static final boolean LOCAL_NOTIFICATIONS_ENABLED = true;
-	public static final boolean GCM_ENABLED = false;
-	public static final boolean SYSTEM_APP_ENABLED = true;
+	public static final boolean GCM_ENABLED = true;
+	public static final boolean SYSTEM_APP_ENABLED = false;
 	public static final boolean AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED = false;
 	public static final boolean ALLOW_SYSTEM_APPS_IN_APPS_LIST_RESPONSE = false;
 	public static final String SYSTEM_APP_SERVICE_START_ACTION = "org.wso2.emm.system.service.START_SERVICE";
@@ -105,7 +105,7 @@ public class Constants {
 	public static final String CONFIGURATION_ENDPOINT = SERVER_APP_ENDPOINT + "configuration/";
 	public static final String SCEP_ENDPOINT = "/api/scep-mgt/v1.0/certificates/signcsr";
 	public static final String OAUTH_ENDPOINT = "/oauth2/token";
-	public static final String DEVICE_ENDPOINT = SERVER_APP_ENDPOINT + "device/";
+	public static final String DEVICE_ENDPOINT = SERVER_APP_ENDPOINT + "devices/";
 	public static final String IS_REGISTERED_ENDPOINT = "/status";
 	public static final String UNREGISTER_ENDPOINT =  REGISTER_ENDPOINT;
 	public static final String DEVICES_ENDPOINT = SERVER_APP_ENDPOINT + "devices/";
@@ -113,6 +113,7 @@ public class Constants {
 	public static final String GOOGLE_PLAY_APP_URI = "market://details?id=";
 	public static final String DYNAMIC_CLIENT_REGISTER_ENDPOINT = "/dynamic-client-web/register";
 	public static final String APP_LIST_ENDPOINT = "/api/appm/publisher/v1.1/apps/mobileapp?field-filter=all";
+	public static final String APP_INSTALL_ENDPOINT = SERVER_APP_ENDPOINT + "admin/devices/install-application";
 	public static final String APP_DOWNLOAD_ENDPOINT = "/publisher/api/mobileapp/getfile";
 	public static final String ACTION_RESPONSE = "org.wso2.emm.agent.MESSAGE_PROCESSED";
 	public static final String POLICY_ENDPOINT = SERVER_APP_ENDPOINT + "policy/";
@@ -191,6 +192,7 @@ public class Constants {
 	public static final int EVENT_REQUEST_CODE = 312;
 	public static final int APP_LIST_REQUEST_CODE = 313;
 	public static final int DYNAMIC_CLIENT_UNREGISTER_REQUEST_CODE = 314;
+	public static final int APP_INSTALL_REQUEST_CODE = 315;
 	public static final int SCEP_REQUEST_CODE = 300;
 
 	/**

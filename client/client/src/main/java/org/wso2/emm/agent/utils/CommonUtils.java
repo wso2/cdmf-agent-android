@@ -452,6 +452,19 @@ public class CommonUtils {
 		}
 	}
 
+	public static boolean isSystemAppInstalled(Context context) {
+		PackageManager packageManager = context.getPackageManager();
+		boolean systemAppInstalled;
+		try {
+			packageManager.getPackageInfo(Constants.SYSTEM_SERVICE_PACKAGE, PackageManager.GET_ACTIVITIES);
+			systemAppInstalled = true;
+		}
+		catch (PackageManager.NameNotFoundException e) {
+			systemAppInstalled = false;
+		}
+		return systemAppInstalled;
+	}
+
 	public static Intent createExplicitFromImplicitIntent(Context context, Intent implicitIntent) {
 		//Retrieve all services that can match the given intent
 		PackageManager pm = context.getPackageManager();
@@ -506,6 +519,16 @@ public class CommonUtils {
 	 */
 	public static List<String> getInstalledAppPackagesByUser(Context context) {
 		return new ApplicationManager(context.getApplicationContext()).getInstalledAppsByUser();
+	}
+
+	/**
+	 * Get package list of applications that are not system apps
+	 *
+	 * @param context Context object
+	 * @return list of package list that are not system apps
+	 */
+	public static List<String> getAppsOfUser(Context context) {
+		return new ApplicationManager(context.getApplicationContext()).getAppsOfUser();
 	}
 
 	public static AppRestriction getAppRestrictionTypeAndList(Operation operation,

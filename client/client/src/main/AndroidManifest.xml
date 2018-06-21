@@ -34,6 +34,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permisssion.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.READ_LOGS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
@@ -77,17 +78,6 @@
             android:screenOrientation="unspecified"
             android:excludeFromRecents="true"></activity>
 
-        <receiver
-            android:name="com.google.android.gms.gcm.GcmReceiver"
-            android:exported="true"
-            android:permission="com.google.android.c2dm.permission.SEND">
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
-
-                <category android:name="org.wso2.emm.agent" />
-            </intent-filter>
-        </receiver>
         <receiver
             android:name=".services.AgentDeviceAdminReceiver"
             android:permission="android.permission.BIND_DEVICE_ADMIN"
@@ -166,10 +156,9 @@
             </intent-filter>
         </service>
         <service
-            android:name=".GCMIntentService"
-            android:exported="false">
+            android:name=".FCMMessagingService">
             <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
         <service
@@ -240,5 +229,12 @@
             android:name=".services.AppLockService"
             android:permission="org.wso2.emm.agent.permission.ACCESS"
             android:exported="false" />
+
+        <service
+            android:name=".InstanceIDListenerService">
+            <intent-filter>
+            <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>

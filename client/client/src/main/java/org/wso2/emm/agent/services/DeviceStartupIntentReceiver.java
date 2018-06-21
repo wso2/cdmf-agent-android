@@ -40,7 +40,6 @@ import java.util.Locale;
  * notification service at device startup.
  */
 public class DeviceStartupIntentReceiver extends BroadcastReceiver {
-
 	public static final int DEFAULT_ID = -1;
 	private Resources resources;
     private static final String TAG = "DeviceStartupIntent";

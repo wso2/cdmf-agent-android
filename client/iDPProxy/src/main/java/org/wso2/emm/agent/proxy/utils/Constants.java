@@ -56,7 +56,7 @@ public class Constants {
 	public static final String KEYSTORE_PASSWORD = "wso2carbon";
 	public static final String TRUSTSTORE_LOCATION = null;
 	public static final String KEYSTORE_LOCATION = null;
-	public static final boolean DEBUG_ENABLED = false;
+	public static final boolean DEBUG_ENABLED = true;
 	public final static int ACCESS_TOKEN_AGE = 3000;
 	public final static String GRANT_TYPE = "grant_type";
 	public final static String GRANT_TYPE_PASSWORD = "password";

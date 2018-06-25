@@ -155,11 +155,8 @@ public class EnrollmentService extends IntentService implements APIResultCallBac
      * Starts server polling task.
      */
     private void startPolling() {
-        String notifier = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
-        if(Constants.NOTIFIER_LOCAL.equals(notifier)) {
-            Log.i(TAG, "EMM auto enrollment, initiating polling task.");
-            LocalNotification.startPolling(context);
-        }
+        Log.i(TAG, "EMM auto enrollment, initiating polling task.");
+        LocalNotification.startPolling(context);
     }
 
     @Override

@@ -17,9 +17,9 @@
  */
 
 package org.wso2.emm.agent;
-import android.content.Context;
 
 import android.util.Log;
+
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -28,29 +28,59 @@ import org.wso2.emm.agent.utils.CommonUtils;
 import org.wso2.emm.agent.utils.Constants;
 import org.wso2.emm.agent.utils.Preference;
 
+import java.util.Calendar;
+import java.util.Timer;
+import java.util.TimerTask;
+
 /**
  * IntentService responsible for handling FCM messages.
  */
 public class FCMMessagingService extends FirebaseMessagingService {
-	private static final String TAG = FCMMessagingService.class.getName();
 
-	@Override
-	public void onMessageReceived(RemoteMessage message){
-		Context context = this.getApplicationContext();
-		Log.d(TAG, "New FCM notification.");
-		MessageProcessor messageProcessor = new MessageProcessor(context);
-		try {
-			messageProcessor.getMessages();
-		} catch (AndroidAgentException e) {
-			Log.e(TAG, "Failed to perform operation", e);
-		}
+    private static final String TAG = FCMMessagingService.class.getName();
+    private static volatile boolean hasPending = false;
 
-		if (Constants.SYSTEM_APP_ENABLED && Preference.getBoolean(context, context.getResources().
-				getString(R.string.firmware_upgrade_retry_pending))) {
-			Preference.putBoolean(context, context.getResources().
-					getString(R.string.firmware_upgrade_retry_pending), false);
-			CommonUtils.callSystemApp(context, Constants.Operation.UPGRADE_FIRMWARE, null, null);
-		}
-	}
+    @Override
+    public void onMessageReceived(RemoteMessage message) {
+        Log.i(TAG, "New FCM notification. Message id: " + message.getMessageId());
+        syncMessages();
+        if (Constants.SYSTEM_APP_ENABLED && Preference.getBoolean(this,
+                getResources().getString(R.string.firmware_upgrade_retry_pending))) {
+            Preference.putBoolean(this,
+                    getResources().getString(R.string.firmware_upgrade_retry_pending), false);
+            CommonUtils.callSystemApp(this, Constants.Operation.UPGRADE_FIRMWARE, null, null);
+        }
+    }
+
+    private void syncMessages() {
+        try {
+            if (Preference.getBoolean(this, Constants.PreferenceFlag.REGISTERED)) {
+                long currentTimeStamp = Calendar.getInstance().getTimeInMillis();
+                if (currentTimeStamp - MessageProcessor.getInvokedTimeStamp() > Constants.DEFAULT_START_INTERVAL) {
+                    MessageProcessor messageProcessor = new MessageProcessor(this);
+                    messageProcessor.getMessages();
+                } else if (!hasPending) {
+                    hasPending = true;
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            if (Constants.DEBUG_MODE_ENABLED) {
+                                Log.d(TAG, "Triggering delayed operation polling.");
+                            }
+                            hasPending = false;
+                            syncMessages();
+                        }
+                    }, Constants.DEFAULT_START_INTERVAL);
+                    if (Constants.DEBUG_MODE_ENABLED) {
+                        Log.d(TAG, "Scheduled for delayed operation syncing.");
+                    }
+                } else {
+                    Log.i(TAG, "Ignoring message since there are ongoing and pending polling.");
+                }
+            }
+        } catch (AndroidAgentException e) {
+            Log.e(TAG, "Failed to perform operation", e);
+        }
+    }
 
 }

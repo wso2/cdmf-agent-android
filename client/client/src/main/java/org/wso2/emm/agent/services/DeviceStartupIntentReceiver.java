@@ -64,7 +64,6 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 	 * @param context - Application context.
 	 */
 	private void setRecurringAlarm(Context context) {
-		String mode = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
 		boolean isLocked = Preference.getBoolean(context, Constants.IS_LOCKED);
 		String lockMessage = Preference.getString(context, Constants.LOCK_MESSAGE);
 
@@ -90,12 +89,7 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
 			}
 		}
 
-		if(mode == null) {
-			mode = Constants.NOTIFIER_LOCAL;
-		}
-
-		if (Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED) && Constants.NOTIFIER_LOCAL.equals(
-				mode.trim().toUpperCase(Locale.ENGLISH))) {
+		if (Preference.getBoolean(context, Constants.PreferenceFlag.REGISTERED)) {
 			LocalNotification.startPolling(context);
 		}
 	}

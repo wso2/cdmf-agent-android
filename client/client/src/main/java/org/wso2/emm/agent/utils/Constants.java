@@ -205,6 +205,11 @@ public class Constants {
 	 * Tag used on log messages.
 	 */
 	public static final String TAG = "WSO2EMM";
+	public static final int DEFAULT_REQUEST_CODE = 0;
+	public static final int DEFAULT_INTERVAL = 30000;
+	public static final int DEFAULT_FCM_INTERVAL = 300000;
+	public static final int DEFAULT_START_INTERVAL = 10000;
+	public static final boolean FCM_FALLBACK_PULL_ENABLED = true;
 
 	/**
 	 * Intent used to display a message in the screen.
@@ -250,7 +255,6 @@ public class Constants {
 	public static final String MIME_TYPE = "text/html";
 	public static final String ENCODING_METHOD = "utf-8";
 	public static final int DEFAILT_REPEAT_COUNT = 0;
-	public static int DEFAULT_INTERVAL = 30000;
 	public static final int NOTIFIER_CHECK = 2;
 
 
@@ -488,6 +492,7 @@ public class Constants {
 		public static final String APPLIED_POLICY = "appliedPolicy";
 		public static final String IS_AGREED = "isAgreed";
 		public static final String NOTIFIER_TYPE = "notifierType";
+		public static final String LOCAL_NOTIFIER_INVOKED_PREF_KEY = "localNotificationInvoked";
 		public static final String FIRMWARE_UPGRADE_INITIATED_AT = "firmwareUpgradeInitiatedAt";
 		public static final String DOWNLOAD_INITIATED_AT = "downloadInitiatedAt";
 		public static final String INSTALLATION_INITIATED_AT = "installationInitiatedAt";

@@ -62,6 +62,7 @@ public class MessageProcessor implements APIResultCallBack {
 	private Context context;
 	private String deviceId;
 	private static final String DEVICE_ID_PREFERENCE_KEY = "deviceId";
+	private static volatile long invokedTimestamp = 0;
 	private static List<org.wso2.emm.agent.beans.Operation> replyPayload;
 	private static volatile boolean isInCriticalPath = true;
 	private static volatile long lastSyncAt = 0L;
@@ -94,6 +95,11 @@ public class MessageProcessor implements APIResultCallBack {
 			deviceId = deviceInfo.getDeviceId();
 			Preference.putString(context, DEVICE_ID_PREFERENCE_KEY, deviceId);
 		}
+		invokedTimestamp = Calendar.getInstance().getTimeInMillis();
+	}
+
+	public static long getInvokedTimeStamp() {
+		return invokedTimestamp;
 	}
 
 	/**
@@ -125,6 +131,13 @@ public class MessageProcessor implements APIResultCallBack {
 			Log.e(TAG, "Issue in stream parsing", e);
 		} catch (AndroidAgentException e) {
 			Log.e(TAG, "Error occurred while checking previous notification", e);
+		}
+
+		if (!(operations.isEmpty() || (operations.size() == 1 && Constants.Operation.POLICY_MONITOR.equals(operations.get(0).getCode())))) {
+			if (Constants.DEBUG_MODE_ENABLED) {
+				Log.d(TAG, "Restarting to send quick update of received pending operations.");
+			}
+			LocalNotification.startPolling(context);
 		}
 
 		for (org.wso2.emm.agent.beans.Operation op : operations) {

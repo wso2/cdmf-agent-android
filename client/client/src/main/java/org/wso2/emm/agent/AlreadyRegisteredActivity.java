@@ -511,9 +511,7 @@ public class AlreadyRegisteredActivity extends SherlockActivity implements APIRe
 	 * Starts server polling task.
 	 */
 	private void startPolling() {
-		String notifier = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
-		if(Constants.NOTIFIER_LOCAL.equals(notifier) &&
-				!Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED) {
+		if(!Constants.AUTO_ENROLLMENT_BACKGROUND_SERVICE_ENABLED) {
 			LocalNotification.startPolling(context);
 		}
 	}

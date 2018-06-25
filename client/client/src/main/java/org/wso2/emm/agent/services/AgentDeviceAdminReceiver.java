@@ -53,20 +53,8 @@ public class AgentDeviceAdminReceiver extends DeviceAdminReceiver implements API
 	@Override
 	public void onEnabled(final Context context, Intent intent) {
 		super.onEnabled(context, intent);
-
-		Resources resources = context.getResources();
 		Preference.putBoolean(context, Constants.PreferenceFlag.DEVICE_ACTIVE, true);
-
-//		MessageProcessor processor = new MessageProcessor(context);
-//		try {
-//			processor.getMessages();
-//		} catch (AndroidAgentException e) {
-//			Log.e(TAG, "Failed to perform operation", e);
-//		}
-		String notifier = Preference.getString(context, Constants.PreferenceFlag.NOTIFIER_TYPE);
-		if(Constants.NOTIFIER_LOCAL.equals(notifier)) {
-			LocalNotification.startPolling(context);
-		}
+		LocalNotification.startPolling(context);
 	}
 
 	/**

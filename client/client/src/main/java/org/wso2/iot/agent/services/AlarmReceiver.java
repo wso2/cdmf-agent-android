@@ -27,6 +27,7 @@ import org.wso2.iot.agent.utils.Constants;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 
 /**
@@ -49,7 +50,10 @@ public class AlarmReceiver extends BroadcastReceiver {
 				String appUrl = intent.getStringExtra(context.getResources().getString(R.string.app_url));
 				Operation operation = null;
 				if (intent.hasExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload)))				{
-					operation = (Operation) intent.getExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload));
+					Bundle bundle = intent.getBundleExtra(context.getResources()
+							.getString(R.string.alarm_scheduled_operation_payload));
+					operation = (Operation) bundle.getSerializable(context.getResources()
+							.getString(R.string.alarm_scheduled_operation_payload));
 				}
 				applicationManager.installApp(appUrl, null, operation);
 			} else if(operationCode != null && operationCode.trim().equals(Constants.Operation.UNINSTALL_APPLICATION)) {

@@ -21,6 +21,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 
 import org.wso2.iot.agent.R;
@@ -52,7 +53,9 @@ public class AlarmUtils {
         Intent alarmIntent = new Intent(context, AlarmReceiver.class);
         alarmIntent.putExtra(context.getResources().getString(R.string.alarm_scheduled_operation), operationCode);
         if (operation != null) {
-            alarmIntent.putExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload), operation);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable(context.getResources().getString(R.string.alarm_scheduled_operation_payload), operation);
+            alarmIntent.putExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload), bundle);
         }
         if (appUrl != null) {
             alarmIntent.putExtra(context.getResources().getString(R.string.app_url), appUrl);

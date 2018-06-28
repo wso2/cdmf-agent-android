@@ -21,6 +21,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.util.Log;
 
 import org.wso2.emm.agent.AndroidAgentException;
@@ -28,6 +29,9 @@ import org.wso2.emm.agent.R;
 import org.wso2.emm.agent.api.ApplicationManager;
 import org.wso2.emm.agent.beans.Operation;
 import org.wso2.emm.agent.utils.Constants;
+
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * This class is a broadcast receiver which triggers on local notification timeouts.
@@ -51,8 +55,10 @@ public class AlarmReceiver extends BroadcastReceiver {
 				Operation operation = null;
 				if (intent.hasExtra(context.getResources()
 						.getString(R.string.alarm_scheduled_operation_payload))) {
-                    operation = (Operation) intent.getSerializableExtra(context.getResources()
-							.getString(R.string.alarm_scheduled_operation_payload));
+				    Bundle bundle = intent.getBundleExtra(context.getResources()
+                            .getString(R.string.alarm_scheduled_operation_payload));
+                    operation = (Operation) bundle.getSerializable(context.getResources()
+                            .getString(R.string.alarm_scheduled_operation_payload));
                 }
 				try {
 					applicationManager.installApp(appUrl, null, operation);
@@ -63,8 +69,10 @@ public class AlarmReceiver extends BroadcastReceiver {
 				String packageUri = intent.getStringExtra(context.getResources().getString(R.string.app_uri));
                 Operation operation = null;
                 if (intent.hasExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload))) {
-                    operation = (Operation) intent.getSerializableExtra(context.getResources()
-							.getString(R.string.alarm_scheduled_operation_payload));
+                    Bundle bundle = intent.getBundleExtra(context.getResources()
+                            .getString(R.string.alarm_scheduled_operation_payload));
+                    operation = (Operation) bundle.getSerializable(context.getResources()
+                            .getString(R.string.alarm_scheduled_operation_payload));
                 }
                 try {
                     applicationManager.uninstallApplication(packageUri, operation, null);

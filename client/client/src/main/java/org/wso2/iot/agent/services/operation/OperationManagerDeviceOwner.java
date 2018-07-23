@@ -158,19 +158,21 @@ public class OperationManagerDeviceOwner extends OperationManager {
                     appUrl = data.getString(getContextResources().getString(R.string.app_url));
                     if(data.has(getContextResources().getString(R.string.app_schedule))){
                         schedule = data.getString(getContextResources().getString(R.string.app_schedule));
+                        operation.setOperationResponse("Scheduling to execute at " + schedule);
                     }
                     operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
                     getResultBuilder().build(operation);
-                    getAppList().installApp(appUrl, schedule, operation);
-
+                    try {
+                        getAppList().installApp(appUrl, schedule, operation);
+                    } catch (AndroidAgentException e) {
+                        operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+                        operation.setOperationResponse(e.getMessage());
+                        getResultBuilder().build(operation);
+                    }
                 } else if (type.equalsIgnoreCase(getContextResources().getString(R.string.intent_extra_public))) {
                     appUrl = data.getString(getContextResources().getString(R.string.app_identifier));
-                    operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+                    operation.setStatus(getContextResources().getString(R.string.operation_value_progress));
                     getResultBuilder().build(operation);
-                    Preference.putInt(getContext(), getContext().getResources().getString(R.string.app_install_id),
-                            operation.getId());
-                    Preference.putString(getContext(), getContext().getResources().getString(R.string.app_install_code),
-                            operation.getCode());
                     triggerGooglePlayApp(appUrl);
 
                 } else if (type.equalsIgnoreCase(getContextResources().getString(R.string.intent_extra_web))) {

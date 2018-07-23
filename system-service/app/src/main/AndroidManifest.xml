@@ -40,6 +40,7 @@
     <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.MASTER_CLEAR" />
+    <uses-permission android:name="android.permission.RECOVERY"/>
 
     <permission
         android:name="org.wso2.iot.system.service.permission.ACCESS"
@@ -62,22 +63,25 @@
                 <action android:name="org.wso2.iot.system.service.START_SERVICE" />
             </intent-filter>
         </service>
+        <service android:name=".services.OTADownloadService" />
 
         <activity
-            android:name="org.wso2.iot.system.service.MainActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"></activity>
+                android:name=".MainActivity"
+                android:exported="true"
+                android:screenOrientation="portrait">
+        </activity>
 
         <activity
-            android:name="org.wso2.iot.system.service.LockActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_lock"
-            android:screenOrientation="portrait"></activity>
+                android:name=".LockActivity"
+                android:screenOrientation="portrait"
+                android:configChanges="orientation|keyboardHidden|screenSize"
+                android:label="@string/title_activity_lock">
+        </activity>
 
-        <receiver android:name="org.wso2.iot.system.service.services.NotificationActionReceiver" />
+        <receiver android:name=".services.NotificationActionReceiver" />
 
         <receiver
-            android:name="org.wso2.iot.system.service.services.NetworkConnectivityStatusReceiver"
+            android:name=".services.NetworkConnectivityStatusReceiver"
             android:label="NetworkConnectivityStatusReceiver">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
@@ -86,7 +90,7 @@
         </receiver>
 
         <receiver
-            android:name="org.wso2.iot.system.service.services.DeviceStartupIntentReceiver"
+            android:name=".services.DeviceStartupIntentReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
@@ -98,7 +102,7 @@
         </receiver>
 
         <receiver
-            android:name="org.wso2.iot.system.service.services.BatteryChargingStateReceiver"
+            android:name=".services.BatteryChargingStateReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
@@ -106,20 +110,20 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name="org.wso2.iot.system.service.services.AlarmReceiver" />
+        <receiver android:name=".services.AlarmReceiver" />
 
         <receiver
             android:name="org.wso2.iot.system.service.ServiceDeviceAdminReceiver"
             android:permission="android.permission.BIND_DEVICE_ADMIN">
             <intent-filter>
-
                 <!-- This action is required -->
                 <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
             </intent-filter>
 
             <meta-data
                 android:name="android.app.device_admin"
-                android:resource="@xml/agent_device_admin"></meta-data>
+                android:resource="@xml/agent_device_admin">
+            </meta-data>
         </receiver>
     </application>
 </manifest>

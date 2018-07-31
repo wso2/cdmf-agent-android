@@ -545,12 +545,16 @@ public class MessageProcessor implements APIResultCallBack {
 
             requestParams = mapper.writeValueAsString(replyPayload);
         } catch (JsonMappingException e) {
+            isInCriticalPath = false;
             throw new AndroidAgentException("Issue in json mapping", e);
         } catch (JsonGenerationException e) {
+            isInCriticalPath = false;
             throw new AndroidAgentException("Issue in json generation", e);
         } catch (IOException e) {
+            isInCriticalPath = false;
             throw new AndroidAgentException("Issue in parsing stream", e);
         } catch (JSONException e) {
+            isInCriticalPath = false;
             throw new AndroidAgentException("Issue in adding value to JSON", e);
         }
         if (Constants.DEBUG_MODE_ENABLED) {
@@ -568,6 +572,7 @@ public class MessageProcessor implements APIResultCallBack {
                     Constants.NOTIFICATION_REQUEST_CODE
             );
         } else {
+            isInCriticalPath = false;
             Log.e(TAG, "There is no valid IP to contact the server");
         }
 
@@ -732,6 +737,7 @@ public class MessageProcessor implements APIResultCallBack {
                             Constants.SIGN_IN_NOTIFICATION_ID);
                 }
             }
+            isInCriticalPath = false;
         }
     }
 

@@ -44,35 +44,53 @@ public class AlarmReceiver extends BroadcastReceiver {
 		}
 
 		if (intent.hasExtra(context.getResources().getString(R.string.alarm_scheduled_operation))) {
-			String operationCode = intent.getStringExtra(context.getResources().getString(R.string.alarm_scheduled_operation));
-			ApplicationManager applicationManager = new ApplicationManager(context.getApplicationContext());
+			String operationCode = intent.getStringExtra(context.getResources()
+					.getString(R.string.alarm_scheduled_operation));
+			ApplicationManager applicationManager = new ApplicationManager(context
+					.getApplicationContext());
+			if (Constants.DEBUG_MODE_ENABLED) {
+				Log.d(TAG, "Triggering scheduled operation: " + operationCode);
+			}
 			if(operationCode != null && operationCode.trim().equals(Constants.Operation.INSTALL_APPLICATION)) {
 				String appUrl = intent.getStringExtra(context.getResources().getString(R.string.app_url));
 				Operation operation = null;
-				if (intent.hasExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload)))				{
-					Bundle bundle = intent.getBundleExtra(context.getResources()
-							.getString(R.string.alarm_scheduled_operation_payload));
-					operation = (Operation) bundle.getSerializable(context.getResources()
-							.getString(R.string.alarm_scheduled_operation_payload));
+                if (intent.hasExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload)))				{
+                    Bundle bundle = intent.getBundleExtra(context.getResources()
+                            .getString(R.string.alarm_scheduled_operation_payload));
+                    operation = (Operation) bundle.getSerializable(context.getResources()
+                            .getString(R.string.alarm_scheduled_operation_payload));
+                }
+				try {
+					applicationManager.installApp(appUrl, null, operation);
+				} catch (AndroidAgentException e) {
+					Log.e(TAG, "This is very unlikely to happen since schedule is null");
 				}
-				applicationManager.installApp(appUrl, null, operation);
 			} else if(operationCode != null && operationCode.trim().equals(Constants.Operation.UNINSTALL_APPLICATION)) {
 				String packageUri = intent.getStringExtra(context.getResources().getString(R.string.app_uri));
-				try {
-					applicationManager.uninstallApplication(packageUri, null);
-				} catch (AndroidAgentException e) {
-					Log.e(TAG,"App uninstallation failed");
+                Operation operation = null;
+                if (intent.hasExtra(context.getResources().getString(R.string.alarm_scheduled_operation_payload))) {
+                    operation = (Operation) intent.getSerializableExtra(context.getResources()
+							.getString(R.string.alarm_scheduled_operation_payload));
+                }
+                try {
+                    applicationManager.uninstallApplication(packageUri, operation, null);
+                } catch (AndroidAgentException e) {
+					Log.e(TAG, "App uninstallation failed." + e);
 				}
 			}
 
 		} else {
+			if (Constants.DEBUG_MODE_ENABLED) {
+				Log.v(TAG, "Recurring alarm; intent URI: " + intent.toUri(0));
+				Log.d(TAG, "Recurring alarm; Polling pending operations");
+			}
 			OperationTask operationTask = new OperationTask();
 			operationTask.execute(context);
 		}
 
 	}
 
-	private class OperationTask extends AsyncTask<Context, Void, Void> {
+	private static class OperationTask extends AsyncTask<Context, Void, Void> {
 
 		@Override
 		protected Void doInBackground(Context... params) {

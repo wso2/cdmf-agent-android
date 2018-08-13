@@ -407,7 +407,11 @@ public class KioskActivity extends Activity {
             Preference.removePreference(getApplicationContext(), Constants.KIOSK_APP_DOWNLOAD_URL);
             ApplicationManager applicationManager =
                     new ApplicationManager(context.getApplicationContext());
-            applicationManager.installApp(appUrl, null, null);
+            try {
+                applicationManager.installApp(appUrl, null, null);
+            } catch (AndroidAgentException e) {
+                Log.e(TAG, "Error while uninstalling personal profile agent. ", e);
+            }
         }
     }
 

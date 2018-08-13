@@ -44,13 +44,14 @@ import org.wso2.iot.agent.activities.ServerConfigsActivity;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceInfo;
 import org.wso2.iot.agent.beans.AppInstallRequest;
+import org.wso2.iot.agent.beans.AppUninstallRequest;
 import org.wso2.iot.agent.beans.Operation;
 import org.wso2.iot.agent.beans.ServerConfig;
 import org.wso2.iot.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.iot.agent.proxy.utils.Constants.HTTP_METHODS;
 import org.wso2.iot.agent.services.operation.OperationManagerDeviceOwner;
 import org.wso2.iot.agent.services.operation.OperationProcessor;
-import org.wso2.iot.agent.utils.AppInstallRequestUtil;
+import org.wso2.iot.agent.utils.AppManagementRequestUtil;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
 import org.wso2.iot.agent.utils.Preference;
@@ -69,9 +70,10 @@ public class MessageProcessor implements APIResultCallBack {
 
     private static final String TAG = MessageProcessor.class.getSimpleName();
 
-    private static final String ERROR_STATE = "ERROR";
     private static volatile long invokedTimestamp = 0;
     private static List<Operation> replyPayload;
+    private static volatile boolean isInCriticalPath = true;
+    private static volatile long lastSyncAt = 0L;
     private Context context;
     private String deviceId;
     private OperationProcessor operationProcessor;
@@ -81,6 +83,8 @@ public class MessageProcessor implements APIResultCallBack {
     private boolean isUpgradeTriggered = false;
     private boolean isShellCommandTriggered = false;
     private boolean isEnterpriseWipeTriggered = false;
+    private static final String ERROR_STATE = "ERROR";
+    private static final String IN_PROGRESS_STATE = "IN_PROGRESS";
     private String shellCommand = null;
 
     /**
@@ -157,6 +161,18 @@ public class MessageProcessor implements APIResultCallBack {
      * Call the message retrieval end point of the server to get messages pending.
      */
     public void getMessages() throws AndroidAgentException {
+        long currentTime = System.currentTimeMillis();
+        if (isInCriticalPath) {
+            // We need to make sure sync won't stale under any circumstances.
+            // So we are allowing time up to default http timeout for a single sync.
+            if (lastSyncAt < currentTime
+                    && lastSyncAt + org.wso2.iot.agent.proxy.utils.Constants.HttpClient.DEFAULT_TIME_OUT > currentTime) {
+                Log.w(TAG, "Ignoring polling attempt since another polling is ongoing.");
+                return;
+            }
+        }
+        isInCriticalPath = true;
+        lastSyncAt = currentTime;
         String ipSaved = Constants.DEFAULT_HOST;
         String prefIP = Preference.getString(context.getApplicationContext(), Constants.PreferenceFlag.IP);
         if (prefIP != null) {
@@ -170,10 +186,10 @@ public class MessageProcessor implements APIResultCallBack {
 
         String requestParams;
         ObjectMapper mapper = new ObjectMapper();
+        int appInstallOperationId;
+        int appUninstallOperationId;
         try {
-            String rebootStatus = Preference.getString(context, context.getResources()
-                    .getString(R.string.shared_pref_reboot_status));
-            if (rebootStatus != null) {
+            if (Preference.getBoolean(context, context.getResources().getString(R.string.shared_pref_reboot_done))) {
                 if (replyPayload == null) {
                     replyPayload = new ArrayList<>();
                 }
@@ -186,39 +202,103 @@ public class MessageProcessor implements APIResultCallBack {
                     }
                 }
 
+                JSONObject result = new JSONObject();
+                result.put(context.getResources().getString(R.string.operation_status), Constants.SYSTEM_APP_ENABLED);
                 Operation rebootOperation = new Operation();
                 rebootOperation.setId(lastRebootOperationId);
                 rebootOperation.setCode(Constants.Operation.REBOOT);
-                rebootOperation.setOperationResponse(Preference.getString(context,
-                        context.getResources().getString(R.string.shared_pref_reboot_result)));
-                rebootOperation.setStatus(rebootStatus);
+                rebootOperation.setPayLoad(result.toString());
+                rebootOperation.setStatus(context.getResources().getString(R.string.operation_value_completed));
                 replyPayload.add(rebootOperation);
 
-                Preference.removePreference(context, context.getResources()
-                        .getString(R.string.shared_pref_reboot_status));
-                Preference.removePreference(context, context.getResources()
-                        .getString(R.string.shared_pref_reboot_result));
-                Preference.removePreference(context, context.getResources()
-                        .getString(R.string.shared_pref_reboot_op_id));
+                Preference.removePreference(context, context.getResources().getString(R.string.shared_pref_reboot_done));
+                Preference.removePreference(context, context.getResources().getString(R.string.shared_pref_reboot_op_id));
             }
+
+            int firmwareOperationId = Preference.getInt(context, "firmwareOperationId");
+            long previousUpgradeInitiatedAt = Preference.getLong(context,
+                    Constants.PreferenceFlag.FIRMWARE_UPGRADE_INITIATED_AT);
+            if (firmwareOperationId > 0 && (previousUpgradeInitiatedAt > currentTime || previousUpgradeInitiatedAt
+                    + Constants.FIRMWARE_DOWNLOAD_OPERATION_TIMEOUT < currentTime)) {
+                // Set previously staled firmware upgrade status to ERROR.
+                Operation firmwareOperation = new Operation();
+                firmwareOperation.setCode(Constants.Operation.UPGRADE_FIRMWARE);
+                firmwareOperation.setStatus(ERROR_STATE);
+                firmwareOperation.setId(firmwareOperationId);
+                firmwareOperation.setOperationResponse("Operation timed out.");
+                if (replyPayload == null) {
+                    replyPayload = new ArrayList<>();
+                }
+                replyPayload.add(firmwareOperation);
+                Log.e(TAG, "Firmware upgrade operation '" + firmwareOperation.getId()
+                        + "' failed. " + firmwareOperation.getOperationResponse());
+                Preference.putInt(context, "firmwareOperationId", 0);
+                Preference.putLong(context,
+                        Constants.PreferenceFlag.FIRMWARE_UPGRADE_INITIATED_AT, 0);
+                firmwareOperationId = 0;
+            }
+
             if (replyPayload != null) {
+                isUpgradeTriggered = false;
                 for (Operation operation : replyPayload) {
-                    if (operation.getCode().equals(Constants.Operation.WIPE_DATA) && !operation.getStatus().
-                            equals(ERROR_STATE)) {
+                    if (operation == null) {
+                        continue;
+                    }
+                    if (Constants.Operation.WIPE_DATA.equals(operation.getCode())
+                            && !ERROR_STATE.equals(operation.getStatus())) {
                         isWipeTriggered = true;
-                    } else if (operation.getCode().equals(Constants.Operation.ENTERPRISE_WIPE) && !operation.getStatus().
-                            equals(ERROR_STATE)) {
-                        isEnterpriseWipeTriggered = true;
-                    } else if (operation.getCode().equals(Constants.Operation.REBOOT) && operation.getStatus().
-                            equals(context.getResources().getString(R.string.operation_value_pending))) {
+                    } else if (Constants.Operation.REBOOT.equals(operation.getCode()) && context.getResources()
+                            .getString(R.string.operation_value_pending).equals(operation.getStatus())) {
                         operation.setStatus(context.getResources().getString(R.string.operation_value_progress));
                         isRebootTriggered = true;
-                    } else if (operation.getCode().equals(Constants.Operation.UPGRADE_FIRMWARE) && !operation.getStatus().
-                            equals(ERROR_STATE)) {
-                        isUpgradeTriggered = true;
-                        Preference.putInt(context, "firmwareOperationId", operation.getId());
-                    } else if (operation.getCode().equals(Constants.Operation.EXECUTE_SHELL_COMMAND) && !operation.getStatus().
-                            equals(ERROR_STATE)) {
+                    } else if (Constants.Operation.UPGRADE_FIRMWARE.equals(operation.getCode())
+                            && IN_PROGRESS_STATE.equals(operation.getStatus())) {
+                        //All the IN_PROGRESS state firmware operations should will come into this block
+                        if (Constants.DEBUG_MODE_ENABLED) {
+                            Log.d(TAG, "Ongoing Operation Id : " + firmwareOperationId);
+                            Log.d(TAG, "Received Operation status: " + operation.getStatus());
+                            Log.d(TAG, "Received Operation Id : " + operation.getId());
+                        }
+                        //Initially when the operation status is In Progress, 'isUpgradeTriggered'
+                        // is set to 'true' to call the system app. After initial call, to prevent
+                        // calling system app again and again for the same operation Id following
+                        // checks are added.
+                        boolean hasUpgrade = false;
+                        if (firmwareOperationId == operation.getId()) {
+                            Log.w(TAG, "Ignoring duplicate firmware upgrade operation: " + firmwareOperationId);
+                        } else if (firmwareOperationId == 0) {
+                            hasUpgrade = true;
+                        } else if (operation.getId() != 0 && operation.getId() != firmwareOperationId) {
+                            previousUpgradeInitiatedAt = Preference.getLong(context,
+                                    Constants.PreferenceFlag.FIRMWARE_UPGRADE_INITIATED_AT);
+                            currentTime = System.currentTimeMillis();
+                            if (previousUpgradeInitiatedAt < currentTime && previousUpgradeInitiatedAt
+                                    + Constants.FIRMWARE_DOWNLOAD_OPERATION_TIMEOUT > currentTime) {
+                                // Set currently received firmware upgrade status to ERROR.
+                                operation.setStatus(ERROR_STATE);
+                                operation.setOperationResponse("There is an already ongoing firmware " +
+                                        "upgrade operation with id " + firmwareOperationId);
+                                Log.e(TAG, "Firmware upgrade operation '" + operation.getId()
+                                        + "' failed. " + operation.getOperationResponse());
+                            } else {
+                                hasUpgrade = true;
+                                if (Constants.DEBUG_MODE_ENABLED){
+                                    Log.d(TAG, "Starting firmware upgrade as previous firmware upgrade time out.");
+                                }
+                            }
+                        }
+                        if (hasUpgrade) {
+                            isUpgradeTriggered = true;
+                            firmwareOperationId = operation.getId();
+                            Preference.putInt(context, "firmwareOperationId", firmwareOperationId);
+                            Preference.putLong(context,
+                                    Constants.PreferenceFlag.FIRMWARE_UPGRADE_INITIATED_AT, currentTime);
+                        }
+                        if (Constants.DEBUG_MODE_ENABLED) {
+                            Log.d(TAG, "isUpgradeTriggered is set to: " + isUpgradeTriggered);
+                        }
+                    } else if (Constants.Operation.EXECUTE_SHELL_COMMAND.equals(operation.getCode()) && !ERROR_STATE
+                            .equals(operation.getStatus())){
                         isShellCommandTriggered = true;
                         try {
                             JSONObject payload = new JSONObject(operation.getPayLoad().toString());
@@ -229,11 +309,12 @@ public class MessageProcessor implements APIResultCallBack {
                     }
                 }
             }
-            int firmwareOperationId = Preference.getInt(context, context.getResources().getString(
+
+            int firmwareOperationResponseId = Preference.getInt(context, context.getResources().getString(
                     R.string.firmware_upgrade_response_id));
-            if (firmwareOperationId != 0) {
+            if (firmwareOperationResponseId != 0) {
                 Operation firmwareOperation = new Operation();
-                firmwareOperation.setId(firmwareOperationId);
+                firmwareOperation.setId(firmwareOperationResponseId);
                 firmwareOperation.setCode(Constants.Operation.UPGRADE_FIRMWARE);
                 firmwareOperation.setStatus(Preference.getString(context, context.getResources().getString(
                         R.string.firmware_upgrade_response_status)));
@@ -250,85 +331,169 @@ public class MessageProcessor implements APIResultCallBack {
                     firmwareOperation.setOperationResponse(Preference.getString(context, context.getResources().getString(
                             R.string.firmware_upgrade_response_message)));
                 }
-                if (replyPayload != null) {
-                    replyPayload.add(firmwareOperation);
-                } else {
+                if (replyPayload == null) {
                     replyPayload = new ArrayList<>();
-                    replyPayload.add(firmwareOperation);
+                }
+                replyPayload.add(firmwareOperation);
+                int opId = Preference.getInt(context, "firmwareOperationId");
+                if (firmwareOperationResponseId == opId && !IN_PROGRESS_STATE.equals(firmwareOperation.getStatus())) {
+                    // Only clear firmwareOperationId if operation comes to finite state.
+                    Preference.putInt(context, "firmwareOperationId", 0);
+                    Preference.putLong(context,
+                            Constants.PreferenceFlag.FIRMWARE_UPGRADE_INITIATED_AT, 0);
                 }
                 Preference.putInt(context, context.getResources().getString(
                         R.string.firmware_upgrade_response_id), 0);
                 Preference.putString(context, context.getResources().getString(
-                        R.string.firmware_upgrade_response_status), context.getResources().getString(
-                        R.string.operation_value_error));
+                        R.string.firmware_upgrade_response_status), null);
                 Preference.putString(context, context.getResources().getString(
                         R.string.firmware_upgrade_response_message), null);
             }
 
+            appUninstallOperationId = Preference.getInt(context, context.getResources()
+                    .getString(R.string.app_uninstall_id));
+            String applicationUninstallOperationCode = Preference.getString(context,
+                    context.getResources().getString(R.string.app_uninstall_code));
+            String applicationUninstallOperationStatus = Preference.getString(context,
+                    context.getResources().getString(R.string.app_uninstall_status));
+            String applicationUninstallOperationMessage = Preference.getString(context,
+                    context.getResources().getString(
+                            R.string.app_uninstall_failed_message));
+            long uninstallInitiatedAt = Preference.getLong(context,
+                    Constants.PreferenceFlag.UNINSTALLATION_INITIATED_AT);
 
-            int applicationUninstallOperationId = Preference.getInt(context, context.getResources().getString(
-                    R.string.app_uninstall_id));
-            String applicationUninstallOperationCode = Preference.getString(context, context.getResources().getString(
-                    R.string.app_uninstall_code));
-            String applicationUninstallOperationStatus = Preference.getString(context, context.getResources().getString(
-                    R.string.app_uninstall_status));
-            String applicationUninstallOperationMessage = Preference.getString(context, context.getResources().getString(
-                    R.string.app_uninstall_failed_message));
-
-            if (applicationUninstallOperationStatus != null && applicationUninstallOperationId != 0 && applicationUninstallOperationCode != null) {
-                Operation applicationOperation = new Operation();
-                ApplicationManager appMgt = new ApplicationManager(context);
-                applicationOperation.setId(applicationUninstallOperationId);
-                applicationOperation.setCode(applicationUninstallOperationCode);
-                applicationOperation = appMgt.getApplicationInstallationStatus(
-                        applicationOperation, applicationUninstallOperationStatus, applicationUninstallOperationMessage);
-                if (replyPayload == null) {
-                    replyPayload = new ArrayList<>();
-                }
-                replyPayload.add(applicationOperation);
-
-                Preference.putString(context, context.getResources().getString(
-                        R.string.app_install_status), null);
-                Preference.putString(context, context.getResources().getString(
-                        R.string.app_install_failed_message), null);
+            // If uninstallation is started, we might need to ensure that uninstallation
+            // is completing within the time defined in APP_UNINSTALL_TIMEOUT constants.
+            if (uninstallInitiatedAt != 0 && Calendar.getInstance().getTimeInMillis() -
+                    uninstallInitiatedAt > Constants.APP_UNINSTALL_TIMEOUT) {
+                applicationUninstallOperationStatus = context.getResources()
+                        .getString(R.string.operation_value_error);
+                applicationUninstallOperationMessage = "App uninstallation unresponsive. Hence aborted.";
+                Preference.putLong(context, Constants.PreferenceFlag.UNINSTALLATION_INITIATED_AT, 0);
+                Log.e(TAG, "Clearing app uninstall request " + appUninstallOperationId +
+                        " as it is not responsive.");
             }
 
-
-
-            int applicationOperationId = Preference.getInt(context, context.getResources().getString(
-                    R.string.app_install_id));
-            String applicationOperationCode = Preference.getString(context, context.getResources().getString(
-                    R.string.app_install_code));
-            String applicationOperationStatus = Preference.getString(context, context.getResources().getString(
-                    R.string.app_install_status));
-            String applicationOperationMessage = Preference.getString(context, context.getResources().getString(
-                    R.string.app_install_failed_message));
-            if (applicationOperationStatus != null && applicationOperationId != 0 && applicationOperationCode != null) {
-                Operation applicationOperation = new Operation();
+            if (applicationUninstallOperationStatus != null && appUninstallOperationId != 0
+                    && applicationUninstallOperationCode != null) {
                 ApplicationManager appMgt = new ApplicationManager(context);
-                applicationOperation.setId(applicationOperationId);
-                applicationOperation.setCode(applicationOperationCode);
-                applicationOperation = appMgt.getApplicationInstallationStatus(
-                        applicationOperation, applicationOperationStatus, applicationOperationMessage);
+                Operation applicationOperation = new Operation();
+                applicationOperation.setId(appUninstallOperationId);
+                applicationOperation.setCode(applicationUninstallOperationCode);
+                applicationOperation = appMgt.getApplicationStatus(applicationOperation,
+                        applicationUninstallOperationStatus, applicationUninstallOperationMessage);
+
                 if (replyPayload == null) {
                     replyPayload = new ArrayList<>();
                 }
                 replyPayload.add(applicationOperation);
+
+                Preference.putString(context, context.getResources().getString(
+                        R.string.app_uninstall_status), null);
+                Preference.putString(context, context.getResources().getString(
+                        R.string.app_uninstall_failed_message), null);
+
+                if (context.getResources().getString(R.string.operation_value_error)
+                        .equals(applicationOperation.getStatus()) ||
+                        context.getResources().getString(R.string.operation_value_completed)
+                                .equals(applicationOperation.getStatus())){
+                    appUninstallOperationId = 0;
+                    Preference.putInt(context, context.getResources().getString(
+                            R.string.app_uninstall_id), 0);
+                    Preference.putString(context, context.getResources().getString(
+                            R.string.app_uninstall_code), null);
+                    Preference.putLong(context,
+                            Constants.PreferenceFlag.UNINSTALLATION_INITIATED_AT, 0);
+                }
+            }
+
+            appInstallOperationId = Preference.getInt(context, context.getResources().getString(
+                    R.string.app_install_id));
+            String applicationOperationCode = Preference.getString(context,
+                    context.getResources().getString(R.string.app_install_code));
+            String applicationOperationStatus = Preference.getString(context,
+                    context.getResources().getString(R.string.app_install_status));
+            String applicationOperationMessage = Preference.getString(context,
+                    context.getResources().getString(R.string.app_install_failed_message));
+            String appInstallLastStatus = Preference.getString(context,
+                    Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS);
+
+            if (Constants.AppState.DOWNLOAD_STARTED.equals(appInstallLastStatus)
+                    || Constants.AppState.DOWNLOAD_RETRY.equals(appInstallLastStatus)) {
+                // If download is started, we might need to ensure that download is completing
+                // within the time defined in DOWNLOAD_INITIATED_AT constants.
+                long downloadInitiatedAt = Preference.getLong(context,
+                        Constants.PreferenceFlag.DOWNLOAD_INITIATED_AT);
+                if (downloadInitiatedAt != 0 && Calendar.getInstance().getTimeInMillis() -
+                        downloadInitiatedAt > Constants.APP_DOWNLOAD_TIMEOUT) {
+                    new ApplicationManager(context).cancelOngoingDownload(); // Cancelling existing downloads if any.
+                    applicationOperationStatus = Constants.AppState.INSTALL_FAILED;
+                    applicationOperationMessage = "App download unresponsive. Hence aborted.";
+                    Preference.putLong(context, Constants.PreferenceFlag.DOWNLOAD_INITIATED_AT, 0);
+                    Preference.putString(context,
+                            Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS, null);
+                    Log.e(TAG, "Clearing app download request " + appInstallOperationId +
+                            " as it is not responsive.");
+                } else if (downloadInitiatedAt == 0) {
+                    // Setting download initiated timestamp as it is not set already.
+                    Preference.putLong(context, Constants.PreferenceFlag.DOWNLOAD_INITIATED_AT,
+                            Calendar.getInstance().getTimeInMillis());
+                }
+            } else if (Constants.AppState.DOWNLOAD_COMPLETED.equals(appInstallLastStatus)) {
+                // If download is completed and installation is started, we might need to
+                // ensure that download is completing within the time defined in
+                // DOWNLOAD_INITIATED_AT constants.
+                long installInitiatedAt = Preference.getLong(context,
+                        Constants.PreferenceFlag.INSTALLATION_INITIATED_AT);
+                if (installInitiatedAt != 0 && Calendar.getInstance().getTimeInMillis() -
+                        installInitiatedAt > Constants.APP_INSTALL_TIMEOUT) {
+                    new ApplicationManager(context).cancelOngoingDownload(); // Cancelling existing downloads if any.
+                    applicationOperationStatus = Constants.AppState.INSTALL_FAILED;
+                    applicationOperationMessage = "App installation unresponsive. Hence aborted.";
+                    Preference.putLong(context, Constants.PreferenceFlag.INSTALLATION_INITIATED_AT, 0);
+                    Preference.putString(context,
+                            Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS, null);
+                    Log.e(TAG, "Clearing previous app installation request " + appInstallOperationId +
+                            " as it is not responsive.");
+                } else if (installInitiatedAt == 0) {
+                    // Setting installation initiated timestamp as it is not set already.
+                    Preference.putLong(context, Constants.PreferenceFlag.INSTALLATION_INITIATED_AT,
+                            Calendar.getInstance().getTimeInMillis());
+                }
+            }
+
+            if (applicationOperationStatus != null && appInstallOperationId != 0 && applicationOperationCode != null) {
+                Operation applicationOperation = new Operation();
+                ApplicationManager appMgt = new ApplicationManager(context);
+                applicationOperation.setId(appInstallOperationId);
+                applicationOperation.setCode(applicationOperationCode);
+                applicationOperation = appMgt.getApplicationStatus(
+                        applicationOperation, applicationOperationStatus, applicationOperationMessage);
+
                 Preference.putString(context, context.getResources().getString(
                         R.string.app_install_status), null);
                 Preference.putString(context, context.getResources().getString(
                         R.string.app_install_failed_message), null);
                 if (context.getResources().getString(R.string.operation_value_error).equals(applicationOperation.getStatus()) ||
-                        context.getResources().getString(R.string.operation_value_completed).equals(applicationOperation.getStatus())) {
+                        context.getResources().getString(R.string.operation_value_completed).equals(applicationOperation.getStatus())){
+                    appInstallOperationId = 0;
                     Preference.putInt(context, context.getResources().getString(
                             R.string.app_install_id), 0);
                     Preference.putString(context, context.getResources().getString(
                             R.string.app_install_code), null);
-                    startPendingInstallation();
+                    Preference.putString(context,
+                            Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS, null);
+                } else {
+                    // Keep last installation status since app installation is not at finite state.
+                    Preference.putString(context,
+                            Constants.PreferenceFlag.APP_INSTALLATION_LAST_STATUS, applicationOperationStatus);
                 }
-            } else {
-                startPendingInstallation();
+                if (replyPayload == null) {
+                    replyPayload = new ArrayList<>();
+                }
+                replyPayload.add(applicationOperation);
             }
+
 
             if (Preference.hasPreferenceKey(context, Constants.Operation.LOGCAT)) {
                 if (Preference.hasPreferenceKey(context, Constants.Operation.LOGCAT)) {
@@ -380,11 +545,17 @@ public class MessageProcessor implements APIResultCallBack {
 
             requestParams = mapper.writeValueAsString(replyPayload);
         } catch (JsonMappingException e) {
+            isInCriticalPath = false;
             throw new AndroidAgentException("Issue in json mapping", e);
         } catch (JsonGenerationException e) {
+            isInCriticalPath = false;
             throw new AndroidAgentException("Issue in json generation", e);
         } catch (IOException e) {
+            isInCriticalPath = false;
             throw new AndroidAgentException("Issue in parsing stream", e);
+        } catch (JSONException e) {
+            isInCriticalPath = false;
+            throw new AndroidAgentException("Issue in adding value to JSON", e);
         }
         if (Constants.DEBUG_MODE_ENABLED) {
             Log.d(TAG, "Reply Payload: " + requestParams);
@@ -401,19 +572,62 @@ public class MessageProcessor implements APIResultCallBack {
                     Constants.NOTIFICATION_REQUEST_CODE
             );
         } else {
+            isInCriticalPath = false;
             Log.e(TAG, "There is no valid IP to contact the server");
+        }
+
+        // Try to install apps from queue if there is no any ongoing installation operation
+        if (appInstallOperationId == 0) {
+            startPendingInstallation();
+        }
+
+        // Try to uninstall apps from queue if there is no any ongoing uninstallation operation
+        if (appUninstallOperationId == 0) {
+            startPendingUninstallation();
         }
     }
 
-    private void startPendingInstallation() {
-        AppInstallRequest appInstallRequest = AppInstallRequestUtil.getPending(context);
+    private void startPendingInstallation(){
+        AppInstallRequest appInstallRequest = AppManagementRequestUtil.getPendingInstall(context);
+        // Start app installation from queue if app installation request available in the queue
         if (appInstallRequest != null) {
             ApplicationManager applicationManager = new ApplicationManager(context.getApplicationContext());
             Operation applicationOperation = new Operation();
             applicationOperation.setId(appInstallRequest.getApplicationOperationId());
             applicationOperation.setCode(appInstallRequest.getApplicationOperationCode());
-            Log.d(TAG, "Try to start app installation from queue.");
-            applicationManager.installApp(appInstallRequest.getAppUrl(), null, applicationOperation);
+            Log.d(TAG, "Try to start app installation from queue. Operation Id " +
+                    appInstallRequest.getApplicationOperationId());
+            try {
+                applicationManager.installApp(appInstallRequest.getAppUrl(), null, applicationOperation);
+            } catch (AndroidAgentException e) {
+                Log.e(TAG, "This is very unlikely to happen since schedule is null");
+            }
+        }
+    }
+
+    private void startPendingUninstallation(){
+        AppUninstallRequest appUninstallRequest = AppManagementRequestUtil.getPendingUninstall(context);
+        // Start app uninstall from queue if app uninstall request available in the queue
+        if (appUninstallRequest != null) {
+            ApplicationManager applicationManager = new ApplicationManager(context.getApplicationContext());
+            Operation applicationOperation = new Operation();
+            applicationOperation.setId(appUninstallRequest.getApplicationOperationId());
+            applicationOperation.setCode(appUninstallRequest.getApplicationOperationCode());
+            Log.d(TAG, "Try to start app uninstallation from queue. Operation Id " +
+                    appUninstallRequest.getApplicationOperationId());
+            try {
+                applicationManager.uninstallApplication(appUninstallRequest.getPackageName(),
+                        applicationOperation, null);
+            } catch (AndroidAgentException e) {
+                Preference.putInt(context, context.getResources().getString(
+                        R.string.app_uninstall_id), applicationOperation.getId());
+                Preference.putString(context, context.getResources().getString(
+                        R.string.app_uninstall_code), applicationOperation.getCode());
+                Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status),
+                        Constants.AppState.UNINSTALL_FAILED);
+                Preference.putString(context,
+                        context.getResources().getString(R.string.app_uninstall_failed_message), e.getMessage());
+            }
         }
     }
 
@@ -480,6 +694,9 @@ public class MessageProcessor implements APIResultCallBack {
 
             if (isUpgradeTriggered) {
                 String schedule = Preference.getString(context, context.getResources().getString(R.string.pref_key_schedule));
+                if (Constants.DEBUG_MODE_ENABLED) {
+                    Log.d(TAG, "Firmware upgrade operation passed to system app");
+                }
                 CommonUtils.callSystemApp(context, Constants.Operation.UPGRADE_FIRMWARE, schedule, null);
             }
 
@@ -520,6 +737,7 @@ public class MessageProcessor implements APIResultCallBack {
                             Constants.SIGN_IN_NOTIFICATION_ID);
                 }
             }
+            isInCriticalPath = false;
         }
     }
 

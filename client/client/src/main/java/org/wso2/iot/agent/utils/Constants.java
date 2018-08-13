@@ -66,11 +66,17 @@ public class Constants {
 	public static final String OWNERSHIP_COPE = "COPE";
 	public static final String OWNERSHIP_COSU = "COSU";
 	public static final String PENDING_APP_INSTALLATIONS = "PENDING_APP_INSTALLATIONS";
+	public static final String PENDING_APP_UNINSTALLATIONS = "PENDING_APP_UNINSTALLATIONS";
 	public static final String NOTIFIER_LOCAL = "LOCAL";
 	public static final String NOTIFIER_FCM = "FCM";
 	public static final String FCM_REG_ID = "fcm_reg_id";
 	public static final String SERVER_PROTOCOL = BuildConfig.SERVER_PROTOCOL;
 	public static final String API_SERVER_PORT = BuildConfig.API_SERVER_PORT;
+	public static final int APP_DOWNLOAD_TIMEOUT = 30 * 60 * 1000;
+	public static final int APP_INSTALL_TIMEOUT = 10 * 60 * 1000;
+	public static final int APP_UNINSTALL_TIMEOUT = 10 * 60 * 1000;
+	//Should be grater than FIRMWARE_DOWNLOAD_TIMEOUT in the system service.
+	public static final int FIRMWARE_DOWNLOAD_OPERATION_TIMEOUT = 6 * 60 * 1000;
 
 	// This is used to skip the license
 	public static final boolean SKIP_LICENSE = BuildConfig.SKIP_LICENSE;
@@ -369,6 +375,7 @@ public class Constants {
 		public static final String GET_FIRMWARE_UPGRADE_DOWNLOAD_PROGRESS = "FIRMWARE_UPGRADE_DOWNLOAD_PROGRESS";
 		public static final String FAILED_FIRMWARE_UPGRADE_NOTIFICATION = "FAILED_FIRMWARE_UPGRADE_NOTIFICATION";
 		public static final String FIRMWARE_UPGRADE_COMPLETE = "FIRMWARE_UPGRADE_COMPLETE";
+		public static final String FIRMWARE_IMAGE_DOWNLOADING = "FIRMWARE_IMAGE_DOWNLOADING";
 		public static final String FIRMWARE_UPGRADE_FAILURE = "FIRMWARE_UPGRADE_FAILURE";
 		public static final String FIRMWARE_INSTALLATION_CANCELED = "FIRMWARE_INSTALLATION_CANCELED";
 		public static final String GET_FIRMWARE_BUILD_DATE = "FIRMWARE_BUILD_DATE";
@@ -569,6 +576,11 @@ public class Constants {
 		public static final String APPLIED_POLICY = "appliedPolicy";
 		public static final String IS_AGREED = "isAgreed";
 		public static final String NOTIFIER_TYPE = "notifierType";
+		public static final String FIRMWARE_UPGRADE_INITIATED_AT = "firmwareUpgradeInitiatedAt";
+		public static final String DOWNLOAD_INITIATED_AT = "downloadInitiatedAt";
+		public static final String INSTALLATION_INITIATED_AT = "installationInitiatedAt";
+		public static final String UNINSTALLATION_INITIATED_AT = "uninstallationInitiatedAt";
+		public static final String APP_INSTALLATION_LAST_STATUS = "appInstallationLastStatus";
 		public static final String CURRENT_INSTALLING_APP = "installingApplication";
 		public static final String LOCAL_NOTIFIER_INVOKED_PREF_KEY = "localNotificationInvoked";
 		public static final String DEVICE_ID_PREFERENCE_KEY = "deviceId";
@@ -579,6 +591,21 @@ public class Constants {
 		private PreferenceFlag() {
 			throw new AssertionError();
 		}
+	}
+
+	public final class AppState {
+		private AppState() {
+			throw new AssertionError();
+		}
+
+		public static final String DOWNLOAD_STARTED = "DOWNLOAD_STARTED";
+		public static final String DOWNLOAD_RETRY = "DOWNLOAD_RETRY";
+		public static final String DOWNLOAD_COMPLETED = "DOWNLOAD_COMPLETED";
+		public static final String DOWNLOAD_FAILED = "DOWNLOAD_FAILED";
+		public static final String INSTALL_FAILED = "INSTALL_FAILED";
+		public static final String INSTALLED = "INSTALLED";
+		public static final String UNINSTALLED = "UNINSTALLED";
+		public static final String UNINSTALL_FAILED = "UNINSTALL_FAILED";
 	}
 
 	public final class PreferenceCOSUProfile {

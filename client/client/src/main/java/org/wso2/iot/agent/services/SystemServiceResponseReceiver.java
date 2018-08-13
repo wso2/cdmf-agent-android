@@ -47,6 +47,7 @@ public class SystemServiceResponseReceiver extends BroadcastReceiver {
                     if (Constants.Code.SUCCESS.equals(code) && result.has("buildDate")) {
                         Preference.putString(context, context.getResources().getString(R.string.shared_pref_os_build_date),
                                              result.getString("buildDate"));
+                        Log.i(TAG, "Firmware operation " + operation + "status " + status + ": " + intent.getStringExtra("payload"));
                     }
                     break;
                 case Constants.Operation.SILENT_INSTALL_APPLICATION:
@@ -59,12 +60,30 @@ public class SystemServiceResponseReceiver extends BroadcastReceiver {
                         Preference.putString(context, context.getResources().getString(R.string.app_install_failed_message),
                                              result.getString("appInstallFailedMessage"));
                     }
+                    Log.i(TAG, "Application installation response: " + result.toString());
+                    break;
+                case Constants.Operation.SILENT_UNINSTALL_APPLICATION:
+                    int operationId = Preference.getInt(context, context.getResources().getString(
+                            R.string.app_uninstall_id));
+                    if (operationId != 0) {
+                        result = new JSONObject(intent.getStringExtra("payload"));
+                        if (result.has("appUninstallStatus")) {
+                            Preference.putString(context, context.getResources().getString(R.string.app_uninstall_status),
+                                    result.getString("appUninstallStatus"));
+                        }
+                        if (Constants.Code.FAILURE.equals(code) && result.has("appUninstallFailedMessage")) {
+                            Preference.putString(context,
+                                    context.getResources().getString(R.string.app_uninstall_failed_message),
+                                    result.getString("appUninstallFailedMessage"));
+                        }
+                        Log.i(TAG, "Application uninstallation response: " + result.toString());
+                    }
                     break;
                 case Constants.Operation.UPGRADE_FIRMWARE:
                 case Constants.Operation.GET_FIRMWARE_UPGRADE_PACKAGE_STATUS:
                 case Constants.Operation.GET_FIRMWARE_UPGRADE_DOWNLOAD_PROGRESS:
                 case Constants.Operation.FIRMWARE_UPGRADE_AUTOMATIC_RETRY:
-                    Log.i(TAG, status + ": " + intent.getStringExtra("payload"));
+                    Log.i(TAG, "Firmware operation " + operation + "status " + status + ": " + intent.getStringExtra("payload"));
                     break;
                 default:
                     Log.e(TAG, "Invalid operation code: " + operation);

@@ -274,7 +274,7 @@ public class PolicyRevokeHandler {
 
     private void uninstallGooglePlayApps(String packageName) {
         try {
-            applicationManager.uninstallApplication(packageName, null);
+            applicationManager.uninstallApplication(packageName, null, null);
         } catch (AndroidAgentException e) {
             Log.e(TAG, "Error while trying to uninstall app for revoke work profile policy.", e);
         }
@@ -315,8 +315,8 @@ public class PolicyRevokeHandler {
                 appIdentifier = appData.getString(resources.getString(R.string.app_identifier));
             }
 
-            if (isAppInstalled(appIdentifier)) {
-                applicationManager.uninstallApplication(appIdentifier, null);
+            if(isAppInstalled(appIdentifier)){
+                applicationManager.uninstallApplication(appIdentifier, null, null);
             }
 
         } catch (JSONException e) {

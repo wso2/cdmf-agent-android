@@ -386,6 +386,7 @@ public class Constants {
 		public static final String COSU_PROFILE_POLICY = "COSU_PROFILE";
 		public static final String ENABLE_LOCK ="ENABLE_LOCK";
         public static final String TRIGGER_HEARTBEAT = "TRIGGER_HEARTBEAT";
+		public static final String NOTIFIER_FREQUENCY = "NOTIFIER_FREQUENCY";
 
         // Remote session based operations
         public static final String REMOTE_CONNECT = "REMOTE_CONNECT";

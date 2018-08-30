@@ -196,6 +196,9 @@ public class OperationProcessor {
             case Constants.Operation.LOGCAT:
                 operationManager.getLogcat(operation);
                 break;
+            case Constants.Operation.NOTIFIER_FREQUENCY:
+                operationManager.setNotifierFrequency(operation);
+                break;
             case Constants.Operation.DISALLOW_ADJUST_VOLUME:
             case Constants.Operation.DISALLOW_SMS:
             case Constants.Operation.DISALLOW_CONFIG_CELL_BROADCASTS:

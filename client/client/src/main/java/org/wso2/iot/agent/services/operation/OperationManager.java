@@ -1619,6 +1619,30 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
     }
 
     /**
+     * Change the poling interval.
+     *
+     * @param operation - Operation object
+     * @throws AndroidAgentException
+     */
+    public void setNotifierFrequency(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
+        try {
+            JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
+            int notifierFrequencyValue = inputData.getInt(getContextResources()
+                    .getString(R.string.notifire_frequency_value_key));
+            Preference.putInt(context, context.getString(R.string.shared_pref_frequency),
+                    notifierFrequencyValue);
+            operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+            operation.setOperationResponse("Notification frequency updated successfully.");
+            getResultBuilder().build(operation);
+        } catch (JSONException | NullPointerException e) {
+            operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+            operation.setOperationResponse("Error in parsing NOTIFICATION payload.");
+            getResultBuilder().build(operation);
+            throw new AndroidAgentException("Invalid JSON format.", e);
+        }
+    }
+
+    /**
      * This method is being invoked when get info operation get executed.
      *
      * @param result      response result

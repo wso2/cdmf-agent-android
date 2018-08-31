@@ -157,6 +157,7 @@ public class Constants {
 	public static final int SIGN_IN_NOTIFICATION_ID = 0;
 	public static final int PERMISSION_MISSING_NOTIFICATION_ID = 1;
 	public static final int LOCATION_DISABLED_NOTIFICATION_ID = 2;
+	public static final String NOTIFIRE_FREQUENCY_VALUE_KEY = "value";
 	/**
 	 * Device certificates.
 	 */

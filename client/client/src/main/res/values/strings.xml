@@ -308,7 +308,6 @@
     <string name="ok">Ok</string>
     <string name="info_label_settings">Settings</string>
     <string name="info_label_cancel">Cancel</string>
-    <string name="notifire_frequency_value_key">value</string>
 
     <!-- UI TITLES -->
     <string name="button_ok">OK</string>

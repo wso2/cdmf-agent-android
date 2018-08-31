@@ -1626,15 +1626,20 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
      */
     public void setNotifierFrequency(org.wso2.iot.agent.beans.Operation operation) throws AndroidAgentException {
         try {
-            JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
-            int notifierFrequencyValue = inputData.getInt(getContextResources()
-                    .getString(R.string.notifire_frequency_value_key));
-            Preference.putInt(context, context.getString(R.string.shared_pref_frequency),
-                    notifierFrequencyValue);
-            operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
-            operation.setOperationResponse("Notification frequency updated successfully.");
-            getResultBuilder().build(operation);
-        } catch (JSONException | NullPointerException e) {
+            if (operation.getPayLoad() != null) {
+                JSONObject inputData = new JSONObject(operation.getPayLoad().toString());
+                int notifierFrequencyValue = inputData.getInt(Constants.NOTIFIRE_FREQUENCY_VALUE_KEY);
+                Preference.putInt(context, context.getString(R.string.shared_pref_frequency),
+                        notifierFrequencyValue);
+                operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
+                operation.setOperationResponse("Notification frequency updated successfully.");
+                getResultBuilder().build(operation);
+            } else {
+                operation.setStatus(getContextResources().getString(R.string.operation_value_error));
+                operation.setOperationResponse("invalid NOTIFICATION payload.");
+                getResultBuilder().build(operation);
+            }
+        } catch (JSONException e) {
             operation.setStatus(getContextResources().getString(R.string.operation_value_error));
             operation.setOperationResponse("Error in parsing NOTIFICATION payload.");
             getResultBuilder().build(operation);

@@ -88,30 +88,33 @@ public class OperationManagerBYOD extends OperationManager {
                 Intent uploadIntent = new Intent(context, FileUploadReceiver.class);
                 uploadIntent.putExtra(getContextResources().getString(R.string.intent_extra_operation_object), operation);
 
-                PendingIntent requestPermission = PendingIntent.getBroadcast(context, 0, uploadIntent,
-                        PendingIntent.FLAG_CANCEL_CURRENT);
+                if (Constants.REQUIRE_CONSENT_FOR_FILE_UPLOAD) {
+                    PendingIntent requestPermission = PendingIntent.getBroadcast(context, 0, uploadIntent,
+                            PendingIntent.FLAG_CANCEL_CURRENT);
 
-                Intent cancelIntent = new Intent(context, FileUploadCancelReceiver.class);
-                cancelIntent.putExtra(getContextResources().getString(R.string.intent_extra_operation_object), operation);
+                    Intent cancelIntent = new Intent(context, FileUploadCancelReceiver.class);
+                    cancelIntent.putExtra(getContextResources().getString(R.string.intent_extra_operation_object), operation);
 
-                PendingIntent cancel = PendingIntent.getBroadcast(context, 0, cancelIntent,
-                        PendingIntent.FLAG_CANCEL_CURRENT);
+                    PendingIntent cancel = PendingIntent.getBroadcast(context, 0, cancelIntent,
+                            PendingIntent.FLAG_CANCEL_CURRENT);
+                    NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
+                    mBuilder
+                            .setSmallIcon(android.R.drawable.ic_menu_upload)
+                            .setContentTitle(selectedFile.getName() + getContextResources().getString(R.
+                                    string.NOTIFICATION_TITLE))
+                            .setTicker(getContextResources().getString(R.
+                                    string.NOTIFICATION_TICKER))
+                            .setAutoCancel(true)
+                            .addAction(android.R.drawable.ic_menu_upload, getContextResources().getString(R.
+                                    string.NOTIFICATION_ALLOW), requestPermission)
+                            .addAction(android.R.drawable.ic_menu_close_clear_cancel, getContextResources().
+                                    getString(R.string.NOTIFICATION_CANCEL), cancel);
 
-                NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
-                mBuilder
-                        .setSmallIcon(android.R.drawable.ic_menu_upload)
-                        .setContentTitle(selectedFile.getName() + getContextResources().getString(R.
-                                string.NOTIFICATION_TITLE))
-                        .setTicker(getContextResources().getString(R.
-                                string.NOTIFICATION_TICKER))
-                        .setAutoCancel(true)
-                        .addAction(android.R.drawable.ic_menu_upload, getContextResources().getString(R.
-                                string.NOTIFICATION_ALLOW), requestPermission)
-                        .addAction(android.R.drawable.ic_menu_close_clear_cancel, getContextResources().
-                                getString(R.string.NOTIFICATION_CANCEL), cancel);
-
-                NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                manager.notify(operation.getId(), mBuilder.build());
+                    NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                    manager.notify(operation.getId(), mBuilder.build());
+                } else {
+                    context.sendBroadcast(uploadIntent);
+                }
             } else {
                 operation.setStatus(getContextResources().getString(R.string.
                         operation_value_error));

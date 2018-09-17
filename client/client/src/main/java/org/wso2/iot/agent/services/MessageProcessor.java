@@ -520,6 +520,9 @@ public class MessageProcessor implements APIResultCallBack {
                 fileUpload.setOperationResponse(prefs.getString(resources.getString(R.string.
                         FILE_UPLOAD_RESPONSE), resources.getString(R.string.operation_value_error)));
                 fileUpload.setEnabled(true);
+                if (replyPayload == null) {
+                    replyPayload = new ArrayList<>();
+                }
                 replyPayload.add(fileUpload);
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.remove(resources.getString(R.string.FILE_UPLOAD_ID));
@@ -536,6 +539,9 @@ public class MessageProcessor implements APIResultCallBack {
                 fileDownload.setOperationResponse(prefs.getString(resources.getString(R.string.
                         FILE_DOWNLOAD_RESPONSE), resources.getString(R.string.operation_value_error)));
                 fileDownload.setEnabled(true);
+                if (replyPayload == null) {
+                    replyPayload = new ArrayList<>();
+                }
                 replyPayload.add(fileDownload);
                 SharedPreferences
                         .Editor editor = prefs.edit();

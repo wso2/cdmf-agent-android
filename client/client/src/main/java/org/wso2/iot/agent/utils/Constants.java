@@ -77,6 +77,8 @@ public class Constants {
 	public static final int APP_UNINSTALL_TIMEOUT = 10 * 60 * 1000;
 	//Should be grater than FIRMWARE_DOWNLOAD_TIMEOUT in the system service.
 	public static final int FIRMWARE_DOWNLOAD_OPERATION_TIMEOUT = 6 * 60 * 1000;
+	//Is user consent required for file upload from device to server
+	public static final boolean REQUIRE_CONSENT_FOR_FILE_UPLOAD = BuildConfig.REQUIRE_CONSENT_FOR_FILE_UPLOAD;
 
 	// This is used to skip the license
 	public static final boolean SKIP_LICENSE = BuildConfig.SKIP_LICENSE;

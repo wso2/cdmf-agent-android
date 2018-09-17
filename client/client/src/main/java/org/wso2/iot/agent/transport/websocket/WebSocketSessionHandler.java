@@ -91,13 +91,13 @@ public class WebSocketSessionHandler {
      * @param operationId operation id for initialized session
      * @throws TransportHandlerException throws when error occur with web socket session
      */
-    public void initializeSession(String serverURL, int operationId) throws TransportHandlerException {
+    public void initializeSession(String serverURL, int operationId, String uuidToValidateDevice)
+            throws TransportHandlerException {
         if (this.operationId == operationId) {
             Log.w(TAG, "operation id : " + operationId + " is already connected");
             return;
         }
         DeviceInfo deviceInfo = new DeviceInfo(context);
-        String accessToken = Preference.getString(context, "access_token");
         if (serverURL.contains("localhost")) {
             ServerConfig serverConfig = new ServerConfig();
             serverURL = serverURL.replace("localhost", serverConfig.getHostFromPreferences(context));
@@ -111,7 +111,7 @@ public class WebSocketSessionHandler {
         }
         URI uri;
         String remoteEndpoint = serverURL + Constants.REMOTE_SESSION_DEVICE_ENDPOINT_CONTEXT + "/" +
-                deviceInfo.getDeviceId() + "/" + operationId + "?websocketToken=" + accessToken;
+                deviceInfo.getDeviceId() + "/" + operationId + "?websocketToken=" + uuidToValidateDevice;
         try {
             uri = new URI(remoteEndpoint);
             Log.i(TAG, "web socket session connected for operation id:" + operationId);

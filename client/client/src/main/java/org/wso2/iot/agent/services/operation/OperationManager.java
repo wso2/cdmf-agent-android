@@ -1161,12 +1161,18 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
             if (operation.getPayLoad() != null) {
                 JSONObject payload = new JSONObject(operation.getPayLoad().toString());
                 Object serverUrl = payload.get("serverUrl");
+                Object uuidToValidateDevice = payload.get("uuidToValidateDevice");
                 if (serverUrl != null) {
-                    // Initialize web socket session
-                    WebSocketSessionHandler.getInstance(context).initializeSession(serverUrl.toString(),
-                            operation.getId());
-                    operation.setStatus(resources.getString(R.string.operation_value_completed));
-
+                    if(uuidToValidateDevice != null) {
+                        // Initialize web socket session
+                        WebSocketSessionHandler.getInstance(context).initializeSession(serverUrl.toString(),
+                                operation.getId(), uuidToValidateDevice.toString());
+                        operation.setStatus(resources.getString(R.string.operation_value_completed));
+                    } else {
+                        operation.setStatus(resources.getString(R.string.operation_value_error));
+                        operation.setOperationResponse("UUID cannot be found in the operation " +
+                                "payload");
+                    }
                 } else {
                     operation.setStatus(resources.getString(R.string.operation_value_error));
                     operation.setOperationResponse("Server url cannot be found");

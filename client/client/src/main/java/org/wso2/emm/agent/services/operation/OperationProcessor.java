@@ -169,6 +169,9 @@ public class OperationProcessor {
 			case Constants.Operation.LOGCAT:
 				operationManager.getLogcat(operation);
 				break;
+			case Constants.Operation.NOTIFIER_FREQUENCY:
+				operationManager.setNotifierFrequency(operation);
+				break;
 			default:
 				operationManager.passOperationToSystemApp(operation);
 				break;

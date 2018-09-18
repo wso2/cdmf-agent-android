@@ -172,6 +172,7 @@ public class Constants {
 
 
 	public static final String APP_LOCK_SERVICE = "AppLockService";
+	public static final String NOTIFIRE_FREQUENCY_VALUE_KEY = "value";
 
 	/**
 	 * Request codes.
@@ -350,6 +351,7 @@ public class Constants {
 		public static final String LOGCAT = "LOGCAT";
 		public static final String TRIGGER_HEARTBEAT = "TRIGGER_HEARTBEAT";
 		public static final String FIRMWARE_UPGRADE_AUTOMATIC_RETRY = "FIRMWARE_UPGRADE_AUTOMATIC_RETRY";
+		public static final String NOTIFIER_FREQUENCY = "NOTIFIER_FREQUENCY";
 	}
 
 	/**

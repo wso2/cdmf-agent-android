@@ -70,6 +70,7 @@ import org.wso2.iot.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.iot.agent.services.DeviceInfoPayload;
 import org.wso2.iot.agent.services.FileDownloadService;
 import org.wso2.iot.agent.services.FileUploadService;
+import org.wso2.iot.agent.services.LocalNotification;
 import org.wso2.iot.agent.services.LogPublisherFactory;
 import org.wso2.iot.agent.services.NotificationService;
 import org.wso2.iot.agent.services.PolicyComplianceChecker;
@@ -1640,6 +1641,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
                 operation.setOperationResponse("Notification frequency updated successfully.");
                 getResultBuilder().build(operation);
+                LocalNotification.startPolling(context);
             } else {
                 operation.setStatus(getContextResources().getString(R.string.operation_value_error));
                 operation.setOperationResponse("invalid NOTIFICATION payload.");

@@ -58,6 +58,7 @@ import org.wso2.emm.agent.events.listeners.WifiConfigCreationListener;
 import org.wso2.emm.agent.proxy.interfaces.APIResultCallBack;
 import org.wso2.emm.agent.services.AgentDeviceAdminReceiver;
 import org.wso2.emm.agent.services.DeviceInfoPayload;
+import org.wso2.emm.agent.services.LocalNotification;
 import org.wso2.emm.agent.services.LogPublisherFactory;
 import org.wso2.emm.agent.services.NotificationService;
 import org.wso2.emm.agent.services.PolicyComplianceChecker;
@@ -941,6 +942,7 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 operation.setStatus(getContextResources().getString(R.string.operation_value_completed));
                 operation.setOperationResponse("Notification frequency updated successfully.");
                 getResultBuilder().build(operation);
+                LocalNotification.startPolling(context);
             } else {
                 operation.setStatus(getContextResources().getString(R.string.operation_value_error));
                 operation.setOperationResponse("invalid NOTIFICATION payload.");

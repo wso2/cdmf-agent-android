@@ -484,6 +484,8 @@ public class Constants {
 		public static final String PID = "PID";
 		public static final String SHARED_DIRTY = "SHARED_DIRTY";
 		public static final String PHONE_NUMBER = "PHONE_NUMBER";
+		public static final String DEVICE_IDENTIFIERE = "DEVICE_IDENTIFIERE";
+		public static final String DEVICE_NAME = "DEVICE_NAME";
 
 		private Device() {
 			throw new AssertionError();

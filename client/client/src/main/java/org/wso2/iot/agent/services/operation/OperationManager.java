@@ -1164,15 +1164,24 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                 Object serverUrl = payload.get("serverUrl");
                 Object uuidToValidateDevice = payload.get("uuidToValidateDevice");
                 if (serverUrl != null) {
-                    if(uuidToValidateDevice != null) {
-                        // Initialize web socket session
-                        WebSocketSessionHandler.getInstance(context).initializeSession(serverUrl.toString(),
-                                operation.getId(), uuidToValidateDevice.toString());
-                        operation.setStatus(resources.getString(R.string.operation_value_completed));
+                    if (org.wso2.iot.agent.proxy.utils.Constants.Authenticator.AUTHENTICATOR_IN_USE.
+                            equals(org.wso2.iot.agent.proxy.utils.Constants.Authenticator.
+                                    MUTUAL_SSL_AUTHENTICATOR)) {
+                        if (uuidToValidateDevice != null) {
+                            // Initialize web socket session when AUTHENTICATOR_IN_USE is MUTUAL_SSL_AUTHENTICATOR
+                            WebSocketSessionHandler.getInstance(context).initializeSession(serverUrl.toString(),
+                                    operation.getId(), uuidToValidateDevice.toString());
+                            operation.setStatus(resources.getString(R.string.operation_value_completed));
+                        } else {
+                            operation.setStatus(resources.getString(R.string.operation_value_error));
+                            operation.setOperationResponse("UUID cannot be found in the operation " +
+                                    "payload");
+                        }
                     } else {
-                        operation.setStatus(resources.getString(R.string.operation_value_error));
-                        operation.setOperationResponse("UUID cannot be found in the operation " +
-                                "payload");
+                        // Initialize web socket session when AUTHENTICATOR_IN_USE is OAUTH_AUTHENTICATOR
+                        WebSocketSessionHandler.getInstance(context).initializeSession(serverUrl.toString(),
+                                operation.getId(), null);
+                        operation.setStatus(resources.getString(R.string.operation_value_completed));
                     }
                 } else {
                     operation.setStatus(resources.getString(R.string.operation_value_error));

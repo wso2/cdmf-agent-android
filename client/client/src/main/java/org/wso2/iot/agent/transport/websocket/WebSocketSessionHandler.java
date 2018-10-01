@@ -110,8 +110,19 @@ public class WebSocketSessionHandler {
             }
         }
         URI uri;
+        String token = null;
+        if(uuidToValidateDevice != null){
+            token = uuidToValidateDevice;
+        } else {
+            String access_token = Preference.getString(context, "access_token");
+            if(access_token != null){
+                token = access_token;
+            } else {
+                Log.e(TAG, "Could not extract the access token");
+            }
+        }
         String remoteEndpoint = serverURL + Constants.REMOTE_SESSION_DEVICE_ENDPOINT_CONTEXT + "/" +
-                deviceInfo.getDeviceId() + "/" + operationId + "?websocketToken=" + uuidToValidateDevice;
+                deviceInfo.getDeviceId() + "/" + operationId + "?websocketToken=" + token;
         try {
             uri = new URI(remoteEndpoint);
             Log.i(TAG, "web socket session connected for operation id:" + operationId);

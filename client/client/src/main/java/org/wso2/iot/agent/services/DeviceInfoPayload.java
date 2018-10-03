@@ -137,6 +137,7 @@ public class DeviceInfoPayload {
         if (device == null) {
             device = new Device();
         }
+
         deviceInfo = new DeviceInfo(context);
         Power power = phoneState.getBatteryDetails();
         if ((keyValPair.get(Constants.Device.DEVICE_IDENTIFIER) == null) ||
@@ -230,15 +231,6 @@ public class DeviceInfoPayload {
             property.setValue(deviceInfo.getOSBuildDate());
             properties.add(property);
             keyValPair.put(Constants.Device.OS_BUILD_DATE, deviceInfo.getOSBuildDate().toString());
-        }
-
-        if ((keyValPair.get(Constants.Device.NAME) == null)
-                || !keyValPair.get(Constants.Device.NAME).toString().equals(deviceInfo.getDeviceName().toString())) {
-            property = new Device.Property();
-            property.setName(Constants.Device.NAME);
-            property.setValue(deviceInfo.getDeviceName());
-            properties.add(property);
-            keyValPair.put(Constants.Device.NAME, deviceInfo.getDeviceName().toString());
         }
 
         if (deviceLocation != null) {

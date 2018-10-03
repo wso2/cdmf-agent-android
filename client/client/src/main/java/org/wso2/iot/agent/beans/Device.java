@@ -17,6 +17,8 @@
 
 package org.wso2.iot.agent.beans;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.utils.CommonUtils;
 
@@ -26,6 +28,7 @@ import java.util.List;
  * This class represents the basic information of
  * the carbon-device-mgt supported device
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Device {
 
 	private String description;

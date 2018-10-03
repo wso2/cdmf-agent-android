@@ -33,6 +33,7 @@ import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
+import android.util.Base64;
 import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -44,9 +45,18 @@ import org.json.JSONObject;
 import org.wso2.iot.agent.AndroidAgentException;
 import org.wso2.iot.agent.beans.Device;
 import org.wso2.iot.agent.utils.Constants;
+import org.wso2.iot.agent.utils.Preference;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 
 public class NetworkInfoService extends Service {
 
@@ -61,6 +71,7 @@ public class NetworkInfoService extends Service {
     private TelephonyManager telephonyManager;
 
     private static final int DEFAULT_AGE = 0;
+    private static final String SSID = "ssid";
     private static final String MAC_ADDRESS = "macAddress";
     private static final String SIGNAL_STRENGTH = "signalStrength";
     private static final String AGE = "age";
@@ -175,24 +186,22 @@ public class NetworkInfoService extends Service {
                     property.setName(Constants.Device.MOBILE_CONNECTION_TYPE);
                     property.setValue(info.getSubtypeName());
                     properties.add(property);
+                    property = new Device.Property();
+                    property.setName(Constants.Device.MOBILE_SIGNAL_STRENGTH);
+                    property.setValue(String.valueOf(getCellSignalStrength()));
+                    properties.add(property);
                 } else if (info.getType() == ConnectivityManager.TYPE_WIFI) {
                     property = new Device.Property();
                     property.setName(Constants.Device.WIFI_SSID);
                     // NetworkInfo API of Android seem to add extra "" to SSID, therefore escaping it.
                     property.setValue(String.valueOf(thisInstance.getWifiSSID()).replaceAll("\"", ""));
                     properties.add(property);
-
                     property = new Device.Property();
                     property.setName(Constants.Device.WIFI_SIGNAL_STRENGTH);
                     property.setValue(String.valueOf(thisInstance.getWifiSignalStrength()));
                     properties.add(property);
                 }
             }
-
-            property = new Device.Property();
-            property.setName(Constants.Device.MOBILE_SIGNAL_STRENGTH);
-            property.setValue(String.valueOf(getCellSignalStrength()));
-            properties.add(property);
 
             try {
                 payload = mapper.writeValueAsString(properties);
@@ -214,25 +223,66 @@ public class NetworkInfoService extends Service {
         NetworkInfoService.cellSignalStrength = cellSignalStrength;
     }
 
-    public static String getWifiScanResult() throws AndroidAgentException {
+    private static double compareSignalStrength(int previousSignalStrength, int newSignalStrength) {
+        int val = ((newSignalStrength - previousSignalStrength) / newSignalStrength) * 100;
+        if (val >= 0) {
+            return val;
+        } else {
+            return -1 * val;
+        }
+    }
+
+    public static String getWifiScanResult(Context context) throws AndroidAgentException {
         if (wifiScanResults != null) {
+            Map<String, Integer> wifiScanResultsMap = null;
+            if (Preference.getString(context, "lastWifiScanResultsMap") != null) {
+                String lastUpdatedInfoString = Preference.getString(context, "lastWifiScanResultsMap");
+                byte[] lastUpdatedInfoByteArray = Base64.decode(lastUpdatedInfoString, Base64.DEFAULT);
+                ByteArrayInputStream bais = new ByteArrayInputStream(lastUpdatedInfoByteArray);
+                ObjectInputStream ois = null;
+                try {
+                    ois = new ObjectInputStream(bais);
+                    wifiScanResultsMap = (HashMap<String, Integer>) ois.readObject();
+                } catch (IOException e) {
+                    throw new AndroidAgentException("Error occurred while deserialize lastWifiScanResultsMap object", e);
+                } catch (ClassNotFoundException e) {
+                    throw new AndroidAgentException("Error occurred while casting to lastWifiScanResultsMap object", e);
+                }
+            } else {
+                wifiScanResultsMap = new HashMap<>();
+            }
             try {
                 JSONArray scanResults = new JSONArray();
                 JSONObject scanResult;
                 for (ScanResult result : wifiScanResults) {
-                    scanResult = new JSONObject();
-                    scanResult.put(MAC_ADDRESS, result.BSSID);
-                    scanResult.put(SIGNAL_STRENGTH, result.level);
-                    scanResult.put(AGE, DEFAULT_AGE);
-                    scanResult.put(CHANNEL, result.frequency);
-                    scanResult.put(SNR, result.level); // temporarily added
-                    scanResults.put(scanResult);
+                    if (!wifiScanResultsMap.containsKey(result.wifiSsid.toString()) || compareSignalStrength(
+                            Integer.valueOf(wifiScanResultsMap.get(result.wifiSsid.toString())), result.level) >= 0.2) {
+                        scanResult = new JSONObject();
+                        scanResult.put(SSID, result.wifiSsid);
+                        scanResult.put(MAC_ADDRESS, result.BSSID);
+                        scanResult.put(SIGNAL_STRENGTH, result.level);
+                        scanResult.put(AGE, DEFAULT_AGE);
+                        scanResult.put(CHANNEL, result.frequency);
+                        scanResult.put(SNR, result.level); // temporarily added
+                        scanResults.put(scanResult);
+                        wifiScanResultsMap.put(result.wifiSsid.toString(), result.level);
+                    }
                 }
                 if (Constants.DEBUG_MODE_ENABLED) {
                     Log.d(TAG, "Wifi scan result: " + scanResults.toString());
                 }
                 // scanning for next round
                 thisInstance.startWifiScan();
+                ByteArrayOutputStream bao = new ByteArrayOutputStream();
+                try {
+                    ObjectOutputStream oos = new ObjectOutputStream(bao);
+                    oos.writeObject(wifiScanResultsMap);
+                    String stringObject = null;
+                    stringObject = Base64.encodeToString(bao.toByteArray(), Base64.DEFAULT);
+                    Preference.putString(context, "lastWifiScanResultsMap", stringObject);
+                } catch (IOException e) {
+                    throw new AndroidAgentException("Error occurred while serializing lastWifiScanResultsMap object", e);
+                }
                 return scanResults.toString();
             } catch (JSONException e) {
                 String msg = "Error occurred while retrieving wifi scan results";

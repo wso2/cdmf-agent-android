@@ -125,35 +125,23 @@ public class DeviceInfoPayload {
         } else {
             keyValPair = new HashMap<String, String>();
         }
-
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-
         if (!CommonUtils.isServiceRunning(context, NetworkInfoService.class)) {
             Intent serviceIntent = new Intent(context, NetworkInfoService.class);
             context.startService(serviceIntent);
         }
-
         Location deviceLocation = CommonUtils.getLocation(context);
         if (device == null) {
             device = new Device();
         }
-
         deviceInfo = new DeviceInfo(context);
         Power power = phoneState.getBatteryDetails();
-        if ((keyValPair.get(Constants.Device.DEVICE_IDENTIFIER) == null) ||
-                !keyValPair.get(Constants.Device.DEVICE_IDENTIFIER).toString().equals(deviceInfo.getDeviceId())) {
-            device.setDeviceIdentifier(deviceInfo.getDeviceId());
-            keyValPair.put(Constants.Device.DEVICE_IDENTIFIER, deviceInfo.getDeviceId());
-        }
-        if ((keyValPair.get(Constants.Device.DEVICE_NAME) == null) ||
-                !keyValPair.get(Constants.Device.DEVICE_NAME).toString().equals(deviceInfo.getDeviceName())) {
-            device.setName(deviceInfo.getDeviceName());
-            device.setDescription(deviceInfo.getDeviceName());
-            keyValPair.put(Constants.Device.DEVICE_NAME, deviceInfo.getDeviceName());
-        }
-
+        device.setDeviceIdentifier(deviceInfo.getDeviceId());
+        keyValPair.put(Constants.Device.DEVICE_IDENTIFIER, deviceInfo.getDeviceId());
+        device.setName(deviceInfo.getDeviceName());
+        device.setDescription(deviceInfo.getDeviceName());
+        keyValPair.put(Constants.Device.DEVICE_NAME, deviceInfo.getDeviceName());
         List<Device.Property> properties = new ArrayList<>();
-
         Device.Property property = null;
         if ((keyValPair.get(Constants.Device.SERIAL) == null) ||
                 !keyValPair.get(Constants.Device.SERIAL).toString().equals(deviceInfo.getDeviceSerialNumber())) {
@@ -163,76 +151,68 @@ public class DeviceInfoPayload {
             properties.add(property);
             keyValPair.put(Constants.Device.SERIAL, deviceInfo.getDeviceSerialNumber().toString());
         }
-
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE)
                 == PackageManager.PERMISSION_GRANTED) {
             if ((keyValPair.get(Constants.Device.IMEI) == null) || !keyValPair.get(Constants.Device.IMEI).toString()
-                    .equals(telephonyManager.getDeviceId().toString())) {
+                    .equals(telephonyManager.getDeviceId())) {
                 property = new Device.Property();
                 property.setName(Constants.Device.IMEI);
                 property.setValue(telephonyManager.getDeviceId());
                 properties.add(property);
-                keyValPair.put(Constants.Device.IMEI, telephonyManager.getDeviceId().toString());
+                keyValPair.put(Constants.Device.IMEI, telephonyManager.getDeviceId());
             }
         }
-
         if ((keyValPair.get(Constants.Device.IMSI) == null) ||
-                !keyValPair.get(Constants.Device.IMSI).toString().equals(deviceInfo.getIMSINumber().toString())) {
+                !keyValPair.get(Constants.Device.IMSI).toString().equals(deviceInfo.getIMSINumber())) {
             property = new Device.Property();
             property.setName(Constants.Device.IMSI);
             property.setValue(deviceInfo.getIMSINumber());
             properties.add(property);
-            keyValPair.put(Constants.Device.IMSI, deviceInfo.getIMSINumber().toString());
+            keyValPair.put(Constants.Device.IMSI, deviceInfo.getIMSINumber());
         }
-
         if ((keyValPair.get(Constants.Device.MAC) == null) ||
                 !keyValPair.get(Constants.Device.MAC).toString().equals(deviceInfo.getMACAddress())) {
             property = new Device.Property();
             property.setName(Constants.Device.MAC);
             property.setValue(deviceInfo.getMACAddress());
             properties.add(property);
-            keyValPair.put(Constants.Device.MAC, deviceInfo.getMACAddress().toString());
+            keyValPair.put(Constants.Device.MAC, deviceInfo.getMACAddress());
         }
-
         if ((keyValPair.get(Constants.Device.MODEL) == null) ||
                 !keyValPair.get(Constants.Device.MODEL).toString()
-                        .equals(deviceInfo.getDeviceModel().toString())) {
+                        .equals(deviceInfo.getDeviceModel())) {
             property = new Device.Property();
             property.setName(Constants.Device.MODEL);
             property.setValue(deviceInfo.getDeviceModel());
             properties.add(property);
-            keyValPair.put(Constants.Device.MODEL, deviceInfo.getDeviceModel().toString());
+            keyValPair.put(Constants.Device.MODEL, deviceInfo.getDeviceModel());
         }
-
         if ((keyValPair.get(Constants.Device.VENDOR) == null) ||
                 !keyValPair.get(Constants.Device.VENDOR).toString()
-                        .equals(deviceInfo.getDeviceManufacturer().toString())) {
+                        .equals(deviceInfo.getDeviceManufacturer())) {
             property = new Device.Property();
             property.setName(Constants.Device.VENDOR);
             property.setValue(deviceInfo.getDeviceManufacturer());
             properties.add(property);
-            keyValPair.put(Constants.Device.VENDOR, deviceInfo.getDeviceManufacturer().toString());
+            keyValPair.put(Constants.Device.VENDOR, deviceInfo.getDeviceManufacturer());
         }
-
         if ((keyValPair.get(Constants.Device.OS) == null)
-                || !keyValPair.get(Constants.Device.OS).toString().equals(deviceInfo.getOsVersion().toString())) {
+                || !keyValPair.get(Constants.Device.OS).toString().equals(deviceInfo.getOsVersion())) {
             property = new Device.Property();
             property.setName(Constants.Device.OS);
             property.setValue(deviceInfo.getOsVersion());
             properties.add(property);
-            keyValPair.put(Constants.Device.OS, deviceInfo.getOsVersion().toString());
+            keyValPair.put(Constants.Device.OS, deviceInfo.getOsVersion());
         }
-
         if ((keyValPair.get(Constants.Device.OS_BUILD_DATE) == null)
                 || !keyValPair.get(Constants.Device.OS_BUILD_DATE).toString()
-                .equals(deviceInfo.getOSBuildDate().toString())) {
+                .equals(deviceInfo.getOSBuildDate())) {
             property = new Device.Property();
             property.setName(Constants.Device.OS_BUILD_DATE);
             property.setValue(deviceInfo.getOSBuildDate());
             properties.add(property);
-            keyValPair.put(Constants.Device.OS_BUILD_DATE, deviceInfo.getOSBuildDate().toString());
+            keyValPair.put(Constants.Device.OS_BUILD_DATE, deviceInfo.getOSBuildDate());
         }
-
         if (deviceLocation != null) {
             double latitude = deviceLocation.getLatitude();
             double longitude = deviceLocation.getLongitude();
@@ -247,7 +227,6 @@ public class DeviceInfoPayload {
                     properties.add(property);
                     keyValPair.put(Constants.Device.MOBILE_DEVICE_LATITUDE, String.valueOf(latitude));
                 }
-
                 if ((keyValPair.get(Constants.Device.MOBILE_DEVICE_LONGITUDE) == null)
                         || !keyValPair.get(Constants.Device.MOBILE_DEVICE_LONGITUDE).toString()
                         .equals(String.valueOf(longitude))) {
@@ -259,7 +238,6 @@ public class DeviceInfoPayload {
                 }
             }
         }
-
         if (registrationId != null) {
             if ((keyValPair.get(Constants.Device.FCM_TOKEN) == null)
                     || !keyValPair.get(Constants.Device.FCM_TOKEN).toString()
@@ -271,9 +249,7 @@ public class DeviceInfoPayload {
                 keyValPair.put(Constants.Device.FCM_TOKEN, registrationId);
             }
         }
-
         List<Device.Property> deviceInfoProperties = new ArrayList<>();
-
         if ((keyValPair.get(Constants.Device.ENCRYPTION_STATUS) == null) || !keyValPair
                 .get(Constants.Device.ENCRYPTION_STATUS).toString()
                 .equals(String.valueOf(deviceInfo.isEncryptionEnabled()))) {
@@ -283,7 +259,6 @@ public class DeviceInfoPayload {
             deviceInfoProperties.add(property);
             keyValPair.put(Constants.Device.ENCRYPTION_STATUS, String.valueOf(deviceInfo.isEncryptionEnabled()));
         }
-
         if ((deviceInfo.getSdkVersion() >= Build.VERSION_CODES.LOLLIPOP)) {
             if ((keyValPair.get(Constants.Device.PASSCODE_STATUS) == null) || !keyValPair
                     .get(Constants.Device.PASSCODE_STATUS).toString()
@@ -295,7 +270,6 @@ public class DeviceInfoPayload {
                 keyValPair.put(Constants.Device.PASSCODE_STATUS, String.valueOf(deviceInfo.isPasscodeEnabled()));
             }
         }
-
         if ((keyValPair.get(Constants.Device.BATTERY_LEVEL) == null) ||
                 !keyValPair.get(Constants.Device.BATTERY_LEVEL).toString()
                         .equals(String.valueOf(Math.round(power.getLevel())))) {
@@ -306,7 +280,6 @@ public class DeviceInfoPayload {
             deviceInfoProperties.add(property);
             keyValPair.put(Constants.Device.BATTERY_LEVEL, String.valueOf(batteryLevel));
         }
-
         if ((keyValPair.get(Constants.Device.MEMORY_INFO_INTERNAL_TOTAL) == null) || !keyValPair
                 .get(Constants.Device.MEMORY_INFO_INTERNAL_TOTAL).toString()
                 .equals(String.valueOf(phoneState.getTotalInternalMemorySize()))) {
@@ -317,7 +290,6 @@ public class DeviceInfoPayload {
             keyValPair.put(Constants.Device.MEMORY_INFO_INTERNAL_TOTAL,
                     String.valueOf(phoneState.getTotalInternalMemorySize()));
         }
-
         if ((keyValPair.get(Constants.Device.MEMORY_INFO_INTERNAL_AVAILABLE) == null) || !keyValPair
                 .get(Constants.Device.MEMORY_INFO_INTERNAL_AVAILABLE).toString()
                 .equals(String.valueOf(phoneState.getAvailableInternalMemorySize()))) {
@@ -328,7 +300,6 @@ public class DeviceInfoPayload {
             keyValPair.put(Constants.Device.MEMORY_INFO_INTERNAL_AVAILABLE,
                     String.valueOf(phoneState.getAvailableInternalMemorySize()));
         }
-
         if ((keyValPair.get(Constants.Device.MEMORY_INFO_EXTERNAL_TOTAL) == null) || !keyValPair
                 .get(Constants.Device.MEMORY_INFO_EXTERNAL_TOTAL).toString()
                 .equals(String.valueOf(phoneState.getTotalExternalMemorySize()))) {
@@ -339,7 +310,6 @@ public class DeviceInfoPayload {
             keyValPair.put(Constants.Device.MEMORY_INFO_EXTERNAL_TOTAL,
                     String.valueOf(phoneState.getTotalExternalMemorySize()));
         }
-
         if ((keyValPair.get(Constants.Device.MEMORY_INFO_EXTERNAL_AVAILABLE) == null) || !keyValPair
                 .get(Constants.Device.MEMORY_INFO_EXTERNAL_AVAILABLE).toString()
                 .equals(String.valueOf(phoneState.getAvailableExternalMemorySize()))) {
@@ -350,7 +320,6 @@ public class DeviceInfoPayload {
             keyValPair.put(Constants.Device.MEMORY_INFO_EXTERNAL_AVAILABLE,
                     String.valueOf(phoneState.getAvailableExternalMemorySize()));
         }
-
         if ((keyValPair.get(Constants.Device.NETWORK_OPERATOR) == null) || !keyValPair
                 .get(Constants.Device.NETWORK_OPERATOR).toString()
                 .equals(String.valueOf(deviceInfo.getNetworkOperatorName()))) {
@@ -366,8 +335,8 @@ public class DeviceInfoPayload {
                 == PackageManager.PERMISSION_GRANTED) {
             String mPhoneNumber = telephonyManager.getLine1Number();
 
-            if ((mPhoneNumber != null) && (keyValPair.get(Constants.Device.PHONE_NUMBER) == null) || !keyValPair
-                    .get(Constants.Device.PHONE_NUMBER).toString().equals(mPhoneNumber)) {
+            if ((mPhoneNumber != null) && ((keyValPair.get(Constants.Device.PHONE_NUMBER) == null) || !keyValPair
+                    .get(Constants.Device.PHONE_NUMBER).toString().equals(mPhoneNumber))) {
                 property = new Device.Property();
                 property.setName(Constants.Device.PHONE_NUMBER);
                 property.setValue(mPhoneNumber);
@@ -375,11 +344,10 @@ public class DeviceInfoPayload {
                 keyValPair.put(Constants.Device.PHONE_NUMBER, mPhoneNumber);
             }
         }
-
         try {
             String network = NetworkInfoService.getNetworkStatus();
-            if ((network != null) && (keyValPair.get(Constants.Device.NETWORK_INFO) == null) || !keyValPair
-                    .get(Constants.Device.NETWORK_INFO).toString().equals(network)) {
+            if ((network != null) && ((keyValPair.get(Constants.Device.NETWORK_INFO) == null) || !keyValPair
+                    .get(Constants.Device.NETWORK_INFO).toString().equals(network))) {
                 property = new Device.Property();
                 property.setName(Constants.Device.NETWORK_INFO);
                 property.setValue(network);
@@ -388,8 +356,8 @@ public class DeviceInfoPayload {
             }
             if (Constants.WIFI_SCANNING_ENABLED) {
                 String wifiScanResult = NetworkInfoService.getWifiScanResult(context);
-                if ((network != null) && (keyValPair.get(Constants.Device.WIFI_SCAN_RESULT) == null) || !keyValPair
-                        .get(Constants.Device.WIFI_SCAN_RESULT).toString().equals(wifiScanResult)) {
+                if ((network != null) && ((keyValPair.get(Constants.Device.WIFI_SCAN_RESULT) == null) || !keyValPair
+                        .get(Constants.Device.WIFI_SCAN_RESULT).toString().equals(wifiScanResult))) {
                     property = new Device.Property();
                     property.setName(Constants.Device.WIFI_SCAN_RESULT);
                     property.setValue(wifiScanResult);
@@ -400,7 +368,6 @@ public class DeviceInfoPayload {
         } catch (AndroidAgentException e) {
             Log.e(TAG, "Error retrieving network status. " + e.getMessage());
         }
-
         RuntimeInfo runtimeInfo = new RuntimeInfo(context);
         String cpuInfoPayload;
         try {
@@ -419,7 +386,6 @@ public class DeviceInfoPayload {
             properties.add(property);
             keyValPair.put(Constants.Device.CPU_INFO, cpuInfoPayload);
         }
-
         String ramInfoPayload;
         try {
             ramInfoPayload = mapper.writeValueAsString(runtimeInfo.getRAMInfo());
@@ -428,7 +394,6 @@ public class DeviceInfoPayload {
             Log.e(TAG, errorMsg, e);
             throw new AndroidAgentException(errorMsg, e);
         }
-
         if ((keyValPair.get(Constants.Device.RAM_INFO) == null) || (keyValPair.get(Constants.Device.RAM_INFO) != null
                 && !keyValPair.get(Constants.Device.RAM_INFO).toString().equals(ramInfoPayload))) {
             property = new Device.Property();
@@ -437,40 +402,31 @@ public class DeviceInfoPayload {
             properties.add(property);
             keyValPair.put(Constants.Device.RAM_INFO, ramInfoPayload);
         }
-
         List<Device.Property> batteryProperties = new ArrayList<>();
         property = new Device.Property();
         property.setName(Constants.Device.BATTERY_LEVEL);
         property.setValue(String.valueOf(power.getLevel()));
         batteryProperties.add(property);
-
         property = new Device.Property();
         property.setName(Constants.Device.SCALE);
         property.setValue(String.valueOf(power.getScale()));
         batteryProperties.add(property);
-
         property = new Device.Property();
         property.setName(Constants.Device.BATTERY_VOLTAGE);
         property.setValue(String.valueOf(power.getVoltage()));
         batteryProperties.add(property);
-
-
         property = new Device.Property();
         property.setName(Constants.Device.HEALTH);
         property.setValue(String.valueOf(power.getHealth()));
         batteryProperties.add(property);
-
         property = new Device.Property();
         property.setName(Constants.Device.STATUS);
         property.setValue(String.valueOf(power.getStatus()));
         batteryProperties.add(property);
-
         property = new Device.Property();
         property.setName(Constants.Device.PLUGGED);
         property.setValue(String.valueOf(power.getPlugged()));
         batteryProperties.add(property);
-
-
         String batteryInfoPayload;
         try {
             batteryInfoPayload = mapper.writeValueAsString(batteryProperties);
@@ -479,7 +435,6 @@ public class DeviceInfoPayload {
             Log.e(TAG, errorMsg, e);
             throw new AndroidAgentException(errorMsg, e);
         }
-
         if ((keyValPair.get(Constants.Device.BATTERY_INFO) == null) ||
                 !keyValPair.get(Constants.Device.BATTERY_INFO).toString().equals(batteryInfoPayload)) {
             property = new Device.Property();
@@ -488,7 +443,6 @@ public class DeviceInfoPayload {
             properties.add(property);
             keyValPair.put(Constants.Device.BATTERY_INFO, batteryInfoPayload);
         }
-
         // building device info json payload
         String deviceInfoPayload;
         try {
@@ -498,7 +452,6 @@ public class DeviceInfoPayload {
             Log.e(TAG, errorMsg, e);
             throw new AndroidAgentException(errorMsg, e);
         }
-
         if ((keyValPair.get(Constants.Device.INFO) == null) || !keyValPair
                 .get(Constants.Device.INFO).toString().equals(deviceInfoPayload)) {
             property = new Device.Property();
@@ -507,7 +460,6 @@ public class DeviceInfoPayload {
             properties.add(property);
             keyValPair.put(Constants.Device.INFO, deviceInfoPayload);
         }
-
         device.setProperties(properties);
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
         try {

@@ -217,6 +217,12 @@ public class Constants {
 	public static final boolean FCM_FALLBACK_PULL_ENABLED = BuildConfig.FCM_FALLBACK_PULL_ENABLED;
 
 	/**
+	 * Device info payload.
+	 */
+	public static final String LAST_DEVICE_INFO_SHARED_PREF = "lastDeviceObject";
+	public static final String LAST_WIFI_SCAN_RESULT_SHARED_PREF = "lastWifiScanResultsMap";
+
+	/**
 	 * HTTP clients
 	 */
 	public final class RetryPolicy {

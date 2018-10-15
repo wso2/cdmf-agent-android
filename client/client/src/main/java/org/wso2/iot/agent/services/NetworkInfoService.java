@@ -235,8 +235,8 @@ public class NetworkInfoService extends Service {
     public static String getWifiScanResult(Context context) throws AndroidAgentException {
         if (wifiScanResults != null) {
             Map<String, Integer> wifiScanResultsMap = null;
-            if (Preference.getString(context, "lastWifiScanResultsMap") != null) {
-                String lastUpdatedInfoString = Preference.getString(context, "lastWifiScanResultsMap");
+            if (Preference.getString(context, Constants.LAST_WIFI_SCAN_RESULT_SHARED_PREF) != null) {
+                String lastUpdatedInfoString = Preference.getString(context, Constants.LAST_WIFI_SCAN_RESULT_SHARED_PREF);
                 byte[] lastUpdatedInfoByteArray = Base64.decode(lastUpdatedInfoString, Base64.DEFAULT);
                 ByteArrayInputStream bais = new ByteArrayInputStream(lastUpdatedInfoByteArray);
                 ObjectInputStream ois = null;
@@ -279,7 +279,7 @@ public class NetworkInfoService extends Service {
                     oos.writeObject(wifiScanResultsMap);
                     String stringObject = null;
                     stringObject = Base64.encodeToString(bao.toByteArray(), Base64.DEFAULT);
-                    Preference.putString(context, "lastWifiScanResultsMap", stringObject);
+                    Preference.putString(context, Constants.LAST_WIFI_SCAN_RESULT_SHARED_PREF, stringObject);
                 } catch (IOException e) {
                     throw new AndroidAgentException("Error occurred while serializing lastWifiScanResultsMap object", e);
                 }

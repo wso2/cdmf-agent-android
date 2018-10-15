@@ -109,8 +109,8 @@ public class DeviceInfoPayload {
     private void getInfo() throws AndroidAgentException {
 
         HashMap<String, String> keyValPair = null;
-        if (Preference.getString(context, "lastDeviceObject") != null) {
-            String lastUpdatedInfoString = Preference.getString(context, "lastDeviceObject");
+        if (Preference.getString(context, Constants.LAST_DEVICE_INFO_SHARED_PREF) != null) {
+            String lastUpdatedInfoString = Preference.getString(context, Constants.LAST_DEVICE_INFO_SHARED_PREF);
             byte[] lastUpdatedInfoByteArray = Base64.decode(lastUpdatedInfoString, Base64.DEFAULT);
             ByteArrayInputStream bais = new ByteArrayInputStream(lastUpdatedInfoByteArray);
             ObjectInputStream ois = null;
@@ -467,7 +467,7 @@ public class DeviceInfoPayload {
             oos.writeObject(keyValPair);
             String stringObject = null;
             stringObject = Base64.encodeToString(bao.toByteArray(), Base64.DEFAULT);
-            Preference.putString(context, "lastDeviceObject", stringObject);
+            Preference.putString(context, Constants.LAST_DEVICE_INFO_SHARED_PREF, stringObject);
         } catch (IOException e) {
             throw new AndroidAgentException("Error occurred while serializing policy operation object", e);
         }

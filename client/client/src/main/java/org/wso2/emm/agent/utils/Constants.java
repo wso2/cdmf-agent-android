@@ -70,6 +70,12 @@ public class Constants {
 	public static final boolean HIDE_ERROR_DIALOG = false;
 
 	/**
+	 * Device info payload.
+	 */
+	public static final String LAST_DEVICE_INFO_SHARED_PREF = "lastDeviceObject";
+	public static final String LAST_WIFI_SCAN_RESULT_SHARED_PREF = "lastWifiScanResultsMap";
+
+	/**
 	 * Log publishers
 	 */
 	public final class LogPublisher {
@@ -352,6 +358,8 @@ public class Constants {
 		public static final String TRIGGER_HEARTBEAT = "TRIGGER_HEARTBEAT";
 		public static final String FIRMWARE_UPGRADE_AUTOMATIC_RETRY = "FIRMWARE_UPGRADE_AUTOMATIC_RETRY";
 		public static final String NOTIFIER_FREQUENCY = "NOTIFIER_FREQUENCY";
+		public static final String DEVICE_IDENTIFIER = "DEVICE_IDENTIFIER";
+		public static final String DEVICE_NAME = "DEVICE_NAME";
 	}
 
 	/**
@@ -410,6 +418,8 @@ public class Constants {
 		public static final String PACKAGE = "PACKAGE";
 		public static final String PID = "PID";
 		public static final String SHARED_DIRTY = "SHARED_DIRTY";
+		public static final String DEVICE_IDENTIFIER = "DEVICE_IDENTIFIER";
+		public static final String DEVICE_NAME = "DEVICE_NAME";
 	}
 
 	// sqlite database related tables

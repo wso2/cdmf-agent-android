@@ -32,6 +32,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Base64;
 import android.util.Log;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -269,6 +271,7 @@ public class CommonUtils {
 	public static String toJSON (Object obj) throws AndroidAgentException {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
+			mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 			return mapper.writeValueAsString(obj);
 		} catch (JsonMappingException e) {
 			throw new AndroidAgentException("Error occurred while mapping class to json", e);

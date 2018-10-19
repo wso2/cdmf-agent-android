@@ -17,6 +17,7 @@
 
 package org.wso2.emm.agent.beans;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +32,7 @@ import java.util.List;
  * This class represents the basic information of
  * the carbon-device-mgt supported device
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Device {
 
 	private String description;

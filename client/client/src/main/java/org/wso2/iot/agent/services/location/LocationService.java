@@ -138,7 +138,7 @@ public class LocationService extends Service implements LocationListener {
                         public void onSuccess(Location location) {
                             // Got last known location. In some rare situations this can be null.
                             if (location != null) {
-                                broadcastLocation(location);
+                                publishLocationInfo(location);
                             } else {
                                 Log.w(TAG, "No last known location found");
                             }
@@ -160,7 +160,7 @@ public class LocationService extends Service implements LocationListener {
                 }
             }
             if (location != null) {
-                broadcastLocation(location);
+                publishLocationInfo(location);
             } else {
                 Log.w(TAG, "No last known location found");
             }
@@ -173,7 +173,6 @@ public class LocationService extends Service implements LocationListener {
         broadcastIntent.setAction(Constants.LOCATION_UPDATE_BROADCAST_ACTION);
         broadcastIntent.putExtra(Constants.Location.LOCATION, location);
         sendBroadcast(broadcastIntent);
-        publishLocationInfo(location);
     }
 
     @Override
@@ -289,7 +288,7 @@ public class LocationService extends Service implements LocationListener {
                 Log.d(TAG, "Location changed> lat:" + location.getLatitude()
                         + " lon:" + location.getLongitude() + " provider:" + location.getProvider());
             }
-            broadcastLocation(location);
+            publishLocationInfo(location);
         }
     }
 
@@ -329,6 +328,7 @@ public class LocationService extends Service implements LocationListener {
         }
         String locationPayload = getLocationPayload(location);
         if (lastPublishedLocationTime < location.getTime()) {
+            broadcastLocation(location);
             EventPayload eventPayload = new EventPayload();
             eventPayload.setPayload(locationPayload);
             eventPayload.setType(Constants.EventListeners.LOCATION_EVENT_TYPE);

@@ -18,6 +18,7 @@
 
 package org.wso2.iot.agent.services;
 
+import android.app.NotificationManager;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
@@ -729,18 +730,32 @@ public class MessageProcessor implements APIResultCallBack {
                         }
                         performOperation(response);
                     }
+                    if (Preference.getBoolean(context, Constants.TOKEN_EXPIRED)) {
+                        NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                        if (mNotificationManager != null) {
+                            mNotificationManager.cancel(Constants.TOKEN_EXPIRED, Constants.SIGN_IN_NOTIFICATION_ID);
+                        }
+                        Preference.removePreference(context, Constants.TOKEN_EXPIRED);
+                        LocalNotification.startPolling(context);
+                    }
                 } else if (Constants.Status.AUTHENTICATION_FAILED.equals(responseStatus) &&
                         org.wso2.iot.agent.proxy.utils.Constants.REFRESH_TOKEN_EXPIRED.equals(response)) {
-                    Log.i(TAG, "Requesting credentials to obtain new token pair.");
-                    LocalNotification.stopPolling(context);
-                    Preference.putBoolean(context, Constants.TOKEN_EXPIRED, true);
-                    CommonUtils.displayNotification(context,
-                            R.drawable.ic_error_outline_white_24dp,
-                            context.getResources().getString(R.string.title_need_to_sign_in),
-                            context.getResources().getString(R.string.msg_need_to_sign_in),
-                            AuthenticationActivity.class,
-                            Constants.TOKEN_EXPIRED,
-                            Constants.SIGN_IN_NOTIFICATION_ID);
+                    int tokenFailureAttempts = Preference.getInt(context, Constants.TOKEN_FAILURE_ATTEMPTS);
+                    if (tokenFailureAttempts > Constants.MAX_TOKEN_FAILURE_ATTEMPTS) {
+                        Log.i(TAG, "Requesting credentials to obtain new token pair.");
+                        LocalNotification.stopPolling(context);
+                        Preference.putBoolean(context, Constants.TOKEN_EXPIRED, true);
+                        CommonUtils.displayNotification(context,
+                                R.drawable.ic_error_outline_white_24dp,
+                                context.getResources().getString(R.string.title_need_to_sign_in),
+                                context.getResources().getString(R.string.msg_need_to_sign_in),
+                                AuthenticationActivity.class,
+                                Constants.TOKEN_EXPIRED,
+                                Constants.SIGN_IN_NOTIFICATION_ID);
+                        Preference.removePreference(context, Constants.TOKEN_FAILURE_ATTEMPTS);
+                    } else {
+                        Preference.putInt(context, Constants.TOKEN_FAILURE_ATTEMPTS, ++tokenFailureAttempts);
+                    }
                 }
             }
             isInCriticalPath = false;

@@ -17,6 +17,7 @@
  */
 package org.wso2.iot.agent.proxy;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -47,9 +48,9 @@ public class IdentityProxy implements CallBack {
     private APIAccessCallBack apiAccessCallBack;
     private TokenCallBack tokenCallBack;
     private int requestCode = 0;
+    private static volatile boolean IS_TOKEN_RENEWING = false;
 
     private IdentityProxy() {
-
     }
 
     public static synchronized IdentityProxy getInstance() {
@@ -74,6 +75,7 @@ public class IdentityProxy implements CallBack {
 
     @Override
     public void receiveAccessToken(String status, String message, Token token) {
+        IS_TOKEN_RENEWING = false;
         if (Constants.DEBUG_ENABLED && token != null) {
             Log.d(TAG, "Receive Access Token: " + token.getAccessToken());
         }
@@ -83,6 +85,7 @@ public class IdentityProxy implements CallBack {
 
     @Override
     public void receiveNewAccessToken(String status, String message, Token token) {
+        IS_TOKEN_RENEWING = false;
         if (token != null) {
             if (Constants.DEBUG_ENABLED) {
                 Log.d(TAG, "Using Access Token: " + token.getAccessToken());
@@ -112,16 +115,24 @@ public class IdentityProxy implements CallBack {
         if (this.context == null) {
             this.context = context;
         }
-        SharedPreferences mainPref = context.getSharedPreferences(Constants.APPLICATION_PACKAGE
-                , Context.MODE_PRIVATE);
+        SharedPreferences mainPref = context.getSharedPreferences(Constants.APPLICATION_PACKAGE,
+                Context.MODE_PRIVATE);
         Editor editor = mainPref.edit();
         editor.putString(Constants.CLIENT_ID, clientID);
         editor.putString(Constants.CLIENT_SECRET, clientSecret);
         editor.putString(Constants.TOKEN_ENDPOINT, info.getTokenEndPoint());
         editor.apply();
         setAccessTokenURL(info.getTokenEndPoint());
-        AccessTokenHandler accessTokenHandler = new AccessTokenHandler(info, this);
-        accessTokenHandler.obtainAccessToken();
+        long lastTokenRenewalAt = mainPref.getLong(Constants.LAST_TOKEN_RENEWAL, 0);
+        if (!IS_TOKEN_RENEWING
+                || lastTokenRenewalAt + Constants.HttpClient.DEFAULT_TOKEN_TIME_OUT * 2 < System.currentTimeMillis()) {
+            IS_TOKEN_RENEWING = true;
+            editor = mainPref.edit();
+            editor.putLong(Constants.LAST_TOKEN_RENEWAL, System.currentTimeMillis());
+            editor.commit(); //Need to make sure pref is committed
+            AccessTokenHandler accessTokenHandler = new AccessTokenHandler(info, this);
+            accessTokenHandler.obtainAccessToken();
+        }
     }
 
     public void requestToken(Context context, TokenCallBack tokenCallBack, String clientID,
@@ -205,9 +216,20 @@ public class IdentityProxy implements CallBack {
         }
     }
 
-    public void refreshToken() {
-        RefreshTokenHandler refreshTokenHandler = new RefreshTokenHandler(token);
-        refreshTokenHandler.obtainNewAccessToken();
+    @SuppressLint("ApplySharedPref")
+    private void refreshToken() {
+        SharedPreferences mainPref = context.getSharedPreferences(Constants.APPLICATION_PACKAGE,
+                Context.MODE_PRIVATE);
+        long lastTokenRenewalAt = mainPref.getLong(Constants.LAST_TOKEN_RENEWAL, 0);
+        if (!IS_TOKEN_RENEWING
+                || lastTokenRenewalAt + Constants.HttpClient.DEFAULT_TOKEN_TIME_OUT * 2 < System.currentTimeMillis()) {
+            IS_TOKEN_RENEWING = true;
+            Editor editor = mainPref.edit();
+            editor.putLong(Constants.LAST_TOKEN_RENEWAL, System.currentTimeMillis());
+            editor.commit(); //Need to make sure pref is committed
+            RefreshTokenHandler refreshTokenHandler = new RefreshTokenHandler(token);
+            refreshTokenHandler.obtainNewAccessToken();
+        }
     }
 
     public Context getContext() {

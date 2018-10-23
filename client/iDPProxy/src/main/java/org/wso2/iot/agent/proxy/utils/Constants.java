@@ -88,6 +88,7 @@ public class Constants {
 	public static final String FAILURE_RESPONSE = "fail";
 	public final static String REFRESH_TOKEN = "refresh_token";
 	public final static String ACCESS_TOKEN = "access_token";
+	public final static String LAST_TOKEN_RENEWAL = "last_token_renewal";
 	public final static String EXPIRE_LABEL = "expires_in";
 	public static final String ERROR_LABEL = "error";
 	public static final String ERROR_DESCRIPTION_LABEL = "error_description";

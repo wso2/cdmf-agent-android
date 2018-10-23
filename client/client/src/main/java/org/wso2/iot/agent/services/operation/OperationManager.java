@@ -635,10 +635,10 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
                     op = operationsMapper.getOperation(op);
                     result.add(policyChecker.checkPolicyState(op));
                 }
-                operation.setStatus(resources.getString(R.string.operation_value_completed));
-                operation.setPayLoad(mapper.writeValueAsString(result));
-                resultBuilder.build(operation);
             }
+            operation.setStatus(resources.getString(R.string.operation_value_completed));
+            operation.setPayLoad(mapper.writeValueAsString(result));
+            resultBuilder.build(operation);
         } catch (IOException e) {
             operation.setStatus(resources.getString(R.string.operation_value_error));
             operation.setOperationResponse("Error in parsing policy monitor payload stream.");

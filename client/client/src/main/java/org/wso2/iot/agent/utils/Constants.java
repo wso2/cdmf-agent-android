@@ -79,6 +79,7 @@ public class Constants {
 	public static final int FIRMWARE_DOWNLOAD_OPERATION_TIMEOUT = 6 * 60 * 1000;
 	//Is user consent required for file upload from device to server
 	public static final boolean REQUIRE_CONSENT_FOR_FILE_UPLOAD = BuildConfig.REQUIRE_CONSENT_FOR_FILE_UPLOAD;
+	public static final int MAX_TOKEN_FAILURE_ATTEMPTS = 10;
 
 	// This is used to skip the license
 	public static final boolean SKIP_LICENSE = BuildConfig.SKIP_LICENSE;
@@ -154,6 +155,7 @@ public class Constants {
 	public static final String USERNAME_PATTERN = "[user]";
 	public static final String EMM_DB = "emm_db";
 	public static final String TOKEN_EXPIRED = "token_expired";
+	public static final String TOKEN_FAILURE_ATTEMPTS = "token_failures";
 	public static final String PERMISSION_MISSING = "permission_missing";
 	public static final String LOCATION_DISABLED = "location_disabled";
 	public static final int SIGN_IN_NOTIFICATION_ID = 0;

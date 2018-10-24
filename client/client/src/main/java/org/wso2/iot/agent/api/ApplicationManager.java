@@ -135,20 +135,8 @@ public class ApplicationManager {
                     }
                     Preference.putString(context, context.getResources().getString(R.string.shared_pref_installed_file),
                             resources.getString(R.string.download_mgr_download_file_name));
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        Uri apkURI = FileProvider.getUriForFile(
-                                context,
-                                context.getApplicationContext()
-                                        .getPackageName() + ".provider", new File(downloadDirectoryPath + File.separator +
-                                        resources.getString(R.string.download_mgr_download_file_name)));
-                        triggerInstallation(apkURI);
-
-                    } else {
-                        triggerInstallation(Uri.fromFile(new File(downloadDirectoryPath + File.separator +
-                                resources.getString(R.string.download_mgr_download_file_name))));
-                    }
-
+                    triggerInstallation(Uri.fromFile(new File(downloadDirectoryPath + File.separator +
+                            resources.getString(R.string.download_mgr_download_file_name))));
                 } else {
                     Preference.putString(context, context.getResources().getString(
                             R.string.app_install_status), Constants.AppState.DOWNLOAD_FAILED);
@@ -262,27 +250,6 @@ public class ApplicationManager {
         return packagesInstalledByUser;
     }
 
-    /**
-     * Returns the app name for a particular package name.
-     *
-     * @param packageName - Package name which you need the app name.
-     * @return - Application name.
-     */
-    public String getAppNameFromPackage(String packageName) {
-        String appName = null;
-        List<PackageInfo> packages = packageManager.
-                getInstalledPackages(SYSTEM_APPS_DISABLED_FLAG);
-        for (PackageInfo packageInfo : packages) {
-            if (packageName.equals(packageInfo.packageName)) {
-                appName = packageInfo.applicationInfo.
-                        loadLabel(packageManager).toString();
-                break;
-            }
-        }
-
-        return appName;
-    }
-
     public boolean isPackageInstalled(String packagename) {
         try {
             PackageInfo packageInfo = packageManager.getPackageInfo(packagename, 0);
@@ -316,20 +283,16 @@ public class ApplicationManager {
     private void startInstallerIntent(Uri fileUri) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
                 policyManager.isDeviceOwnerApp(Constants.AGENT_PACKAGE)) {
-            Uri packageFileUri;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                packageFileUri = convertContentUriToFileUri(fileUri);
-            } else {
-                packageFileUri = fileUri;
-            }
-            installPackage(packageFileUri);
+            installPackage(fileUri);
         } else {
             boolean isUnknownSourcesDisallowed = Preference.getBoolean(context,
                     Constants.PreferenceFlag.DISALLOW_UNKNOWN_SOURCES);
             CommonUtils.allowUnknownSourcesForProfile(context, !isUnknownSourcesDisallowed);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
-                intent.setDataAndType(fileUri, resources.getString(R.string.application_mgr_mime));
+                Uri apkURI = FileProvider.getUriForFile(context,
+                        Constants.AGENT_PACKAGE + ".provider", new File(fileUri.getPath()));
+                intent.setDataAndType(apkURI, resources.getString(R.string.application_mgr_mime));
                 intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 context.startActivity(intent);
             } else {
@@ -339,14 +302,6 @@ public class ApplicationManager {
                 context.startActivity(intent);
             }
         }
-    }
-
-    private Uri convertContentUriToFileUri(Uri contentUri) {
-        String uriString = contentUri.toString();
-        uriString = "file://" + Environment.getExternalStorageDirectory() +
-                uriString.replace("content://" + Constants.AGENT_PACKAGE
-                        + ".provider/external_files", "");
-        return Uri.parse(uriString);
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
@@ -377,8 +332,6 @@ public class ApplicationManager {
 
             session.commit(createIntentSender(context, sessionId, packageName));
             return true;
-        } catch (IOException e) {
-            Log.e(TAG, "Error occurred while installing application '" + packageName + "'", e);
         } catch (Exception e) {
             Log.e(TAG, "Error occurred while installing application '" + packageName + "'", e);
         }
@@ -618,11 +571,6 @@ public class ApplicationManager {
                     Calendar.getInstance().getTimeInMillis());
         }
 
-        if (packageName != null &&
-                !packageName.contains(resources.getString(R.string.application_package_prefix))) {
-            packageName = resources.getString(R.string.application_package_prefix) + packageName;
-        }
-
         if(!this.isPackageInstalled(packageName)){
             String message = "Package '" + packageName + "' is not installed in the device or invalid package name";
             if (operation != null) {
@@ -639,7 +587,12 @@ public class ApplicationManager {
                         context.getResources().getString(R.string.app_uninstall_failed_message),
                         message);
             }
-            throw new AndroidAgentException("Package '" + packageName + "' is not installed in the device");
+            throw new AndroidAgentException(message);
+        }
+
+        if (packageName != null &&
+                !packageName.contains(resources.getString(R.string.application_package_prefix))) {
+            packageName = resources.getString(R.string.application_package_prefix) + packageName;
         }
 
         if (Constants.SYSTEM_APP_ENABLED) {

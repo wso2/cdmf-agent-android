@@ -64,7 +64,7 @@ public class AgentApplication extends MultiDexApplication {
         Thread.setDefaultUncaughtExceptionHandler(_unCaughtExceptionHandler);
     }
 
-    public void onCreate(){
+    public void onCreate() {
         super.onCreate();
 
         if (Constants.LogPublisher.LOG_PUBLISHER_IN_USE.equals(Constants.LogPublisher.SPLUNK_PUBLISHER)) {

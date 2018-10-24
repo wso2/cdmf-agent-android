@@ -279,7 +279,7 @@
 
         <!-- android 7 requirement -->
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name=".AgentFileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">

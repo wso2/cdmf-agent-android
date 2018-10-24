@@ -22,7 +22,6 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Environment;
 import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 
@@ -32,8 +31,6 @@ import org.wso2.iot.agent.services.AgentStartupReceiver;
 import org.wso2.iot.agent.services.EnrollmentService;
 import org.wso2.iot.agent.utils.CommonUtils;
 import org.wso2.iot.agent.utils.Constants;
-
-import java.io.IOException;
 
 public class AgentApplication extends MultiDexApplication {
 
@@ -82,13 +79,6 @@ public class AgentApplication extends MultiDexApplication {
 
         if (Constants.SYSTEM_APP_ENABLED) {
             CommonUtils.registerSystemAppReceiver(this);
-        }
-
-        String filePath = Environment.getExternalStorageDirectory() + "/logcat-" + System.currentTimeMillis() + ".txt";
-        try {
-            Runtime.getRuntime().exec(new String[]{"logcat", "-f", filePath});
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }

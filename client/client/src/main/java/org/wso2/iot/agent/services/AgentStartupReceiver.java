@@ -95,6 +95,22 @@ public class AgentStartupReceiver extends BroadcastReceiver {
             LocalNotification.startPolling(context);
         }
 
+        /**
+         * Clear the device info and wifi info payloads stored in shared preference
+         * when the device restarts.
+         */
+        if(Preference.getString(context, Constants.LAST_DEVICE_INFO_SHARED_PREF) != null) {
+            Preference.putString(context, Constants.LAST_DEVICE_INFO_SHARED_PREF,null);
+        }
+
+        if(Preference.getString(context, Constants.LAST_WIFI_SCAN_RESULT_SHARED_PREF) != null) {
+            Preference.putString(context, Constants.LAST_WIFI_SCAN_RESULT_SHARED_PREF,null);
+        }
+
+        if(Preference.getString(context, Constants.LAST_APP_LIST_SHARED_PREF) != null) {
+            Preference.putString(context, Constants.LAST_APP_LIST_SHARED_PREF,null);
+        }
+
         if (Intent.ACTION_BOOT_COMPLETED.equals(action) || Constants.AGENT_UPDATED_BROADCAST_ACTION.equals(action)) {
             if (Constants.OWNERSHIP_COSU.equals(Constants.DEFAULT_OWNERSHIP)) {
                 Preference.putBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START, true);

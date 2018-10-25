@@ -219,6 +219,14 @@ public class Constants {
 	public static final boolean FCM_FALLBACK_PULL_ENABLED = BuildConfig.FCM_FALLBACK_PULL_ENABLED;
 
 	/**
+	 * Device info payload.
+	 */
+	public static final String LAST_DEVICE_INFO_SHARED_PREF = "lastDeviceObject";
+	public static final String LAST_WIFI_SCAN_RESULT_SHARED_PREF = "lastWifiScanResultsMap";
+	public static final String LAST_APP_LIST_SHARED_PREF = "lastApplicationList";
+	public static final String NO_APPLIST_CHANGE = "SAME_APPLICATION_LIST";
+
+	/**
 	 * HTTP clients
 	 */
 	public final class RetryPolicy {
@@ -486,6 +494,8 @@ public class Constants {
 		public static final String PID = "PID";
 		public static final String SHARED_DIRTY = "SHARED_DIRTY";
 		public static final String PHONE_NUMBER = "PHONE_NUMBER";
+		public static final String DEVICE_IDENTIFIER = "DEVICE_IDENTIFIER";
+		public static final String DEVICE_NAME = "DEVICE_NAME";
 
 		private Device() {
 			throw new AssertionError();

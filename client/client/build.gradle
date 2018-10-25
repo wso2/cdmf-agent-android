@@ -176,7 +176,7 @@ android {
             //Publish location changes to server
             buildConfigField "boolean", "LOCATION_PUBLISHING_ENABLED", "false"
             //Collect WiFi scan results
-            buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "false"
+            buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "true"
             //Is user consent required for file upload from device to server
             buildConfigField "boolean", "REQUIRE_CONSENT_FOR_FILE_UPLOAD", "true"
         }
@@ -307,7 +307,7 @@ android {
             //Publish location changes to server
             buildConfigField "boolean", "LOCATION_PUBLISHING_ENABLED", "false"
             //Collect WiFi scan results
-            buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "false"
+            buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "true"
             //Is user consent required for file upload from device to server
             buildConfigField "boolean", "REQUIRE_CONSENT_FOR_FILE_UPLOAD", "true"
             debuggable true
@@ -576,7 +576,7 @@ android {
             //Publish location changes to server
             buildConfigField "boolean", "LOCATION_PUBLISHING_ENABLED", "true"
             //Collect WiFi scan results
-            buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "false"
+            buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "true"
             //Is user consent required for file upload from device to server
             buildConfigField "boolean", "REQUIRE_CONSENT_FOR_FILE_UPLOAD", "true"
         }
@@ -709,7 +709,7 @@ android {
             //Publish location changes to server
             buildConfigField "boolean", "LOCATION_PUBLISHING_ENABLED", "true"
             //Collect WiFi scan results
-            buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "false"
+            buildConfigField "boolean", "WIFI_SCANNING_ENABLED", "true"
             //Is user consent required for file upload from device to server
             buildConfigField "boolean", "REQUIRE_CONSENT_FOR_FILE_UPLOAD", "true"
         }

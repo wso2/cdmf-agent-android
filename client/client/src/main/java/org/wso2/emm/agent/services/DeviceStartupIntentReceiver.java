@@ -111,8 +111,8 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
         if (Preference.getString(context, Constants.LAST_WIFI_SCAN_RESULT_SHARED_PREF) != null) {
             Preference.putString(context, Constants.LAST_WIFI_SCAN_RESULT_SHARED_PREF, null);
         }
-        if(Preference.getString(context, Constants.LAST_APP_LIST_SHARED_PREF) != null) {
-            Preference.putString(context, Constants.LAST_APP_LIST_SHARED_PREF,null);
+        if (Preference.getString(context, Constants.LAST_APP_LIST_SHARED_PREF) != null) {
+            Preference.putString(context, Constants.LAST_APP_LIST_SHARED_PREF, null);
         }
     }
 

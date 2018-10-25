@@ -102,7 +102,7 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
         }
 
         /**
-         * Clear the device info and wifi info payloads stored in shared preference
+         * Clear the device info, Application list and wifi info payloads stored in shared preference
          * when the device restarts.
          */
         if (Preference.getString(context, Constants.LAST_DEVICE_INFO_SHARED_PREF) != null) {
@@ -110,6 +110,9 @@ public class DeviceStartupIntentReceiver extends BroadcastReceiver {
         }
         if (Preference.getString(context, Constants.LAST_WIFI_SCAN_RESULT_SHARED_PREF) != null) {
             Preference.putString(context, Constants.LAST_WIFI_SCAN_RESULT_SHARED_PREF, null);
+        }
+        if (Preference.getString(context, Constants.LAST_APP_LIST_SHARED_PREF) != null) {
+            Preference.putString(context, Constants.LAST_APP_LIST_SHARED_PREF, null);
         }
     }
 

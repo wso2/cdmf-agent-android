@@ -221,6 +221,8 @@ public class Constants {
 	 */
 	public static final String LAST_DEVICE_INFO_SHARED_PREF = "lastDeviceObject";
 	public static final String LAST_WIFI_SCAN_RESULT_SHARED_PREF = "lastWifiScanResultsMap";
+	public static final String LAST_APP_LIST_SHARED_PREF = "lastApplicationList";
+	public static final String NO_APPLIST_CHANGE = "SAME_APPLICATION_LIST";
 
 	/**
 	 * HTTP clients

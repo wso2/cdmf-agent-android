@@ -34,6 +34,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
 
 import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.json.JSONArray;
@@ -268,6 +270,34 @@ public abstract class OperationManager implements APIResultCallBack, VersionBase
         JSONArray result = new JSONArray();
         RuntimeInfo runtimeInfo = new RuntimeInfo(context);
         Map<String, Application> applications = runtimeInfo.getAppMemory();
+        Gson gson = new Gson();
+        JsonElement element = null;
+        if (Preference.getString(context, Constants.LAST_APP_LIST_SHARED_PREF) == null) {
+            element = gson.toJsonTree(apps, new TypeToken<ArrayList<DeviceAppInfo>>() {
+            }.getType());
+            if (!element.isJsonArray()) {
+                throw new AndroidAgentException("Invalid JSON format. Not JSON array.");
+            }
+            String applicationList = element.getAsJsonArray().toString().replace(" ", "");
+            Preference.putString(context, Constants.LAST_APP_LIST_SHARED_PREF, applicationList);
+        } else {
+            String previousAppList = Preference.getString(context, Constants.LAST_APP_LIST_SHARED_PREF);
+            element = gson.toJsonTree(apps, new TypeToken<ArrayList<DeviceAppInfo>>() {
+            }.getType());
+            if (!element.isJsonArray()) {
+                throw new AndroidAgentException("Invalid JSON format. Not JSON array.");
+            }
+            String newApplicationList = element.getAsJsonArray().toString().replace(" ", "");
+            if (previousAppList.equals(newApplicationList)) {
+                operation.setOperationResponse(Constants.NO_APPLIST_CHANGE);
+                operation.setStatus(resources.getString(R.string.operation_value_completed));
+                resultBuilder.build(operation);
+                return;
+            } else {
+                Preference.putString(context, Constants.LAST_APP_LIST_SHARED_PREF, newApplicationList);
+            }
+        }
+
         for (DeviceAppInfo infoApp : apps) {
             JSONObject app = new JSONObject();
             try {

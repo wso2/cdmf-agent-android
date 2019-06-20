@@ -119,6 +119,8 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 	private static final String[] SUBSCRIBED_API = new String[]{"android"};
 	private Tenant currentTenant;
 	private DevicePolicyManager devicePolicyManager;
+	private static final int KIOSK_EXIT_CLICK_COUNT = 6;
+	private static final int DEVICE_SCOPE_PREFIX = "device_";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -246,7 +248,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 				@Override
 				public void onClick(View v) {
 					kioskExit++;
-					if (kioskExit == 6) {
+					if (KIOSK_EXIT_CLICK_COUNT == kioskExit) {
 						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 							stopLockTask();
 						}
@@ -590,7 +592,7 @@ public class AuthenticationActivity extends AppCompatActivity implements APIAcce
 			}
 
 			//adding device-specific scope
-			String deviceScope = "device_" + deviceInfo.getDeviceId();
+			String deviceScope = DEVICE_SCOPE_PREFIX + deviceInfo.getDeviceId();
 			info.setScopes(deviceScope);
 
 			if (tenantDomain != null && !tenantDomain.toString().trim().isEmpty()) {

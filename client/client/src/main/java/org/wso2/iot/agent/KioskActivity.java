@@ -47,6 +47,7 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import org.apache.commons.lang3.StringUtils;
 import org.wso2.iot.agent.adapters.AppDrawerAdapter;
 import org.wso2.iot.agent.api.ApplicationManager;
 import org.wso2.iot.agent.api.DeviceInfo;
@@ -168,7 +169,7 @@ public class KioskActivity extends Activity {
             try {
                 startLockTask();
             } catch (Exception e) {
-                Log.e(TAG, e.getMessage());
+                Log.e(TAG, e.getMessage(), e);
             }
         }
 
@@ -371,12 +372,15 @@ public class KioskActivity extends Activity {
         }
     }
 
-    /*Checks whether there is an already installed app and if exists the app will be launched*/
+    /**
+     * Checks whether there is an already installed app and if exists the app will be launched.
+     */
     private void launchKioskAppIfExists() {
+
         Preference.putBoolean(context.getApplicationContext(), Constants.AGENT_FRESH_START, false);
         String appList = Preference.
                 getString(context.getApplicationContext(), Constants.KIOSK_APP_PACKAGE_NAME);
-        if (appList != null && !appList.equals("")) {
+        if (StringUtils.isNotEmpty(appList)) {
             String[] packageName = appList.split(context.getString(R.string.kiosk_application_package_split_regex));
             Intent launchIntent = getApplicationContext().getPackageManager()
                     .getLaunchIntentForPackage(packageName[packageName.length - 1]);
@@ -416,7 +420,8 @@ public class KioskActivity extends Activity {
     }
 
     private void launchKioskApp(String packageName) {
-        if (packageName != null && !packageName.equals("")) {
+
+        if (StringUtils.isNotEmpty(packageName)) {
             Intent launchIntent = getApplicationContext().getPackageManager()
                     .getLaunchIntentForPackage(packageName);
             launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -427,6 +432,7 @@ public class KioskActivity extends Activity {
     }
 
     private void refreshAppDrawer() {
+
         String appList = Preference.getString(context, Constants.KIOSK_APP_PACKAGE_NAME);
         if (appList == null) {
             if (Preference.getBoolean(context, Constants.PreferenceFlag.DEVICE_INITIALIZED)) {
